@@ -9,8 +9,8 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
-import { RegionTopbar } from '@/components/common/RegionTopbar/RegionTopbar'
-import type { DateRange } from '@/components/common/DateRangeFilter/DateRangeFilter'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { mockChemists, chemistKpis } from '@/features/chemists/mockChemists'
 import type { Chemist } from '@/types/chemist'
 import type { PartnerZone, PartnerStatus } from '@/types/partner'
@@ -25,8 +25,12 @@ const ALL_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
 
 export function ChemistListPage() {
   const navigate = useNavigate()
-  const [region, setRegion] = useState('All India')
-  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null, presetLabel: 'Last 30 Days' })
+  const { region } = useRegionFilter()
+  useRegionTopbarHeader({
+    icon: <LocalPharmacyIcon fontSize="small" />,
+    title: 'Chemists',
+    subtitle: 'Registered chemist partners with geo-tagged shops.',
+  })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ChemistFilters>({ zones: [], statuses: [] })
 
@@ -61,7 +65,7 @@ export function ChemistListPage() {
     },
     { key: 'ownerName', header: 'Owner Name', sortable: true, render: (row) => row.ownerName },
     { key: 'email', header: 'Email Address', sortable: true, render: (row) => row.email },
-    { key: 'phone', header: 'Phone Number', render: (row) => row.phone },
+    { key: 'phone', header: 'Phone Number', minWidth: 160, render: (row) => row.phone },
     { key: 'city', header: 'Location (City)', sortable: true, render: (row) => row.city },
     { key: 'zone', header: 'Zone', sortable: true, render: (row) => row.zone },
     { key: 'status', header: 'Status', sortable: true, sortValue: (row) => row.status, render: (row) => <StatusBadge status={row.status} /> },
@@ -93,16 +97,6 @@ export function ChemistListPage() {
 
   return (
     <>
-      <RegionTopbar
-        icon={<LocalPharmacyIcon fontSize="small" />}
-        title="Chemists"
-        subtitle="Registered chemist partners with geo-tagged shops."
-        region={region}
-        onRegionChange={setRegion}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-      />
-
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard

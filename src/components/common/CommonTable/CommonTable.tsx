@@ -44,6 +44,7 @@ export interface CommonTableColumn<T> {
   header: string
   render: (row: T) => React.ReactNode
   width?: string | number
+  minWidth?: string | number
   align?: 'left' | 'right' | 'center'
   /** Enables the sortable header. Required alongside a comparable value for sorting to work. */
   sortable?: boolean
@@ -278,7 +279,7 @@ export function CommonTable<T>({
                         align={col.align}
                         sx={{
                           width: col.width,
-                          minWidth: col.width ?? 120,
+                          minWidth: col.minWidth ?? col.width ?? 120,
                           maxWidth: col.width ?? 200,
                           fontSize: '0.6875rem',
                         }}

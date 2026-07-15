@@ -7,6 +7,8 @@ export interface RouteEntry {
   requiredRoles?: UserRole[]
   /** True when field-level requirements are not yet specified upstream. */
   pending?: boolean
+  /** Opts this listing page into the global RegionTopbar rendered by DashboardLayout. */
+  showRegionTopbar?: boolean
 }
 
 /** Paths intentionally left with placeholder data models pending real requirements. */
@@ -28,6 +30,7 @@ function flattenItems(items: MenuItem[]): RouteEntry[] {
         path: item.path,
         breadcrumbLabel: item.label,
         pending: PENDING_PATHS.has(item.path),
+        showRegionTopbar: item.showRegionTopbar,
       })
     }
     if (item.children) {

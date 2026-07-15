@@ -31,6 +31,8 @@ export interface MenuItem {
   icon?: SvgIconComponent
   badgeCount?: number
   children?: MenuItem[]
+  /** Opts this listing page into the global RegionTopbar rendered by DashboardLayout. */
+  showRegionTopbar?: boolean
 }
 
 export interface MenuGroup {
@@ -47,29 +49,29 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'FIELD OPERATIONS',
     items: [
-      { label: 'Live Scan Feed', path: '/field-operations/live-scan-feed', icon: MyLocationIcon },
+      { label: 'Live Scan Feed', path: '/field-operations/live-scan-feed', icon: MyLocationIcon, showRegionTopbar: true },
       {
         label: 'Security Alerts (Normal Alert)',
         path: '/field-operations/security-alerts',
         icon: GppMaybeIcon,
       },
-      { label: 'Geo Fence Management', path: '/field-operations/geo-fence-management', icon: FenceIcon },
+      { label: 'Geo Fence Management', path: '/field-operations/geo-fence-management', icon: FenceIcon, showRegionTopbar: true },
     ],
   },
   {
     groupLabel: 'PARTNERS',
     icon: PeopleAltIcon,
     items: [
-      { label: 'Dealers', path: '/partners/dealers', icon: StorefrontIcon },
-      { label: 'Chemists', path: '/partners/chemists', icon: LocalPharmacyIcon },
+      { label: 'Dealers', path: '/partners/dealers', icon: StorefrontIcon, showRegionTopbar: true },
+      { label: 'Chemists', path: '/partners/chemists', icon: LocalPharmacyIcon, showRegionTopbar: true },
     ],
   },
   {
     groupLabel: 'VERIFICATION',
     icon: VerifiedUserIcon,
     items: [
-      { label: 'Approval Requests', path: '/verification/approval-requests', icon: RuleIcon, badgeCount: 3 },
-      { label: 'Rejected Requests', path: '/verification/rejected-requests', icon: BlockIcon },
+      { label: 'Approval Requests', path: '/verification/approval-requests', icon: RuleIcon, badgeCount: 3, showRegionTopbar: true },
+      { label: 'Rejected Requests', path: '/verification/rejected-requests', icon: BlockIcon, showRegionTopbar: true },
     ],
   },
   {

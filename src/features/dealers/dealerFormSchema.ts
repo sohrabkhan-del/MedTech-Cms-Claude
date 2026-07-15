@@ -8,6 +8,10 @@ export const dealerFormSchema = z.object({
   licenseNumber: z.string().min(3, 'License number is required'),
   city: z.string().min(2, 'City is required'),
   zone: z.enum(['North', 'South', 'East', 'West']),
+  registeredAddress: z.string().min(5, 'Godown address is required'),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
+  assignedMr: z.string().optional(),
   notes: z.string().optional(),
 })
 
@@ -21,5 +25,9 @@ export const dealerFormDefaults: DealerFormValues = {
   licenseNumber: '',
   city: '',
   zone: 'North',
+  registeredAddress: '',
+  latitude: '',
+  longitude: '',
+  assignedMr: '',
   notes: '',
 }

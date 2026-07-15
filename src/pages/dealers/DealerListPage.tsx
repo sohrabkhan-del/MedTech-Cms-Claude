@@ -19,8 +19,8 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
-import { RegionTopbar } from '@/components/common/RegionTopbar/RegionTopbar'
-import type { DateRange } from '@/components/common/DateRangeFilter/DateRangeFilter'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { mockDealers, dealerKpis } from '@/features/dealers/mockDealers'
 import type { Dealer } from '@/types/dealer'
 import type { PartnerZone, PartnerStatus } from '@/types/partner'
@@ -35,11 +35,11 @@ const ALL_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
 
 export function DealerListPage() {
   const navigate = useNavigate()
-  const [region, setRegion] = useState('All India')
-  const [dateRange, setDateRange] = useState<DateRange>({
-    from: null,
-    to: null,
-    presetLabel: 'Last 30 Days',
+  const { region } = useRegionFilter()
+  useRegionTopbarHeader({
+    icon: <StorefrontIcon fontSize="small" />,
+    title: 'Dealers',
+    subtitle: 'Registered dealer partners across the network.',
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<DealerFilters>({
@@ -64,6 +64,7 @@ export function DealerListPage() {
     {
       key: 'shopName',
       header: 'Godown Name',
+      minWidth: 220,
       sortable: true,
       sortValue: (row) => row.shopName,
       render: (row) => (
@@ -105,7 +106,7 @@ export function DealerListPage() {
       sortable: true,
       render: (row) => row.email,
     },
-    { key: 'phone', header: 'Phone', render: (row) => row.phone },
+    { key: 'phone', header: 'Phone', minWidth: 160, render: (row) => row.phone },
     {
       key: 'city',
       header: 'Location',
@@ -124,16 +125,6 @@ export function DealerListPage() {
 
   return (
     <>
-      <RegionTopbar
-        icon={<StorefrontIcon fontSize="small" />}
-        title="Dealers"
-        subtitle="Registered dealer partners across the network."
-        region={region}
-        onRegionChange={setRegion}
-        dateRange={dateRange}
-        onDateRangeChange={setDateRange}
-      />
-
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard

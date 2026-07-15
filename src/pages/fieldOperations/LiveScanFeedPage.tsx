@@ -1,0 +1,928 @@
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Box,
+  Card,
+  Chip,
+  Grid,
+  IconButton,
+  MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import MyLocationIcon from '@mui/icons-material/MyLocation'
+import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'
+import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
+import CancelOutlined from '@mui/icons-material/CancelOutlined'
+import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
+import RefreshIcon from '@mui/icons-material/Refresh'
+import PauseIcon from '@mui/icons-material/Pause'
+import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import { StatCard } from '@/components/common/StatCard/StatCard'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
+import { SimpleTable } from '@/components/common/SimpleTable/SimpleTable'
+import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import {
+  mockScanEvents,
+  generateLiveScanEvent,
+  getScanEventById,
+  getUserScanSummary,
+  getUserScanHistory,
+} from '@/features/fieldOperations/mockScanFeed'
+import type { ScanEvent, ScanResult, ScanUserRole } from '@/types/scanFeed'
+import type { PartnerZone } from '@/types/partner'
+
+const MAX_LIVE_ROWS = 200
+const NEW_ROW_HIGHLIGHT_MS = 2000
+
+const livePulseKeyframes = {
+  '@keyframes live-scan-pulse': {
+    '0%': { opacity: 1, boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.5)' },
+    '70%': { opacity: 0.6, boxShadow: '0 0 0 6px rgba(46, 125, 50, 0)' },
+    '100%': { opacity: 1, boxShadow: '0 0 0 0 rgba(46, 125, 50, 0)' },
+  },
+}
+
+const RESULT_CONFIG: Record<
+  ScanResult,
+  { label: string; color: 'success' | 'error' }
+> = {
+  success: { label: 'Success', color: 'success' },
+  failed_outside_geofence: { label: 'Outside Geo-fence', color: 'error' },
+  failed_duplicate_barcode: { label: 'Duplicate Barcode', color: 'error' },
+  failed_invalid_barcode: { label: 'Invalid Barcode', color: 'error' },
+  failed_expired_package: { label: 'Expired Package', color: 'error' },
+  failed_already_redeemed: { label: 'Already Redeemed', color: 'error' },
+}
+
+function ResultChip({ result }: { result: ScanResult }) {
+  const config = RESULT_CONFIG[result]
+  return (
+    <Chip
+      label={config.label}
+      size="small"
+      color={config.color}
+      variant="filled"
+    />
+  )
+}
+
+function ValidationRow({ label, passed }: { label: string; passed: boolean }) {
+  return (
+    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', py: 0.75 }}>
+      {passed ? (
+        <CheckCircleOutlined fontSize="small" sx={{ color: 'success.main' }} />
+      ) : (
+        <CancelOutlined fontSize="small" sx={{ color: 'error.main' }} />
+      )}
+      <Typography variant="body1">{label}</Typography>
+    </Stack>
+  )
+}
+
+interface ScanFilters extends Record<string, unknown> {
+  userRole: ScanUserRole | 'all'
+  result: ScanResult | 'all'
+}
+
+export function LiveScanFeedPage() {
+  const { region } = useRegionFilter()
+  const [tab, setTab] = useState(0)
+
+  useRegionTopbarHeader(
+    {
+      icon: <MyLocationIcon fontSize="small" />,
+      title: 'Live Scan Feed',
+      subtitle: 'Real-time barcode scanning activity across Dealers and Chemists.',
+      live: true,
+    },
+    tab === 0,
+  )
+
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
+  const [selectedScanId, setSelectedScanId] = useState<string | null>(null)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<ScanFilters>({
+    userRole: 'all',
+    result: 'all',
+  })
+  const [liveScans, setLiveScans] = useState<ScanEvent[]>(mockScanEvents)
+  const [newRowIds, setNewRowIds] = useState<Set<string>>(new Set())
+  const [isLive, setIsLive] = useState(true)
+
+  useEffect(() => {
+    if (!isLive) return
+
+    const interval = setInterval(() => {
+      const nextScan = generateLiveScanEvent()
+      setLiveScans((prev) => [nextScan, ...prev].slice(0, MAX_LIVE_ROWS))
+      setNewRowIds((prev) => new Set(prev).add(nextScan.id))
+
+      setTimeout(() => {
+        setNewRowIds((prev) => {
+          const next = new Set(prev)
+          next.delete(nextScan.id)
+          return next
+        })
+      }, NEW_ROW_HIGHLIGHT_MS)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [isLive])
+
+  const topbarZone = region === 'All India' ? null : (region as PartnerZone)
+
+  const liveKpis = useMemo(() => {
+    const successfulScans = liveScans.filter((scan) => scan.result === 'success').length
+    return {
+      totalScans: liveScans.length,
+      successfulScans,
+      failedScans: liveScans.length - successfulScans,
+      geoFenceViolations: liveScans.filter((scan) => scan.result === 'failed_outside_geofence').length,
+    }
+  }, [liveScans])
+
+  const filteredScans = useMemo(
+    () =>
+      liveScans.filter((scan) => {
+        const regionMatch = !topbarZone || scan.region === topbarZone
+        const roleMatch =
+          appliedFilters.userRole === 'all' ||
+          scan.userRole === appliedFilters.userRole
+        const resultMatch =
+          appliedFilters.result === 'all' ||
+          scan.result === appliedFilters.result
+        return regionMatch && roleMatch && resultMatch
+      }),
+    [liveScans, appliedFilters, topbarZone],
+  )
+
+  const openUser = (userId: string) => {
+    setSelectedUserId(userId)
+    setTab(1)
+  }
+
+  const openScan = (scanId: string) => {
+    setSelectedScanId(scanId)
+    setTab(2)
+  }
+
+  const columns: CommonTableColumn<ScanEvent>[] = [
+    {
+      key: 'scanDateTime',
+      header: 'Scan Date & Time',
+      minWidth: 170,
+      sortable: true,
+      render: (row) => (
+        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+          {newRowIds.has(row.id) && (
+            <Box
+              sx={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                backgroundColor: 'success.main',
+                animation: 'live-scan-pulse 1.2s ease-in-out infinite',
+                ...livePulseKeyframes,
+              }}
+            />
+          )}
+          <Typography
+            sx={{
+              fontSize: '0.8125rem',
+              fontWeight: newRowIds.has(row.id) ? 700 : 400,
+              color: newRowIds.has(row.id) ? 'success.dark' : 'inherit',
+            }}
+          >
+            {row.scanDateTime}
+          </Typography>
+        </Stack>
+      ),
+    },
+    {
+      key: 'userName',
+      header: 'User Name',
+      minWidth: 160,
+      sortable: true,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => openUser(row.userId)}
+        >
+          {row.userName}
+        </Typography>
+      ),
+    },
+    { key: 'userRole', header: 'User Role', render: (row) => row.userRole },
+    {
+      key: 'businessName',
+      header: 'Business Name',
+      minWidth: 180,
+      render: (row) => row.businessName,
+    },
+    {
+      key: 'barcodeNumber',
+      header: 'Barcode Number',
+      minWidth: 150,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => openScan(row.id)}
+        >
+          {row.barcodeNumber}
+        </Typography>
+      ),
+    },
+    { key: 'region', header: 'Region', render: (row) => row.region },
+    {
+      key: 'result',
+      header: 'Scan Result',
+      sortable: true,
+      sortValue: (row) => RESULT_CONFIG[row.result].label,
+      render: (row) => <ResultChip result={row.result} />,
+    },
+  ]
+
+  const userSummary = selectedUserId
+    ? getUserScanSummary(selectedUserId)
+    : undefined
+  const userScanHistory = selectedUserId
+    ? getUserScanHistory(selectedUserId)
+    : []
+  const selectedScan = selectedScanId
+    ? getScanEventById(selectedScanId)
+    : undefined
+
+  return (
+    <>
+      {tab === 0 && (
+        <>
+          <Grid container spacing={3} sx={{ mb: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <StatCard
+                label="Total Scans"
+                value={liveKpis.totalScans}
+                icon={<QrCodeScannerIcon fontSize="small" />}
+                iconColor="primary"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <StatCard
+                label="Successful Scans"
+                value={liveKpis.successfulScans}
+                icon={<CheckCircleOutlined fontSize="small" />}
+                iconColor="success"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <StatCard
+                label="Failed Scans"
+                value={liveKpis.failedScans}
+                icon={<CancelOutlined fontSize="small" />}
+                iconColor="error"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <StatCard
+                label="Geo-fence Violations"
+                value={liveKpis.geoFenceViolations}
+                icon={<PlaceOutlinedIcon fontSize="small" />}
+                iconColor="warning"
+              />
+            </Grid>
+          </Grid>
+
+          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', justifyContent: 'flex-end', mb: 1.5 }}>
+            <Chip
+              label={isLive ? 'Live · updating every second' : 'Paused'}
+              size="small"
+              color={isLive ? 'success' : 'default'}
+              variant="filled"
+              icon={
+                isLive ? (
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: 'success.contrastText',
+                      ml: '8px !important',
+                      animation: 'live-scan-pulse 1.2s ease-in-out infinite',
+                      ...livePulseKeyframes,
+                    }}
+                  />
+                ) : undefined
+              }
+            />
+            <Tooltip title={isLive ? 'Pause Live Feed' : 'Resume Live Feed'}>
+              <IconButton
+                size="small"
+                onClick={() => setIsLive((prev) => !prev)}
+                aria-label={isLive ? 'Pause live feed' : 'Resume live feed'}
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  borderRadius: '8px',
+                }}
+              >
+                {isLive ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+              </IconButton>
+            </Tooltip>
+          </Stack>
+
+          <CommonTable
+            tableKey="live-scan-feed"
+            columns={columns}
+            rows={filteredScans}
+            getRowId={(row) => row.id}
+            searchPlaceholder="Search scans…"
+            searchKeys={(row) =>
+              `${row.userName} ${row.businessName} ${row.barcodeNumber}`
+            }
+            onFilterClick={() => setFilterOpen(true)}
+            filterCount={
+              (appliedFilters.userRole !== 'all' ? 1 : 0) +
+              (appliedFilters.result !== 'all' ? 1 : 0)
+            }
+            emptyTitle="No scans found"
+            emptyDescription="Try adjusting your filters or search terms."
+          />
+
+          <Tooltip title={isLive ? 'Pause Live Feed' : 'Resume Live Feed'}>
+            <IconButton
+              sx={{
+                position: 'fixed',
+                bottom: 24,
+                right: 24,
+                backgroundColor: 'primary.main',
+                color: 'primary.contrastText',
+                '&:hover': { backgroundColor: 'primary.dark' },
+              }}
+              onClick={() => setIsLive((prev) => !prev)}
+              aria-label={isLive ? 'Pause live feed' : 'Resume live feed'}
+            >
+              {isLive ? <RefreshIcon /> : <PlayArrowIcon />}
+            </IconButton>
+          </Tooltip>
+
+          <FilterDrawer<ScanFilters>
+            open={filterOpen}
+            onClose={() => setFilterOpen(false)}
+            title="Filter Scans"
+            value={appliedFilters}
+            onApply={setAppliedFilters}
+          >
+            {(draft, setDraft) => (
+              <Stack spacing={3}>
+                <TextField
+                  select
+                  label="User Filter"
+                  size="small"
+                  value={draft.userRole}
+                  onChange={(e) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      userRole: e.target.value as ScanFilters['userRole'],
+                    }))
+                  }
+                >
+                  <MenuItem value="all">All Users</MenuItem>
+                  <MenuItem value="Dealer">Dealer</MenuItem>
+                  <MenuItem value="Chemist">Chemist</MenuItem>
+                </TextField>
+                <TextField
+                  select
+                  label="Scan Result"
+                  size="small"
+                  value={draft.result}
+                  onChange={(e) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      result: e.target.value as ScanFilters['result'],
+                    }))
+                  }
+                >
+                  <MenuItem value="all">All Results</MenuItem>
+                  {(Object.keys(RESULT_CONFIG) as ScanResult[]).map(
+                    (result) => (
+                      <MenuItem key={result} value={result}>
+                        {RESULT_CONFIG[result].label}
+                      </MenuItem>
+                    ),
+                  )}
+                </TextField>
+              </Stack>
+            )}
+          </FilterDrawer>
+        </>
+      )}
+
+      {tab === 1 &&
+        (userSummary ? (
+          <Stack spacing={3}>
+            <Card sx={{ p: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                  mb: 2,
+                }}
+              >
+                User Summary
+              </Typography>
+              <Grid container spacing={2.5}>
+                {[
+                  ['User ID', userSummary.userId],
+                  ['User Name', userSummary.userName],
+                  ['Role', userSummary.role],
+                  ['Contact Number', userSummary.contactNumber],
+                  ['Email Address', userSummary.email],
+                  ['City', userSummary.city],
+                  ['Address', userSummary.address],
+                  ['Zone', userSummary.zone],
+                ].map(([label, value]) => (
+                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
+                    >
+                      {value}
+                    </Typography>
+                  </Grid>
+                ))}
+              </Grid>
+            </Card>
+
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Total Scans"
+                  value={userSummary.totalScans}
+                  icon={<QrCodeScannerIcon fontSize="small" />}
+                  iconColor="primary"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Successful Scans"
+                  value={userSummary.successfulScans}
+                  icon={<CheckCircleOutlined fontSize="small" />}
+                  iconColor="success"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Failed Scans"
+                  value={userSummary.failedScans}
+                  icon={<CancelOutlined fontSize="small" />}
+                  iconColor="error"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Total Points Earned"
+                  value={userSummary.totalPointsEarned.toLocaleString('en-IN')}
+                  icon={<MyLocationIcon fontSize="small" />}
+                  iconColor="secondary"
+                />
+              </Grid>
+            </Grid>
+
+            <Card sx={{ p: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                  mb: 2,
+                }}
+              >
+                User Information
+              </Typography>
+              <Grid container spacing={2.5}>
+                {[
+                  ['Last Scan Date & Time', userSummary.lastScanDateTime],
+                  ['Registered Location', userSummary.address],
+                  ['Assigned Region', userSummary.zone],
+                  ['Business Name', userSummary.businessName],
+                  [
+                    'User Status',
+                    userSummary.status === 'active' ? 'Active' : 'Inactive',
+                  ],
+                ].map(([label, value]) => (
+                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
+                    >
+                      {value}
+                    </Typography>
+                  </Grid>
+                ))}
+              </Grid>
+            </Card>
+
+            <Card sx={{ p: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                  mb: 2,
+                }}
+              >
+                Scan History
+              </Typography>
+              <SimpleTable
+                columns={[
+                  {
+                    key: 'scanDateTime',
+                    header: 'Scan Date & Time',
+                    render: (row) => row.scanDateTime,
+                  },
+                  {
+                    key: 'barcodeNumber',
+                    header: 'Barcode Number',
+                    render: (row) => (
+                      <Typography
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: '0.8125rem',
+                          cursor: 'pointer',
+                          '&:hover': { textDecoration: 'underline' },
+                        }}
+                        onClick={() => openScan(row.id)}
+                      >
+                        {row.barcodeNumber}
+                      </Typography>
+                    ),
+                  },
+                  {
+                    key: 'productName',
+                    header: 'Product Name',
+                    render: (row) => row.productName,
+                  },
+                  {
+                    key: 'batchNumber',
+                    header: 'Batch Number',
+                    render: (row) => row.batchNumber,
+                  },
+                  {
+                    key: 'region',
+                    header: 'Region',
+                    render: (row) => row.region,
+                  },
+                  {
+                    key: 'sourceIp',
+                    header: 'Source IP Address',
+                    render: (row) => row.technical.sourceIp,
+                  },
+                  {
+                    key: 'result',
+                    header: 'Scan Result',
+                    render: (row) => <ResultChip result={row.result} />,
+                  },
+                ]}
+                rows={userScanHistory}
+                getRowId={(row) => row.id}
+                emptyTitle="No scans recorded"
+              />
+            </Card>
+          </Stack>
+        ) : (
+          <EmptyState
+            title="No user selected"
+            description="Select a user from the Live Scan Listing to view their scan history."
+          />
+        ))}
+
+      {tab === 2 &&
+        (selectedScan ? (
+          <Stack spacing={3}>
+            <Card sx={{ p: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                  mb: 2,
+                }}
+              >
+                Scan Summary
+              </Typography>
+              <Grid container spacing={2.5}>
+                {[
+                  ['Scan ID', selectedScan.id],
+                  ['Barcode Number', selectedScan.barcodeNumber],
+                  ['Product Name', selectedScan.productName],
+                  ['Batch Number', selectedScan.batchNumber],
+                  ['Scan Date & Time', selectedScan.scanDateTime],
+                  [
+                    'Reward Points Earned',
+                    selectedScan.rewardPoints.toString(),
+                  ],
+                ].map(([label, value]) => (
+                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
+                    >
+                      {value}
+                    </Typography>
+                  </Grid>
+                ))}
+                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    Scan Result
+                  </Typography>
+                  <Box sx={{ mt: 0.5 }}>
+                    <ResultChip result={selectedScan.result} />
+                  </Box>
+                </Grid>
+              </Grid>
+            </Card>
+
+            <Card sx={{ p: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                  mb: 2,
+                }}
+              >
+                User Information
+              </Typography>
+              <Grid container spacing={2.5}>
+                {[
+                  ['User Name', selectedScan.userName],
+                  ['User Type', selectedScan.userRole],
+                  ['Registered Location', selectedScan.businessName],
+                  ['Assigned Region', selectedScan.region],
+                  ['Business Name', selectedScan.businessName],
+                ].map(([label, value]) => (
+                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                    <Typography
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '0.8125rem',
+                        mt: 0.25,
+                        cursor: label === 'User Name' ? 'pointer' : undefined,
+                      }}
+                      onClick={
+                        label === 'User Name'
+                          ? () => openUser(selectedScan.userId)
+                          : undefined
+                      }
+                    >
+                      {value}
+                    </Typography>
+                  </Grid>
+                ))}
+              </Grid>
+            </Card>
+
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card sx={{ p: 3, height: '100%' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: 'primary.main',
+                      mb: 1,
+                    }}
+                  >
+                    Scan Validation Details
+                  </Typography>
+                  <ValidationRow
+                    label="Barcode Validation"
+                    passed={
+                      selectedScan.validation.barcodeValidation === 'passed'
+                    }
+                  />
+                  <ValidationRow
+                    label="Duplicate Scan Check"
+                    passed={
+                      selectedScan.validation.duplicateScanCheck === 'passed'
+                    }
+                  />
+                  <ValidationRow
+                    label="Geo-fence Validation"
+                    passed={
+                      selectedScan.validation.geoFenceValidation === 'passed'
+                    }
+                  />
+                  <ValidationRow
+                    label="Product Eligibility"
+                    passed={
+                      selectedScan.validation.productEligibility === 'passed'
+                    }
+                  />
+                  <ValidationRow
+                    label="Reward Eligibility"
+                    passed={
+                      selectedScan.validation.rewardEligibility === 'passed'
+                    }
+                  />
+                  <ValidationRow
+                    label="Package Status"
+                    passed={selectedScan.validation.packageStatus === 'valid'}
+                  />
+                </Card>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Card sx={{ p: 3, height: '100%' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.75rem',
+                      letterSpacing: '0.06em',
+                      textTransform: 'uppercase',
+                      color: 'primary.main',
+                      mb: 2,
+                    }}
+                  >
+                    Geo-location Information
+                  </Typography>
+                  <Grid container spacing={2}>
+                    {[
+                      ['Latitude', selectedScan.location.latitude.toFixed(4)],
+                      ['Longitude', selectedScan.location.longitude.toFixed(4)],
+                      [
+                        'Registered Geo-fence',
+                        `${selectedScan.location.registeredGeoFenceRadiusMeters} m`,
+                      ],
+                      [
+                        'Distance from Registered',
+                        `${selectedScan.location.distanceFromRegisteredMeters} m`,
+                      ],
+                    ].map(([label, value]) => (
+                      <Grid key={label} size={6}>
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'text.secondary',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.04em',
+                          }}
+                        >
+                          {label}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontWeight: 600,
+                            fontSize: '0.8125rem',
+                            mt: 0.25,
+                          }}
+                        >
+                          {value}
+                        </Typography>
+                      </Grid>
+                    ))}
+                    <Grid size={12}>
+                      <Chip
+                        label={
+                          selectedScan.location.geoFenceValidationResult ===
+                          'within_range'
+                            ? 'Within Range'
+                            : 'Outside Range'
+                        }
+                        size="small"
+                        color={
+                          selectedScan.location.geoFenceValidationResult ===
+                          'within_range'
+                            ? 'success'
+                            : 'error'
+                        }
+                      />
+                    </Grid>
+                  </Grid>
+                </Card>
+              </Grid>
+            </Grid>
+
+            <Card sx={{ p: 3 }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  letterSpacing: '0.06em',
+                  textTransform: 'uppercase',
+                  color: 'primary.main',
+                  mb: 2,
+                }}
+              >
+                Technical Information
+              </Typography>
+              <Grid container spacing={2.5}>
+                {[
+                  ['Source IP Address', selectedScan.technical.sourceIp],
+                  ['Device Information', selectedScan.technical.deviceInfo],
+                  ['Scan Timestamp', selectedScan.scanDateTime],
+                  ['Application Version', selectedScan.technical.appVersion],
+                ].map(([label, value]) => (
+                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                    <Typography
+                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
+                    >
+                      {value}
+                    </Typography>
+                  </Grid>
+                ))}
+              </Grid>
+            </Card>
+          </Stack>
+        ) : (
+          <EmptyState
+            title="No scan selected"
+            description="Select a barcode from the Live Scan Listing to view scan details."
+          />
+        ))}
+    </>
+  )
+}

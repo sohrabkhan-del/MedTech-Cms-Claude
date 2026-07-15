@@ -13,7 +13,7 @@ const zones: PartnerZone[] = ['North', 'South', 'East', 'West']
 const statuses: PartnerStatus[] = ['active', 'pending', 'inactive']
 const cities = ['Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Bengaluru', 'Hyderabad']
 const owners = ['Rahul Mehta', 'Priya Nair', 'Amit Verma', 'Sunita Rao', 'Vikram Singh']
-const mrs = ['Rohan Kapoor', 'Neha Joshi', 'Sanjay Iyer', 'Kavita Reddy']
+export const mrs = ['Rohan Kapoor', 'Neha Joshi', 'Sanjay Iyer', 'Kavita Reddy']
 const productNames = ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance', 'PainRelief Gel']
 
 function seededNumber(seed: number, min: number, max: number): number {

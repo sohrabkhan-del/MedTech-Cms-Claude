@@ -6,12 +6,15 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
 import { AppThemeProvider } from '@/theme/ThemeProvider'
+import { AppearanceProvider } from '@/contexts/AppearanceContext'
 import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppThemeProvider>
-      <App />
-    </AppThemeProvider>
+    <AppearanceProvider>
+      <AppThemeProvider>
+        <App />
+      </AppThemeProvider>
+    </AppearanceProvider>
   </StrictMode>,
 )

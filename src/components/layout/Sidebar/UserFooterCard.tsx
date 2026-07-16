@@ -5,15 +5,17 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
 import PersonOutlineIcon from '@mui/icons-material/PersonOutlined'
 import LogoutIcon from '@mui/icons-material/Logout'
+import { sidebarPalettes, type SidebarPalette } from '@/components/layout/Sidebar/sidebarPalettes'
 import { radius } from '@/theme/tokens'
 import type { AuthUser } from '@/types/auth'
 
 interface UserFooterCardProps {
   user: AuthUser
   railMode: boolean
+  palette?: SidebarPalette
 }
 
-export function UserFooterCard({ user, railMode }: UserFooterCardProps) {
+export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light }: UserFooterCardProps) {
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
@@ -35,7 +37,7 @@ export function UserFooterCard({ user, railMode }: UserFooterCardProps) {
           py: 1.5,
           cursor: 'pointer',
           transition: 'background-color 150ms',
-          '&:hover': { backgroundColor: 'background.default' },
+          '&:hover': { backgroundColor: palette.hoverBackground },
         }}
       >
         <Badge
@@ -49,7 +51,7 @@ export function UserFooterCard({ user, railMode }: UserFooterCardProps) {
                 borderRadius: '50%',
                 backgroundColor: 'success.main',
                 border: '2px solid',
-                borderColor: 'background.paper',
+                borderColor: palette.background,
               }}
             />
           }
@@ -75,14 +77,14 @@ export function UserFooterCard({ user, railMode }: UserFooterCardProps) {
         {!railMode && (
           <>
             <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', lineHeight: 1.2 }} noWrap>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', lineHeight: 1.2, color: palette.textPrimary }} noWrap>
                 {user.name}
               </Typography>
-              <Typography sx={{ fontSize: '0.65rem', color: 'text.secondary' }} noWrap>
+              <Typography sx={{ fontSize: '0.65rem', color: palette.textSecondary }} noWrap>
                 {user.role.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </Typography>
             </Box>
-            <ChevronRightIcon sx={{ color: 'text.disabled', fontSize: 18 }} />
+            <ChevronRightIcon sx={{ color: palette.textDisabled, fontSize: 18 }} />
           </>
         )}
       </Stack>

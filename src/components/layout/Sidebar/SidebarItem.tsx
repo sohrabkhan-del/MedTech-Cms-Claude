@@ -12,6 +12,7 @@ import {
 } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import type { MenuItem } from '@/components/layout/Sidebar/menuConfig'
+import { sidebarPalettes, type SidebarPalette } from '@/components/layout/Sidebar/sidebarPalettes'
 import { transitions } from '@/theme/tokens'
 
 function isDescendantActive(item: MenuItem, pathname: string): boolean {
@@ -23,9 +24,10 @@ interface SidebarItemProps {
   item: MenuItem
   depth?: number
   railMode?: boolean
+  palette?: SidebarPalette
 }
 
-export function SidebarItem({ item, depth = 0, railMode = false }: SidebarItemProps) {
+export function SidebarItem({ item, depth = 0, railMode = false, palette = sidebarPalettes.light }: SidebarItemProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const active = isDescendantActive(item, location.pathname)
@@ -55,18 +57,18 @@ export function SidebarItem({ item, depth = 0, railMode = false }: SidebarItemPr
         mx: 1,
         mb: 0.25,
         pl: railMode ? 1.5 : isNested ? 4.5 : 2,
-        py: 0.625,
-        minHeight: 32,
+        py: 0.875,
+        minHeight: 38,
         justifyContent: railMode ? 'center' : 'flex-start',
         transition: `background-color ${transitions.base}, color ${transitions.base}`,
         '&:hover': {
-          backgroundColor: 'background.default',
+          backgroundColor: palette.hoverBackground,
         },
         '&.Mui-selected': {
-          background: 'linear-gradient(90deg, rgba(26,62,140,0.10) 0%, rgba(26,62,140,0.03) 100%)',
-          color: 'primary.main',
-          '& .MuiListItemIcon-root': { color: 'primary.main' },
-          '&:hover': { background: 'linear-gradient(90deg, rgba(26,62,140,0.14) 0%, rgba(26,62,140,0.05) 100%)' },
+          background: palette.activeBackground,
+          color: palette.activeIconColor,
+          '& .MuiListItemIcon-root': { color: palette.activeIconColor },
+          '&:hover': { background: palette.activeBackground },
         },
       }}
     >
@@ -78,7 +80,7 @@ export function SidebarItem({ item, depth = 0, railMode = false }: SidebarItemPr
             top: 0,
             bottom: 0,
             width: '1px',
-            backgroundColor: 'divider',
+            backgroundColor: palette.divider,
           }}
         />
       )}
@@ -92,13 +94,13 @@ export function SidebarItem({ item, depth = 0, railMode = false }: SidebarItemPr
             width: isSelfActive ? 7 : 5,
             height: isSelfActive ? 7 : 5,
             borderRadius: '50%',
-            backgroundColor: isSelfActive ? 'primary.main' : 'text.disabled',
+            backgroundColor: isSelfActive ? palette.activeIconColor : palette.textDisabled,
           }}
         />
       )}
       {Icon && !isNested ? (
-        <ListItemIcon sx={{ minWidth: railMode ? 0 : 30, color: isSelfActive ? 'inherit' : 'text.secondary' }}>
-          <Icon sx={{ fontSize: 18 }} />
+        <ListItemIcon sx={{ minWidth: railMode ? 0 : 32, color: isSelfActive ? 'inherit' : palette.textSecondary }}>
+          <Icon sx={{ fontSize: 20 }} />
         </ListItemIcon>
       ) : null}
       {!railMode && (
@@ -107,9 +109,9 @@ export function SidebarItem({ item, depth = 0, railMode = false }: SidebarItemPr
           slotProps={{
             primary: {
               sx: {
-                fontSize: '0.75rem',
+                fontSize: '0.8125rem',
                 fontWeight: isSelfActive ? 700 : 500,
-                color: isSelfActive ? 'primary.main' : isNested ? 'text.secondary' : 'text.primary',
+                color: isSelfActive ? palette.activeIconColor : isNested ? palette.textSecondary : palette.textPrimary,
               },
             },
           }}
@@ -127,7 +129,7 @@ export function SidebarItem({ item, depth = 0, railMode = false }: SidebarItemPr
         <ChevronRightIcon
           fontSize="small"
           sx={{
-            color: 'text.disabled',
+            color: palette.textDisabled,
             transition: `transform ${transitions.base}`,
             transform: open ? 'rotate(90deg)' : 'rotate(0deg)',
           }}
@@ -149,7 +151,7 @@ export function SidebarItem({ item, depth = 0, railMode = false }: SidebarItemPr
         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {item.children!.map((child) => (
-              <SidebarItem key={child.path ?? child.label} item={child} depth={depth + 1} />
+              <SidebarItem key={child.path ?? child.label} item={child} depth={depth + 1} palette={palette} />
             ))}
           </List>
         </Collapse>

@@ -16,7 +16,6 @@ const PENDING_PATHS = new Set<string>([
   '/inventory/delivery-upload',
   '/masters/regions',
   '/masters/product-categories',
-  '/settings/general',
   '/settings/notifications',
   '/settings/authentication',
   '/settings/profile',
@@ -42,7 +41,7 @@ function flattenItems(items: MenuItem[]): RouteEntry[] {
 
 /** Reachable only via the Header (Settings gear, profile menu) — intentionally not in the sidebar. */
 export const headerOnlyRouteEntries: RouteEntry[] = [
-  { path: '/settings/general', breadcrumbLabel: 'General Settings', pending: true },
+  { path: '/settings/general', breadcrumbLabel: 'Appearance' },
   { path: '/settings/notifications', breadcrumbLabel: 'Notification Settings', pending: true },
   { path: '/settings/authentication', breadcrumbLabel: 'Authentication Settings', pending: true },
   { path: '/settings/profile', breadcrumbLabel: 'Profile', pending: true },

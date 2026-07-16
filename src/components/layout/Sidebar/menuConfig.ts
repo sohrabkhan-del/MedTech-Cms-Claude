@@ -1,29 +1,29 @@
 import type { SvgIconComponent } from '@mui/icons-material'
-import DashboardIcon from '@mui/icons-material/Dashboard'
-import MyLocationIcon from '@mui/icons-material/MyLocation'
-import GppMaybeIcon from '@mui/icons-material/GppMaybe'
-import FenceIcon from '@mui/icons-material/Fence'
-import PeopleAltIcon from '@mui/icons-material/PeopleAlt'
-import StorefrontIcon from '@mui/icons-material/Storefront'
-import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy'
-import VerifiedUserIcon from '@mui/icons-material/VerifiedUser'
-import RuleIcon from '@mui/icons-material/Rule'
-import BlockIcon from '@mui/icons-material/Block'
-import Inventory2Icon from '@mui/icons-material/Inventory2'
-import FactoryIcon from '@mui/icons-material/Factory'
-import ViewInArIcon from '@mui/icons-material/ViewInAr'
-import LocalShippingIcon from '@mui/icons-material/LocalShipping'
-import CampaignIcon from '@mui/icons-material/Campaign'
-import Diversity3Icon from '@mui/icons-material/Diversity3'
-import TrackChangesIcon from '@mui/icons-material/TrackChanges'
-import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'
-import RuleFolderIcon from '@mui/icons-material/RuleFolder'
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet'
-import RedeemIcon from '@mui/icons-material/Redeem'
-import BarChartIcon from '@mui/icons-material/BarChart'
-import ListAltIcon from '@mui/icons-material/ListAlt'
-import TuneIcon from '@mui/icons-material/Tune'
+import DashboardIcon from '@mui/icons-material/DashboardOutlined'
+import MyLocationIcon from '@mui/icons-material/MyLocationOutlined'
+import GppMaybeIcon from '@mui/icons-material/GppMaybeOutlined'
+import FenceIcon from '@mui/icons-material/FenceOutlined'
+import PeopleAltIcon from '@mui/icons-material/PeopleAltOutlined'
+import StorefrontIcon from '@mui/icons-material/StorefrontOutlined'
+import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacyOutlined'
+import VerifiedUserIcon from '@mui/icons-material/VerifiedUserOutlined'
+import RuleIcon from '@mui/icons-material/RuleOutlined'
+import BlockIcon from '@mui/icons-material/BlockOutlined'
+import Inventory2Icon from '@mui/icons-material/Inventory2Outlined'
+import FactoryIcon from '@mui/icons-material/FactoryOutlined'
+import ViewInArIcon from '@mui/icons-material/ViewInArOutlined'
+import LocalShippingIcon from '@mui/icons-material/LocalShippingOutlined'
+import CampaignIcon from '@mui/icons-material/CampaignOutlined'
+import Diversity3Icon from '@mui/icons-material/Diversity3Outlined'
+import TrackChangesIcon from '@mui/icons-material/TrackChangesOutlined'
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcardOutlined'
+import RuleFolderIcon from '@mui/icons-material/RuleFolderOutlined'
+import EmojiEventsIcon from '@mui/icons-material/EmojiEventsOutlined'
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWalletOutlined'
+import RedeemIcon from '@mui/icons-material/RedeemOutlined'
+import BarChartIcon from '@mui/icons-material/BarChartOutlined'
+import ListAltIcon from '@mui/icons-material/ListAltOutlined'
+import TuneIcon from '@mui/icons-material/TuneOutlined'
 
 export interface MenuItem {
   label: string
@@ -93,14 +93,8 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'SCHEME MANAGEMENT',
     items: [
-      {
-        label: 'Schemes',
-        icon: TrackChangesIcon,
-        children: [
-          { label: 'General Schemes', path: '/scheme-management/schemes/general' },
-          { label: 'Sessional Schemes', path: '/scheme-management/schemes/sessional' },
-        ],
-      },
+      { label: 'General Schemes', path: '/scheme-management/schemes/general', icon: TrackChangesIcon },
+      { label: 'Sessional Schemes', path: '/scheme-management/schemes/sessional', icon: TrackChangesIcon },
       { label: 'Gift Catalogue', path: '/scheme-management/gift-catalogue', icon: CardGiftcardIcon },
       {
         label: 'Gift Rules (Funtional Values)',

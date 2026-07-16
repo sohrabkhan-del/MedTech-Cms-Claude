@@ -3,7 +3,12 @@ import { Link } from 'react-router-dom'
 import { menuConfig } from '@/components/layout/Sidebar/menuConfig'
 import { SidebarItem } from '@/components/layout/Sidebar/SidebarItem'
 import { UserFooterCard } from '@/components/layout/Sidebar/UserFooterCard'
+import {
+  sidebarPalettes,
+  type SidebarPalette,
+} from '@/components/layout/Sidebar/sidebarPalettes'
 import { currentUser } from '@/features/auth/mockCurrentUser'
+import { useAppearance } from '@/contexts/AppearanceContext'
 import { layout, radius, shadows } from '@/theme/tokens'
 
 interface SidebarProps {
@@ -12,7 +17,13 @@ interface SidebarProps {
   onMobileClose?: () => void
 }
 
-function SidebarBrand({ railMode }: { railMode: boolean }) {
+function SidebarBrand({
+  railMode,
+  palette,
+}: {
+  railMode: boolean
+  palette: SidebarPalette
+}) {
   return (
     <Box
       component={Link}
@@ -23,7 +34,6 @@ function SidebarBrand({ railMode }: { railMode: boolean }) {
         alignItems: 'center',
         justifyContent: 'center',
         height: layout.headerHeight,
-        // px: railMode ? 1 : 2,
       }}
     >
       <Box
@@ -35,13 +45,21 @@ function SidebarBrand({ railMode }: { railMode: boolean }) {
           height: railMode ? 56 : '90%',
           objectFit: 'contain',
           display: 'block',
+          filter:
+            palette.brandLogo === 'invert' ? 'brightness(0) invert(1)' : 'none',
         }}
       />
     </Box>
   )
 }
 
-function SidebarContent({ railMode }: { railMode: boolean }) {
+function SidebarContent({
+  railMode,
+  palette,
+}: {
+  railMode: boolean
+  palette: SidebarPalette
+}) {
   return (
     <Box
       sx={{
@@ -51,8 +69,8 @@ function SidebarContent({ railMode }: { railMode: boolean }) {
         minHeight: 0,
       }}
     >
-      <SidebarBrand railMode={railMode} />
-      <Divider />
+      <SidebarBrand railMode={railMode} palette={palette} />
+      <Divider sx={{ borderColor: palette.divider }} />
       <Box sx={{ flexGrow: 1, overflowY: 'auto', py: 1 }}>
         {menuConfig.map((group) => (
           <Box key={group.groupLabel} sx={{ mb: 0.5 }}>
@@ -67,7 +85,8 @@ function SidebarContent({ railMode }: { railMode: boolean }) {
                   textTransform: 'uppercase',
                   fontWeight: 700,
                   letterSpacing: '0.04em',
-                  fontSize: '0.6rem',
+                  fontSize: '0.6875rem',
+                  color: palette.textDisabled,
                 }}
               >
                 {group.groupLabel}
@@ -79,14 +98,19 @@ function SidebarContent({ railMode }: { railMode: boolean }) {
                   key={item.path ?? item.label}
                   item={item}
                   railMode={railMode}
+                  palette={palette}
                 />
               ))}
             </List>
           </Box>
         ))}
       </Box>
-      <Divider />
-      <UserFooterCard user={currentUser} railMode={railMode} />
+      <Divider sx={{ borderColor: palette.divider }} />
+      <UserFooterCard
+        user={currentUser}
+        railMode={railMode}
+        palette={palette}
+      />
     </Box>
   )
 }
@@ -96,6 +120,9 @@ export function Sidebar({
   mobileOpen = false,
   onMobileClose,
 }: SidebarProps) {
+  const { sidebarVariant } = useAppearance()
+  const palette = sidebarPalettes[sidebarVariant]
+
   if (variant === 'temporary') {
     return (
       <Drawer
@@ -108,11 +135,11 @@ export function Sidebar({
           '& .MuiDrawer-paper': {
             width: layout.sidebarWidth,
             boxSizing: 'border-box',
-            backgroundColor: 'background.paper',
+            backgroundColor: palette.background,
           },
         }}
       >
-        <SidebarContent railMode={false} />
+        <SidebarContent railMode={false} palette={palette} />
       </Drawer>
     )
   }
@@ -137,12 +164,12 @@ export function Sidebar({
           border: 'none',
           borderRadius: `${radius.xl}px`,
           boxShadow: shadows.card,
-          backgroundColor: 'background.paper',
-          transition: 'width 0.2s ease',
+          backgroundColor: palette.background,
+          transition: 'width 0.2s ease, background-color 0.2s ease',
         },
       }}
     >
-      <SidebarContent railMode={variant === 'rail'} />
+      <SidebarContent railMode={variant === 'rail'} palette={palette} />
     </Drawer>
   )
 }

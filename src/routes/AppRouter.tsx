@@ -21,6 +21,7 @@ import { RejectedRequestDetailsPage } from '@/pages/verification/RejectedRequest
 import { ProductListPage } from '@/pages/inventory/ProductListPage'
 import { ProductDetailsPage } from '@/pages/inventory/ProductDetailsPage'
 import { ProductFormPage } from '@/pages/inventory/ProductFormPage'
+import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
 import { getDealerById } from '@/features/dealers/mockDealers'
@@ -39,6 +40,7 @@ const CUSTOM_PATHS = new Set([
   '/verification/approval-requests',
   '/verification/rejected-requests',
   '/inventory/product-master',
+  '/settings/general',
 ])
 
 registerDetailRoute({
@@ -98,6 +100,7 @@ export function AppRouter() {
         <Route path="/inventory/product-master/new" element={<ProductFormPage />} />
         <Route path="/inventory/product-master/:productId" element={<ProductDetailsPage />} />
         <Route path="/inventory/product-master/:productId/edit" element={<ProductFormPage />} />
+        <Route path="/settings/general" element={<AppearanceSettingsPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))
           .map((entry) => (

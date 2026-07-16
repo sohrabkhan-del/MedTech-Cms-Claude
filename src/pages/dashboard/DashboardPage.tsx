@@ -12,12 +12,20 @@ import { RecentRedemptionsWidget } from '@/features/dashboard/widgets/RecentRede
 import { RevenueSummaryWidget } from '@/features/dashboard/widgets/RevenueSummaryWidget'
 import { LeaderboardWidget } from '@/features/dashboard/widgets/LeaderboardWidget'
 import { NotificationsWidget } from '@/features/dashboard/widgets/NotificationsWidget'
-import { topDealers, topChemists, topProducts } from '@/pages/dashboard/mockData'
+import {
+  topDealers,
+  topChemists,
+  topProducts,
+} from '@/pages/dashboard/mockData'
 
 export function DashboardPage() {
   return (
     <>
-      <WelcomeBanner userName="Suryakant" statValue="1,284" statLabel="Scans today" />
+      <WelcomeBanner
+        userName="Suryakant"
+        statValue="1,284"
+        statLabel="Scans today"
+      />
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -26,7 +34,11 @@ export function DashboardPage() {
             value="8,942"
             icon={<ScanLine size={20} />}
             iconColor="primary"
-            trend={{ direction: 'up', value: '+8.3%', caption: 'since last week' }}
+            trend={{
+              direction: 'up',
+              value: '+8.3%',
+              caption: 'since last week',
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -35,7 +47,11 @@ export function DashboardPage() {
             value="54%"
             icon={<Trophy size={20} />}
             iconColor="secondary"
-            trend={{ direction: 'up', value: '+3.1%', caption: 'since last week' }}
+            trend={{
+              direction: 'up',
+              value: '+3.1%',
+              caption: 'since last week',
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -44,7 +60,11 @@ export function DashboardPage() {
             value="1,842"
             icon={<Wallet size={20} />}
             iconColor="success"
-            trend={{ direction: 'up', value: '+12.4%', caption: 'since last week' }}
+            trend={{
+              direction: 'up',
+              value: '+12.4%',
+              caption: 'since last week',
+            }}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -53,7 +73,11 @@ export function DashboardPage() {
             value="17"
             icon={<ClipboardClock size={20} />}
             iconColor="warning"
-            trend={{ direction: 'down', value: '-2.0%', caption: 'since last week' }}
+            trend={{
+              direction: 'down',
+              value: '-2.0%',
+              caption: 'since last week',
+            }}
           />
         </Grid>
       </Grid>
@@ -81,27 +105,39 @@ export function DashboardPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 4 }}>
-          <TopEntityListWidget title="Top Dealers" subtitle="Ranked by scan volume" entities={topDealers} />
+          <TopEntityListWidget
+            title="Top Dealers"
+            subtitle="Ranked by scan volume"
+            entities={topDealers}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <TopEntityListWidget title="Top Chemists" subtitle="Ranked by redemptions" entities={topChemists} />
+          <TopEntityListWidget
+            title="Top Chemists"
+            subtitle="Ranked by redemptions"
+            entities={topChemists}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 4 }}>
-          <TopEntityListWidget title="Top Products" subtitle="Ranked by units scanned" entities={topProducts} />
+          <TopEntityListWidget
+            title="Top Products"
+            subtitle="Ranked by units scanned"
+            entities={topProducts}
+          />
         </Grid>
       </Grid>
 
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <RecentRedemptionsWidget />
         </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <RevenueSummaryWidget />
         </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <LeaderboardWidget />
         </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <NotificationsWidget />
         </Grid>
       </Grid>

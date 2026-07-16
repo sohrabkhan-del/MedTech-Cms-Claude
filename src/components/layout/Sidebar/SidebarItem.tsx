@@ -46,6 +46,7 @@ export function SidebarItem({
   const hasChildren = !!item.children?.length
   const Icon = item.icon
   const isNested = depth > 0
+  const lineLeft = 42 + (depth - 1) * 20
 
   const handleClick = () => {
     if (hasChildren) {
@@ -66,8 +67,8 @@ export function SidebarItem({
         borderRadius: '8px',
         mx: 1,
         mb: 0.25,
-        pl: railMode ? 1.5 : isNested ? 4.5 : 2,
-        py: 0.875,
+        pl: railMode ? 1.5 : isNested ? 8.5 + (depth - 1) * 2 : 4,
+        py: 0.5,
         minHeight: 38,
         justifyContent: railMode ? 'center' : 'flex-start',
         transition: `background-color ${transitions.base}, color ${transitions.base}`,
@@ -86,7 +87,7 @@ export function SidebarItem({
         <Box
           sx={{
             position: 'absolute',
-            left: 24,
+            left: lineLeft,
             top: 0,
             bottom: 0,
             width: '1px',
@@ -98,7 +99,7 @@ export function SidebarItem({
         <Box
           sx={{
             position: 'absolute',
-            left: isSelfActive ? 21 : 22,
+            left: isSelfActive ? lineLeft - 3 : lineLeft - 2,
             top: '50%',
             transform: 'translateY(-50%)',
             width: isSelfActive ? 7 : 5,
@@ -113,11 +114,11 @@ export function SidebarItem({
       {Icon && !isNested ? (
         <ListItemIcon
           sx={{
-            minWidth: railMode ? 0 : 32,
+            minWidth: railMode ? 0 : 27,
             color: isSelfActive ? 'inherit' : palette.textSecondary,
           }}
         >
-          <Icon size={20} />
+          <Icon size={16} />
         </ListItemIcon>
       ) : null}
       {!railMode && (
@@ -126,12 +127,12 @@ export function SidebarItem({
           slotProps={{
             primary: {
               sx: {
-                fontSize: '0.9rem',
-                fontWeight: isSelfActive ? 700 : 500,
+                fontSize: isNested ? '0.8125rem' : '0.8rem',
+                fontWeight: isSelfActive ? 700 : isNested ? 400 : 500,
                 color: isSelfActive
                   ? palette.activeIconColor
                   : isNested
-                    ? palette.textSecondary
+                    ? palette.textDisabled
                     : palette.textPrimary,
               },
             },

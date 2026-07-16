@@ -15,14 +15,18 @@ interface SidebarGroupProps {
 
 function isGroupActive(group: MenuGroup, pathname: string): boolean {
   return group.items.some(
-    (item) => item.path === pathname || item.children?.some((child) => child.path === pathname),
+    (item) =>
+      item.path === pathname ||
+      item.children?.some((child) => child.path === pathname),
   )
 }
 
 export function SidebarGroup({ group, railMode, palette }: SidebarGroupProps) {
   const GroupIcon = group.icon
   const location = useLocation()
-  const [open, setOpen] = useState(() => isGroupActive(group, location.pathname))
+  const [open, setOpen] = useState(() =>
+    isGroupActive(group, location.pathname),
+  )
 
   const isCollapsible = group.collapsible && !railMode
 
@@ -41,8 +45,11 @@ export function SidebarGroup({ group, railMode, palette }: SidebarGroupProps) {
             userSelect: 'none',
           }}
         >
-          <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center', flexGrow: 1 }}>
-            {GroupIcon && <GroupIcon size={13} style={{ color: palette.textDisabled }} />}
+          <Stack
+            direction="row"
+            spacing={0.75}
+            sx={{ alignItems: 'center', flexGrow: 1 }}
+          >
             <Typography
               variant="caption"
               sx={{
@@ -68,7 +75,11 @@ export function SidebarGroup({ group, railMode, palette }: SidebarGroupProps) {
           )}
         </Stack>
       )}
-      <Collapse in={!isCollapsible || open} timeout="auto" unmountOnExit={false}>
+      <Collapse
+        in={!isCollapsible || open}
+        timeout="auto"
+        unmountOnExit={false}
+      >
         <List disablePadding>
           {group.items.map((item) => (
             <SidebarItem

@@ -7,13 +7,18 @@ import { Breadcrumbs } from '@/components/layout/Breadcrumbs/Breadcrumbs'
 import { RegionTopbar } from '@/components/common/RegionTopbar/RegionTopbar'
 import { useIsMobile, useIsTablet } from '@/hooks/useMediaQueryBreakpoint'
 import { findRouteEntry } from '@/routes/routeConfig'
-import { RegionFilterProvider, useRegionFilter } from '@/contexts/RegionFilterContext'
+import {
+  RegionFilterProvider,
+  useRegionFilter,
+} from '@/contexts/RegionFilterContext'
 
 function GlobalRegionTopbar() {
   const location = useLocation()
-  const { region, setRegion, dateRange, setDateRange, header } = useRegionFilter()
+  const { region, setRegion, dateRange, setDateRange, header } =
+    useRegionFilter()
 
-  const showTopbar = findRouteEntry(location.pathname)?.showRegionTopbar === true
+  const showTopbar =
+    findRouteEntry(location.pathname)?.showRegionTopbar === true
   if (!showTopbar || !header) return null
 
   return (
@@ -76,7 +81,14 @@ export function DashboardLayout() {
               pb: { xs: 2, sm: 3 },
             }}
           >
-            <Box sx={{ mb: 1, display: 'flex', justifyContent: 'flex-start' }}>
+            <Box
+              sx={{
+                mb: 1,
+                paddingX: { xs: 0, sm: 1 },
+                display: 'flex',
+                justifyContent: 'flex-start',
+              }}
+            >
               <Breadcrumbs />
             </Box>
             <GlobalRegionTopbar />

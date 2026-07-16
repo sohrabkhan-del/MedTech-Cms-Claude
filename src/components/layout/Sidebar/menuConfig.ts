@@ -57,56 +57,129 @@ export const menuConfig: MenuGroup[] = [
     groupLabel: 'FIELD OPERATIONS',
     icon: MapPin,
     items: [
-      { label: 'Live Scan Feed', path: '/field-operations/live-scan-feed', icon: Crosshair, showRegionTopbar: true },
       {
-        label: 'Security Alerts (Normal Alert)',
+        label: 'Live Scan Feed',
+        path: '/field-operations/live-scan-feed',
+        icon: Crosshair,
+        showRegionTopbar: true,
+      },
+      {
+        label: 'Security Alerts',
         path: '/field-operations/security-alerts',
         icon: ShieldAlert,
       },
-      { label: 'Geo Fence Management', path: '/field-operations/geo-fence-management', icon: Fence, showRegionTopbar: true },
+      {
+        label: 'Geo Fence Management',
+        path: '/field-operations/geo-fence-management',
+        icon: Fence,
+        showRegionTopbar: true,
+      },
     ],
   },
   {
     groupLabel: 'PARTNERS',
     icon: Users,
     items: [
-      { label: 'Dealers', path: '/partners/dealers', icon: Store, showRegionTopbar: true },
-      { label: 'Chemists', path: '/partners/chemists', icon: Pill, showRegionTopbar: true },
+      {
+        label: 'Dealers',
+        path: '/partners/dealers',
+        icon: Store,
+        showRegionTopbar: true,
+      },
+      {
+        label: 'Chemists',
+        path: '/partners/chemists',
+        icon: Pill,
+        showRegionTopbar: true,
+      },
     ],
   },
   {
     groupLabel: 'VERIFICATION',
     icon: ShieldCheck,
     items: [
-      { label: 'Approval Requests', path: '/verification/approval-requests', icon: ClipboardCheck, badgeCount: 3, showRegionTopbar: true },
-      { label: 'Rejected Requests', path: '/verification/rejected-requests', icon: Ban, showRegionTopbar: true },
+      {
+        label: 'Approval Requests',
+        path: '/verification/approval-requests',
+        icon: ClipboardCheck,
+        badgeCount: 3,
+        showRegionTopbar: true,
+      },
+      {
+        label: 'Rejected Requests',
+        path: '/verification/rejected-requests',
+        icon: Ban,
+        showRegionTopbar: true,
+      },
     ],
   },
   {
     groupLabel: 'INVENTORY MANAGEMENT',
     icon: Package,
     items: [
-      { label: 'Product Master', path: '/inventory/product-master', icon: Package, showRegionTopbar: true },
-      { label: 'Factory Inventory Upload', path: '/inventory/factory-inventory-upload', icon: Factory },
-      { label: 'Product Batches', path: '/inventory/product-batches', icon: Box },
-      { label: 'Delivery upload', path: '/inventory/delivery-upload', icon: Truck },
+      {
+        label: 'Product Master',
+        path: '/inventory/product-master',
+        icon: Package,
+        showRegionTopbar: true,
+      },
+      {
+        label: 'Factory Inventory Upload',
+        path: '/inventory/factory-inventory-upload',
+        icon: Factory,
+      },
+      {
+        label: 'Product Batches',
+        path: '/inventory/product-batches',
+        icon: Box,
+      },
+      {
+        label: 'Delivery upload',
+        path: '/inventory/delivery-upload',
+        icon: Truck,
+      },
     ],
   },
   {
     groupLabel: 'MARKETING PRODUCTS',
     icon: Megaphone,
     items: [
-      { label: 'Products Catelog', path: '/marketing-products/products-catelog', icon: Megaphone },
-      { label: 'Interested Users', path: '/marketing-products/interested-users', icon: Users },
+      {
+        label: 'Products Catelog',
+        path: '/marketing-products/products-catelog',
+        icon: Megaphone,
+      },
+      {
+        label: 'Interested Users',
+        path: '/marketing-products/interested-users',
+        icon: Users,
+      },
     ],
   },
+
   {
     groupLabel: 'SCHEME MANAGEMENT',
     icon: Target,
     items: [
-      { label: 'General Schemes', path: '/scheme-management/schemes/general', icon: Target },
-      { label: 'Sessional Schemes', path: '/scheme-management/schemes/sessional', icon: Target },
-      { label: 'Gift Catalogue', path: '/scheme-management/gift-catalogue', icon: Gift },
+      {
+        label: 'Schemes',
+        icon: Target,
+        children: [
+          {
+            label: 'General Schemes',
+            path: '/scheme-management/schemes/general',
+          },
+          {
+            label: 'Sessional Schemes',
+            path: '/scheme-management/schemes/sessional',
+          },
+        ],
+      },
+      {
+        label: 'Gift Catalogue',
+        path: '/scheme-management/gift-catalogue',
+        icon: Gift,
+      },
       {
         label: 'Gift Rules (Funtional Values)',
         path: '/scheme-management/gift-rules',
@@ -115,40 +188,78 @@ export const menuConfig: MenuGroup[] = [
     ],
   },
   {
-    groupLabel: 'REWARDS & WALLET',
+    groupLabel: 'REPORTS & ANALYTICS',
     icon: Wallet,
     items: [
       {
-        label: 'Coin Value Rules',
-        icon: Trophy,
-        children: [{ label: "Dealer/Chemist (Tab's)", path: '/rewards-wallet/coin-value-rules' }],
+        label: 'Reports',
+        icon: BarChart3,
+        children: [
+          {
+            label: 'Scan Reports',
+            path: '/reports/scan-reports',
+            icon: BarChart3,
+          },
+          {
+            label: 'Reward Reports',
+            path: '/reports/reward-reports',
+            icon: BarChart3,
+          },
+          {
+            label: 'Wallet Reports',
+            path: '/reports/wallet-reports',
+            icon: BarChart3,
+          },
+          {
+            label: 'Dealer Reports',
+            path: '/reports/dealer-reports',
+            icon: BarChart3,
+          },
+          {
+            label: 'Chemist Reports',
+            path: '/reports/chemist-reports',
+            icon: BarChart3,
+          },
+          {
+            label: 'MR Performance',
+            path: '/reports/mr-performance',
+            icon: BarChart3,
+          },
+          {
+            label: 'Product Reports (Dealer)',
+            path: '/reports/product-reports-1',
+            icon: BarChart3,
+          },
+          {
+            label: 'Product Reports (Chemist)',
+            path: '/reports/product-reports-2',
+            icon: BarChart3,
+          },
+          {
+            label: 'Scheme Reports',
+            path: '/reports/scheme-reports',
+            icon: BarChart3,
+          },
+        ],
       },
-      { label: 'Wallet Management', path: '/rewards-wallet/wallet-management', icon: Wallet },
-      { label: 'Reward Redemptions', path: '/rewards-wallet/reward-redemptions', icon: RedeemIcon },
     ],
   },
-  {
-    groupLabel: 'REPORTS & ANALYTICS',
-    icon: BarChart3,
-    collapsible: true,
-    items: [
-      { label: 'Scan Reports', path: '/reports/scan-reports', icon: BarChart3 },
-      { label: 'Reward Reports', path: '/reports/reward-reports', icon: BarChart3 },
-      { label: 'Wallet Reports', path: '/reports/wallet-reports', icon: BarChart3 },
-      { label: 'Dealer Reports', path: '/reports/dealer-reports', icon: BarChart3 },
-      { label: 'Chemist Reports', path: '/reports/chemist-reports', icon: BarChart3 },
-      { label: 'MR Performance', path: '/reports/mr-performance', icon: BarChart3 },
-      { label: 'Product Reports', path: '/reports/product-reports-1', icon: BarChart3 },
-      { label: 'Product Reports', path: '/reports/product-reports-2', icon: BarChart3 },
-      { label: 'Scheme Reports', path: '/reports/scheme-reports', icon: BarChart3 },
-    ],
-  },
+
   {
     groupLabel: 'System Users',
     icon: BadgeCheck,
     items: [
-      { label: 'Admin', path: '/system-users/admin' },
-      { label: 'Medical Representatives (MR)', path: '/system-users/medical-representatives' },
+      {
+        label: 'System User',
+        icon: BadgeCheck,
+        children: [
+          {
+            label: 'Medical Representatives (MR)',
+            path: '/system-users/medical-representatives',
+          },
+          { label: 'Admin', path: '/system-users/admin' },
+        ],
+      },
     ],
   },
   {
@@ -164,7 +275,11 @@ export const menuConfig: MenuGroup[] = [
     icon: ClipboardList,
     items: [
       { label: 'Audit Logs', path: '/audit/audit-logs', icon: ClipboardList },
-      { label: 'Master Scan Table Logs', path: '/audit/master-scan-table-logs', icon: ClipboardList },
+      {
+        label: 'Master Scan Table Logs',
+        path: '/audit/master-scan-table-logs',
+        icon: ClipboardList,
+      },
     ],
   },
 ]

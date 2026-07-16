@@ -33,6 +33,9 @@ function SidebarBrand({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        marginY: 1,
+
+        // height: layout.headerHeight,
         height: layout.headerHeight,
       }}
     >
@@ -42,7 +45,7 @@ function SidebarBrand({
         alt={railMode ? 'MedTech logo icon' : 'MedTech logo'}
         sx={{
           width: railMode ? 30 : '90%',
-          height: railMode ? 56 : '90%',
+          height: railMode ? 56 : '100%',
           objectFit: 'contain',
           display: 'block',
           filter:
@@ -81,8 +84,13 @@ function SidebarContent({
           '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
-        {menuConfig.map((group) => (
-          <SidebarGroup key={group.groupLabel} group={group} railMode={railMode} palette={palette} />
+        {menuConfig.map((group, index) => (
+          <Box key={group.groupLabel}>
+            <SidebarGroup group={group} railMode={railMode} palette={palette} />
+            {index < menuConfig.length - 1 && (
+              <Divider sx={{ borderColor: palette.divider, mx: 2, my: 0.5 }} />
+            )}
+          </Box>
         ))}
       </Box>
       <Divider sx={{ borderColor: palette.divider }} />

@@ -18,12 +18,16 @@ import { ApprovalRequestsListPage } from '@/pages/verification/ApprovalRequestsL
 import { ApprovalRequestDetailsPage } from '@/pages/verification/ApprovalRequestDetailsPage'
 import { RejectedRequestsListPage } from '@/pages/verification/RejectedRequestsListPage'
 import { RejectedRequestDetailsPage } from '@/pages/verification/RejectedRequestDetailsPage'
+import { ProductListPage } from '@/pages/inventory/ProductListPage'
+import { ProductDetailsPage } from '@/pages/inventory/ProductDetailsPage'
+import { ProductFormPage } from '@/pages/inventory/ProductFormPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
 import { getDealerById } from '@/features/dealers/mockDealers'
 import { getChemistById } from '@/features/chemists/mockChemists'
 import { getGeoFenceById } from '@/features/fieldOperations/mockGeoFences'
 import { getApprovalRequestById } from '@/features/verification/mockApprovalRequests'
+import { getProductById } from '@/features/inventory/mockProducts'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -34,6 +38,7 @@ const CUSTOM_PATHS = new Set([
   '/field-operations/geo-fence-management',
   '/verification/approval-requests',
   '/verification/rejected-requests',
+  '/inventory/product-master',
 ])
 
 registerDetailRoute({
@@ -55,6 +60,10 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/verification/rejected-requests',
   resolveEntityName: (id) => getApprovalRequestById(id)?.applicantName,
+})
+registerDetailRoute({
+  parentPath: '/inventory/product-master',
+  resolveEntityName: (id) => getProductById(id)?.productName,
 })
 
 export function AppRouter() {
@@ -85,6 +94,10 @@ export function AppRouter() {
         <Route path="/verification/approval-requests/:requestId" element={<ApprovalRequestDetailsPage />} />
         <Route path="/verification/rejected-requests" element={<RejectedRequestsListPage />} />
         <Route path="/verification/rejected-requests/:requestId" element={<RejectedRequestDetailsPage />} />
+        <Route path="/inventory/product-master" element={<ProductListPage />} />
+        <Route path="/inventory/product-master/new" element={<ProductFormPage />} />
+        <Route path="/inventory/product-master/:productId" element={<ProductDetailsPage />} />
+        <Route path="/inventory/product-master/:productId/edit" element={<ProductFormPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))
           .map((entry) => (

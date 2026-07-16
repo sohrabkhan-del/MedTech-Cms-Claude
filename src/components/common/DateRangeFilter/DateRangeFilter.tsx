@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { Box, Button, Divider, Menu, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Divider, IconButton, Menu, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material'
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { radius } from '@/theme/tokens'
 
 export interface DateRange {
@@ -11,6 +10,7 @@ export interface DateRange {
 }
 
 const PRESETS = ['Today', 'Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'This Month', 'This Year'] as const
+const DEFAULT_PRESET_LABEL = 'Last 30 Days'
 
 interface DateRangeFilterProps {
   value: DateRange
@@ -21,6 +21,8 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [customFrom, setCustomFrom] = useState(value.from ?? '')
   const [customTo, setCustomTo] = useState(value.to ?? '')
+
+  const isApplied = value.presetLabel !== DEFAULT_PRESET_LABEL
 
   const open = (e: React.MouseEvent<HTMLElement>) => {
     setCustomFrom(value.from ?? '')
@@ -42,23 +44,23 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
 
   return (
     <>
-      <Button
-        onClick={open}
-        variant="outlined"
-        color="secondary"
-        startIcon={<CalendarTodayOutlinedIcon sx={{ fontSize: 15 }} />}
-        endIcon={<ExpandMoreIcon sx={{ fontSize: 18 }} />}
-        sx={{
-          height: 36,
-          fontSize: '0.75rem',
-          backgroundColor: 'secondary.light',
-          borderColor: 'transparent',
-          color: 'secondary.dark',
-          '&:hover': { borderColor: 'secondary.main', backgroundColor: 'secondary.light' },
-        }}
-      >
-        {value.presetLabel}
-      </Button>
+      <Tooltip title={value.presetLabel}>
+        <IconButton
+          onClick={open}
+          sx={{
+            height: 36,
+            width: 36,
+            border: '1px solid',
+            borderColor: isApplied ? 'secondary.main' : 'transparent',
+            backgroundColor: 'secondary.light',
+            color: 'secondary.dark',
+            '&:hover': { borderColor: 'secondary.main', backgroundColor: 'secondary.light' },
+          }}
+          aria-label={`Date range: ${value.presetLabel}`}
+        >
+          <CalendarTodayOutlinedIcon sx={{ fontSize: 16 }} />
+        </IconButton>
+      </Tooltip>
 
       <Menu
         anchorEl={anchorEl}

@@ -1,7 +1,7 @@
-import { Box, Divider, Drawer, List, Stack, Typography } from '@mui/material'
+import { Box, Divider, Drawer, List, Typography } from '@mui/material'
+import { Link } from 'react-router-dom'
 import { menuConfig } from '@/components/layout/Sidebar/menuConfig'
 import { SidebarItem } from '@/components/layout/Sidebar/SidebarItem'
-import { BrandMark } from '@/components/layout/Sidebar/BrandMark'
 import { UserFooterCard } from '@/components/layout/Sidebar/UserFooterCard'
 import { currentUser } from '@/features/auth/mockCurrentUser'
 import { layout, radius, shadows } from '@/theme/tokens'
@@ -13,41 +13,30 @@ interface SidebarProps {
 }
 
 function SidebarBrand({ railMode }: { railMode: boolean }) {
-  if (railMode) {
-    return (
-      <Stack sx={{ alignItems: 'center', justifyContent: 'center', py: 2.5 }}>
-        <BrandMark size={26} />
-      </Stack>
-    )
-  }
-
   return (
-    <Box sx={{ px: 2.5, py: 2.25 }}>
-      <Stack direction="row" spacing={0.5} sx={{ alignItems: 'flex-start' }}>
-        <Typography
-          sx={{
-            fontWeight: 800,
-            fontSize: '1.15rem',
-            lineHeight: 1,
-            color: 'primary.main',
-            letterSpacing: '0.01em',
-          }}
-        >
-          MEDTECH
-        </Typography>
-        <BrandMark size={20} />
-      </Stack>
-      <Typography
+    <Box
+      component={Link}
+      to="/dashboard"
+      data-testid="sidebar-brand"
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        height: layout.headerHeight,
+        // px: railMode ? 1 : 2,
+      }}
+    >
+      <Box
+        component="img"
+        src={railMode ? '/images/logo/logo-mark.png' : '/images/logo/logo.png'}
+        alt={railMode ? 'MedTech logo icon' : 'MedTech logo'}
         sx={{
-          fontStyle: 'italic',
-          fontWeight: 600,
-          fontSize: '0.7rem',
-          color: 'secondary.main',
-          mt: 0.25,
+          width: railMode ? 30 : '90%',
+          height: railMode ? 56 : '90%',
+          objectFit: 'contain',
+          display: 'block',
         }}
-      >
-        Caring for life
-      </Typography>
+      />
     </Box>
   )
 }

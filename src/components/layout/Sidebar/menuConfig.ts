@@ -77,7 +77,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'INVENTORY MANAGEMENT',
     items: [
-      { label: 'Product Master', path: '/inventory/product-master', icon: Inventory2Icon },
+      { label: 'Product Master', path: '/inventory/product-master', icon: Inventory2Icon, showRegionTopbar: true },
       { label: 'Factory Inventory Upload', path: '/inventory/factory-inventory-upload', icon: FactoryIcon },
       { label: 'Product Batches', path: '/inventory/product-batches', icon: ViewInArIcon },
       { label: 'Delivery upload', path: '/inventory/delivery-upload', icon: LocalShippingIcon },

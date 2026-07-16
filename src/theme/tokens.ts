@@ -31,7 +31,8 @@ export const radius = {
 
 export const shadows = {
   card: '0px 1px 2px rgba(16,24,40,0.04), 0px 1px 3px rgba(16,24,40,0.06)',
-  cardHover: '0px 4px 12px rgba(16,24,40,0.08), 0px 2px 4px rgba(16,24,40,0.06)',
+  cardHover:
+    '0px 4px 12px rgba(16,24,40,0.08), 0px 2px 4px rgba(16,24,40,0.06)',
   dropdown: '0px 8px 24px rgba(16,24,40,0.12)',
 } as const
 
@@ -59,13 +60,17 @@ export const typography = {
   body1: { fontWeight: 400, fontSize: '0.8125rem' },
   metric: { fontWeight: 700, fontSize: '1.5rem' },
   statNumber: { fontWeight: 700, fontSize: '1.5rem' },
-  caption: { fontWeight: 500, fontSize: '0.6875rem', color: colors.text.secondary },
+  caption: {
+    fontWeight: 500,
+    fontSize: '0.6875rem',
+    color: colors.text.secondary,
+  },
 } as const
 
 export const layout = {
   sidebarWidth: 264,
   sidebarRailWidth: 76,
-  headerHeight: 70,
+  headerHeight: 56,
 } as const
 
 export const transitions = {

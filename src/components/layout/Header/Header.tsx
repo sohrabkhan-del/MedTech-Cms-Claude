@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Avatar, Badge, Box, Divider, IconButton, Menu, MenuItem, Stack, Typography } from '@mui/material'
+import {
+  Avatar,
+  Badge,
+  Box,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+} from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
@@ -16,7 +26,11 @@ interface HeaderProps {
   notificationCount?: number
 }
 
-export function Header({ onMenuClick, currentUser, notificationCount = 4 }: HeaderProps) {
+export function Header({
+  onMenuClick,
+  currentUser,
+  notificationCount = 4,
+}: HeaderProps) {
   const navigate = useNavigate()
   const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null)
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null)
@@ -48,7 +62,7 @@ export function Header({ onMenuClick, currentUser, notificationCount = 4 }: Head
         sx={{
           alignItems: 'center',
           height: layout.headerHeight,
-          px: 2.5,
+          px: 2,
           backgroundColor: 'background.paper',
           borderRadius: `${radius.xl}px`,
           boxShadow: shadows.card,
@@ -56,79 +70,90 @@ export function Header({ onMenuClick, currentUser, notificationCount = 4 }: Head
           borderColor: 'divider',
         }}
       >
-        <IconButton onClick={onMenuClick} edge="start" sx={{ mr: 1.5 }} aria-label="Toggle navigation">
-          <MenuIcon />
+        <IconButton
+          onClick={onMenuClick}
+          edge="start"
+          size="small"
+          sx={{ mr: 1.5 }}
+          aria-label="Toggle navigation"
+        >
+          <MenuIcon fontSize="small" />
         </IconButton>
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-          <IconButton onClick={toggleFullscreen} aria-label="Toggle fullscreen" sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-            {isFullscreen ? <FullscreenExitIcon /> : <FullscreenIcon />}
+        <Stack direction="row" spacing={0.25} sx={{ alignItems: 'center' }}>
+          <IconButton
+            onClick={toggleFullscreen}
+            size="small"
+            aria-label="Toggle fullscreen"
+            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+          >
+            {isFullscreen ? (
+              <FullscreenExitIcon fontSize="small" />
+            ) : (
+              <FullscreenIcon fontSize="small" />
+            )}
           </IconButton>
 
-          <IconButton onClick={(e) => setNotifAnchor(e.currentTarget)} aria-label="Notifications">
+          <IconButton
+            onClick={(e) => setNotifAnchor(e.currentTarget)}
+            size="small"
+            aria-label="Notifications"
+          >
             <Badge badgeContent={notificationCount} color="secondary">
-              <NotificationsNoneIcon />
+              <NotificationsNoneIcon fontSize="small" />
             </Badge>
           </IconButton>
           <Menu
             anchorEl={notifAnchor}
             open={!!notifAnchor}
             onClose={() => setNotifAnchor(null)}
-            slotProps={{ paper: { sx: { width: 320, borderRadius: `${radius.lg}px`, mt: 1 } } }}
+            slotProps={{
+              paper: {
+                sx: { width: 320, borderRadius: `${radius.lg}px`, mt: 1 },
+              },
+            }}
           >
             <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Notifications</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>
+                Notifications
+              </Typography>
             </Box>
             <Divider />
-            <MenuItem onClick={() => setNotifAnchor(null)} sx={{ whiteSpace: 'normal', py: 1.25 }}>
-              <Typography variant="body1">3 new approval requests are awaiting review.</Typography>
+            <MenuItem
+              onClick={() => setNotifAnchor(null)}
+              sx={{ whiteSpace: 'normal', py: 1.25 }}
+            >
+              <Typography variant="body1">
+                3 new approval requests are awaiting review.
+              </Typography>
             </MenuItem>
-            <MenuItem onClick={() => setNotifAnchor(null)} sx={{ whiteSpace: 'normal', py: 1.25 }}>
-              <Typography variant="body1">Factory inventory upload completed successfully.</Typography>
+            <MenuItem
+              onClick={() => setNotifAnchor(null)}
+              sx={{ whiteSpace: 'normal', py: 1.25 }}
+            >
+              <Typography variant="body1">
+                Factory inventory upload completed successfully.
+              </Typography>
             </MenuItem>
           </Menu>
 
-          <IconButton onClick={() => navigate('/settings/general')} aria-label="Settings">
-            <SettingsIcon />
-          </IconButton>
-
-          <Stack
-            direction="row"
-            spacing={1}
-            onClick={(e) => setProfileAnchor(e.currentTarget)}
-            sx={{
-              alignItems: 'center',
-              cursor: 'pointer',
-              pl: 1,
-              py: 0.5,
-              pr: 0.5,
-              ml: 0.5,
-              borderRadius: `${radius.md}px`,
-              transition: 'background-color 150ms',
-              '&:hover': { backgroundColor: 'background.default' },
-            }}
+          <IconButton
+            onClick={() => navigate('/settings/general')}
+            size="small"
+            aria-label="Settings"
           >
-            <Avatar sx={{ bgcolor: 'secondary.main', width: 36, height: 36, fontWeight: 700 }}>
-              {currentUser.avatarInitial}
-            </Avatar>
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-              <Typography variant="body1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                {currentUser.name}
-              </Typography>
-              <Typography variant="caption" sx={{ textTransform: 'capitalize' }}>
-                {currentUser.role.replace('_', ' ')}
-              </Typography>
-            </Box>
-            <ExpandMoreIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-          </Stack>
+            <SettingsIcon fontSize="small" />
+          </IconButton>
 
           <Menu
             anchorEl={profileAnchor}
             open={!!profileAnchor}
             onClose={() => setProfileAnchor(null)}
-            slotProps={{ paper: { sx: { borderRadius: `${radius.lg}px`, mt: 1 } } }}
+            slotProps={{
+              paper: { sx: { borderRadius: `${radius.lg}px`, mt: 1 } },
+            }}
           >
             <MenuItem
               onClick={() => {

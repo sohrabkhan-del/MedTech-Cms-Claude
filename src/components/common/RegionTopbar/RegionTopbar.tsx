@@ -1,6 +1,9 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Box, Chip, Stack, Typography } from '@mui/material'
-import { DateRangeFilter, type DateRange } from '@/components/common/DateRangeFilter/DateRangeFilter'
+import {
+  DateRangeFilter,
+  type DateRange,
+} from '@/components/common/DateRangeFilter/DateRangeFilter'
 import { radius, transitions } from '@/theme/tokens'
 
 const REGIONS = ['All India', 'North', 'South', 'East', 'West']
@@ -57,7 +60,11 @@ export function RegionTopbar({
         borderRadius: `${radius.xl}px`,
       }}
     >
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', minWidth: 0 }}>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{ alignItems: 'center', minWidth: 0 }}
+      >
         <Box
           sx={{
             width: 38,
@@ -74,14 +81,28 @@ export function RegionTopbar({
           {icon}
         </Box>
         <Box sx={{ minWidth: 0 }}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem' }}>{title}</Typography>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+          >
+            <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem' }}>
+              {title}
+            </Typography>
             {live && (
               <Chip
                 label="Live"
                 size="small"
                 icon={
-                  <Box sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: 'success.main', ml: '8px !important' }} />
+                  <Box
+                    sx={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: '50%',
+                      backgroundColor: 'success.main',
+                      ml: '8px !important',
+                    }}
+                  />
                 }
                 sx={{
                   height: 20,
@@ -102,7 +123,11 @@ export function RegionTopbar({
         </Box>
       </Stack>
 
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{ alignItems: 'center', flexWrap: 'wrap', rowGap: 1 }}
+      >
         <Box
           sx={{
             position: 'relative',

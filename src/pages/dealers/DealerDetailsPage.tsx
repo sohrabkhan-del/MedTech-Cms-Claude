@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Grid, Stack } from '@mui/material'
+import { Box, Grid, Stack, Typography } from '@mui/material'
+import StorefrontIcon from '@mui/icons-material/Storefront'
 import { PartnerSummaryHeader } from '@/features/partners/components/PartnerSummaryHeader'
+import { PartnerDetailsFieldsCard } from '@/features/partners/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/partners/components/PartnerStatisticsCards'
 import { RegisteredAddressCard } from '@/features/partners/components/RegisteredAddressCard'
 import { GeoLockCard } from '@/features/partners/components/GeoLockCard'
@@ -32,12 +34,37 @@ export function DealerDetailsPage() {
 
   return (
     <Stack spacing={0}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'primary.light',
+            color: 'primary.main',
+          }}
+        >
+          <StorefrontIcon fontSize="small" />
+        </Box>
+        <Box>
+          <Typography variant="h1">{dealer.shopName}</Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+            {dealer.id} · Dealer
+          </Typography>
+        </Box>
+      </Stack>
+
       <PartnerSummaryHeader
         partner={dealer}
         shopLabel="Godown Name"
         onActivate={() => forceRerender((n) => n + 1)}
         onDeactivate={() => forceRerender((n) => n + 1)}
       />
+
+      <PartnerDetailsFieldsCard partner={dealer} shopLabel="Godown Name" />
 
       <PartnerStatisticsCards partner={dealer} />
 

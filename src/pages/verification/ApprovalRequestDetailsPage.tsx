@@ -1,26 +1,20 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Card, Chip, Grid, Stack, TextField, Typography } from '@mui/material'
+import { Box, Button, Chip, Stack, TextField, Typography } from '@mui/material'
 import RuleIcon from '@mui/icons-material/Rule'
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
 import CancelOutlined from '@mui/icons-material/CancelOutlined'
 import PlaceOutlined from '@mui/icons-material/PlaceOutlined'
 import DownloadOutlined from '@mui/icons-material/DownloadOutlined'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
-import { SimpleTable } from '@/components/common/SimpleTable/SimpleTable'
+import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
+import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
+import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
 import { getApprovalRequestById } from '@/features/verification/mockApprovalRequests'
-import type { ApprovalStatus, DocumentVerificationStatus } from '@/types/approvalRequest'
-
-const sectionTitleSx = {
-  fontWeight: 700,
-  fontSize: '0.75rem',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase' as const,
-  color: 'primary.main',
-  mb: 2,
-}
+import type { ApprovalStatus, DocumentVerificationStatus, RequestDocument } from '@/types/approvalRequest'
 
 const DOC_STATUS_CONFIG: Record<DocumentVerificationStatus, { label: string; color: 'success' | 'warning' | 'error' }> = {
   verified: { label: 'Verified', color: 'success' },
@@ -28,16 +22,30 @@ const DOC_STATUS_CONFIG: Record<DocumentVerificationStatus, { label: string; col
   rejected: { label: 'Rejected', color: 'error' },
 }
 
-function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-      <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-        {label}
-      </Typography>
-      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>{value}</Typography>
-    </Grid>
-  )
-}
+const documentColumns: CommonTableColumn<RequestDocument>[] = [
+  { key: 'documentName', header: 'Document Name', render: (row) => row.documentName },
+  { key: 'uploadDate', header: 'Upload Date', sortable: true, render: (row) => row.uploadDate },
+  {
+    key: 'verificationStatus',
+    header: 'Status',
+    sortable: true,
+    sortValue: (row) => DOC_STATUS_CONFIG[row.verificationStatus].label,
+    render: (row) => (
+      <Chip label={DOC_STATUS_CONFIG[row.verificationStatus].label} size="small" color={DOC_STATUS_CONFIG[row.verificationStatus].color} variant="filled" />
+    ),
+  },
+  {
+    key: 'actions',
+    header: '',
+    align: 'right',
+    hideable: false,
+    render: () => (
+      <Button size="small" startIcon={<DownloadOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
+        Preview
+      </Button>
+    ),
+  },
+]
 
 export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
@@ -69,6 +77,13 @@ export function ApprovalRequestDetailsPage() {
     setStatusOverride(dialog.action === 'approve' ? 'approved' : 'rejected')
     setDialog({ open: false, action: 'approve' })
   }
+
+  const auditColumns: CommonTableColumn<(typeof request.auditHistory)[number]>[] = [
+    { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
+    { key: 'action', header: 'Action', render: (row) => row.action },
+    { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
+    { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
+  ]
 
   return (
     <>
@@ -120,51 +135,47 @@ export function ApprovalRequestDetailsPage() {
       </Stack>
 
       <Stack spacing={3}>
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Summary</Typography>
-          <Grid container spacing={2.5}>
-            <FieldRow label="Approval Request ID" value={request.id} />
-            <FieldRow label="Applicant Name" value={request.applicantName} />
-            <FieldRow label="Request Type" value={request.requestType} />
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Current Status
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                <StatusBadge status={status} />
-              </Box>
-            </Grid>
-            <FieldRow label="Submitted Date" value={request.submittedDate} />
-            <FieldRow label="Registered By" value={request.registeredBy} />
-          </Grid>
-        </Card>
+        <SectionCard title="Summary">
+          <DetailFieldGrid
+            fields={[
+              { label: 'Approval Request ID', value: request.id },
+              { label: 'Applicant Name', value: request.applicantName },
+              { label: 'Request Type', value: request.requestType },
+              { label: 'Current Status', value: <StatusBadge status={status} /> },
+              { label: 'Submitted Date', value: request.submittedDate },
+              { label: 'Registered By', value: request.registeredBy },
+            ]}
+          />
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Applicant Information</Typography>
-          <Grid container spacing={2.5}>
-            <FieldRow label="Store / Godown Name" value={request.storeName} />
-            <FieldRow label="Owner Name" value={request.ownerName} />
-            <FieldRow label="Email Address" value={request.email} />
-            <FieldRow label="Mobile Number" value={request.mobileNumber} />
-            <FieldRow label="City" value={request.city} />
-            <FieldRow label="Region" value={request.region} />
-            <FieldRow label="Complete Address" value={request.completeAddress} />
-          </Grid>
-        </Card>
+        <SectionCard title="Applicant Information">
+          <DetailFieldGrid
+            fields={[
+              { label: 'Store / Godown Name', value: request.storeName },
+              { label: 'Owner Name', value: request.ownerName },
+              { label: 'Email Address', value: request.email },
+              { label: 'Mobile Number', value: request.mobileNumber },
+              { label: 'City', value: request.city },
+              { label: 'Region', value: request.region },
+              { label: 'Complete Address', value: request.completeAddress },
+            ]}
+          />
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Business Information</Typography>
-          <Grid container spacing={2.5}>
-            <FieldRow label="Drug License Number" value={request.drugLicenseNumber} />
-            <FieldRow label="GST Number" value={request.gstNumber ?? '—'} />
-            <FieldRow label="Business Category" value={request.businessCategory} />
-            <FieldRow label="Registration Source" value={request.registeredBy} />
-          </Grid>
-        </Card>
+        <SectionCard title="Business Information">
+          <DetailFieldGrid
+            fields={[
+              { label: 'Drug License Number', value: request.drugLicenseNumber },
+              { label: 'GST Number', value: request.gstNumber ?? '—' },
+              { label: 'Business Category', value: request.businessCategory },
+              { label: 'Registration Source', value: request.registeredBy },
+            ]}
+          />
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Typography sx={{ ...sectionTitleSx, mb: 0 }}>Geo-Tag Information</Typography>
+        <SectionCard
+          title="Geo-Tag Information"
+          action={
             <Button
               size="small"
               variant="outlined"
@@ -177,92 +188,57 @@ export function ApprovalRequestDetailsPage() {
             >
               Open in Google Maps
             </Button>
-          </Stack>
-          <Grid container spacing={2.5}>
-            <FieldRow label="Latitude" value={request.latitude.toFixed(4)} />
-            <FieldRow label="Longitude" value={request.longitude.toFixed(4)} />
-            <FieldRow label="Geo-tag Coordinates" value={`${request.latitude.toFixed(4)}, ${request.longitude.toFixed(4)}`} />
-            <FieldRow label="Assigned Zone" value={request.assignedZone} />
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Geo Verification Status
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                <Chip
-                  label={request.geoVerificationStatus === 'verified' ? 'Verified' : request.geoVerificationStatus === 'flagged' ? 'Flagged' : 'Unverified'}
-                  size="small"
-                  color={request.geoVerificationStatus === 'verified' ? 'success' : request.geoVerificationStatus === 'flagged' ? 'error' : 'warning'}
-                  variant="filled"
-                />
-              </Box>
-            </Grid>
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Verification Documents</Typography>
-          <SimpleTable
-            columns={[
-              { key: 'documentName', header: 'Document Name', render: (row) => row.documentName },
-              { key: 'uploadDate', header: 'Upload Date', render: (row) => row.uploadDate },
+          }
+        >
+          <DetailFieldGrid
+            fields={[
+              { label: 'Latitude', value: request.latitude.toFixed(4) },
+              { label: 'Longitude', value: request.longitude.toFixed(4) },
+              { label: 'Assigned Zone', value: request.assignedZone },
               {
-                key: 'verificationStatus',
-                header: 'Status',
-                render: (row) => (
-                  <Chip label={DOC_STATUS_CONFIG[row.verificationStatus].label} size="small" color={DOC_STATUS_CONFIG[row.verificationStatus].color} variant="filled" />
-                ),
-              },
-              {
-                key: 'actions',
-                header: '',
-                align: 'right',
-                render: () => (
-                  <Button size="small" startIcon={<DownloadOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
-                    Preview
-                  </Button>
+                label: 'Geo Verification Status',
+                value: (
+                  <Chip
+                    label={request.geoVerificationStatus === 'verified' ? 'Verified' : request.geoVerificationStatus === 'flagged' ? 'Flagged' : 'Unverified'}
+                    size="small"
+                    color={request.geoVerificationStatus === 'verified' ? 'success' : request.geoVerificationStatus === 'flagged' ? 'error' : 'warning'}
+                    variant="filled"
+                  />
                 ),
               },
             ]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Verification Documents">
+          <CommonTable
+            tableKey="approval-request-documents"
+            columns={documentColumns}
             rows={request.documents}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search documents…"
+            searchKeys={(row) => row.documentName}
+            defaultSortBy="uploadDate"
             emptyTitle="No documents uploaded"
           />
-        </Card>
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Approval Timeline</Typography>
-          <Stack spacing={0}>
-            {request.timeline.map((entry, index) => (
-              <Stack key={entry.id} direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
-                <Stack sx={{ alignItems: 'center' }}>
-                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'primary.main', mt: 0.75 }} />
-                  {index < request.timeline.length - 1 && <Box sx={{ width: '1px', flexGrow: 1, minHeight: 24, backgroundColor: 'divider' }} />}
-                </Stack>
-                <Box sx={{ pb: 2.5 }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{entry.activity}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    {entry.dateTime}
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
-          </Stack>
-        </Card>
+        <SectionCard title="Approval Timeline">
+          <ActivityTimeline entries={request.timeline} emptyTitle="No timeline activity yet" />
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Audit History</Typography>
-          <SimpleTable
-            columns={[
-              { key: 'date', header: 'Date', render: (row) => row.date },
-              { key: 'action', header: 'Action', render: (row) => row.action },
-              { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
-              { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
-            ]}
+        <SectionCard title="Audit History">
+          <CommonTable
+            tableKey="approval-request-audit"
+            columns={auditColumns}
             rows={request.auditHistory}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search audit history…"
+            searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}
+            defaultSortBy="date"
             emptyTitle="No audit records yet"
           />
-        </Card>
+        </SectionCard>
       </Stack>
 
       <Modal

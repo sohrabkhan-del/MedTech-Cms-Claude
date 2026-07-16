@@ -1,7 +1,8 @@
-import { Card, Chip, IconButton, Stack, Typography } from '@mui/material'
+import { Chip, IconButton, Stack } from '@mui/material'
 import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
 import UploadOutlinedIcon from '@mui/icons-material/UploadOutlined'
-import { SimpleTable, type SimpleTableColumn } from '@/components/common/SimpleTable/SimpleTable'
+import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import type { LicenseDocument } from '@/types/partner'
 
 const statusConfig: Record<LicenseDocument['verificationStatus'], { label: string; color: 'success' | 'warning' | 'error' }> = {
@@ -10,22 +11,25 @@ const statusConfig: Record<LicenseDocument['verificationStatus'], { label: strin
   rejected: { label: 'Rejected', color: 'error' },
 }
 
-function buildColumns(onUpload: () => void): SimpleTableColumn<LicenseDocument>[] {
+function buildColumns(onUpload: () => void): CommonTableColumn<LicenseDocument>[] {
   return [
     { key: 'documentName', header: 'Document Name', render: (row) => row.documentName },
-    { key: 'uploadDate', header: 'Upload Date', render: (row) => row.uploadDate },
+    { key: 'uploadDate', header: 'Upload Date', sortable: true, render: (row) => row.uploadDate },
     {
       key: 'verificationStatus',
       header: 'Verification Status',
+      sortable: true,
+      sortValue: (row) => statusConfig[row.verificationStatus].label,
       render: (row) => (
         <Chip label={statusConfig[row.verificationStatus].label} color={statusConfig[row.verificationStatus].color} size="small" />
       ),
     },
-    { key: 'expiryDate', header: 'Expiry Date', render: (row) => row.expiryDate },
+    { key: 'expiryDate', header: 'Expiry Date', sortable: true, render: (row) => row.expiryDate },
     {
       key: 'actions',
       header: '',
       align: 'right',
+      hideable: false,
       render: () => (
         <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
           <IconButton size="small" aria-label="Download document">
@@ -42,14 +46,17 @@ function buildColumns(onUpload: () => void): SimpleTableColumn<LicenseDocument>[
 
 export function LicenseDocumentsCard({ documents, onUpload }: { documents: LicenseDocument[]; onUpload?: () => void }) {
   return (
-    <Card sx={{ p: 3 }}>
-      <Typography sx={{ fontWeight: 700, fontSize: '1rem', mb: 2 }}>License &amp; Documents</Typography>
-      <SimpleTable
+    <SectionCard title="License & Documents">
+      <CommonTable
+        tableKey="partner-license-documents"
         columns={buildColumns(onUpload ?? (() => {}))}
         rows={documents}
         getRowId={(row) => row.id}
+        searchPlaceholder="Search documents…"
+        searchKeys={(row) => row.documentName}
+        defaultSortBy="uploadDate"
         emptyTitle="No documents uploaded"
       />
-    </Card>
+    </SectionCard>
   )
 }

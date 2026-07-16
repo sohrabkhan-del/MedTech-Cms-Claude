@@ -24,7 +24,8 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
-import { SimpleTable } from '@/components/common/SimpleTable/SimpleTable'
+import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
@@ -437,50 +438,20 @@ export function LiveScanFeedPage() {
       {tab === 1 &&
         (userSummary ? (
           <Stack spacing={3}>
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                User Summary
-              </Typography>
-              <Grid container spacing={2.5}>
-                {[
-                  ['User ID', userSummary.userId],
-                  ['User Name', userSummary.userName],
-                  ['Role', userSummary.role],
-                  ['Contact Number', userSummary.contactNumber],
-                  ['Email Address', userSummary.email],
-                  ['City', userSummary.city],
-                  ['Address', userSummary.address],
-                  ['Zone', userSummary.zone],
-                ].map(([label, value]) => (
-                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
-                    >
-                      {value}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-            </Card>
+            <SectionCard title="User Summary">
+              <DetailFieldGrid
+                fields={[
+                  { label: 'User ID', value: userSummary.userId },
+                  { label: 'User Name', value: userSummary.userName },
+                  { label: 'Role', value: userSummary.role },
+                  { label: 'Contact Number', value: userSummary.contactNumber },
+                  { label: 'Email Address', value: userSummary.email },
+                  { label: 'City', value: userSummary.city },
+                  { label: 'Address', value: userSummary.address },
+                  { label: 'Zone', value: userSummary.zone },
+                ]}
+              />
+            </SectionCard>
 
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -517,71 +488,23 @@ export function LiveScanFeedPage() {
               </Grid>
             </Grid>
 
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                User Information
-              </Typography>
-              <Grid container spacing={2.5}>
-                {[
-                  ['Last Scan Date & Time', userSummary.lastScanDateTime],
-                  ['Registered Location', userSummary.address],
-                  ['Assigned Region', userSummary.zone],
-                  ['Business Name', userSummary.businessName],
-                  [
-                    'User Status',
-                    userSummary.status === 'active' ? 'Active' : 'Inactive',
-                  ],
-                ].map(([label, value]) => (
-                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
-                    >
-                      {value}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-            </Card>
+            <SectionCard title="User Information">
+              <DetailFieldGrid
+                fields={[
+                  { label: 'Last Scan Date & Time', value: userSummary.lastScanDateTime },
+                  { label: 'Registered Location', value: userSummary.address },
+                  { label: 'Assigned Region', value: userSummary.zone },
+                  { label: 'Business Name', value: userSummary.businessName },
+                  { label: 'User Status', value: userSummary.status === 'active' ? 'Active' : 'Inactive' },
+                ]}
+              />
+            </SectionCard>
 
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                Scan History
-              </Typography>
-              <SimpleTable
+            <SectionCard title="Scan History">
+              <CommonTable
+                tableKey="live-scan-user-history"
                 columns={[
-                  {
-                    key: 'scanDateTime',
-                    header: 'Scan Date & Time',
-                    render: (row) => row.scanDateTime,
-                  },
+                  { key: 'scanDateTime', header: 'Scan Date & Time', sortable: true, render: (row) => row.scanDateTime },
                   {
                     key: 'barcodeNumber',
                     header: 'Barcode Number',
@@ -599,37 +522,26 @@ export function LiveScanFeedPage() {
                       </Typography>
                     ),
                   },
-                  {
-                    key: 'productName',
-                    header: 'Product Name',
-                    render: (row) => row.productName,
-                  },
-                  {
-                    key: 'batchNumber',
-                    header: 'Batch Number',
-                    render: (row) => row.batchNumber,
-                  },
-                  {
-                    key: 'region',
-                    header: 'Region',
-                    render: (row) => row.region,
-                  },
-                  {
-                    key: 'sourceIp',
-                    header: 'Source IP Address',
-                    render: (row) => row.technical.sourceIp,
-                  },
+                  { key: 'productName', header: 'Product Name', render: (row) => row.productName },
+                  { key: 'batchNumber', header: 'Batch Number', render: (row) => row.batchNumber },
+                  { key: 'region', header: 'Region', render: (row) => row.region },
+                  { key: 'sourceIp', header: 'Source IP Address', render: (row) => row.technical.sourceIp },
                   {
                     key: 'result',
                     header: 'Scan Result',
+                    sortable: true,
+                    sortValue: (row) => RESULT_CONFIG[row.result].label,
                     render: (row) => <ResultChip result={row.result} />,
                   },
                 ]}
                 rows={userScanHistory}
                 getRowId={(row) => row.id}
+                searchPlaceholder="Search scans…"
+                searchKeys={(row) => `${row.barcodeNumber} ${row.productName}`}
+                defaultSortBy="scanDateTime"
                 emptyTitle="No scans recorded"
               />
-            </Card>
+            </SectionCard>
           </Stack>
         ) : (
           <EmptyState
@@ -641,118 +553,41 @@ export function LiveScanFeedPage() {
       {tab === 2 &&
         (selectedScan ? (
           <Stack spacing={3}>
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                Scan Summary
-              </Typography>
-              <Grid container spacing={2.5}>
-                {[
-                  ['Scan ID', selectedScan.id],
-                  ['Barcode Number', selectedScan.barcodeNumber],
-                  ['Product Name', selectedScan.productName],
-                  ['Batch Number', selectedScan.batchNumber],
-                  ['Scan Date & Time', selectedScan.scanDateTime],
-                  [
-                    'Reward Points Earned',
-                    selectedScan.rewardPoints.toString(),
-                  ],
-                ].map(([label, value]) => (
-                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
-                    >
-                      {value}
-                    </Typography>
-                  </Grid>
-                ))}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'text.secondary',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Scan Result
-                  </Typography>
-                  <Box sx={{ mt: 0.5 }}>
-                    <ResultChip result={selectedScan.result} />
-                  </Box>
-                </Grid>
-              </Grid>
-            </Card>
+            <SectionCard title="Scan Summary">
+              <DetailFieldGrid
+                fields={[
+                  { label: 'Scan ID', value: selectedScan.id },
+                  { label: 'Barcode Number', value: selectedScan.barcodeNumber },
+                  { label: 'Product Name', value: selectedScan.productName },
+                  { label: 'Batch Number', value: selectedScan.batchNumber },
+                  { label: 'Scan Date & Time', value: selectedScan.scanDateTime },
+                  { label: 'Reward Points Earned', value: selectedScan.rewardPoints.toString() },
+                  { label: 'Scan Result', value: <ResultChip result={selectedScan.result} /> },
+                ]}
+              />
+            </SectionCard>
 
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                User Information
-              </Typography>
-              <Grid container spacing={2.5}>
-                {[
-                  ['User Name', selectedScan.userName],
-                  ['User Type', selectedScan.userRole],
-                  ['Registered Location', selectedScan.businessName],
-                  ['Assigned Region', selectedScan.region],
-                  ['Business Name', selectedScan.businessName],
-                ].map(([label, value]) => (
-                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '0.8125rem',
-                        mt: 0.25,
-                        cursor: label === 'User Name' ? 'pointer' : undefined,
-                      }}
-                      onClick={
-                        label === 'User Name'
-                          ? () => openUser(selectedScan.userId)
-                          : undefined
-                      }
-                    >
-                      {value}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-            </Card>
+            <SectionCard title="User Information">
+              <DetailFieldGrid
+                fields={[
+                  {
+                    label: 'User Name',
+                    value: (
+                      <Typography
+                        sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+                        onClick={() => openUser(selectedScan.userId)}
+                      >
+                        {selectedScan.userName}
+                      </Typography>
+                    ),
+                  },
+                  { label: 'User Type', value: selectedScan.userRole },
+                  { label: 'Registered Location', value: selectedScan.businessName },
+                  { label: 'Assigned Region', value: selectedScan.region },
+                  { label: 'Business Name', value: selectedScan.businessName },
+                ]}
+              />
+            </SectionCard>
 
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, md: 6 }}>
@@ -876,46 +711,16 @@ export function LiveScanFeedPage() {
               </Grid>
             </Grid>
 
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                Technical Information
-              </Typography>
-              <Grid container spacing={2.5}>
-                {[
-                  ['Source IP Address', selectedScan.technical.sourceIp],
-                  ['Device Information', selectedScan.technical.deviceInfo],
-                  ['Scan Timestamp', selectedScan.scanDateTime],
-                  ['Application Version', selectedScan.technical.appVersion],
-                ].map(([label, value]) => (
-                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
-                    >
-                      {value}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-            </Card>
+            <SectionCard title="Technical Information">
+              <DetailFieldGrid
+                fields={[
+                  { label: 'Source IP Address', value: selectedScan.technical.sourceIp },
+                  { label: 'Device Information', value: selectedScan.technical.deviceInfo },
+                  { label: 'Scan Timestamp', value: selectedScan.scanDateTime },
+                  { label: 'Application Version', value: selectedScan.technical.appVersion },
+                ]}
+              />
+            </SectionCard>
           </Stack>
         ) : (
           <EmptyState

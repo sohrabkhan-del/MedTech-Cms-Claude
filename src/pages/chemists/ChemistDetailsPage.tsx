@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Grid, Stack } from '@mui/material'
+import { Box, Grid, Stack, Typography } from '@mui/material'
+import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy'
 import { PartnerSummaryHeader } from '@/features/partners/components/PartnerSummaryHeader'
+import { PartnerDetailsFieldsCard } from '@/features/partners/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/partners/components/PartnerStatisticsCards'
 import { RegisteredAddressCard } from '@/features/partners/components/RegisteredAddressCard'
 import { GeoLockCard } from '@/features/partners/components/GeoLockCard'
@@ -36,12 +38,37 @@ export function ChemistDetailsPage() {
 
   return (
     <Stack spacing={0}>
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: '10px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: 'primary.light',
+            color: 'primary.main',
+          }}
+        >
+          <LocalPharmacyIcon fontSize="small" />
+        </Box>
+        <Box>
+          <Typography variant="h1">{chemist.shopName}</Typography>
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+            {chemist.id} · Chemist
+          </Typography>
+        </Box>
+      </Stack>
+
       <PartnerSummaryHeader
         partner={chemist}
         shopLabel="Chemist Shop Name"
         onActivate={() => forceRerender((n) => n + 1)}
         onDeactivate={() => forceRerender((n) => n + 1)}
       />
+
+      <PartnerDetailsFieldsCard partner={chemist} shopLabel="Chemist Shop Name" showGeoLockStatus />
 
       <PartnerStatisticsCards partner={chemist} />
 

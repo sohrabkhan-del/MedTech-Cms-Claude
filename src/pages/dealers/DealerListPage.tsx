@@ -106,7 +106,12 @@ export function DealerListPage() {
       sortable: true,
       render: (row) => row.email,
     },
-    { key: 'phone', header: 'Phone', minWidth: 160, render: (row) => row.phone },
+    {
+      key: 'phone',
+      header: 'Phone',
+      minWidth: 160,
+      render: (row) => row.phone,
+    },
     {
       key: 'city',
       header: 'Location',
@@ -120,6 +125,26 @@ export function DealerListPage() {
       sortable: true,
       sortValue: (row) => row.status,
       render: (row) => <StatusBadge status={row.status} />,
+    },
+    {
+      key: 'licenseNumber',
+      header: 'License Number',
+      render: (row) => row.licenseNumber,
+    },
+    {
+      key: 'onboardedBy',
+      header: 'Onboarded',
+      sortable: true,
+      render: (row) => row.onboardedBy,
+    },
+    {
+      key: 'availableCoins',
+      header: 'Available Coins',
+      align: 'center',
+      minWidth: 100,
+      sortable: true,
+      sortValue: (row) => row.availableCoins,
+      render: (row) => row.availableCoins.toLocaleString('en-IN'),
     },
   ]
 

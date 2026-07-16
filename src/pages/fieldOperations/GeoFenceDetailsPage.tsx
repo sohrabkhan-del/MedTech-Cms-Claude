@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Card, Grid, Stack, Typography } from '@mui/material'
+import { Box, Button, Grid, Stack, Typography } from '@mui/material'
 import EditOutlined from '@mui/icons-material/EditOutlined'
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
 import BlockOutlined from '@mui/icons-material/BlockOutlined'
@@ -9,19 +9,38 @@ import PendingActionsOutlined from '@mui/icons-material/PendingActionsOutlined'
 import TrackChangesIcon from '@mui/icons-material/TrackChanges'
 import EventAvailableOutlined from '@mui/icons-material/EventAvailableOutlined'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { SimpleTable } from '@/components/common/SimpleTable/SimpleTable'
+import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
+import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
+import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { getGeoFenceById, geoFenceKpis } from '@/features/fieldOperations/mockGeoFences'
+import type { GeoFenceVerificationEntry, GeoFenceScanEntry, GeoFenceAuditEntry } from '@/types/geoFence'
 
-const sectionTitleSx = {
-  fontWeight: 700,
-  fontSize: '0.75rem',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase' as const,
-  color: 'primary.main',
-  mb: 2,
-}
+const verificationColumns: CommonTableColumn<GeoFenceVerificationEntry>[] = [
+  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
+  { key: 'verifiedBy', header: 'Verified By', render: (row) => row.verifiedBy },
+  { key: 'previousRadiusMeters', header: 'Previous Radius', render: (row) => `${row.previousRadiusMeters} m` },
+  { key: 'newRadiusMeters', header: 'New Radius', render: (row) => `${row.newRadiusMeters} m` },
+  { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
+]
+
+const scanColumns: CommonTableColumn<GeoFenceScanEntry>[] = [
+  { key: 'scanDate', header: 'Scan Date', sortable: true, render: (row) => row.scanDate },
+  { key: 'user', header: 'User', render: (row) => row.user },
+  { key: 'location', header: 'Location', render: (row) => row.location },
+  { key: 'distanceMeters', header: 'Distance', align: 'right', sortable: true, sortValue: (row) => row.distanceMeters, render: (row) => `${row.distanceMeters} m` },
+  { key: 'result', header: 'Result', render: (row) => (row.result === 'valid' ? 'Valid' : 'Invalid') },
+  { key: 'status', header: 'Status', render: (row) => (row.status === 'within_fence' ? 'Within Fence' : 'Outside Fence') },
+]
+
+const auditColumns: CommonTableColumn<GeoFenceAuditEntry>[] = [
+  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
+  { key: 'action', header: 'Action', render: (row) => row.action },
+  { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
+  { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
+]
 
 export function GeoFenceDetailsPage() {
   const navigate = useNavigate()
@@ -89,38 +108,18 @@ export function GeoFenceDetailsPage() {
       </Stack>
 
       <Stack spacing={3}>
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Summary</Typography>
-          <Grid container spacing={2.5}>
-            {[
-              ['ID', fence.id],
-              ['User Name', fence.userName],
-              ['User Type', fence.userType],
-              ['Region', fence.region],
-            ].map(([label, value]) => (
-              <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {label}
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>{value}</Typography>
-              </Grid>
-            ))}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Radius
-              </Typography>
-              <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>{fence.radiusMeters} m</Typography>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Status
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                <StatusBadge status={fence.status} />
-              </Box>
-            </Grid>
-          </Grid>
-        </Card>
+        <SectionCard title="Summary">
+          <DetailFieldGrid
+            fields={[
+              { label: 'ID', value: fence.id },
+              { label: 'User Name', value: fence.userName },
+              { label: 'User Type', value: fence.userType },
+              { label: 'Region', value: fence.region },
+              { label: 'Radius', value: `${fence.radiusMeters} m` },
+              { label: 'Status', value: <StatusBadge status={fence.status} /> },
+            ]}
+          />
+        </SectionCard>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -137,105 +136,65 @@ export function GeoFenceDetailsPage() {
           </Grid>
         </Grid>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Location Information</Typography>
-          <Grid container spacing={2.5}>
-            {[
-              ['User Name', fence.userName],
-              ['User Type', fence.userType],
-              ['Region', fence.region],
-              ['Zone', fence.zone],
-              ['Latitude', fence.latitude.toFixed(4)],
-              ['Longitude', fence.longitude.toFixed(4)],
-              ['Radius', `${fence.radiusMeters} m`],
-              ['Buffer Distance', `${fence.bufferDistanceMeters} m`],
-              ['Last Verified', fence.lastVerified],
-            ].map(([label, value]) => (
-              <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  {label}
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>{value}</Typography>
-              </Grid>
-            ))}
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Status
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                <StatusBadge status={fence.status} />
-              </Box>
-            </Grid>
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Verification History</Typography>
-          <SimpleTable
-            columns={[
-              { key: 'date', header: 'Date', render: (row) => row.date },
-              { key: 'verifiedBy', header: 'Verified By', render: (row) => row.verifiedBy },
-              { key: 'previousRadiusMeters', header: 'Previous Radius', render: (row) => `${row.previousRadiusMeters} m` },
-              { key: 'newRadiusMeters', header: 'New Radius', render: (row) => `${row.newRadiusMeters} m` },
-              { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
+        <SectionCard title="Location Information">
+          <DetailFieldGrid
+            fields={[
+              { label: 'User Name', value: fence.userName },
+              { label: 'User Type', value: fence.userType },
+              { label: 'Region', value: fence.region },
+              { label: 'Zone', value: fence.zone },
+              { label: 'Latitude', value: fence.latitude.toFixed(4) },
+              { label: 'Longitude', value: fence.longitude.toFixed(4) },
+              { label: 'Radius', value: `${fence.radiusMeters} m` },
+              { label: 'Buffer Distance', value: `${fence.bufferDistanceMeters} m` },
+              { label: 'Last Verified', value: fence.lastVerified },
+              { label: 'Status', value: <StatusBadge status={fence.status} /> },
             ]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Verification History">
+          <CommonTable
+            tableKey="geofence-verification-history"
+            columns={verificationColumns}
             rows={fence.verificationHistory}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search verification history…"
+            searchKeys={(row) => `${row.verifiedBy} ${row.remarks}`}
+            defaultSortBy="date"
             emptyTitle="No verification records yet"
           />
-        </Card>
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Scan History</Typography>
-          <SimpleTable
-            columns={[
-              { key: 'scanDate', header: 'Scan Date', render: (row) => row.scanDate },
-              { key: 'user', header: 'User', render: (row) => row.user },
-              { key: 'location', header: 'Location', render: (row) => row.location },
-              { key: 'distanceMeters', header: 'Distance', render: (row) => `${row.distanceMeters} m` },
-              { key: 'result', header: 'Result', render: (row) => (row.result === 'valid' ? 'Valid' : 'Invalid') },
-              { key: 'status', header: 'Status', render: (row) => (row.status === 'within_fence' ? 'Within Fence' : 'Outside Fence') },
-            ]}
+        <SectionCard title="Scan History">
+          <CommonTable
+            tableKey="geofence-scan-history"
+            columns={scanColumns}
             rows={fence.scanHistory}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search scans…"
+            searchKeys={(row) => `${row.user} ${row.location}`}
+            defaultSortBy="scanDate"
             emptyTitle="No scans recorded"
           />
-        </Card>
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Timeline</Typography>
-          <Stack spacing={0}>
-            {fence.timeline.map((entry, index) => (
-              <Stack key={entry.id} direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
-                <Stack sx={{ alignItems: 'center' }}>
-                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'primary.main', mt: 0.75 }} />
-                  {index < fence.timeline.length - 1 && <Box sx={{ width: '1px', flexGrow: 1, minHeight: 24, backgroundColor: 'divider' }} />}
-                </Stack>
-                <Box sx={{ pb: 2.5 }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{entry.activity}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    {entry.dateTime}
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
-          </Stack>
-        </Card>
+        <SectionCard title="Timeline">
+          <ActivityTimeline entries={fence.timeline} emptyTitle="No timeline activity yet" />
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Audit History</Typography>
-          <SimpleTable
-            columns={[
-              { key: 'date', header: 'Date', render: (row) => row.date },
-              { key: 'action', header: 'Action', render: (row) => row.action },
-              { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
-              { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
-            ]}
+        <SectionCard title="Audit History">
+          <CommonTable
+            tableKey="geofence-audit-history"
+            columns={auditColumns}
             rows={fence.auditHistory}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search audit history…"
+            searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}
+            defaultSortBy="date"
             emptyTitle="No audit records yet"
           />
-        </Card>
+        </SectionCard>
       </Stack>
     </>
   )

@@ -1,17 +1,5 @@
 import { useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Card,
-  Chip,
-  Grid,
-  MenuItem,
-  Stack,
-  Tab,
-  Tabs,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Grid, MenuItem, Stack, TextField, Typography, Chip } from '@mui/material'
 import GppMaybeIcon from '@mui/icons-material/GppMaybe'
 import ReportProblemOutlined from '@mui/icons-material/ReportProblemOutlined'
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
@@ -22,7 +10,9 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
-import { SimpleTable } from '@/components/common/SimpleTable/SimpleTable'
+import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
+import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import {
@@ -370,28 +360,9 @@ export function SecurityAlertsPage() {
       {tab === 1 &&
         (userSummary ? (
           <Stack spacing={3}>
-            <Card sx={{ p: 3 }}>
-              <Stack
-                direction="row"
-                sx={{
-                  alignItems: 'flex-start',
-                  justifyContent: 'space-between',
-                  flexWrap: 'wrap',
-                  gap: 2,
-                  mb: 2,
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    color: 'primary.main',
-                  }}
-                >
-                  User Summary
-                </Typography>
+            <SectionCard
+              title="User Summary"
+              action={
                 <Stack direction="row" spacing={1.5}>
                   <Button
                     variant="outlined"
@@ -410,61 +381,26 @@ export function SecurityAlertsPage() {
                     size="small"
                     startIcon={<BlockOutlined fontSize="small" />}
                     disabled={currentUserStatus === 'inactive'}
-                    onClick={() =>
-                      setUserStatus(userSummary.userId, 'inactive')
-                    }
+                    onClick={() => setUserStatus(userSummary.userId, 'inactive')}
                     sx={{ fontSize: '0.75rem' }}
                   >
                     Deactivate User
                   </Button>
                 </Stack>
-              </Stack>
-              <Grid container spacing={2.5}>
-                {[
-                  ['User ID', userSummary.userId],
-                  ['User Name', userSummary.userName],
-                  ['User Type', userSummary.userType],
-                  ['Mobile Number', userSummary.mobileNumber],
-                  ['Email Address', userSummary.email],
-                  ['Region', userSummary.region],
-                ].map(([label, value]) => (
-                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
-                    >
-                      {value}
-                    </Typography>
-                  </Grid>
-                ))}
-                <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'text.secondary',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                    }}
-                  >
-                    Current Status
-                  </Typography>
-                  <Box sx={{ mt: 0.5 }}>
-                    <StatusChip
-                      status={currentUserStatus ?? userSummary.status}
-                    />
-                  </Box>
-                </Grid>
-              </Grid>
-            </Card>
+              }
+            >
+              <DetailFieldGrid
+                fields={[
+                  { label: 'User ID', value: userSummary.userId },
+                  { label: 'User Name', value: userSummary.userName },
+                  { label: 'User Type', value: userSummary.userType },
+                  { label: 'Mobile Number', value: userSummary.mobileNumber },
+                  { label: 'Email Address', value: userSummary.email },
+                  { label: 'Region', value: userSummary.region },
+                  { label: 'Current Status', value: <StatusChip status={currentUserStatus ?? userSummary.status} /> },
+                ]}
+              />
+            </SectionCard>
 
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -495,173 +431,53 @@ export function SecurityAlertsPage() {
                 <StatCard
                   label="Current Account Status"
                   value={currentUserStatus === 'active' ? 'Active' : 'Inactive'}
-                  icon={
-                    currentUserStatus === 'active' ? (
-                      <CheckCircleOutlined fontSize="small" />
-                    ) : (
-                      <BlockOutlined fontSize="small" />
-                    )
-                  }
-                  iconColor={
-                    currentUserStatus === 'active' ? 'success' : 'error'
-                  }
+                  icon={currentUserStatus === 'active' ? <CheckCircleOutlined fontSize="small" /> : <BlockOutlined fontSize="small" />}
+                  iconColor={currentUserStatus === 'active' ? 'success' : 'error'}
                 />
               </Grid>
             </Grid>
 
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                User Information
-              </Typography>
-              <Grid container spacing={2.5}>
-                {[
-                  ['Last Known Location', userSummary.lastKnownLocation],
-                  ['Source IP Address', userSummary.sourceIp],
-                  ['Device Information', userSummary.deviceInfo],
-                  ['Registered Device', userSummary.registeredDevice],
-                  ['Region', userSummary.region],
-                ].map(([label, value]) => (
-                  <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
-                    >
-                      {label}
-                    </Typography>
-                    <Typography
-                      sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}
-                    >
-                      {value}
-                    </Typography>
-                  </Grid>
-                ))}
-              </Grid>
-            </Card>
+            <SectionCard title="User Information">
+              <DetailFieldGrid
+                fields={[
+                  { label: 'Last Known Location', value: userSummary.lastKnownLocation },
+                  { label: 'Source IP Address', value: userSummary.sourceIp },
+                  { label: 'Device Information', value: userSummary.deviceInfo },
+                  { label: 'Registered Device', value: userSummary.registeredDevice },
+                  { label: 'Region', value: userSummary.region },
+                ]}
+              />
+            </SectionCard>
 
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                Security Alert History
-              </Typography>
-              <SimpleTable
+            <SectionCard title="Security Alert History">
+              <CommonTable
+                tableKey="security-alert-user-history"
                 columns={[
-                  {
-                    key: 'alertType',
-                    header: 'Alert Type',
-                    render: (row) => row.alertType,
-                  },
-                  {
-                    key: 'description',
-                    header: 'Description',
-                    render: (row) => row.description,
-                  },
+                  { key: 'alertType', header: 'Alert Type', render: (row) => row.alertType },
+                  { key: 'description', header: 'Description', render: (row) => row.description },
                   {
                     key: 'severity',
                     header: 'Severity',
+                    sortable: true,
+                    sortValue: (row) => SEVERITY_CONFIG[row.severity].label,
                     render: (row) => <SeverityChip severity={row.severity} />,
                   },
-                  {
-                    key: 'requestSource',
-                    header: 'Request Source',
-                    render: (row) => row.requestSource,
-                  },
-                  {
-                    key: 'sourceIp',
-                    header: 'Source IP Address',
-                    render: (row) => row.sourceIp,
-                  },
-                  {
-                    key: 'alertDateTime',
-                    header: 'Alert Date & Time',
-                    render: (row) => row.alertDateTime,
-                  },
+                  { key: 'requestSource', header: 'Request Source', render: (row) => row.requestSource },
+                  { key: 'sourceIp', header: 'Source IP Address', render: (row) => row.sourceIp },
+                  { key: 'alertDateTime', header: 'Alert Date & Time', sortable: true, render: (row) => row.alertDateTime },
                 ]}
                 rows={userAlertHistory}
                 getRowId={(row) => row.id}
+                searchPlaceholder="Search alerts…"
+                searchKeys={(row) => `${row.alertType} ${row.description}`}
+                defaultSortBy="alertDateTime"
                 emptyTitle="No alerts recorded"
               />
-            </Card>
+            </SectionCard>
 
-            <Card sx={{ p: 3 }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 2,
-                }}
-              >
-                Security Timeline
-              </Typography>
-              <Stack spacing={0}>
-                {userTimeline.map((entry, index) => (
-                  <Stack
-                    key={entry.id}
-                    direction="row"
-                    spacing={2}
-                    sx={{ alignItems: 'flex-start' }}
-                  >
-                    <Stack sx={{ alignItems: 'center' }}>
-                      <Box
-                        sx={{
-                          width: 8,
-                          height: 8,
-                          borderRadius: '50%',
-                          backgroundColor: 'primary.main',
-                          mt: 0.75,
-                        }}
-                      />
-                      {index < userTimeline.length - 1 && (
-                        <Box
-                          sx={{
-                            width: '1px',
-                            flexGrow: 1,
-                            minHeight: 24,
-                            backgroundColor: 'divider',
-                          }}
-                        />
-                      )}
-                    </Stack>
-                    <Box sx={{ pb: 2.5 }}>
-                      <Typography
-                        sx={{ fontWeight: 600, fontSize: '0.8125rem' }}
-                      >
-                        {entry.activity}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.secondary' }}
-                      >
-                        {entry.dateTime}
-                      </Typography>
-                    </Box>
-                  </Stack>
-                ))}
-              </Stack>
-            </Card>
+            <SectionCard title="Security Timeline">
+              <ActivityTimeline entries={userTimeline} emptyTitle="No timeline activity yet" />
+            </SectionCard>
           </Stack>
         ) : (
           <EmptyState

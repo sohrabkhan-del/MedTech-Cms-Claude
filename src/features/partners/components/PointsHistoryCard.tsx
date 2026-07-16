@@ -1,19 +1,24 @@
-import { Card, Typography } from '@mui/material'
-import { SimpleTable, type SimpleTableColumn } from '@/components/common/SimpleTable/SimpleTable'
+import { Typography } from '@mui/material'
+import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import type { PointsHistoryEntry } from '@/types/partner'
 
-const columns: SimpleTableColumn<PointsHistoryEntry>[] = [
+const columns: CommonTableColumn<PointsHistoryEntry>[] = [
   { key: 'transactionId', header: 'Transaction ID', render: (row) => row.transactionId },
-  { key: 'date', header: 'Date', render: (row) => row.date },
+  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
   {
     key: 'type',
     header: 'Transaction Type',
+    sortable: true,
+    sortValue: (row) => row.type,
     render: (row) => (row.type === 'credit' ? 'Credit' : 'Debit'),
   },
   {
     key: 'points',
     header: 'Points Added / Deducted',
     align: 'right',
+    sortable: true,
+    sortValue: (row) => row.points,
     render: (row) => (
       <Typography
         component="span"
@@ -29,15 +34,25 @@ const columns: SimpleTableColumn<PointsHistoryEntry>[] = [
     key: 'balanceAfter',
     header: 'Current Balance',
     align: 'right',
+    sortable: true,
+    sortValue: (row) => row.balanceAfter,
     render: (row) => row.balanceAfter.toLocaleString('en-IN'),
   },
 ]
 
 export function PointsHistoryCard({ entries }: { entries: PointsHistoryEntry[] }) {
   return (
-    <Card sx={{ p: 3 }}>
-      <Typography sx={{ fontWeight: 700, fontSize: '1rem', mb: 2 }}>Points History</Typography>
-      <SimpleTable columns={columns} rows={entries} getRowId={(row) => row.id} emptyTitle="No transactions yet" />
-    </Card>
+    <SectionCard title="Points History">
+      <CommonTable
+        tableKey="partner-points-history"
+        columns={columns}
+        rows={entries}
+        getRowId={(row) => row.id}
+        searchPlaceholder="Search transactions…"
+        searchKeys={(row) => `${row.transactionId} ${row.description}`}
+        defaultSortBy="date"
+        emptyTitle="No transactions yet"
+      />
+    </SectionCard>
   )
 }

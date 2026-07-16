@@ -1,25 +1,19 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Card, Chip, Grid, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Stack, Typography } from '@mui/material'
 import BlockIcon from '@mui/icons-material/Block'
 import RestoreOutlined from '@mui/icons-material/RestoreOutlined'
 import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
 import DownloadOutlined from '@mui/icons-material/DownloadOutlined'
-import { SimpleTable } from '@/components/common/SimpleTable/SimpleTable'
+import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
+import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
+import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
 import { getApprovalRequestById } from '@/features/verification/mockApprovalRequests'
-import type { DocumentVerificationStatus } from '@/types/approvalRequest'
-
-const sectionTitleSx = {
-  fontWeight: 700,
-  fontSize: '0.75rem',
-  letterSpacing: '0.06em',
-  textTransform: 'uppercase' as const,
-  color: 'primary.main',
-  mb: 2,
-}
+import type { DocumentVerificationStatus, RequestDocument } from '@/types/approvalRequest'
 
 const DOC_STATUS_CONFIG: Record<DocumentVerificationStatus, { label: string; color: 'success' | 'warning' | 'error' }> = {
   verified: { label: 'Verified', color: 'success' },
@@ -27,16 +21,30 @@ const DOC_STATUS_CONFIG: Record<DocumentVerificationStatus, { label: string; col
   rejected: { label: 'Rejected', color: 'error' },
 }
 
-function FieldRow({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-      <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-        {label}
-      </Typography>
-      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>{value}</Typography>
-    </Grid>
-  )
-}
+const documentColumns: CommonTableColumn<RequestDocument>[] = [
+  { key: 'documentName', header: 'Document Name', render: (row) => row.documentName },
+  { key: 'uploadDate', header: 'Upload Date', sortable: true, render: (row) => row.uploadDate },
+  {
+    key: 'verificationStatus',
+    header: 'Status',
+    sortable: true,
+    sortValue: (row) => DOC_STATUS_CONFIG[row.verificationStatus].label,
+    render: (row) => (
+      <Chip label={DOC_STATUS_CONFIG[row.verificationStatus].label} size="small" color={DOC_STATUS_CONFIG[row.verificationStatus].color} variant="filled" />
+    ),
+  },
+  {
+    key: 'actions',
+    header: '',
+    align: 'right',
+    hideable: false,
+    render: () => (
+      <Button size="small" startIcon={<DownloadOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
+        Download
+      </Button>
+    ),
+  },
+]
 
 export function RejectedRequestDetailsPage() {
   const navigate = useNavigate()
@@ -60,6 +68,17 @@ export function RejectedRequestDetailsPage() {
     setDeleteOpen(false)
     navigate('/verification/rejected-requests')
   }
+
+  const auditColumns: CommonTableColumn<(typeof request.auditHistory)[number]>[] = [
+    { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
+    { key: 'action', header: 'Action', render: (row) => row.action },
+    { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
+    { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
+  ]
+
+  const timelineEntries = reopened
+    ? [...request.timeline, { id: `${request.id}-reopened`, activity: 'Reopened', dateTime: 'Moved back to Approval Requests for review' }]
+    : request.timeline
 
   return (
     <>
@@ -110,113 +129,65 @@ export function RejectedRequestDetailsPage() {
       </Stack>
 
       <Stack spacing={3}>
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Summary</Typography>
-          <Grid container spacing={2.5}>
-            <FieldRow label="Request ID" value={request.id} />
-            <FieldRow label="Applicant Name" value={request.applicantName} />
-            <FieldRow label="User Type" value={request.requestType} />
-            <FieldRow label="Shop Name" value={request.storeName} />
-            <FieldRow label="Owner Name" value={request.ownerName} />
-            <FieldRow label="Contact Details" value={`${request.mobileNumber} · ${request.email}`} />
-            <FieldRow label="Region" value={request.region} />
-            <FieldRow label="Submitted Date" value={request.submittedDate} />
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                Current Status
-              </Typography>
-              <Box sx={{ mt: 0.5 }}>
-                <Chip label={reopened ? 'Reopened (Pending)' : 'Rejected'} size="small" color={reopened ? 'warning' : 'error'} variant="filled" />
-              </Box>
-            </Grid>
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Rejection Information</Typography>
-          <Grid container spacing={2.5}>
-            <FieldRow label="Rejected By" value={request.reviewedBy ?? '—'} />
-            <FieldRow label="Rejection Date" value={request.decisionDate ?? '—'} />
-            <FieldRow label="Rejection Reason" value={request.rejectionReason ?? '—'} />
-            <FieldRow label="Admin Remarks" value={request.remarks ?? request.rejectionReason ?? '—'} />
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Supporting Documents</Typography>
-          <SimpleTable
-            columns={[
-              { key: 'documentName', header: 'Document Name', render: (row) => row.documentName },
-              { key: 'uploadDate', header: 'Upload Date', render: (row) => row.uploadDate },
+        <SectionCard title="Summary">
+          <DetailFieldGrid
+            fields={[
+              { label: 'Request ID', value: request.id },
+              { label: 'Applicant Name', value: request.applicantName },
+              { label: 'User Type', value: request.requestType },
+              { label: 'Shop Name', value: request.storeName },
+              { label: 'Owner Name', value: request.ownerName },
+              { label: 'Contact Details', value: `${request.mobileNumber} · ${request.email}` },
+              { label: 'Region', value: request.region },
+              { label: 'Submitted Date', value: request.submittedDate },
               {
-                key: 'verificationStatus',
-                header: 'Status',
-                render: (row) => (
-                  <Chip label={DOC_STATUS_CONFIG[row.verificationStatus].label} size="small" color={DOC_STATUS_CONFIG[row.verificationStatus].color} variant="filled" />
-                ),
-              },
-              {
-                key: 'actions',
-                header: '',
-                align: 'right',
-                render: () => (
-                  <Button size="small" startIcon={<DownloadOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
-                    Download
-                  </Button>
-                ),
+                label: 'Current Status',
+                value: <Chip label={reopened ? 'Reopened (Pending)' : 'Rejected'} size="small" color={reopened ? 'warning' : 'error'} variant="filled" />,
               },
             ]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Rejection Information">
+          <DetailFieldGrid
+            fields={[
+              { label: 'Rejected By', value: request.reviewedBy ?? '—' },
+              { label: 'Rejection Date', value: request.decisionDate ?? '—' },
+              { label: 'Rejection Reason', value: request.rejectionReason ?? '—' },
+              { label: 'Admin Remarks', value: request.remarks ?? request.rejectionReason ?? '—' },
+            ]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Supporting Documents">
+          <CommonTable
+            tableKey="rejected-request-documents"
+            columns={documentColumns}
             rows={request.documents}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search documents…"
+            searchKeys={(row) => row.documentName}
+            defaultSortBy="uploadDate"
             emptyTitle="No documents uploaded"
           />
-        </Card>
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Timeline</Typography>
-          <Stack spacing={0}>
-            {request.timeline.map((entry, index) => (
-              <Stack key={entry.id} direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
-                <Stack sx={{ alignItems: 'center' }}>
-                  <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'primary.main', mt: 0.75 }} />
-                  {index < request.timeline.length - 1 && <Box sx={{ width: '1px', flexGrow: 1, minHeight: 24, backgroundColor: 'divider' }} />}
-                </Stack>
-                <Box sx={{ pb: 2.5 }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{entry.activity}</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    {entry.dateTime}
-                  </Typography>
-                </Box>
-              </Stack>
-            ))}
-            {reopened && (
-              <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start' }}>
-                <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'primary.main', mt: 0.75 }} />
-                <Box sx={{ pb: 2.5 }}>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>Reopened</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    Moved back to Approval Requests for review
-                  </Typography>
-                </Box>
-              </Stack>
-            )}
-          </Stack>
-        </Card>
+        <SectionCard title="Timeline">
+          <ActivityTimeline entries={timelineEntries} emptyTitle="No timeline activity yet" />
+        </SectionCard>
 
-        <Card sx={{ p: 3 }}>
-          <Typography sx={sectionTitleSx}>Verification Notes</Typography>
-          <SimpleTable
-            columns={[
-              { key: 'date', header: 'Date', render: (row) => row.date },
-              { key: 'action', header: 'Action', render: (row) => row.action },
-              { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
-              { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
-            ]}
+        <SectionCard title="Verification Notes">
+          <CommonTable
+            tableKey="rejected-request-audit"
+            columns={auditColumns}
             rows={request.auditHistory}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search verification notes…"
+            searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}
+            defaultSortBy="date"
             emptyTitle="No verification notes yet"
           />
-        </Card>
+        </SectionCard>
       </Stack>
 
       <Modal

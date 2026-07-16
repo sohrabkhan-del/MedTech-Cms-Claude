@@ -1,6 +1,5 @@
-import { Card, Chip, Stack, Typography } from '@mui/material'
-import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
-import OpenInNewIcon from '@mui/icons-material/OpenInNew'
+import { Box, Card, Chip, Stack, Typography } from '@mui/material'
+import { MapPin, ExternalLink } from 'lucide-react'
 import type { GeoLockDetails } from '@/types/partner'
 
 interface RegisteredAddressCardProps {
@@ -16,7 +15,9 @@ export function RegisteredAddressCard({ address, geoLock }: RegisteredAddressCar
       <Typography sx={{ fontWeight: 700, fontSize: '1rem', mb: 2 }}>Registered Shop Address</Typography>
 
       <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
-        <PlaceOutlinedIcon sx={{ color: 'text.secondary', mt: 0.25 }} fontSize="small" />
+        <Box component="span" sx={{ color: 'text.secondary', mt: 0.25, display: 'inline-flex' }}>
+          <MapPin size={20} />
+        </Box>
         <Typography variant="body1" sx={{ color: 'text.primary' }}>
           {address}
         </Typography>
@@ -53,7 +54,7 @@ export function RegisteredAddressCard({ address, geoLock }: RegisteredAddressCar
         }}
       >
         Open in Google Maps
-        <OpenInNewIcon sx={{ fontSize: 14 }} />
+        <ExternalLink size={14} />
       </Typography>
     </Card>
   )

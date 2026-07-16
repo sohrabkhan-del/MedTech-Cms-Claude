@@ -11,14 +11,16 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import MyLocationIcon from '@mui/icons-material/MyLocation'
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import CancelOutlined from '@mui/icons-material/CancelOutlined'
-import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import PauseIcon from '@mui/icons-material/Pause'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
+import {
+  Crosshair as MyLocationIcon,
+  ScanLine as QrCodeScannerIcon,
+  CircleCheck as CheckCircleOutlined,
+  XCircle as CancelOutlined,
+  MapPin as PlaceOutlinedIcon,
+  RefreshCw as RefreshIcon,
+  Pause as PauseIcon,
+  Play as PlayArrowIcon,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
   CommonTable,
@@ -79,9 +81,13 @@ function ValidationRow({ label, passed }: { label: string; passed: boolean }) {
   return (
     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', py: 0.75 }}>
       {passed ? (
-        <CheckCircleOutlined fontSize="small" sx={{ color: 'success.main' }} />
+        <Box component="span" sx={{ display: 'inline-flex', color: 'success.main' }}>
+          <CheckCircleOutlined size={20} />
+        </Box>
       ) : (
-        <CancelOutlined fontSize="small" sx={{ color: 'error.main' }} />
+        <Box component="span" sx={{ display: 'inline-flex', color: 'error.main' }}>
+          <CancelOutlined size={20} />
+        </Box>
       )}
       <Typography variant="body1">{label}</Typography>
     </Stack>
@@ -99,7 +105,7 @@ export function LiveScanFeedPage() {
 
   useRegionTopbarHeader(
     {
-      icon: <MyLocationIcon fontSize="small" />,
+      icon: <MyLocationIcon size={20} />,
       title: 'Live Scan Feed',
       subtitle: 'Real-time barcode scanning activity across Dealers and Chemists.',
       live: true,
@@ -280,7 +286,7 @@ export function LiveScanFeedPage() {
               <StatCard
                 label="Total Scans"
                 value={liveKpis.totalScans}
-                icon={<QrCodeScannerIcon fontSize="small" />}
+                icon={<QrCodeScannerIcon size={20} />}
                 iconColor="primary"
               />
             </Grid>
@@ -288,7 +294,7 @@ export function LiveScanFeedPage() {
               <StatCard
                 label="Successful Scans"
                 value={liveKpis.successfulScans}
-                icon={<CheckCircleOutlined fontSize="small" />}
+                icon={<CheckCircleOutlined size={20} />}
                 iconColor="success"
               />
             </Grid>
@@ -296,7 +302,7 @@ export function LiveScanFeedPage() {
               <StatCard
                 label="Failed Scans"
                 value={liveKpis.failedScans}
-                icon={<CancelOutlined fontSize="small" />}
+                icon={<CancelOutlined size={20} />}
                 iconColor="error"
               />
             </Grid>
@@ -304,7 +310,7 @@ export function LiveScanFeedPage() {
               <StatCard
                 label="Geo-fence Violations"
                 value={liveKpis.geoFenceViolations}
-                icon={<PlaceOutlinedIcon fontSize="small" />}
+                icon={<PlaceOutlinedIcon size={20} />}
                 iconColor="warning"
               />
             </Grid>
@@ -343,7 +349,7 @@ export function LiveScanFeedPage() {
                   borderRadius: '8px',
                 }}
               >
-                {isLive ? <PauseIcon fontSize="small" /> : <PlayArrowIcon fontSize="small" />}
+                {isLive ? <PauseIcon size={20} /> : <PlayArrowIcon size={20} />}
               </IconButton>
             </Tooltip>
           </Stack>
@@ -458,7 +464,7 @@ export function LiveScanFeedPage() {
                 <StatCard
                   label="Total Scans"
                   value={userSummary.totalScans}
-                  icon={<QrCodeScannerIcon fontSize="small" />}
+                  icon={<QrCodeScannerIcon size={20} />}
                   iconColor="primary"
                 />
               </Grid>
@@ -466,7 +472,7 @@ export function LiveScanFeedPage() {
                 <StatCard
                   label="Successful Scans"
                   value={userSummary.successfulScans}
-                  icon={<CheckCircleOutlined fontSize="small" />}
+                  icon={<CheckCircleOutlined size={20} />}
                   iconColor="success"
                 />
               </Grid>
@@ -474,7 +480,7 @@ export function LiveScanFeedPage() {
                 <StatCard
                   label="Failed Scans"
                   value={userSummary.failedScans}
-                  icon={<CancelOutlined fontSize="small" />}
+                  icon={<CancelOutlined size={20} />}
                   iconColor="error"
                 />
               </Grid>
@@ -482,7 +488,7 @@ export function LiveScanFeedPage() {
                 <StatCard
                   label="Total Points Earned"
                   value={userSummary.totalPointsEarned.toLocaleString('en-IN')}
-                  icon={<MyLocationIcon fontSize="small" />}
+                  icon={<MyLocationIcon size={20} />}
                   iconColor="secondary"
                 />
               </Grid>

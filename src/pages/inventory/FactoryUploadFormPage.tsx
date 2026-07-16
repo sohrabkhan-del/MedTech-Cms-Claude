@@ -2,12 +2,14 @@ import { useRef, useState } from 'react'
 import type { DragEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Button, IconButton, Stack, Typography, LinearProgress } from '@mui/material'
-import UploadFileOutlined from '@mui/icons-material/UploadFileOutlined'
-import DescriptionOutlined from '@mui/icons-material/DescriptionOutlined'
-import CloseOutlined from '@mui/icons-material/CloseOutlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import DownloadOutlined from '@mui/icons-material/DownloadOutlined'
-import FactoryOutlined from '@mui/icons-material/FactoryOutlined'
+import {
+  FileUp as UploadFileOutlined,
+  FileText as DescriptionOutlined,
+  X as CloseOutlined,
+  CircleCheck as CheckCircleOutlined,
+  Download as DownloadOutlined,
+  Factory as FactoryOutlined,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { radius } from '@/theme/tokens'
 import { addFactoryBatch, buildNewBatchFromUpload } from '@/features/inventory/mockFactoryUploads'
@@ -70,7 +72,7 @@ export function FactoryUploadFormPage() {
             color: 'primary.main',
           }}
         >
-          <FactoryOutlined fontSize="small" />
+          <FactoryOutlined size={20} />
         </Stack>
         <Stack>
           <Typography variant="h1">Upload Manifest</Typography>
@@ -115,7 +117,9 @@ export function FactoryUploadFormPage() {
 
             {stage === 'idle' && (
               <Stack spacing={1.5} sx={{ alignItems: 'center' }}>
-                <UploadFileOutlined sx={{ fontSize: 40, color: 'text.secondary' }} />
+                <Box component="span" sx={{ display: 'inline-flex', color: 'text.secondary' }}>
+                  <UploadFileOutlined size={40} />
+                </Box>
                 <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem' }}>
                   Drag & drop your manifest file here
                 </Typography>
@@ -128,7 +132,9 @@ export function FactoryUploadFormPage() {
             {stage !== 'idle' && file && (
               <Stack spacing={2} sx={{ alignItems: 'stretch', maxWidth: 420, mx: 'auto' }}>
                 <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', textAlign: 'left' }}>
-                  <DescriptionOutlined sx={{ color: 'primary.main' }} />
+                  <Box component="span" sx={{ display: 'inline-flex', color: 'primary.main' }}>
+                    <DescriptionOutlined />
+                  </Box>
                   <Box sx={{ flexGrow: 1, minWidth: 0 }}>
                     <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }} noWrap>
                       {file.name}
@@ -145,7 +151,7 @@ export function FactoryUploadFormPage() {
                     }}
                     aria-label="Remove file"
                   >
-                    <CloseOutlined fontSize="small" />
+                    <CloseOutlined size={20} />
                   </IconButton>
                 </Stack>
 
@@ -172,7 +178,7 @@ export function FactoryUploadFormPage() {
                       textAlign: 'left',
                     }}
                   >
-                    <CheckCircleOutlined fontSize="small" />
+                    <CheckCircleOutlined size={20} />
                     <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
                       {recordCount.toLocaleString('en-IN')} records validated · 0 errors
                     </Typography>
@@ -183,7 +189,7 @@ export function FactoryUploadFormPage() {
           </Box>
 
           <Stack direction="row" spacing={1.5} sx={{ mt: 2.5, justifyContent: 'flex-end' }}>
-            <Button variant="outlined" startIcon={<DownloadOutlined fontSize="small" />} onClick={() => {}}>
+            <Button variant="outlined" startIcon={<DownloadOutlined size={20} />} onClick={() => {}}>
               Download Upload Template
             </Button>
             <Button

@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import Inventory2Icon from '@mui/icons-material/Inventory2'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import BlockOutlined from '@mui/icons-material/BlockOutlined'
-import EmojiEventsOutlined from '@mui/icons-material/EmojiEventsOutlined'
+import {
+  Package as Inventory2Icon,
+  CircleCheck as CheckCircleOutlined,
+  Ban as BlockOutlined,
+  Trophy as EmojiEventsOutlined,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
   CommonTable,
@@ -30,7 +32,7 @@ interface ProductFilters extends Record<string, unknown> {
 export function ProductListPage() {
   const navigate = useNavigate()
   useRegionTopbarHeader({
-    icon: <Inventory2Icon fontSize="small" />,
+    icon: <Inventory2Icon size={20} />,
     title: 'Product Master',
     subtitle:
       'Centralized repository for all products and their reward point configuration.',
@@ -130,7 +132,7 @@ export function ProductListPage() {
           <StatCard
             label="Total Products"
             value={productKpis.totalProducts}
-            icon={<Inventory2Icon fontSize="small" />}
+            icon={<Inventory2Icon size={20} />}
             iconColor="primary"
           />
         </Grid>
@@ -138,7 +140,7 @@ export function ProductListPage() {
           <StatCard
             label="Active Products"
             value={productKpis.activeProducts}
-            icon={<CheckCircleOutlined fontSize="small" />}
+            icon={<CheckCircleOutlined size={20} />}
             iconColor="success"
           />
         </Grid>
@@ -146,7 +148,7 @@ export function ProductListPage() {
           <StatCard
             label="Inactive Products"
             value={productKpis.inactiveProducts}
-            icon={<BlockOutlined fontSize="small" />}
+            icon={<BlockOutlined size={20} />}
             iconColor="error"
           />
         </Grid>
@@ -154,7 +156,7 @@ export function ProductListPage() {
           <StatCard
             label="Reward Points Issued"
             value={productKpis.totalRewardPointsIssued.toLocaleString('en-IN')}
-            icon={<EmojiEventsOutlined fontSize="small" />}
+            icon={<EmojiEventsOutlined size={20} />}
             iconColor="secondary"
           />
         </Grid>

@@ -8,10 +8,12 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import StorefrontIcon from '@mui/icons-material/Storefront'
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'
-import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined'
-import LocalShippingOutlinedIcon from '@mui/icons-material/LocalShippingOutlined'
+import {
+  Store as StorefrontIcon,
+  ShoppingCart as ShoppingCartOutlinedIcon,
+  ClipboardClock as PendingActionsOutlinedIcon,
+  Truck as LocalShippingOutlinedIcon,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
   CommonTable,
@@ -37,7 +39,7 @@ export function DealerListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
   useRegionTopbarHeader({
-    icon: <StorefrontIcon fontSize="small" />,
+    icon: <StorefrontIcon size={20} />,
     title: 'Dealers',
     subtitle: 'Registered dealer partners across the network.',
   })
@@ -155,7 +157,7 @@ export function DealerListPage() {
           <StatCard
             label="Dealer Accounts"
             value={dealerKpis.dealerAccounts}
-            icon={<StorefrontIcon fontSize="small" />}
+            icon={<StorefrontIcon size={20} />}
             iconColor="primary"
           />
         </Grid>
@@ -163,7 +165,7 @@ export function DealerListPage() {
           <StatCard
             label="Active Orders"
             value={dealerKpis.activeOrders}
-            icon={<ShoppingCartOutlinedIcon fontSize="small" />}
+            icon={<ShoppingCartOutlinedIcon size={20} />}
             iconColor="secondary"
           />
         </Grid>
@@ -171,7 +173,7 @@ export function DealerListPage() {
           <StatCard
             label="Pending KYC"
             value={dealerKpis.pendingKyc}
-            icon={<PendingActionsOutlinedIcon fontSize="small" />}
+            icon={<PendingActionsOutlinedIcon size={20} />}
             iconColor="warning"
           />
         </Grid>
@@ -179,7 +181,7 @@ export function DealerListPage() {
           <StatCard
             label="Live Deliveries"
             value={dealerKpis.liveDeliveries}
-            icon={<LocalShippingOutlinedIcon fontSize="small" />}
+            icon={<LocalShippingOutlinedIcon size={20} />}
             iconColor="success"
           />
         </Grid>

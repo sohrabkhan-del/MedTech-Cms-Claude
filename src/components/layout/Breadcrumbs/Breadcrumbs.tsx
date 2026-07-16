@@ -1,6 +1,6 @@
 import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { Breadcrumbs as MuiBreadcrumbs, Link, Typography } from '@mui/material'
-import NavigateNextIcon from '@mui/icons-material/NavigateNext'
+import { ChevronRight } from 'lucide-react'
 import { findParentRouteEntry, findRouteEntry } from '@/routes/routeConfig'
 
 export function Breadcrumbs() {
@@ -24,7 +24,7 @@ export function Breadcrumbs() {
       ]
 
   return (
-    <MuiBreadcrumbs separator={<NavigateNextIcon fontSize="small" />} sx={{ fontSize: '0.8rem' }}>
+    <MuiBreadcrumbs separator={<ChevronRight size={20} />} sx={{ fontSize: '0.8rem' }}>
       <Link component={RouterLink} to="/dashboard" underline="hover" color="text.secondary">
         Home
       </Link>

@@ -1,6 +1,5 @@
 import { Chip, IconButton, Stack } from '@mui/material'
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
-import UploadOutlinedIcon from '@mui/icons-material/UploadOutlined'
+import { Download, Upload } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import type { LicenseDocument } from '@/types/partner'
@@ -33,10 +32,10 @@ function buildColumns(onUpload: () => void): CommonTableColumn<LicenseDocument>[
       render: () => (
         <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'flex-end' }}>
           <IconButton size="small" aria-label="Download document">
-            <DownloadOutlinedIcon fontSize="small" />
+            <Download size={20} />
           </IconButton>
           <IconButton size="small" aria-label="Upload document" onClick={onUpload}>
-            <UploadOutlinedIcon fontSize="small" />
+            <Upload size={20} />
           </IconButton>
         </Stack>
       ),

@@ -1,6 +1,5 @@
 import { Box, Button, Stack, Typography } from '@mui/material'
-import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-import InsertChartOutlinedIcon from '@mui/icons-material/InsertChartOutlined'
+import { ArrowRight, BarChart3 } from 'lucide-react'
 import { radius } from '@/theme/tokens'
 
 interface WelcomeBannerProps {
@@ -94,7 +93,7 @@ export function WelcomeBanner({
             <Button
               variant="contained"
               onClick={onPrimaryAction}
-              endIcon={<ArrowForwardIcon />}
+              endIcon={<ArrowRight />}
               sx={{
                 backgroundColor: '#FFFFFF',
                 color: 'primary.main',
@@ -140,7 +139,7 @@ export function WelcomeBanner({
               justifyContent: 'center',
             }}
           >
-            <InsertChartOutlinedIcon />
+            <BarChart3 />
           </Box>
           <Box>
             <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', lineHeight: 1.1 }}>{statValue}</Typography>

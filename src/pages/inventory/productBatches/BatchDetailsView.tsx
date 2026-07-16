@@ -1,20 +1,22 @@
 import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
-import ArrowBackOutlined from '@mui/icons-material/ArrowBackOutlined'
-import Inventory2Outlined from '@mui/icons-material/Inventory2Outlined'
+import {
+  ArrowLeft as ArrowBackOutlined,
+  Package as Inventory2Outlined,
+  CircleCheck as CheckCircleOutlined,
+  XCircle as CancelOutlined,
+  Copy as ContentCopyOutlined,
+  MapPin as RoomOutlined,
+  QrCode as QrCode2Outlined,
+  ToggleRight as ToggleOnOutlined,
+  CheckCheck as DoneAllOutlined,
+  Hourglass as HourglassEmptyOutlined,
+  TriangleAlert as WarningAmberOutlined,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import CancelOutlined from '@mui/icons-material/CancelOutlined'
-import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined'
-import RoomOutlined from '@mui/icons-material/RoomOutlined'
-import QrCode2Outlined from '@mui/icons-material/QrCode2Outlined'
-import ToggleOnOutlined from '@mui/icons-material/ToggleOnOutlined'
-import DoneAllOutlined from '@mui/icons-material/DoneAllOutlined'
-import HourglassEmptyOutlined from '@mui/icons-material/HourglassEmptyOutlined'
-import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined'
 import type { DistributionJourneyEntry, ProductionBatch, RelatedScheme } from '@/types/productBatch'
 
 const statusColor: Record<ProductionBatch['status'], 'success' | 'default' | 'error'> = {
@@ -59,7 +61,7 @@ export function BatchDetailsView({ batch, onBack }: BatchDetailsViewProps) {
               color: 'primary.main',
             }}
           >
-            <Inventory2Outlined fontSize="small" />
+            <Inventory2Outlined size={20} />
           </Box>
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -71,7 +73,7 @@ export function BatchDetailsView({ batch, onBack }: BatchDetailsViewProps) {
             </Typography>
           </Box>
         </Stack>
-        <Button variant="outlined" startIcon={<ArrowBackOutlined fontSize="small" />} onClick={onBack} sx={{ fontSize: '0.75rem' }}>
+        <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={onBack} sx={{ fontSize: '0.75rem' }}>
           Back to Batch Listing
         </Button>
       </Stack>
@@ -120,16 +122,16 @@ export function BatchDetailsView({ batch, onBack }: BatchDetailsViewProps) {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Successful Scans" value={batch.scanStatistics.totalSuccessfulScans.toLocaleString('en-IN')} icon={<CheckCircleOutlined fontSize="small" />} iconColor="success" />
+            <StatCard label="Successful Scans" value={batch.scanStatistics.totalSuccessfulScans.toLocaleString('en-IN')} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Failed Scans" value={batch.scanStatistics.failedScans} icon={<CancelOutlined fontSize="small" />} iconColor="error" />
+            <StatCard label="Failed Scans" value={batch.scanStatistics.failedScans} icon={<CancelOutlined size={20} />} iconColor="error" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Duplicate Scans" value={batch.scanStatistics.duplicateScans} icon={<ContentCopyOutlined fontSize="small" />} iconColor="warning" />
+            <StatCard label="Duplicate Scans" value={batch.scanStatistics.duplicateScans} icon={<ContentCopyOutlined size={20} />} iconColor="warning" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Geo-fence Violations" value={batch.scanStatistics.geoFenceViolations} icon={<RoomOutlined fontSize="small" />} iconColor="secondary" />
+            <StatCard label="Geo-fence Violations" value={batch.scanStatistics.geoFenceViolations} icon={<RoomOutlined size={20} />} iconColor="secondary" />
           </Grid>
         </Grid>
 
@@ -168,16 +170,16 @@ export function BatchDetailsView({ batch, onBack }: BatchDetailsViewProps) {
         <SectionCard title="QR Code Statistics">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total QR Generated" value={batch.qrCodeStatistics.totalGenerated.toLocaleString('en-IN')} icon={<QrCode2Outlined fontSize="small" />} iconColor="primary" />
+              <StatCard label="Total QR Generated" value={batch.qrCodeStatistics.totalGenerated.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="primary" />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="QR Activated" value={batch.qrCodeStatistics.activated.toLocaleString('en-IN')} icon={<ToggleOnOutlined fontSize="small" />} iconColor="secondary" />
+              <StatCard label="QR Activated" value={batch.qrCodeStatistics.activated.toLocaleString('en-IN')} icon={<ToggleOnOutlined size={20} />} iconColor="secondary" />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="QR Scanned" value={batch.qrCodeStatistics.scanned.toLocaleString('en-IN')} icon={<DoneAllOutlined fontSize="small" />} iconColor="success" />
+              <StatCard label="QR Scanned" value={batch.qrCodeStatistics.scanned.toLocaleString('en-IN')} icon={<DoneAllOutlined size={20} />} iconColor="success" />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="QR Remaining" value={batch.qrCodeStatistics.remaining.toLocaleString('en-IN')} icon={<HourglassEmptyOutlined fontSize="small" />} iconColor="warning" />
+              <StatCard label="QR Remaining" value={batch.qrCodeStatistics.remaining.toLocaleString('en-IN')} icon={<HourglassEmptyOutlined size={20} />} iconColor="warning" />
             </Grid>
           </Grid>
         </SectionCard>
@@ -197,7 +199,7 @@ export function BatchDetailsView({ batch, onBack }: BatchDetailsViewProps) {
               spacing={1}
               sx={{ alignItems: 'center', mt: 2, p: 1.5, borderRadius: '10px', backgroundColor: 'error.light', color: 'error.main' }}
             >
-              <WarningAmberOutlined fontSize="small" />
+              <WarningAmberOutlined size={20} />
               <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
                 This batch has flagged activity — review scan locations and duplicate attempts.
               </Typography>

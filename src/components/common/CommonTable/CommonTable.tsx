@@ -23,13 +23,15 @@ import {
   Typography,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import SearchIcon from '@mui/icons-material/Search'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
-import UploadOutlinedIcon from '@mui/icons-material/UploadOutlined'
-import TuneIcon from '@mui/icons-material/Tune'
-import ViewColumnOutlinedIcon from '@mui/icons-material/ViewColumnOutlined'
-import AddIcon from '@mui/icons-material/Add'
+import {
+  Search,
+  MoreVertical,
+  Download,
+  Upload,
+  SlidersHorizontal,
+  Columns3,
+  Plus,
+} from 'lucide-react'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { SkeletonLoader } from '@/components/common/SkeletonLoader/SkeletonLoader'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
@@ -110,12 +112,19 @@ export function CommonTable<T>({
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0] ?? 10)
   const [sortBy, setSortBy] = useState<string | undefined>(defaultSortBy)
   const [sortDir, setSortDir] = useState<SortDirection>(defaultSortDir)
-  const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(null)
+  const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(
+    null,
+  )
   const [activeRow, setActiveRow] = useState<T | null>(null)
-  const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null)
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(
+    null,
+  )
   const { hidden, toggle } = useColumnVisibility(tableKey)
 
-  const visibleColumns = useMemo(() => columns.filter((col) => !hidden.has(col.key)), [columns, hidden])
+  const visibleColumns = useMemo(
+    () => columns.filter((col) => !hidden.has(col.key)),
+    [columns, hidden],
+  )
 
   const filteredRows = useMemo(() => {
     if (!search || !searchKeys) return rows
@@ -131,7 +140,9 @@ export function CommonTable<T>({
     const getValue = (row: T): string | number => {
       if (column.sortValue) return column.sortValue(row)
       const rendered = column.render(row)
-      return typeof rendered === 'string' || typeof rendered === 'number' ? rendered : ''
+      return typeof rendered === 'string' || typeof rendered === 'number'
+        ? rendered
+        : ''
     }
 
     return [...filteredRows].sort((a, b) => {
@@ -146,7 +157,8 @@ export function CommonTable<T>({
   }, [filteredRows, sortBy, sortDir, columns])
 
   const pagedRows = useMemo(
-    () => sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
+    () =>
+      sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [sortedRows, page, rowsPerPage],
   )
 
@@ -174,7 +186,11 @@ export function CommonTable<T>({
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={1.5}
-        sx={{ mb: 2, alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+        sx={{
+          mb: 2,
+          alignItems: { sm: 'center' },
+          justifyContent: 'space-between',
+        }}
       >
         <TextField
           size="small"
@@ -184,12 +200,18 @@ export function CommonTable<T>({
             setSearch(e.target.value)
             setPage(0)
           }}
-          sx={{ width: { xs: '100%', sm: 260 }, '& .MuiOutlinedInput-root': { height: 36, fontSize: '0.8125rem' } }}
+          sx={{
+            width: { xs: '100%', sm: 260 },
+            '& .MuiOutlinedInput-root': { height: 36, fontSize: '0.8125rem' },
+          }}
           slotProps={{
             input: {
               startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" sx={{ color: 'text.disabled' }} />
+                <InputAdornment
+                  position="start"
+                  sx={{ color: 'text.disabled' }}
+                >
+                  <Search size={20} />
                 </InputAdornment>
               ),
             },
@@ -201,7 +223,7 @@ export function CommonTable<T>({
               variant="outlined"
               color="primary"
               size="small"
-              startIcon={<TuneIcon fontSize="small" />}
+              startIcon={<SlidersHorizontal size={20} />}
               onClick={onFilterClick}
               sx={{ height: 36, fontSize: '0.75rem' }}
             >
@@ -212,19 +234,31 @@ export function CommonTable<T>({
             variant="outlined"
             color="primary"
             size="small"
-            startIcon={<ViewColumnOutlinedIcon fontSize="small" />}
+            startIcon={<Columns3 size={20} />}
             onClick={(e) => setColumnMenuAnchor(e.currentTarget)}
             sx={{ height: 36, fontSize: '0.75rem' }}
           >
             Columns
           </Button>
-          <Menu anchorEl={columnMenuAnchor} open={!!columnMenuAnchor} onClose={() => setColumnMenuAnchor(null)}>
+          <Menu
+            anchorEl={columnMenuAnchor}
+            open={!!columnMenuAnchor}
+            onClose={() => setColumnMenuAnchor(null)}
+          >
             {columns
               .filter((col) => col.hideable !== false)
               .map((col) => (
-                <MenuItem key={col.key} onClick={() => toggle(col.key)} dense sx={{ fontSize: '0.8125rem' }}>
+                <MenuItem
+                  key={col.key}
+                  onClick={() => toggle(col.key)}
+                  dense
+                  sx={{ fontSize: '0.8125rem' }}
+                >
                   <Checkbox checked={!hidden.has(col.key)} size="small" />
-                  <ListItemText primary={col.header} slotProps={{ primary: { sx: { fontSize: '0.8125rem' } } }} />
+                  <ListItemText
+                    primary={col.header}
+                    slotProps={{ primary: { sx: { fontSize: '0.8125rem' } } }}
+                  />
                 </MenuItem>
               ))}
           </Menu>
@@ -233,9 +267,15 @@ export function CommonTable<T>({
               onClick={onImportClick}
               aria-label="Import CSV"
               size="small"
-              sx={{ border: '1px solid', borderColor: 'secondary.main', color: 'secondary.main', borderRadius: '8px' }}
+              sx={{
+                border: '1px solid',
+                borderColor: 'secondary.main',
+                color: 'secondary.main',
+                borderRadius: '8px',
+                paddingX: 2,
+              }}
             >
-              <UploadOutlinedIcon fontSize="small" />
+              <Upload size={15} />
             </IconButton>
           )}
           {onExportClick && (
@@ -243,16 +283,22 @@ export function CommonTable<T>({
               onClick={onExportClick}
               aria-label="Export CSV"
               size="small"
-              sx={{ border: '1px solid', borderColor: 'success.main', color: 'success.main', borderRadius: '8px' }}
+              sx={{
+                border: '1px solid',
+                borderColor: 'success.main',
+                color: 'success.main',
+                paddingX: 2,
+                borderRadius: '8px',
+              }}
             >
-              <DownloadOutlinedIcon fontSize="small" />
+              <Download size={15} />
             </IconButton>
           )}
           {createAction && (
             <Button
               variant="contained"
               size="small"
-              startIcon={<AddIcon fontSize="small" />}
+              startIcon={<Plus size={20} />}
               onClick={() => navigate(createAction.to)}
               sx={{ height: 36, fontSize: '0.75rem' }}
             >
@@ -319,14 +365,22 @@ export function CommonTable<T>({
                   {pagedRows.map((row) => (
                     <TableRow key={getRowId(row)}>
                       {visibleColumns.map((col) => (
-                        <TableCell key={col.key} align={col.align} sx={{ fontSize: '0.8125rem' }}>
+                        <TableCell
+                          key={col.key}
+                          align={col.align}
+                          sx={{ fontSize: '0.8125rem' }}
+                        >
                           {col.render(row)}
                         </TableCell>
                       ))}
                       {actions && actions.length > 0 && (
                         <TableCell align="right">
-                          <IconButton size="small" onClick={(e) => openActionMenu(e, row)} aria-label="Row actions">
-                            <MoreVertIcon fontSize="small" />
+                          <IconButton
+                            size="small"
+                            onClick={(e) => openActionMenu(e, row)}
+                            aria-label="Row actions"
+                          >
+                            <MoreVertical size={20} />
                           </IconButton>
                         </TableCell>
                       )}
@@ -348,14 +402,21 @@ export function CommonTable<T>({
                   setPage(0)
                 }}
                 rowsPerPageOptions={rowsPerPageOptions}
-                sx={{ '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': { fontSize: '0.75rem' } }}
+                sx={{
+                  '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows':
+                    { fontSize: '0.75rem' },
+                }}
               />
             </Box>
           </>
         )}
 
         {actions && (
-          <Menu anchorEl={actionMenuAnchor} open={!!actionMenuAnchor} onClose={closeActionMenu}>
+          <Menu
+            anchorEl={actionMenuAnchor}
+            open={!!actionMenuAnchor}
+            onClose={closeActionMenu}
+          >
             {actions.map((action) => (
               <MenuItem
                 key={action.label}
@@ -365,7 +426,10 @@ export function CommonTable<T>({
                 }}
                 sx={action.danger ? { color: 'error.main' } : undefined}
               >
-                <Typography variant="body1" sx={{ color: 'inherit', fontSize: '0.8125rem' }}>
+                <Typography
+                  variant="body1"
+                  sx={{ color: 'inherit', fontSize: '0.8125rem' }}
+                >
                   {action.label}
                 </Typography>
               </MenuItem>

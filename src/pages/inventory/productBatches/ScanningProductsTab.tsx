@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react'
 import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import ViewInArOutlined from '@mui/icons-material/ViewInArOutlined'
-import QrCode2Outlined from '@mui/icons-material/QrCode2Outlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import TaskAltOutlined from '@mui/icons-material/TaskAltOutlined'
+import {
+  Box as ViewInArOutlined,
+  QrCode as QrCode2Outlined,
+  CircleCheck as CheckCircleOutlined,
+  CircleCheckBig as TaskAltOutlined,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -100,16 +102,16 @@ export function ScanningProductsTab() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Batches" value={productBatchKpis.totalBatches} icon={<ViewInArOutlined fontSize="small" />} iconColor="primary" />
+          <StatCard label="Total Batches" value={productBatchKpis.totalBatches} icon={<ViewInArOutlined size={20} />} iconColor="primary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Batches" value={productBatchKpis.activeBatches} icon={<CheckCircleOutlined fontSize="small" />} iconColor="success" />
+          <StatCard label="Active Batches" value={productBatchKpis.activeBatches} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Scans" value={productBatchKpis.totalScans.toLocaleString('en-IN')} icon={<QrCode2Outlined fontSize="small" />} iconColor="secondary" />
+          <StatCard label="Total Scans" value={productBatchKpis.totalScans.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Scan Completed" value={productBatchKpis.scanCompleted} icon={<TaskAltOutlined fontSize="small" />} iconColor="warning" />
+          <StatCard label="Scan Completed" value={productBatchKpis.scanCompleted} icon={<TaskAltOutlined size={20} />} iconColor="warning" />
         </Grid>
       </Grid>
 

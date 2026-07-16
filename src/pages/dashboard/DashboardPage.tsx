@@ -1,8 +1,5 @@
 import { Grid } from '@mui/material'
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner'
-import EmojiEventsOutlinedIcon from '@mui/icons-material/EmojiEventsOutlined'
-import AccountBalanceWalletOutlinedIcon from '@mui/icons-material/AccountBalanceWalletOutlined'
-import PendingActionsOutlinedIcon from '@mui/icons-material/PendingActionsOutlined'
+import { ScanLine, Trophy, Wallet, ClipboardClock } from 'lucide-react'
 import { WelcomeBanner } from '@/components/common/WelcomeBanner/WelcomeBanner'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { ScanActivityChart } from '@/features/dashboard/widgets/ScanActivityChart'
@@ -27,7 +24,7 @@ export function DashboardPage() {
           <StatCard
             label="Scan Activity"
             value="8,942"
-            icon={<QrCodeScannerIcon fontSize="small" />}
+            icon={<ScanLine size={20} />}
             iconColor="primary"
             trend={{ direction: 'up', value: '+8.3%', caption: 'since last week' }}
           />
@@ -36,7 +33,7 @@ export function DashboardPage() {
           <StatCard
             label="Scheme Progress"
             value="54%"
-            icon={<EmojiEventsOutlinedIcon fontSize="small" />}
+            icon={<Trophy size={20} />}
             iconColor="secondary"
             trend={{ direction: 'up', value: '+3.1%', caption: 'since last week' }}
           />
@@ -45,7 +42,7 @@ export function DashboardPage() {
           <StatCard
             label="Rewards Claimed"
             value="1,842"
-            icon={<AccountBalanceWalletOutlinedIcon fontSize="small" />}
+            icon={<Wallet size={20} />}
             iconColor="success"
             trend={{ direction: 'up', value: '+12.4%', caption: 'since last week' }}
           />
@@ -54,7 +51,7 @@ export function DashboardPage() {
           <StatCard
             label="Pending Reviews"
             value="17"
-            icon={<PendingActionsOutlinedIcon fontSize="small" />}
+            icon={<ClipboardClock size={20} />}
             iconColor="warning"
             trend={{ direction: 'down', value: '-2.0%', caption: 'since last week' }}
           />

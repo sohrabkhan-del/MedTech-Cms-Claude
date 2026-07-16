@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Stack, Typography } from '@mui/material'
-import BlockIcon from '@mui/icons-material/Block'
-import RestoreOutlined from '@mui/icons-material/RestoreOutlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
-import DownloadOutlined from '@mui/icons-material/DownloadOutlined'
+import { Ban as BlockIcon, RotateCcw as RestoreOutlined, CircleCheck as CheckCircleOutlined, Trash2 as DeleteOutlined, Download as DownloadOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
@@ -39,7 +35,7 @@ const documentColumns: CommonTableColumn<RequestDocument>[] = [
     align: 'right',
     hideable: false,
     render: () => (
-      <Button size="small" startIcon={<DownloadOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
+      <Button size="small" startIcon={<DownloadOutlined size={20} />} sx={{ fontSize: '0.75rem' }}>
         Download
       </Button>
     ),
@@ -96,7 +92,7 @@ export function RejectedRequestDetailsPage() {
               color: 'error.main',
             }}
           >
-            <BlockIcon fontSize="small" />
+            <BlockIcon size={20} />
           </Box>
           <Box>
             <Typography variant="h1">{request.applicantName}</Typography>
@@ -109,20 +105,20 @@ export function RejectedRequestDetailsPage() {
           <Button
             variant="outlined"
             color="success"
-            startIcon={<RestoreOutlined fontSize="small" />}
+            startIcon={<RestoreOutlined size={20} />}
             disabled={reopened}
             onClick={() => setReopened(true)}
             sx={{ fontSize: '0.75rem' }}
           >
             {reopened ? 'Reopened' : 'Reopen Request'}
           </Button>
-          <Button variant="outlined" color="primary" startIcon={<CheckCircleOutlined fontSize="small" />} disabled={reopened} sx={{ fontSize: '0.75rem' }}>
+          <Button variant="outlined" color="primary" startIcon={<CheckCircleOutlined size={20} />} disabled={reopened} sx={{ fontSize: '0.75rem' }}>
             Approve
           </Button>
-          <Button variant="outlined" color="error" startIcon={<DeleteOutlined fontSize="small" />} onClick={() => setDeleteOpen(true)} sx={{ fontSize: '0.75rem' }}>
+          <Button variant="outlined" color="error" startIcon={<DeleteOutlined size={20} />} onClick={() => setDeleteOpen(true)} sx={{ fontSize: '0.75rem' }}>
             Delete
           </Button>
-          <Button variant="outlined" startIcon={<DownloadOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
+          <Button variant="outlined" startIcon={<DownloadOutlined size={20} />} sx={{ fontSize: '0.75rem' }}>
             Download Documents
           </Button>
         </Stack>

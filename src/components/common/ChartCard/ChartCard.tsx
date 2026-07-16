@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react'
 import { Box, Card, IconButton, Menu, MenuItem, Stack, Typography } from '@mui/material'
 import { useState } from 'react'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
+import { MoreVertical, RefreshCw, Download } from 'lucide-react'
 
 interface ChartCardProps {
   title: string
@@ -31,7 +29,7 @@ export function ChartCard({ title, subtitle, children, height = 320, onRefresh, 
         {(onRefresh || onExport) && (
           <>
             <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)} aria-label="Chart actions">
-              <MoreVertIcon fontSize="small" />
+              <MoreVertical size={20} />
             </IconButton>
             <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
               {onRefresh && (
@@ -41,7 +39,7 @@ export function ChartCard({ title, subtitle, children, height = 320, onRefresh, 
                     setAnchorEl(null)
                   }}
                 >
-                  <RefreshIcon fontSize="small" sx={{ mr: 1.5 }} />
+                  <RefreshCw size={20} style={{ marginRight: 12 }} />
                   Refresh
                 </MenuItem>
               )}
@@ -52,7 +50,7 @@ export function ChartCard({ title, subtitle, children, height = 320, onRefresh, 
                     setAnchorEl(null)
                   }}
                 >
-                  <DownloadOutlinedIcon fontSize="small" sx={{ mr: 1.5 }} />
+                  <Download size={20} style={{ marginRight: 12 }} />
                   Export
                 </MenuItem>
               )}

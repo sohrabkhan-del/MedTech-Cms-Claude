@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Button, Divider, Drawer, IconButton, Stack, Typography } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import { X } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
 
 interface FilterDrawerProps<T extends Record<string, unknown>> {
@@ -61,7 +61,7 @@ export function FilterDrawer<T extends Record<string, unknown>>({
       <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2.5 }}>
         <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>{title}</Typography>
         <IconButton onClick={onClose} aria-label="Close filters">
-          <CloseIcon />
+          <X />
         </IconButton>
       </Stack>
       <Divider />

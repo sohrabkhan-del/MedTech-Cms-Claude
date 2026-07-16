@@ -10,8 +10,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
-import MapOutlinedIcon from '@mui/icons-material/MapOutlined'
+import { MapPin as PlaceOutlinedIcon, Map as MapOutlinedIcon } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import {
@@ -239,7 +238,7 @@ export function DealerFormPage() {
               <Button
                 fullWidth
                 variant="outlined"
-                startIcon={<PlaceOutlinedIcon fontSize="small" />}
+                startIcon={<PlaceOutlinedIcon size={20} />}
                 sx={{ height: 40, fontSize: '0.75rem' }}
                 onClick={() => {}}
               >
@@ -260,7 +259,7 @@ export function DealerFormPage() {
           >
             <Button
               variant="contained"
-              startIcon={<MapOutlinedIcon fontSize="small" />}
+              startIcon={<MapOutlinedIcon size={20} />}
               sx={{ fontSize: '0.75rem' }}
               onClick={() => {}}
             >

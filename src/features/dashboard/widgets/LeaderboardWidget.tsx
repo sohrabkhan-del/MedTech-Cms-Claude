@@ -1,5 +1,5 @@
 import { Box, Stack, Typography } from '@mui/material'
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents'
+import { Trophy } from 'lucide-react'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import { leaderboard } from '@/pages/dashboard/mockData'
 
@@ -26,7 +26,7 @@ export function LeaderboardWidget() {
                 flexShrink: 0,
               }}
             >
-              {entry.rank <= 3 ? <EmojiEventsIcon sx={{ fontSize: 14 }} /> : entry.rank}
+              {entry.rank <= 3 ? <Trophy size={14} /> : entry.rank}
             </Box>
             <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
               <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }} noWrap>

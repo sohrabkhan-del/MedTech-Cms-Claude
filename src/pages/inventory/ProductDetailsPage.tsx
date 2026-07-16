@@ -1,14 +1,16 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Avatar, Box, Button, Grid, Stack, Typography } from '@mui/material'
-import Inventory2Icon from '@mui/icons-material/Inventory2'
-import EditOutlined from '@mui/icons-material/EditOutlined'
-import ContentCopyOutlined from '@mui/icons-material/ContentCopyOutlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import BlockOutlined from '@mui/icons-material/BlockOutlined'
-import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
-import FactoryOutlined from '@mui/icons-material/FactoryOutlined'
-import QrCode2Outlined from '@mui/icons-material/QrCode2Outlined'
-import EmojiEventsOutlined from '@mui/icons-material/EmojiEventsOutlined'
+import {
+  Package as Inventory2Icon,
+  Pencil as EditOutlined,
+  Copy as ContentCopyOutlined,
+  CircleCheck as CheckCircleOutlined,
+  Ban as BlockOutlined,
+  Trash2 as DeleteOutlined,
+  Factory as FactoryOutlined,
+  QrCode as QrCode2Outlined,
+  Trophy as EmojiEventsOutlined,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -76,7 +78,7 @@ export function ProductDetailsPage() {
               color: 'primary.main',
             }}
           >
-            <Inventory2Icon fontSize="small" />
+            <Inventory2Icon size={20} />
           </Avatar>
           <Box>
             <Typography variant="h1">{product.productName}</Typography>
@@ -88,7 +90,7 @@ export function ProductDetailsPage() {
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
           <Button
             variant="outlined"
-            startIcon={<EditOutlined fontSize="small" />}
+            startIcon={<EditOutlined size={20} />}
             onClick={() => navigate(`/inventory/product-master/${product.id}/edit`)}
             sx={{ fontSize: '0.75rem' }}
           >
@@ -96,22 +98,22 @@ export function ProductDetailsPage() {
           </Button>
           <Button
             variant="outlined"
-            startIcon={<ContentCopyOutlined fontSize="small" />}
+            startIcon={<ContentCopyOutlined size={20} />}
             onClick={() => navigate(`/inventory/product-master/new?cloneFrom=${product.id}`)}
             sx={{ fontSize: '0.75rem' }}
           >
             Clone
           </Button>
           {product.status === 'active' ? (
-            <Button variant="outlined" color="error" startIcon={<BlockOutlined fontSize="small" />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
+            <Button variant="outlined" color="error" startIcon={<BlockOutlined size={20} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
               Deactivate
             </Button>
           ) : (
-            <Button variant="outlined" color="success" startIcon={<CheckCircleOutlined fontSize="small" />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
+            <Button variant="outlined" color="success" startIcon={<CheckCircleOutlined size={20} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
               Activate
             </Button>
           )}
-          <Button variant="outlined" color="error" startIcon={<DeleteOutlined fontSize="small" />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
+          <Button variant="outlined" color="error" startIcon={<DeleteOutlined size={20} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
             Delete
           </Button>
         </Stack>
@@ -133,16 +135,16 @@ export function ProductDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Factory Uploads" value={product.totalFactoryUploads} icon={<FactoryOutlined fontSize="small" />} iconColor="primary" />
+            <StatCard label="Total Factory Uploads" value={product.totalFactoryUploads} icon={<FactoryOutlined size={20} />} iconColor="primary" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total QR Codes Generated" value={product.totalQrCodesGenerated.toLocaleString('en-IN')} icon={<QrCode2Outlined fontSize="small" />} iconColor="secondary" />
+            <StatCard label="Total QR Codes Generated" value={product.totalQrCodesGenerated.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Successful Scans" value={product.totalSuccessfulScans.toLocaleString('en-IN')} icon={<CheckCircleOutlined fontSize="small" />} iconColor="success" />
+            <StatCard label="Total Successful Scans" value={product.totalSuccessfulScans.toLocaleString('en-IN')} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Reward Points Issued" value={product.totalRewardPointsIssued.toLocaleString('en-IN')} icon={<EmojiEventsOutlined fontSize="small" />} iconColor="warning" />
+            <StatCard label="Total Reward Points Issued" value={product.totalRewardPointsIssued.toLocaleString('en-IN')} icon={<EmojiEventsOutlined size={20} />} iconColor="warning" />
           </Grid>
         </Grid>
 

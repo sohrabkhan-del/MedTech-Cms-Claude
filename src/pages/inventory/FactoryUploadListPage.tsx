@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, Stack, TextField, Typography } from '@mui/material'
-import FactoryOutlined from '@mui/icons-material/FactoryOutlined'
-import Inventory2Outlined from '@mui/icons-material/Inventory2Outlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import BlockOutlined from '@mui/icons-material/BlockOutlined'
+import {
+  Factory as FactoryOutlined,
+  Package as Inventory2Outlined,
+  CircleCheck as CheckCircleOutlined,
+  Ban as BlockOutlined,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -85,7 +87,7 @@ export function FactoryUploadListPage() {
             color: 'primary.main',
           }}
         >
-          <FactoryOutlined fontSize="small" />
+          <FactoryOutlined size={20} />
         </Stack>
         <Stack>
           <Typography variant="h1">Active Product Registry Directory</Typography>
@@ -97,16 +99,16 @@ export function FactoryUploadListPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Batches" value={factoryUploadKpis.totalBatches} icon={<FactoryOutlined fontSize="small" />} iconColor="primary" />
+          <StatCard label="Total Batches" value={factoryUploadKpis.totalBatches} icon={<FactoryOutlined size={20} />} iconColor="primary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Containers" value={factoryUploadKpis.totalContainers} icon={<Inventory2Outlined fontSize="small" />} iconColor="secondary" />
+          <StatCard label="Total Containers" value={factoryUploadKpis.totalContainers} icon={<Inventory2Outlined size={20} />} iconColor="secondary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Products" value={factoryUploadKpis.totalProducts.toLocaleString('en-IN')} icon={<CheckCircleOutlined fontSize="small" />} iconColor="success" />
+          <StatCard label="Total Products" value={factoryUploadKpis.totalProducts.toLocaleString('en-IN')} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Rejected" value={factoryUploadKpis.totalRejected} icon={<BlockOutlined fontSize="small" />} iconColor="error" />
+          <StatCard label="Total Rejected" value={factoryUploadKpis.totalRejected} icon={<BlockOutlined size={20} />} iconColor="error" />
         </Grid>
       </Grid>
 

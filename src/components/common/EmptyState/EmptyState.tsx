@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Box, Button, Stack, Typography } from '@mui/material'
-import InboxOutlinedIcon from '@mui/icons-material/InboxOutlined'
+import { Inbox } from 'lucide-react'
 import { radius } from '@/theme/tokens'
 
 interface EmptyStateProps {
@@ -26,7 +26,7 @@ export function EmptyState({ title, description, icon, actionLabel, onAction }: 
           color: 'text.disabled',
         }}
       >
-        {icon ?? <InboxOutlinedIcon sx={{ fontSize: 28 }} />}
+        {icon ?? <Inbox size={28} />}
       </Box>
       <Box>
         <Typography sx={{ fontWeight: 600, fontSize: '0.9375rem', color: 'text.primary' }}>{title}</Typography>

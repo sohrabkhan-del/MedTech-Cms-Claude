@@ -9,10 +9,12 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy'
-import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined'
-import CampaignOutlinedIcon from '@mui/icons-material/CampaignOutlined'
-import ShoppingBasketOutlinedIcon from '@mui/icons-material/ShoppingBasketOutlined'
+import {
+  Pill as LocalPharmacyIcon,
+  Boxes as InventoryOutlinedIcon,
+  Megaphone as CampaignOutlinedIcon,
+  ShoppingBasket as ShoppingBasketOutlinedIcon,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
   CommonTable,
@@ -38,7 +40,7 @@ export function ChemistListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
   useRegionTopbarHeader({
-    icon: <LocalPharmacyIcon fontSize="small" />,
+    icon: <LocalPharmacyIcon size={20} />,
     title: 'Chemists',
     subtitle: 'Registered chemist partners with geo-tagged shops.',
   })
@@ -170,7 +172,7 @@ export function ChemistListPage() {
           <StatCard
             label="Chemist Network"
             value={chemistKpis.chemistNetwork}
-            icon={<LocalPharmacyIcon fontSize="small" />}
+            icon={<LocalPharmacyIcon size={20} />}
             iconColor="primary"
             trend={{
               direction: 'up',
@@ -183,7 +185,7 @@ export function ChemistListPage() {
           <StatCard
             label="Stock Refill"
             value={chemistKpis.stockRefill}
-            icon={<InventoryOutlinedIcon fontSize="small" />}
+            icon={<InventoryOutlinedIcon size={20} />}
             iconColor="secondary"
             trend={{
               direction: 'up',
@@ -196,7 +198,7 @@ export function ChemistListPage() {
           <StatCard
             label="Pending Outreach"
             value={chemistKpis.pendingOutreach}
-            icon={<CampaignOutlinedIcon fontSize="small" />}
+            icon={<CampaignOutlinedIcon size={20} />}
             iconColor="warning"
             trend={{
               direction: 'down',
@@ -209,7 +211,7 @@ export function ChemistListPage() {
           <StatCard
             label="Average Basket"
             value={`₹${chemistKpis.averageBasket.toLocaleString('en-IN')}`}
-            icon={<ShoppingBasketOutlinedIcon fontSize="small" />}
+            icon={<ShoppingBasketOutlinedIcon size={20} />}
             iconColor="success"
             trend={{
               direction: 'up',

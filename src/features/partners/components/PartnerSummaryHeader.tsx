@@ -1,6 +1,5 @@
 import { Avatar, Button, Card, Grid, Stack, Typography } from '@mui/material'
-import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutlined'
-import BlockIcon from '@mui/icons-material/Block'
+import { CircleCheck, Ban } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import type { PartnerBase } from '@/types/partner'
 
@@ -88,7 +87,7 @@ export function PartnerSummaryHeader({
             <Button
               variant={isActive ? 'outlined' : 'contained'}
               color="primary"
-              startIcon={<CheckCircleOutlineIcon />}
+              startIcon={<CircleCheck />}
               onClick={onActivate}
               disabled={isActive}
               fullWidth
@@ -98,7 +97,7 @@ export function PartnerSummaryHeader({
             <Button
               variant={isActive ? 'contained' : 'outlined'}
               color="error"
-              startIcon={<BlockIcon />}
+              startIcon={<Ban />}
               onClick={onDeactivate}
               disabled={!isActive}
               fullWidth

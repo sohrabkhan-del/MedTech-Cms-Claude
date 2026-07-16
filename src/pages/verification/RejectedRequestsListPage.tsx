@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import BlockIcon from '@mui/icons-material/Block'
-import CancelOutlined from '@mui/icons-material/CancelOutlined'
-import StorefrontOutlined from '@mui/icons-material/StorefrontOutlined'
-import LocalPharmacyOutlined from '@mui/icons-material/LocalPharmacyOutlined'
-import TodayOutlined from '@mui/icons-material/TodayOutlined'
+import { Ban as BlockIcon, XCircle as CancelOutlined, Store as StorefrontOutlined, Pill as LocalPharmacyOutlined, Calendar as TodayOutlined } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
@@ -38,7 +34,7 @@ export function RejectedRequestsListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
   useRegionTopbarHeader({
-    icon: <BlockIcon fontSize="small" />,
+    icon: <BlockIcon size={20} />,
     title: 'Rejected Requests',
     subtitle: 'Manage all Dealer and Chemist onboarding requests that have been rejected.',
   })
@@ -121,16 +117,16 @@ export function RejectedRequestsListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Rejected Requests" value={rejectedRequestKpis.totalRejected} icon={<CancelOutlined fontSize="small" />} iconColor="error" />
+          <StatCard label="Total Rejected Requests" value={rejectedRequestKpis.totalRejected} icon={<CancelOutlined size={20} />} iconColor="error" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Dealer Rejections" value={rejectedRequestKpis.dealerRejections} icon={<StorefrontOutlined fontSize="small" />} iconColor="warning" />
+          <StatCard label="Dealer Rejections" value={rejectedRequestKpis.dealerRejections} icon={<StorefrontOutlined size={20} />} iconColor="warning" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Chemist Rejections" value={rejectedRequestKpis.chemistRejections} icon={<LocalPharmacyOutlined fontSize="small" />} iconColor="secondary" />
+          <StatCard label="Chemist Rejections" value={rejectedRequestKpis.chemistRejections} icon={<LocalPharmacyOutlined size={20} />} iconColor="secondary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Today's Rejections" value={rejectedRequestKpis.todaysRejections} icon={<TodayOutlined fontSize="small" />} iconColor="primary" />
+          <StatCard label="Today's Rejections" value={rejectedRequestKpis.todaysRejections} icon={<TodayOutlined size={20} />} iconColor="primary" />
         </Grid>
       </Grid>
 

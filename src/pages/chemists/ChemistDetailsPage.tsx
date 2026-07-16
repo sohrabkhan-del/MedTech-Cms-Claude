@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Grid, Stack, Typography } from '@mui/material'
-import LocalPharmacyIcon from '@mui/icons-material/LocalPharmacy'
+import { Pill as LocalPharmacyIcon } from 'lucide-react'
 import { PartnerSummaryHeader } from '@/features/partners/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/partners/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/partners/components/PartnerStatisticsCards'
@@ -51,7 +51,7 @@ export function ChemistDetailsPage() {
             color: 'primary.main',
           }}
         >
-          <LocalPharmacyIcon fontSize="small" />
+          <LocalPharmacyIcon size={20} />
         </Box>
         <Box>
           <Typography variant="h1">{chemist.shopName}</Typography>

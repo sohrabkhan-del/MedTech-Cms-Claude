@@ -1,10 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Box, Button, Grid, MenuItem, Stack, TextField, Typography, Chip } from '@mui/material'
-import GppMaybeIcon from '@mui/icons-material/GppMaybe'
-import ReportProblemOutlined from '@mui/icons-material/ReportProblemOutlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import BlockOutlined from '@mui/icons-material/BlockOutlined'
-import TimelineIcon from '@mui/icons-material/Timeline'
+import { ShieldAlert as GppMaybeIcon, TriangleAlert as ReportProblemOutlined, CircleCheck as CheckCircleOutlined, Ban as BlockOutlined, Activity as TimelineIcon } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
   CommonTable,
@@ -211,7 +207,7 @@ export function SecurityAlertsPage() {
             color: 'error.main',
           }}
         >
-          <GppMaybeIcon fontSize="small" />
+          <GppMaybeIcon size={20} />
         </Box>
         <Box>
           <Typography variant="h1">Security Alerts</Typography>
@@ -228,7 +224,7 @@ export function SecurityAlertsPage() {
               <StatCard
                 label="Total Security Alerts"
                 value={securityAlertKpis.totalAlerts}
-                icon={<GppMaybeIcon fontSize="small" />}
+                icon={<GppMaybeIcon size={20} />}
                 iconColor="primary"
               />
             </Grid>
@@ -236,7 +232,7 @@ export function SecurityAlertsPage() {
               <StatCard
                 label="High Severity Alerts"
                 value={securityAlertKpis.highSeverity}
-                icon={<ReportProblemOutlined fontSize="small" />}
+                icon={<ReportProblemOutlined size={20} />}
                 iconColor="error"
               />
             </Grid>
@@ -244,7 +240,7 @@ export function SecurityAlertsPage() {
               <StatCard
                 label="Medium Severity Alerts"
                 value={securityAlertKpis.mediumSeverity}
-                icon={<ReportProblemOutlined fontSize="small" />}
+                icon={<ReportProblemOutlined size={20} />}
                 iconColor="warning"
               />
             </Grid>
@@ -252,7 +248,7 @@ export function SecurityAlertsPage() {
               <StatCard
                 label="Low Severity Alerts"
                 value={securityAlertKpis.lowSeverity}
-                icon={<ReportProblemOutlined fontSize="small" />}
+                icon={<ReportProblemOutlined size={20} />}
                 iconColor="info"
               />
             </Grid>
@@ -368,7 +364,7 @@ export function SecurityAlertsPage() {
                     variant="outlined"
                     color="success"
                     size="small"
-                    startIcon={<CheckCircleOutlined fontSize="small" />}
+                    startIcon={<CheckCircleOutlined size={20} />}
                     disabled={currentUserStatus === 'active'}
                     onClick={() => setUserStatus(userSummary.userId, 'active')}
                     sx={{ fontSize: '0.75rem' }}
@@ -379,7 +375,7 @@ export function SecurityAlertsPage() {
                     variant="outlined"
                     color="error"
                     size="small"
-                    startIcon={<BlockOutlined fontSize="small" />}
+                    startIcon={<BlockOutlined size={20} />}
                     disabled={currentUserStatus === 'inactive'}
                     onClick={() => setUserStatus(userSummary.userId, 'inactive')}
                     sx={{ fontSize: '0.75rem' }}
@@ -407,7 +403,7 @@ export function SecurityAlertsPage() {
                 <StatCard
                   label="Total Security Alerts"
                   value={userSummary.totalAlerts}
-                  icon={<GppMaybeIcon fontSize="small" />}
+                  icon={<GppMaybeIcon size={20} />}
                   iconColor="primary"
                 />
               </Grid>
@@ -415,7 +411,7 @@ export function SecurityAlertsPage() {
                 <StatCard
                   label="High Severity Alerts"
                   value={userSummary.highSeverityAlerts}
-                  icon={<ReportProblemOutlined fontSize="small" />}
+                  icon={<ReportProblemOutlined size={20} />}
                   iconColor="error"
                 />
               </Grid>
@@ -423,7 +419,7 @@ export function SecurityAlertsPage() {
                 <StatCard
                   label="Last Alert Date"
                   value={userSummary.lastAlertDate}
-                  icon={<TimelineIcon fontSize="small" />}
+                  icon={<TimelineIcon size={20} />}
                   iconColor="warning"
                 />
               </Grid>
@@ -431,7 +427,7 @@ export function SecurityAlertsPage() {
                 <StatCard
                   label="Current Account Status"
                   value={currentUserStatus === 'active' ? 'Active' : 'Inactive'}
-                  icon={currentUserStatus === 'active' ? <CheckCircleOutlined fontSize="small" /> : <BlockOutlined fontSize="small" />}
+                  icon={currentUserStatus === 'active' ? <CheckCircleOutlined size={20} /> : <BlockOutlined size={20} />}
                   iconColor={currentUserStatus === 'active' ? 'success' : 'error'}
                 />
               </Grid>

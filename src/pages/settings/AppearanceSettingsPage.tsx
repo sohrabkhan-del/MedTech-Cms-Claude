@@ -1,5 +1,5 @@
 import { Box, MenuItem, Select, Stack, Typography } from '@mui/material'
-import PaletteOutlined from '@mui/icons-material/PaletteOutlined'
+import { Palette as PaletteOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { useAppearance } from '@/contexts/AppearanceContext'
 import { GOOGLE_FONTS } from '@/theme/googleFonts'
@@ -22,7 +22,7 @@ export function AppearanceSettingsPage() {
             color: 'primary.main',
           }}
         >
-          <PaletteOutlined fontSize="small" />
+          <PaletteOutlined size={20} />
         </Box>
         <Box>
           <Typography variant="h1">Appearance</Typography>

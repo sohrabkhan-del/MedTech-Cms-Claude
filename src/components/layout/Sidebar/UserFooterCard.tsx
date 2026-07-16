@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge, Box, Menu, MenuItem, Stack, Typography } from '@mui/material'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined'
-import PersonOutlineIcon from '@mui/icons-material/PersonOutlined'
-import LogoutIcon from '@mui/icons-material/Logout'
+import { ChevronRight as ChevronRightIcon, Settings as SettingsOutlinedIcon, User as PersonOutlineIcon, LogOut as LogoutIcon } from 'lucide-react'
 import { sidebarPalettes, type SidebarPalette } from '@/components/layout/Sidebar/sidebarPalettes'
 import { radius } from '@/theme/tokens'
 import type { AuthUser } from '@/types/auth'
@@ -84,7 +81,7 @@ export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light
                 {user.role.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
               </Typography>
             </Box>
-            <ChevronRightIcon sx={{ color: palette.textDisabled, fontSize: 18 }} />
+            <ChevronRightIcon size={18} style={{ color: palette.textDisabled }} />
           </>
         )}
       </Stack>
@@ -98,15 +95,21 @@ export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light
         slotProps={{ paper: { sx: { minWidth: 200, borderRadius: `${radius.lg}px` } } }}
       >
         <MenuItem onClick={() => goTo('/settings/profile')}>
-          <PersonOutlineIcon fontSize="small" sx={{ mr: 1.5, color: 'text.secondary' }} />
+          <Box component="span" sx={{ display: 'inline-flex', mr: 1.5, color: 'text.secondary' }}>
+            <PersonOutlineIcon size={20} />
+          </Box>
           Profile
         </MenuItem>
         <MenuItem onClick={() => goTo('/settings/general')}>
-          <SettingsOutlinedIcon fontSize="small" sx={{ mr: 1.5, color: 'text.secondary' }} />
+          <Box component="span" sx={{ display: 'inline-flex', mr: 1.5, color: 'text.secondary' }}>
+            <SettingsOutlinedIcon size={20} />
+          </Box>
           Settings
         </MenuItem>
         <MenuItem onClick={() => goTo('/logout')} sx={{ color: 'error.main' }}>
-          <LogoutIcon fontSize="small" sx={{ mr: 1.5 }} />
+          <Box component="span" sx={{ display: 'inline-flex', mr: 1.5 }}>
+            <LogoutIcon size={20} />
+          </Box>
           Logout
         </MenuItem>
       </Menu>

@@ -10,7 +10,7 @@ import {
   ListItemText,
   Tooltip,
 } from '@mui/material'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
+import { ChevronRight as ChevronRightIcon } from 'lucide-react'
 import type { MenuItem } from '@/components/layout/Sidebar/menuConfig'
 import {
   sidebarPalettes,
@@ -117,7 +117,7 @@ export function SidebarItem({
             color: isSelfActive ? 'inherit' : palette.textSecondary,
           }}
         >
-          <Icon sx={{ fontSize: 20 }} />
+          <Icon size={20} />
         </ListItemIcon>
       ) : null}
       {!railMode && (
@@ -153,8 +153,8 @@ export function SidebarItem({
       ) : null}
       {!railMode && hasChildren ? (
         <ChevronRightIcon
-          fontSize="small"
-          sx={{
+          size={20}
+          style={{
             color: palette.textDisabled,
             transition: `transform ${transitions.base}`,
             transform: open ? 'rotate(90deg)' : 'rotate(0deg)',

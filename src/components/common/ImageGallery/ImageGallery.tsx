@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { Box, IconButton, Stack } from '@mui/material'
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
-import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import ImageOutlined from '@mui/icons-material/ImageOutlined'
+import { ChevronLeft, ChevronRight, Image } from 'lucide-react'
 import { radius } from '@/theme/tokens'
 
 interface ImageGalleryProps {
@@ -29,7 +27,7 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
           color: 'text.disabled',
         }}
       >
-        <ImageOutlined sx={{ fontSize: 40 }} />
+        <Image size={40} />
       </Box>
     )
   }
@@ -71,7 +69,7 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
                 '&:hover': { backgroundColor: 'background.paper' },
               }}
             >
-              <ChevronLeftIcon fontSize="small" />
+              <ChevronLeft size={20} />
             </IconButton>
             <IconButton
               aria-label="Next image"
@@ -87,7 +85,7 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
                 '&:hover': { backgroundColor: 'background.paper' },
               }}
             >
-              <ChevronRightIcon fontSize="small" />
+              <ChevronRight size={20} />
             </IconButton>
             <Stack direction="row" spacing={0.75} sx={{ position: 'absolute', bottom: 10, left: 0, right: 0, justifyContent: 'center' }}>
               {images.map((image, index) => (

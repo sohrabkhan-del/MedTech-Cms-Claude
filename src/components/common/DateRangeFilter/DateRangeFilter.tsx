@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Button, Divider, IconButton, Menu, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material'
-import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined'
+import { Calendar } from 'lucide-react'
 import { radius } from '@/theme/tokens'
 
 export interface DateRange {
@@ -58,7 +58,7 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
           }}
           aria-label={`Date range: ${value.presetLabel}`}
         >
-          <CalendarTodayOutlinedIcon sx={{ fontSize: 16 }} />
+          <Calendar size={16} />
         </IconButton>
       </Tooltip>
 

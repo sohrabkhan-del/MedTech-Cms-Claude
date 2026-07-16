@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Box, Card, CardContent, Stack, Tooltip, Typography } from '@mui/material'
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
-import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward'
+import { ArrowUp, ArrowDown } from 'lucide-react'
 import { radius, shadows, transitions } from '@/theme/tokens'
 
 interface StatCardProps {
@@ -97,9 +96,9 @@ export function StatCard({ label, value, icon, iconColor = 'primary', trend }: S
               }}
             >
               {trend.direction === 'up' ? (
-                <ArrowUpwardIcon sx={{ fontSize: 12 }} />
+                <ArrowUp size={12} />
               ) : (
-                <ArrowDownwardIcon sx={{ fontSize: 12 }} />
+                <ArrowDown size={12} />
               )}
               <Typography sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{trend.value}</Typography>
             </Stack>

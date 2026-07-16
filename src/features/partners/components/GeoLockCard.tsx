@@ -1,6 +1,5 @@
 import { Box, Card, Grid, Stack, Typography } from '@mui/material'
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
-import LockOpenOutlinedIcon from '@mui/icons-material/LockOpenOutlined'
+import { Lock, LockOpen } from 'lucide-react'
 import type { GeoLockDetails } from '@/types/partner'
 
 interface GeoLockCardProps {
@@ -24,7 +23,7 @@ export function GeoLockCard({ geoLock }: GeoLockCardProps) {
         }}
       >
         <Box sx={{ color: geoLock.active ? 'success.main' : 'error.main', display: 'flex' }}>
-          {geoLock.active ? <LockOutlinedIcon /> : <LockOpenOutlinedIcon />}
+          {geoLock.active ? <Lock /> : <LockOpen />}
         </Box>
         <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', color: geoLock.active ? 'success.main' : 'error.main' }}>
           Geo-lock is currently {geoLock.active ? 'active' : 'inactive'}

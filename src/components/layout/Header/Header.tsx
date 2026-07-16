@@ -10,11 +10,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import MenuIcon from '@mui/icons-material/Menu'
-import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
-import FullscreenIcon from '@mui/icons-material/Fullscreen'
-import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
-import SettingsIcon from '@mui/icons-material/Settings'
+import { Menu as MenuIcon, Bell, Maximize, Minimize, Settings as SettingsIcon } from 'lucide-react'
 import { layout, radius, shadows } from '@/theme/tokens'
 
 interface HeaderProps {
@@ -71,7 +67,7 @@ export function Header({
           sx={{ mr: 1.5 }}
           aria-label="Toggle navigation"
         >
-          <MenuIcon fontSize="small" />
+          <MenuIcon size={20} />
         </IconButton>
 
         <Box sx={{ flexGrow: 1 }} />
@@ -83,11 +79,7 @@ export function Header({
             aria-label="Toggle fullscreen"
             sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
           >
-            {isFullscreen ? (
-              <FullscreenExitIcon fontSize="small" />
-            ) : (
-              <FullscreenIcon fontSize="small" />
-            )}
+            {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
           </IconButton>
 
           <IconButton
@@ -96,7 +88,7 @@ export function Header({
             aria-label="Notifications"
           >
             <Badge badgeContent={notificationCount} color="secondary">
-              <NotificationsNoneIcon fontSize="small" />
+              <Bell size={20} />
             </Badge>
           </IconButton>
           <Menu
@@ -138,7 +130,7 @@ export function Header({
             size="small"
             aria-label="Settings"
           >
-            <SettingsIcon fontSize="small" />
+            <SettingsIcon size={20} />
           </IconButton>
         </Stack>
       </Stack>

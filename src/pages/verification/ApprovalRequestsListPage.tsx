@@ -1,11 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import RuleIcon from '@mui/icons-material/Rule'
-import PendingActionsOutlined from '@mui/icons-material/PendingActionsOutlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import CancelOutlined from '@mui/icons-material/CancelOutlined'
-import ListAltOutlined from '@mui/icons-material/ListAltOutlined'
+import { ClipboardCheck as RuleIcon, ClipboardClock as PendingActionsOutlined, CircleCheck as CheckCircleOutlined, XCircle as CancelOutlined, ClipboardList as ListAltOutlined } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
@@ -35,7 +31,7 @@ export function ApprovalRequestsListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
   useRegionTopbarHeader({
-    icon: <RuleIcon fontSize="small" />,
+    icon: <RuleIcon size={20} />,
     title: 'Approval Requests',
     subtitle: 'Review and process Dealer and Chemist onboarding requests.',
   })
@@ -113,16 +109,16 @@ export function ApprovalRequestsListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending Requests" value={approvalRequestKpis.pending} icon={<PendingActionsOutlined fontSize="small" />} iconColor="warning" />
+          <StatCard label="Pending Requests" value={approvalRequestKpis.pending} icon={<PendingActionsOutlined size={20} />} iconColor="warning" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Approved Requests" value={approvalRequestKpis.approved} icon={<CheckCircleOutlined fontSize="small" />} iconColor="success" />
+          <StatCard label="Approved Requests" value={approvalRequestKpis.approved} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Rejected Requests" value={approvalRequestKpis.rejected} icon={<CancelOutlined fontSize="small" />} iconColor="error" />
+          <StatCard label="Rejected Requests" value={approvalRequestKpis.rejected} icon={<CancelOutlined size={20} />} iconColor="error" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Requests" value={approvalRequestKpis.total} icon={<ListAltOutlined fontSize="small" />} iconColor="primary" />
+          <StatCard label="Total Requests" value={approvalRequestKpis.total} icon={<ListAltOutlined size={20} />} iconColor="primary" />
         </Grid>
       </Grid>
 

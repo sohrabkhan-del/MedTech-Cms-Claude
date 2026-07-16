@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Button, Card, Stack, TextField, Typography } from '@mui/material'
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutlined'
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutlined'
+import { CirclePlus, CircleMinus } from 'lucide-react'
 import { Modal } from '@/components/common/Modal/Modal'
 
 interface PointsManagementCardProps {
@@ -37,10 +36,10 @@ export function PointsManagementCard({ currentBalance, onAdjust }: PointsManagem
       </Stack>
 
       <Stack direction="row" spacing={1.5}>
-        <Button variant="contained" color="primary" startIcon={<AddCircleOutlineIcon />} onClick={() => setMode('credit')} fullWidth>
+        <Button variant="contained" color="primary" startIcon={<CirclePlus />} onClick={() => setMode('credit')} fullWidth>
           Add Points
         </Button>
-        <Button variant="outlined" color="error" startIcon={<RemoveCircleOutlineIcon />} onClick={() => setMode('debit')} fullWidth>
+        <Button variant="outlined" color="error" startIcon={<CircleMinus />} onClick={() => setMode('debit')} fullWidth>
           Remove Points
         </Button>
       </Stack>

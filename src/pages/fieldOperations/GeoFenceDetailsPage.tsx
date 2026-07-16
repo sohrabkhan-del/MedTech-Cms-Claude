@@ -1,13 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Grid, Stack, Typography } from '@mui/material'
-import EditOutlined from '@mui/icons-material/EditOutlined'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import BlockOutlined from '@mui/icons-material/BlockOutlined'
-import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
-import FenceIcon from '@mui/icons-material/Fence'
-import PendingActionsOutlined from '@mui/icons-material/PendingActionsOutlined'
-import TrackChangesIcon from '@mui/icons-material/TrackChanges'
-import EventAvailableOutlined from '@mui/icons-material/EventAvailableOutlined'
+import { Pencil as EditOutlined, CircleCheck as CheckCircleOutlined, Ban as BlockOutlined, Trash2 as DeleteOutlined, Fence as FenceIcon, ClipboardClock as PendingActionsOutlined, Target as TrackChangesIcon, CalendarCheck as EventAvailableOutlined } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -74,7 +67,7 @@ export function GeoFenceDetailsPage() {
               color: 'primary.main',
             }}
           >
-            <FenceIcon fontSize="small" />
+            <FenceIcon size={20} />
           </Box>
           <Box>
             <Typography variant="h1">{fence.userName}</Typography>
@@ -86,22 +79,22 @@ export function GeoFenceDetailsPage() {
         <Stack direction="row" spacing={1.5}>
           <Button
             variant="outlined"
-            startIcon={<EditOutlined fontSize="small" />}
+            startIcon={<EditOutlined size={20} />}
             onClick={() => navigate(`/field-operations/geo-fence-management/${fence.id}/edit`)}
             sx={{ fontSize: '0.75rem' }}
           >
             Edit Geo Fence
           </Button>
           {fence.status === 'active' ? (
-            <Button variant="outlined" color="error" startIcon={<BlockOutlined fontSize="small" />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
+            <Button variant="outlined" color="error" startIcon={<BlockOutlined size={20} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
               Deactivate
             </Button>
           ) : (
-            <Button variant="outlined" color="success" startIcon={<CheckCircleOutlined fontSize="small" />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
+            <Button variant="outlined" color="success" startIcon={<CheckCircleOutlined size={20} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
               Activate
             </Button>
           )}
-          <Button variant="outlined" color="error" startIcon={<DeleteOutlined fontSize="small" />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
+          <Button variant="outlined" color="error" startIcon={<DeleteOutlined size={20} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
             Delete
           </Button>
         </Stack>
@@ -123,16 +116,16 @@ export function GeoFenceDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Active Geo Fences" value={geoFenceKpis.activeFences} icon={<CheckCircleOutlined fontSize="small" />} iconColor="success" />
+            <StatCard label="Active Geo Fences" value={geoFenceKpis.activeFences} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Pending Verification" value={geoFenceKpis.pendingVerification} icon={<PendingActionsOutlined fontSize="small" />} iconColor="warning" />
+            <StatCard label="Pending Verification" value={geoFenceKpis.pendingVerification} icon={<PendingActionsOutlined size={20} />} iconColor="warning" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Average Radius" value={`${geoFenceKpis.averageRadius} m`} icon={<TrackChangesIcon fontSize="small" />} iconColor="primary" />
+            <StatCard label="Average Radius" value={`${geoFenceKpis.averageRadius} m`} icon={<TrackChangesIcon size={20} />} iconColor="primary" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Verified This Week" value={geoFenceKpis.verifiedThisWeek} icon={<EventAvailableOutlined fontSize="small" />} iconColor="secondary" />
+            <StatCard label="Verified This Week" value={geoFenceKpis.verifiedThisWeek} icon={<EventAvailableOutlined size={20} />} iconColor="secondary" />
           </Grid>
         </Grid>
 

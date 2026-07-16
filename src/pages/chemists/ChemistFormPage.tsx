@@ -2,8 +2,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button, Card, Chip, Grid, MenuItem, Stack, Typography } from '@mui/material'
-import PlaceOutlinedIcon from '@mui/icons-material/PlaceOutlined'
-import MapOutlinedIcon from '@mui/icons-material/MapOutlined'
+import { MapPin as PlaceOutlinedIcon, Map as MapOutlinedIcon } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import {
@@ -171,7 +170,7 @@ export function ChemistFormPage() {
               <Button
                 fullWidth
                 variant="outlined"
-                startIcon={<PlaceOutlinedIcon fontSize="small" />}
+                startIcon={<PlaceOutlinedIcon size={20} />}
                 sx={{ height: 40, fontSize: '0.75rem' }}
                 onClick={() => {}}
               >
@@ -184,7 +183,7 @@ export function ChemistFormPage() {
         <Card sx={{ p: 3, mb: 3 }}>
           <Typography sx={sectionTitleSx}>Geo-fence &amp; Scanning Buffer</Typography>
           <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
-            <Button variant="contained" startIcon={<MapOutlinedIcon fontSize="small" />} sx={{ fontSize: '0.75rem' }} onClick={() => {}}>
+            <Button variant="contained" startIcon={<MapOutlinedIcon size={20} />} sx={{ fontSize: '0.75rem' }} onClick={() => {}}>
               Mark Fence on Map
             </Button>
             <Chip label="No fence marked yet" size="small" variant="outlined" />

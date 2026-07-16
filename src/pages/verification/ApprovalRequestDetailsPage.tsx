@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Stack, TextField, Typography } from '@mui/material'
-import RuleIcon from '@mui/icons-material/Rule'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import CancelOutlined from '@mui/icons-material/CancelOutlined'
-import PlaceOutlined from '@mui/icons-material/PlaceOutlined'
-import DownloadOutlined from '@mui/icons-material/DownloadOutlined'
+import { ClipboardCheck as RuleIcon, CircleCheck as CheckCircleOutlined, XCircle as CancelOutlined, MapPin as PlaceOutlined, Download as DownloadOutlined } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -40,7 +36,7 @@ const documentColumns: CommonTableColumn<RequestDocument>[] = [
     align: 'right',
     hideable: false,
     render: () => (
-      <Button size="small" startIcon={<DownloadOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
+      <Button size="small" startIcon={<DownloadOutlined size={20} />} sx={{ fontSize: '0.75rem' }}>
         Preview
       </Button>
     ),
@@ -101,7 +97,7 @@ export function ApprovalRequestDetailsPage() {
               color: 'primary.main',
             }}
           >
-            <RuleIcon fontSize="small" />
+            <RuleIcon size={20} />
           </Box>
           <Box>
             <Typography variant="h1">{request.applicantName}</Typography>
@@ -115,7 +111,7 @@ export function ApprovalRequestDetailsPage() {
             <Button
               variant="outlined"
               color="success"
-              startIcon={<CheckCircleOutlined fontSize="small" />}
+              startIcon={<CheckCircleOutlined size={20} />}
               onClick={() => openDialog('approve')}
               sx={{ fontSize: '0.75rem' }}
             >
@@ -124,7 +120,7 @@ export function ApprovalRequestDetailsPage() {
             <Button
               variant="outlined"
               color="error"
-              startIcon={<CancelOutlined fontSize="small" />}
+              startIcon={<CancelOutlined size={20} />}
               onClick={() => openDialog('reject')}
               sx={{ fontSize: '0.75rem' }}
             >
@@ -179,7 +175,7 @@ export function ApprovalRequestDetailsPage() {
             <Button
               size="small"
               variant="outlined"
-              startIcon={<PlaceOutlined fontSize="small" />}
+              startIcon={<PlaceOutlined size={20} />}
               component="a"
               href={`https://www.google.com/maps?q=${request.latitude},${request.longitude}`}
               target="_blank"

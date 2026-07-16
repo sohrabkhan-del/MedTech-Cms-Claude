@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Breadcrumbs, Chip, Link as MuiLink, Stack, Typography } from '@mui/material'
-import ViewInArOutlined from '@mui/icons-material/ViewInArOutlined'
-import NavigateNextOutlined from '@mui/icons-material/NavigateNextOutlined'
+import { Box as ViewInArOutlined, ChevronRight as NavigateNextOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
@@ -93,7 +92,7 @@ export function FactoryBoxPage() {
 
   return (
     <>
-      <Breadcrumbs separator={<NavigateNextOutlined sx={{ fontSize: 16 }} />} sx={{ mb: 1.5 }}>
+      <Breadcrumbs separator={<NavigateNextOutlined size={16} />} sx={{ mb: 1.5 }}>
         <MuiLink
           component="button"
           underline="hover"
@@ -128,7 +127,7 @@ export function FactoryBoxPage() {
             color: 'primary.main',
           }}
         >
-          <ViewInArOutlined fontSize="small" />
+          <ViewInArOutlined size={20} />
         </Box>
         <Box>
           <Typography variant="h1">{box.boxNumber}</Typography>

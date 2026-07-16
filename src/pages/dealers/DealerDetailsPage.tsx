@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Grid, Stack, Typography } from '@mui/material'
-import StorefrontIcon from '@mui/icons-material/Storefront'
+import { Store as StorefrontIcon } from 'lucide-react'
 import { PartnerSummaryHeader } from '@/features/partners/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/partners/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/partners/components/PartnerStatisticsCards'
@@ -47,7 +47,7 @@ export function DealerDetailsPage() {
             color: 'primary.main',
           }}
         >
-          <StorefrontIcon fontSize="small" />
+          <StorefrontIcon size={20} />
         </Box>
         <Box>
           <Typography variant="h1">{dealer.shopName}</Typography>

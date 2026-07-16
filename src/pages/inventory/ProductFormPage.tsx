@@ -2,9 +2,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { Avatar, Box, Button, Card, Grid, IconButton, MenuItem, Stack, Typography } from '@mui/material'
-import ImageOutlined from '@mui/icons-material/ImageOutlined'
-import AddPhotoAlternateOutlined from '@mui/icons-material/AddPhotoAlternateOutlined'
-import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
+import { Image as ImageOutlined, ImagePlus as AddPhotoAlternateOutlined, Trash2 as DeleteOutlined } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import {
@@ -145,7 +143,7 @@ export function ProductFormPage() {
             <Button
               size="small"
               variant="outlined"
-              startIcon={<AddPhotoAlternateOutlined fontSize="small" />}
+              startIcon={<AddPhotoAlternateOutlined size={20} />}
               onClick={() => appendImage({ url: '' })}
               sx={{ fontSize: '0.75rem' }}
             >
@@ -158,9 +156,9 @@ export function ProductFormPage() {
                 <Avatar
                   src={watchedImages?.[index]?.url || undefined}
                   variant="rounded"
-                  sx={{ width: 56, height: 56, flexShrink: 0, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider' }}
+                  sx={{ width: 56, height: 56, flexShrink: 0, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', color: 'text.disabled' }}
                 >
-                  <ImageOutlined sx={{ color: 'text.disabled' }} fontSize="small" />
+                  <ImageOutlined size={20} />
                 </Avatar>
                 <Box sx={{ flexGrow: 1 }}>
                   <FieldLabel>{`Image ${index + 1} URL`}</FieldLabel>
@@ -177,7 +175,7 @@ export function ProductFormPage() {
                   disabled={imageFields.length === 1}
                   sx={{ mb: 0.5 }}
                 >
-                  <DeleteOutlined fontSize="small" />
+                  <DeleteOutlined size={20} />
                 </IconButton>
               </Stack>
             ))}

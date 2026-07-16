@@ -1,11 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import FenceIcon from '@mui/icons-material/Fence'
-import CheckCircleOutlined from '@mui/icons-material/CheckCircleOutlined'
-import PendingActionsOutlined from '@mui/icons-material/PendingActionsOutlined'
-import TrackChangesIcon from '@mui/icons-material/TrackChanges'
-import EventAvailableOutlined from '@mui/icons-material/EventAvailableOutlined'
+import { Fence as FenceIcon, CircleCheck as CheckCircleOutlined, ClipboardClock as PendingActionsOutlined, Target as TrackChangesIcon, CalendarCheck as EventAvailableOutlined } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
@@ -26,7 +22,7 @@ export function GeoFenceListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
   useRegionTopbarHeader({
-    icon: <FenceIcon fontSize="small" />,
+    icon: <FenceIcon size={20} />,
     title: 'Geo Fence Management',
     subtitle: 'Manage location-based scan validation for Dealers, Chemists, and MRs.',
   })
@@ -70,16 +66,16 @@ export function GeoFenceListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Geo Fences" value={geoFenceKpis.activeFences} icon={<CheckCircleOutlined fontSize="small" />} iconColor="success" />
+          <StatCard label="Active Geo Fences" value={geoFenceKpis.activeFences} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending Verification" value={geoFenceKpis.pendingVerification} icon={<PendingActionsOutlined fontSize="small" />} iconColor="warning" />
+          <StatCard label="Pending Verification" value={geoFenceKpis.pendingVerification} icon={<PendingActionsOutlined size={20} />} iconColor="warning" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Average Radius" value={`${geoFenceKpis.averageRadius} m`} icon={<TrackChangesIcon fontSize="small" />} iconColor="primary" />
+          <StatCard label="Average Radius" value={`${geoFenceKpis.averageRadius} m`} icon={<TrackChangesIcon size={20} />} iconColor="primary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Verified This Week" value={geoFenceKpis.verifiedThisWeek} icon={<EventAvailableOutlined fontSize="small" />} iconColor="secondary" />
+          <StatCard label="Verified This Week" value={geoFenceKpis.verifiedThisWeek} icon={<EventAvailableOutlined size={20} />} iconColor="secondary" />
         </Grid>
       </Grid>
 

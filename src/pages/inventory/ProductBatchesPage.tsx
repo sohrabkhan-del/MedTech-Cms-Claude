@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Box, Stack, Tab, Tabs, Typography } from '@mui/material'
-import ViewInArOutlined from '@mui/icons-material/ViewInArOutlined'
+import { Box as ViewInArOutlined } from 'lucide-react'
 import { BatchListingTab } from '@/pages/inventory/productBatches/BatchListingTab'
 import { BatchDetailsView } from '@/pages/inventory/productBatches/BatchDetailsView'
 import { ScanningProductsTab } from '@/pages/inventory/productBatches/ScanningProductsTab'
@@ -35,7 +35,7 @@ export function ProductBatchesPage() {
             color: 'primary.main',
           }}
         >
-          <ViewInArOutlined fontSize="small" />
+          <ViewInArOutlined size={20} />
         </Stack>
         <Stack>
           <Typography variant="h1">Product Batches</Typography>

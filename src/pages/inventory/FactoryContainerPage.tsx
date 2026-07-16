@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Breadcrumbs, Link as MuiLink, Stack, Typography } from '@mui/material'
-import Inventory2Outlined from '@mui/icons-material/Inventory2Outlined'
-import NavigateNextOutlined from '@mui/icons-material/NavigateNextOutlined'
+import { Package as Inventory2Outlined, ChevronRight as NavigateNextOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
@@ -48,7 +47,7 @@ export function FactoryContainerPage() {
 
   return (
     <>
-      <Breadcrumbs separator={<NavigateNextOutlined sx={{ fontSize: 16 }} />} sx={{ mb: 1.5 }}>
+      <Breadcrumbs separator={<NavigateNextOutlined size={16} />} sx={{ mb: 1.5 }}>
         <MuiLink
           component="button"
           underline="hover"
@@ -74,7 +73,7 @@ export function FactoryContainerPage() {
             color: 'primary.main',
           }}
         >
-          <Inventory2Outlined fontSize="small" />
+          <Inventory2Outlined size={20} />
         </Box>
         <Box>
           <Typography variant="h1">{container.containerNumber}</Typography>

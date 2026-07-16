@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Box, Button, Dialog, DialogActions, DialogContent, IconButton, Stack, Typography } from '@mui/material'
-import CloseIcon from '@mui/icons-material/Close'
+import { X } from 'lucide-react'
 import { radius } from '@/theme/tokens'
 import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
 
@@ -54,7 +54,7 @@ export function Modal({
           )}
         </Box>
         <IconButton onClick={onClose} size="small" aria-label="Close">
-          <CloseIcon fontSize="small" />
+          <X size={20} />
         </IconButton>
       </Stack>
 

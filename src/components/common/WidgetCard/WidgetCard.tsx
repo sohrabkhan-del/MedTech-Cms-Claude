@@ -1,9 +1,7 @@
 import type { ReactNode } from 'react'
 import { useState } from 'react'
 import { Box, Card, Divider, IconButton, Menu, MenuItem, Stack, Typography } from '@mui/material'
-import MoreVertIcon from '@mui/icons-material/MoreVert'
-import RefreshIcon from '@mui/icons-material/Refresh'
-import DownloadOutlinedIcon from '@mui/icons-material/DownloadOutlined'
+import { MoreVertical, RefreshCw, Download } from 'lucide-react'
 
 interface WidgetCardProps {
   title: string
@@ -32,7 +30,7 @@ export function WidgetCard({ title, subtitle, children, footer, onRefresh, onExp
         {hasMenu && (
           <>
             <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)} aria-label={`${title} actions`}>
-              <MoreVertIcon fontSize="small" />
+              <MoreVertical size={20} />
             </IconButton>
             <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
               {onRefresh && (
@@ -42,7 +40,7 @@ export function WidgetCard({ title, subtitle, children, footer, onRefresh, onExp
                     setAnchorEl(null)
                   }}
                 >
-                  <RefreshIcon fontSize="small" sx={{ mr: 1.5 }} />
+                  <RefreshCw size={20} style={{ marginRight: 12 }} />
                   Refresh
                 </MenuItem>
               )}
@@ -53,7 +51,7 @@ export function WidgetCard({ title, subtitle, children, footer, onRefresh, onExp
                     setAnchorEl(null)
                   }}
                 >
-                  <DownloadOutlinedIcon fontSize="small" sx={{ mr: 1.5 }} />
+                  <Download size={20} style={{ marginRight: 12 }} />
                   Export
                 </MenuItem>
               )}

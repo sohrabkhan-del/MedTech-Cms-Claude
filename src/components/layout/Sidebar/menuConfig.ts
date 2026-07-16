@@ -1,4 +1,7 @@
 import type { SvgIconComponent } from '@mui/icons-material'
+import GridViewIcon from '@mui/icons-material/GridViewOutlined'
+import LocationOnIcon from '@mui/icons-material/LocationOnOutlined'
+import BadgeIcon from '@mui/icons-material/BadgeOutlined'
 import DashboardIcon from '@mui/icons-material/DashboardOutlined'
 import MyLocationIcon from '@mui/icons-material/MyLocationOutlined'
 import GppMaybeIcon from '@mui/icons-material/GppMaybeOutlined'
@@ -44,10 +47,12 @@ export interface MenuGroup {
 export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'OVERVIEW',
+    icon: GridViewIcon,
     items: [{ label: 'Dashboard', path: '/dashboard', icon: DashboardIcon }],
   },
   {
     groupLabel: 'FIELD OPERATIONS',
+    icon: LocationOnIcon,
     items: [
       { label: 'Live Scan Feed', path: '/field-operations/live-scan-feed', icon: MyLocationIcon, showRegionTopbar: true },
       {
@@ -76,6 +81,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'INVENTORY MANAGEMENT',
+    icon: Inventory2Icon,
     items: [
       { label: 'Product Master', path: '/inventory/product-master', icon: Inventory2Icon, showRegionTopbar: true },
       { label: 'Factory Inventory Upload', path: '/inventory/factory-inventory-upload', icon: FactoryIcon },
@@ -85,6 +91,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'MARKETING PRODUCTS',
+    icon: CampaignIcon,
     items: [
       { label: 'Products Catelog', path: '/marketing-products/products-catelog', icon: CampaignIcon },
       { label: 'Interested Users', path: '/marketing-products/interested-users', icon: Diversity3Icon },
@@ -92,6 +99,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'SCHEME MANAGEMENT',
+    icon: TrackChangesIcon,
     items: [
       { label: 'General Schemes', path: '/scheme-management/schemes/general', icon: TrackChangesIcon },
       { label: 'Sessional Schemes', path: '/scheme-management/schemes/sessional', icon: TrackChangesIcon },
@@ -105,6 +113,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'REWARDS & WALLET',
+    icon: AccountBalanceWalletIcon,
     items: [
       {
         label: 'Coin Value Rules',
@@ -117,6 +126,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'REPORTS & ANALYTICS',
+    icon: BarChartIcon,
     items: [
       { label: 'Scan Reports', path: '/reports/scan-reports', icon: BarChartIcon },
       { label: 'Reward Reports', path: '/reports/reward-reports', icon: BarChartIcon },
@@ -131,6 +141,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'System Users',
+    icon: BadgeIcon,
     items: [
       { label: 'Admin', path: '/system-users/admin' },
       { label: 'Medical Representatives (MR)', path: '/system-users/medical-representatives' },
@@ -146,6 +157,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'Audit',
+    icon: ListAltIcon,
     items: [
       { label: 'Audit Logs', path: '/audit/audit-logs', icon: ListAltIcon },
       { label: 'Master Scan Table Logs', path: '/audit/master-scan-table-logs', icon: ListAltIcon },

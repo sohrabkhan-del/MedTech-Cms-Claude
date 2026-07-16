@@ -30,6 +30,12 @@ export const GOOGLE_FONTS: GoogleFontOption[] = [
     googleFamilyParam: 'Poppins',
   },
   {
+    label: 'Titillium Web',
+    value: 'Titillium Web',
+    stack: `'Titillium Web', 'Inter', Arial, sans-serif`,
+    googleFamilyParam: 'Titillium+Web',
+  },
+  {
     label: 'Nunito Sans',
     value: 'Nunito Sans',
     stack: `'Nunito Sans', 'Inter', Arial, sans-serif`,

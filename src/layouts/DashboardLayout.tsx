@@ -6,7 +6,6 @@ import { Header } from '@/components/layout/Header/Header'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs/Breadcrumbs'
 import { RegionTopbar } from '@/components/common/RegionTopbar/RegionTopbar'
 import { useIsMobile, useIsTablet } from '@/hooks/useMediaQueryBreakpoint'
-import { currentUser } from '@/features/auth/mockCurrentUser'
 import { findRouteEntry } from '@/routes/routeConfig'
 import { RegionFilterProvider, useRegionFilter } from '@/contexts/RegionFilterContext'
 
@@ -67,7 +66,7 @@ export function DashboardLayout() {
             minWidth: 0,
           }}
         >
-          <Header onMenuClick={handleMenuClick} currentUser={currentUser} />
+          <Header onMenuClick={handleMenuClick} />
           <Box
             component="main"
             sx={{

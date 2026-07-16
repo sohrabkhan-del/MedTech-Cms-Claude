@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Avatar,
   Badge,
   Box,
   Divider,
@@ -16,23 +15,18 @@ import NotificationsNoneIcon from '@mui/icons-material/NotificationsNone'
 import FullscreenIcon from '@mui/icons-material/Fullscreen'
 import FullscreenExitIcon from '@mui/icons-material/FullscreenExit'
 import SettingsIcon from '@mui/icons-material/Settings'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { layout, radius, shadows } from '@/theme/tokens'
-import type { AuthUser } from '@/types/auth'
 
 interface HeaderProps {
   onMenuClick: () => void
-  currentUser: AuthUser
   notificationCount?: number
 }
 
 export function Header({
   onMenuClick,
-  currentUser,
   notificationCount = 4,
 }: HeaderProps) {
   const navigate = useNavigate()
-  const [profileAnchor, setProfileAnchor] = useState<HTMLElement | null>(null)
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -146,70 +140,6 @@ export function Header({
           >
             <SettingsIcon fontSize="small" />
           </IconButton>
-
-          <Stack
-            direction="row"
-            spacing={1}
-            onClick={(e) => setProfileAnchor(e.currentTarget)}
-            sx={{
-              alignItems: 'center',
-              cursor: 'pointer',
-              pl: 1,
-              py: 0.25,
-              pr: 0.5,
-              ml: 0.5,
-              borderRadius: `${radius.md}px`,
-              transition: 'background-color 150ms',
-              '&:hover': { backgroundColor: 'background.default' },
-            }}
-          >
-            <Avatar
-              sx={{
-                bgcolor: 'secondary.main',
-                width: 30,
-                height: 30,
-                fontSize: '0.8125rem',
-                fontWeight: 700,
-              }}
-            >
-              {currentUser.avatarInitial}
-            </Avatar>
-            <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-              <Typography variant="body1" sx={{ fontWeight: 700, lineHeight: 1.2 }}>
-                {currentUser.name}
-              </Typography>
-              <Typography variant="caption" sx={{ textTransform: 'capitalize' }}>
-                {currentUser.role.replace('_', ' ')}
-              </Typography>
-            </Box>
-            <ExpandMoreIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-          </Stack>
-
-          <Menu
-            anchorEl={profileAnchor}
-            open={!!profileAnchor}
-            onClose={() => setProfileAnchor(null)}
-            slotProps={{
-              paper: { sx: { borderRadius: `${radius.lg}px`, mt: 1 } },
-            }}
-          >
-            <MenuItem
-              onClick={() => {
-                setProfileAnchor(null)
-                navigate('/settings/profile')
-              }}
-            >
-              Profile
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setProfileAnchor(null)
-                navigate('/logout')
-              }}
-            >
-              Logout
-            </MenuItem>
-          </Menu>
         </Stack>
       </Stack>
     </Box>

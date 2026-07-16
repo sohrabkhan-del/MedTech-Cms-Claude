@@ -12,12 +12,17 @@ import {
 } from '@mui/material'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import type { MenuItem } from '@/components/layout/Sidebar/menuConfig'
-import { sidebarPalettes, type SidebarPalette } from '@/components/layout/Sidebar/sidebarPalettes'
+import {
+  sidebarPalettes,
+  type SidebarPalette,
+} from '@/components/layout/Sidebar/sidebarPalettes'
 import { transitions } from '@/theme/tokens'
 
 function isDescendantActive(item: MenuItem, pathname: string): boolean {
   if (item.path === pathname) return true
-  return item.children?.some((child) => isDescendantActive(child, pathname)) ?? false
+  return (
+    item.children?.some((child) => isDescendantActive(child, pathname)) ?? false
+  )
 }
 
 interface SidebarItemProps {
@@ -27,7 +32,12 @@ interface SidebarItemProps {
   palette?: SidebarPalette
 }
 
-export function SidebarItem({ item, depth = 0, railMode = false, palette = sidebarPalettes.light }: SidebarItemProps) {
+export function SidebarItem({
+  item,
+  depth = 0,
+  railMode = false,
+  palette = sidebarPalettes.light,
+}: SidebarItemProps) {
   const location = useLocation()
   const navigate = useNavigate()
   const active = isDescendantActive(item, location.pathname)
@@ -94,12 +104,19 @@ export function SidebarItem({ item, depth = 0, railMode = false, palette = sideb
             width: isSelfActive ? 7 : 5,
             height: isSelfActive ? 7 : 5,
             borderRadius: '50%',
-            backgroundColor: isSelfActive ? palette.activeIconColor : palette.textDisabled,
+            backgroundColor: isSelfActive
+              ? palette.activeIconColor
+              : palette.textDisabled,
           }}
         />
       )}
       {Icon && !isNested ? (
-        <ListItemIcon sx={{ minWidth: railMode ? 0 : 32, color: isSelfActive ? 'inherit' : palette.textSecondary }}>
+        <ListItemIcon
+          sx={{
+            minWidth: railMode ? 0 : 32,
+            color: isSelfActive ? 'inherit' : palette.textSecondary,
+          }}
+        >
           <Icon sx={{ fontSize: 20 }} />
         </ListItemIcon>
       ) : null}
@@ -109,9 +126,13 @@ export function SidebarItem({ item, depth = 0, railMode = false, palette = sideb
           slotProps={{
             primary: {
               sx: {
-                fontSize: '0.8125rem',
+                fontSize: '0.9rem',
                 fontWeight: isSelfActive ? 700 : 500,
-                color: isSelfActive ? palette.activeIconColor : isNested ? palette.textSecondary : palette.textPrimary,
+                color: isSelfActive
+                  ? palette.activeIconColor
+                  : isNested
+                    ? palette.textSecondary
+                    : palette.textPrimary,
               },
             },
           }}
@@ -122,7 +143,12 @@ export function SidebarItem({ item, depth = 0, railMode = false, palette = sideb
           label={item.badgeCount}
           size="small"
           color="secondary"
-          sx={{ height: 16, minWidth: 16, fontSize: '0.6rem', '& .MuiChip-label': { px: 0.625 } }}
+          sx={{
+            height: 16,
+            minWidth: 16,
+            fontSize: '0.6rem',
+            '& .MuiChip-label': { px: 0.625 },
+          }}
         />
       ) : null}
       {!railMode && hasChildren ? (
@@ -151,7 +177,12 @@ export function SidebarItem({ item, depth = 0, railMode = false, palette = sideb
         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
             {item.children!.map((child) => (
-              <SidebarItem key={child.path ?? child.label} item={child} depth={depth + 1} palette={palette} />
+              <SidebarItem
+                key={child.path ?? child.label}
+                item={child}
+                depth={depth + 1}
+                palette={palette}
+              />
             ))}
           </List>
         </Collapse>

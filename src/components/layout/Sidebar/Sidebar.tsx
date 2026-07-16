@@ -1,7 +1,7 @@
-import { Box, Divider, Drawer, List, Typography } from '@mui/material'
+import { Box, Divider, Drawer } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { menuConfig } from '@/components/layout/Sidebar/menuConfig'
-import { SidebarItem } from '@/components/layout/Sidebar/SidebarItem'
+import { SidebarGroup } from '@/components/layout/Sidebar/SidebarGroup'
 import { UserFooterCard } from '@/components/layout/Sidebar/UserFooterCard'
 import {
   sidebarPalettes,
@@ -71,38 +71,18 @@ function SidebarContent({
     >
       <SidebarBrand railMode={railMode} palette={palette} />
       <Divider sx={{ borderColor: palette.divider }} />
-      <Box sx={{ flexGrow: 1, overflowY: 'auto', py: 1 }}>
+      <Box
+        sx={{
+          flexGrow: 1,
+          overflowY: 'auto',
+          py: 1,
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          '&::-webkit-scrollbar': { display: 'none' },
+        }}
+      >
         {menuConfig.map((group) => (
-          <Box key={group.groupLabel} sx={{ mb: 0.5 }}>
-            {!railMode && (
-              <Typography
-                variant="caption"
-                sx={{
-                  display: 'block',
-                  px: 2.5,
-                  pt: 1.25,
-                  pb: 0.375,
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  letterSpacing: '0.04em',
-                  fontSize: '0.6875rem',
-                  color: palette.textDisabled,
-                }}
-              >
-                {group.groupLabel}
-              </Typography>
-            )}
-            <List disablePadding>
-              {group.items.map((item) => (
-                <SidebarItem
-                  key={item.path ?? item.label}
-                  item={item}
-                  railMode={railMode}
-                  palette={palette}
-                />
-              ))}
-            </List>
-          </Box>
+          <SidebarGroup key={group.groupLabel} group={group} railMode={railMode} palette={palette} />
         ))}
       </Box>
       <Divider sx={{ borderColor: palette.divider }} />

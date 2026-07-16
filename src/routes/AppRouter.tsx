@@ -21,6 +21,12 @@ import { RejectedRequestDetailsPage } from '@/pages/verification/RejectedRequest
 import { ProductListPage } from '@/pages/inventory/ProductListPage'
 import { ProductDetailsPage } from '@/pages/inventory/ProductDetailsPage'
 import { ProductFormPage } from '@/pages/inventory/ProductFormPage'
+import { FactoryUploadListPage } from '@/pages/inventory/FactoryUploadListPage'
+import { FactoryUploadFormPage } from '@/pages/inventory/FactoryUploadFormPage'
+import { FactoryUploadDetailsPage } from '@/pages/inventory/FactoryUploadDetailsPage'
+import { FactoryContainerPage } from '@/pages/inventory/FactoryContainerPage'
+import { FactoryBoxPage } from '@/pages/inventory/FactoryBoxPage'
+import { ProductBatchesPage } from '@/pages/inventory/ProductBatchesPage'
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
@@ -29,6 +35,7 @@ import { getChemistById } from '@/features/chemists/mockChemists'
 import { getGeoFenceById } from '@/features/fieldOperations/mockGeoFences'
 import { getApprovalRequestById } from '@/features/verification/mockApprovalRequests'
 import { getProductById } from '@/features/inventory/mockProducts'
+import { getBatchById } from '@/features/inventory/mockFactoryUploads'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -40,6 +47,8 @@ const CUSTOM_PATHS = new Set([
   '/verification/approval-requests',
   '/verification/rejected-requests',
   '/inventory/product-master',
+  '/inventory/factory-inventory-upload',
+  '/inventory/product-batches',
   '/settings/general',
 ])
 
@@ -66,6 +75,10 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/inventory/product-master',
   resolveEntityName: (id) => getProductById(id)?.productName,
+})
+registerDetailRoute({
+  parentPath: '/inventory/factory-inventory-upload',
+  resolveEntityName: (id) => getBatchById(id)?.batchName,
 })
 
 export function AppRouter() {
@@ -100,6 +113,12 @@ export function AppRouter() {
         <Route path="/inventory/product-master/new" element={<ProductFormPage />} />
         <Route path="/inventory/product-master/:productId" element={<ProductDetailsPage />} />
         <Route path="/inventory/product-master/:productId/edit" element={<ProductFormPage />} />
+        <Route path="/inventory/factory-inventory-upload" element={<FactoryUploadListPage />} />
+        <Route path="/inventory/factory-inventory-upload/new" element={<FactoryUploadFormPage />} />
+        <Route path="/inventory/factory-inventory-upload/:batchId" element={<FactoryUploadDetailsPage />} />
+        <Route path="/inventory/factory-inventory-upload/:batchId/:containerId" element={<FactoryContainerPage />} />
+        <Route path="/inventory/factory-inventory-upload/:batchId/:containerId/:boxId" element={<FactoryBoxPage />} />
+        <Route path="/inventory/product-batches" element={<ProductBatchesPage />} />
         <Route path="/settings/general" element={<AppearanceSettingsPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))

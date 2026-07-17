@@ -33,6 +33,16 @@ import { ProductCatalogDetailsPage } from '@/pages/marketing/ProductCatalogDetai
 import { ProductCatalogFormPage } from '@/pages/marketing/ProductCatalogFormPage'
 import { InterestedUsersPage } from '@/pages/marketing/InterestedUsersPage'
 import { InterestedUserDetailsPage } from '@/pages/marketing/InterestedUserDetailsPage'
+import { GeneralSchemesListPage } from '@/pages/schemes/GeneralSchemesListPage'
+import { SeasonalSchemesListPage } from '@/pages/schemes/SeasonalSchemesListPage'
+import { SchemeDetailsPage } from '@/pages/schemes/SchemeDetailsPage'
+import { SchemeFormPage } from '@/pages/schemes/SchemeFormPage'
+import { GiftCatalogueListPage } from '@/pages/schemes/GiftCatalogueListPage'
+import { GiftDetailsPage } from '@/pages/schemes/GiftDetailsPage'
+import { GiftFormPage } from '@/pages/schemes/GiftFormPage'
+import { GiftRulesListPage } from '@/pages/schemes/GiftRulesListPage'
+import { GiftRuleDetailsPage } from '@/pages/schemes/GiftRuleDetailsPage'
+import { GiftRuleFormPage } from '@/pages/schemes/GiftRuleFormPage'
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
@@ -45,6 +55,9 @@ import { getBatchById } from '@/features/inventory/mockFactoryUploads'
 import { getProductionBatchById } from '@/features/inventory/mockProductBatches'
 import { getShowcaseProductById } from '@/features/marketing/mockShowcaseProducts'
 import { getInterestedUserById } from '@/features/marketing/mockInterestedUsers'
+import { getSchemeById } from '@/features/schemes/mockSchemes'
+import { getGiftById } from '@/features/schemes/mockGifts'
+import { getRewardRuleById } from '@/features/schemes/mockGiftRules'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -60,6 +73,10 @@ const CUSTOM_PATHS = new Set([
   '/inventory/product-batches',
   '/marketing-products/products-catelog',
   '/marketing-products/interested-users',
+  '/scheme-management/schemes/general',
+  '/scheme-management/schemes/sessional',
+  '/scheme-management/gift-catalogue',
+  '/scheme-management/gift-rules',
   '/settings/general',
 ])
 
@@ -102,6 +119,22 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/marketing-products/interested-users',
   resolveEntityName: (id) => getInterestedUserById(id)?.userName,
+})
+registerDetailRoute({
+  parentPath: '/scheme-management/schemes/general',
+  resolveEntityName: (id) => getSchemeById(id)?.schemeName,
+})
+registerDetailRoute({
+  parentPath: '/scheme-management/schemes/sessional',
+  resolveEntityName: (id) => getSchemeById(id)?.schemeName,
+})
+registerDetailRoute({
+  parentPath: '/scheme-management/gift-catalogue',
+  resolveEntityName: (id) => getGiftById(id)?.giftName,
+})
+registerDetailRoute({
+  parentPath: '/scheme-management/gift-rules',
+  resolveEntityName: (id) => getRewardRuleById(id)?.rewardName,
 })
 
 export function AppRouter() {
@@ -149,6 +182,19 @@ export function AppRouter() {
         <Route path="/marketing-products/products-catelog/:productId/edit" element={<ProductCatalogFormPage />} />
         <Route path="/marketing-products/interested-users" element={<InterestedUsersPage />} />
         <Route path="/marketing-products/interested-users/:leadId" element={<InterestedUserDetailsPage />} />
+        <Route path="/scheme-management/schemes/general" element={<GeneralSchemesListPage />} />
+        <Route path="/scheme-management/schemes/sessional" element={<SeasonalSchemesListPage />} />
+        <Route path="/scheme-management/schemes/:category/new" element={<SchemeFormPage />} />
+        <Route path="/scheme-management/schemes/:category/:schemeId" element={<SchemeDetailsPage />} />
+        <Route path="/scheme-management/schemes/:category/:schemeId/edit" element={<SchemeFormPage />} />
+        <Route path="/scheme-management/gift-catalogue" element={<GiftCatalogueListPage />} />
+        <Route path="/scheme-management/gift-catalogue/new" element={<GiftFormPage />} />
+        <Route path="/scheme-management/gift-catalogue/:giftId" element={<GiftDetailsPage />} />
+        <Route path="/scheme-management/gift-catalogue/:giftId/edit" element={<GiftFormPage />} />
+        <Route path="/scheme-management/gift-rules" element={<GiftRulesListPage />} />
+        <Route path="/scheme-management/gift-rules/new" element={<GiftRuleFormPage />} />
+        <Route path="/scheme-management/gift-rules/:ruleId" element={<GiftRuleDetailsPage />} />
+        <Route path="/scheme-management/gift-rules/:ruleId/edit" element={<GiftRuleFormPage />} />
         <Route path="/settings/general" element={<AppearanceSettingsPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))

@@ -23,6 +23,10 @@ import {
   BarChart3,
   ClipboardList,
   SlidersHorizontal,
+  ListTree,
+  Wallet,
+  Coins,
+  Redo2,
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -181,6 +185,29 @@ export const menuConfig: MenuGroup[] = [
     ],
   },
   {
+    groupLabel: 'REWARDS & WALLET',
+    icon: Wallet,
+    items: [
+      {
+        label: 'Coin Value Rules',
+        icon: Coins,
+        children: [{ label: "Dealer/Chemist (Tab's)", path: '/rewards-wallet/coin-value-rules' }],
+      },
+      {
+        label: 'Wallet Management',
+        path: '/rewards-wallet/wallet-management',
+        icon: Wallet,
+        showRegionTopbar: true,
+      },
+      {
+        label: 'Reward Redemptions',
+        path: '/rewards-wallet/reward-redemptions',
+        icon: Redo2,
+        showRegionTopbar: true,
+      },
+    ],
+  },
+  {
     groupLabel: 'REPORTS & ANALYTICS',
     icon: BarChart3,
     items: [
@@ -259,8 +286,11 @@ export const menuConfig: MenuGroup[] = [
     groupLabel: 'Masters',
     icon: SlidersHorizontal,
     items: [
-      { label: 'Regions', path: '/masters/regions' },
-      { label: 'Product Categories', path: '/masters/product-categories' },
+      {
+        label: 'Product Categories',
+        path: '/masters/product-categories',
+        icon: SlidersHorizontal,
+      },
     ],
   },
   {
@@ -271,7 +301,7 @@ export const menuConfig: MenuGroup[] = [
       {
         label: 'Master Scan Table Logs',
         path: '/audit/master-scan-table-logs',
-        icon: ClipboardList,
+        icon: ListTree,
       },
     ],
   },

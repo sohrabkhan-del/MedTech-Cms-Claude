@@ -43,6 +43,12 @@ import { GiftFormPage } from '@/pages/schemes/GiftFormPage'
 import { GiftRulesListPage } from '@/pages/schemes/GiftRulesListPage'
 import { GiftRuleDetailsPage } from '@/pages/schemes/GiftRuleDetailsPage'
 import { GiftRuleFormPage } from '@/pages/schemes/GiftRuleFormPage'
+import { WalletListPage } from '@/pages/wallets/WalletListPage'
+import { WalletDetailsPage } from '@/pages/wallets/WalletDetailsPage'
+import { RedemptionListPage } from '@/pages/wallets/RedemptionListPage'
+import { RedemptionDetailsPage } from '@/pages/wallets/RedemptionDetailsPage'
+import { CoinValueRulesListPage } from '@/pages/wallets/CoinValueRulesListPage'
+import { CoinValueRuleDetailsPage } from '@/pages/wallets/CoinValueRuleDetailsPage'
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
@@ -58,6 +64,9 @@ import { getInterestedUserById } from '@/features/marketing/mockInterestedUsers'
 import { getSchemeById } from '@/features/schemes/mockSchemes'
 import { getGiftById } from '@/features/schemes/mockGifts'
 import { getRewardRuleById } from '@/features/schemes/mockGiftRules'
+import { getWalletById } from '@/features/wallets/mockWallets'
+import { getRedemptionRequestById } from '@/features/wallets/mockRedemptions'
+import { getCoinValueRuleById } from '@/features/wallets/mockCoinRules'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -77,6 +86,9 @@ const CUSTOM_PATHS = new Set([
   '/scheme-management/schemes/sessional',
   '/scheme-management/gift-catalogue',
   '/scheme-management/gift-rules',
+  '/rewards-wallet/wallet-management',
+  '/rewards-wallet/reward-redemptions',
+  '/rewards-wallet/coin-value-rules',
   '/settings/general',
 ])
 
@@ -135,6 +147,18 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/scheme-management/gift-rules',
   resolveEntityName: (id) => getRewardRuleById(id)?.rewardName,
+})
+registerDetailRoute({
+  parentPath: '/rewards-wallet/wallet-management',
+  resolveEntityName: (id) => getWalletById(id)?.userName,
+})
+registerDetailRoute({
+  parentPath: '/rewards-wallet/reward-redemptions',
+  resolveEntityName: (id) => getRedemptionRequestById(id)?.rewardItem,
+})
+registerDetailRoute({
+  parentPath: '/rewards-wallet/coin-value-rules',
+  resolveEntityName: (id) => getCoinValueRuleById(id)?.modelCode,
 })
 
 export function AppRouter() {
@@ -195,6 +219,12 @@ export function AppRouter() {
         <Route path="/scheme-management/gift-rules/new" element={<GiftRuleFormPage />} />
         <Route path="/scheme-management/gift-rules/:ruleId" element={<GiftRuleDetailsPage />} />
         <Route path="/scheme-management/gift-rules/:ruleId/edit" element={<GiftRuleFormPage />} />
+        <Route path="/rewards-wallet/wallet-management" element={<WalletListPage />} />
+        <Route path="/rewards-wallet/wallet-management/:walletId" element={<WalletDetailsPage />} />
+        <Route path="/rewards-wallet/reward-redemptions" element={<RedemptionListPage />} />
+        <Route path="/rewards-wallet/reward-redemptions/:requestId" element={<RedemptionDetailsPage />} />
+        <Route path="/rewards-wallet/coin-value-rules" element={<CoinValueRulesListPage />} />
+        <Route path="/rewards-wallet/coin-value-rules/:ruleId" element={<CoinValueRuleDetailsPage />} />
         <Route path="/settings/general" element={<AppearanceSettingsPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))

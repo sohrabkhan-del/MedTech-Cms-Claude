@@ -1,7 +1,8 @@
-import { useForm } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Card, Grid, MenuItem, Stack, Typography, Button } from '@mui/material'
+import { Avatar, Box, Button, Card, Grid, IconButton, MenuItem, Stack, Typography } from '@mui/material'
+import { Image as ImageOutlined, ImagePlus as AddPhotoAlternateOutlined, Trash2 as DeleteOutlined } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { giftRuleFormDefaults, giftRuleFormSchema, type GiftRuleFormValues } from '@/features/schemes/giftRuleFormSchema'
@@ -43,7 +44,7 @@ export function GiftRuleFormPage() {
           rewardTrack: rule.rewardTrack,
           ruleType: rule.ruleType,
           coinsRequired: String(rule.coinsRequired),
-          rewardIcon: rule.rewardIcon,
+          rewardImages: rule.rewardImages.length > 0 ? rule.rewardImages.map((url) => ({ url })) : [{ url: '' }],
           availabilityStatus: rule.availabilityStatus === 'expired' ? 'unavailable' : rule.availabilityStatus,
           schemeName: rule.activeScheme ?? '',
         }
@@ -51,6 +52,9 @@ export function GiftRuleFormPage() {
   })
 
   const rewardTrack = watch('rewardTrack')
+
+  const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({ control, name: 'rewardImages' })
+  const watchedImages = useWatch({ control, name: 'rewardImages' })
 
   if (isEdit && !rule) {
     return (
@@ -82,10 +86,6 @@ export function GiftRuleFormPage() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Reward Name</FieldLabel>
               <FormField name="rewardName" control={control} placeholder="e.g. Gold Coin Reward" {...fieldLabelProps} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Reward Icon</FieldLabel>
-              <FormField name="rewardIcon" control={control} placeholder="e.g. 🏆" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Reward Track</FieldLabel>
@@ -128,6 +128,51 @@ export function GiftRuleFormPage() {
               </Grid>
             )}
           </Grid>
+        </Card>
+
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
+            <Typography sx={{ ...sectionTitleSx, mb: 0 }}>Reward Images</Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<AddPhotoAlternateOutlined size={20} />}
+              onClick={() => appendImage({ url: '' })}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Add Image
+            </Button>
+          </Stack>
+          <Stack spacing={2}>
+            {imageFields.map((field, index) => (
+              <Stack key={field.id} direction="row" spacing={2} sx={{ alignItems: 'flex-end' }}>
+                <Avatar
+                  src={watchedImages?.[index]?.url || undefined}
+                  variant="rounded"
+                  sx={{ width: 56, height: 56, flexShrink: 0, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', color: 'text.disabled' }}
+                >
+                  <ImageOutlined size={20} />
+                </Avatar>
+                <Box sx={{ flexGrow: 1 }}>
+                  <FieldLabel>{`Image ${index + 1} URL`}</FieldLabel>
+                  <FormField
+                    name={`rewardImages.${index}.url` as const}
+                    control={control}
+                    placeholder="https://example.com/reward-image.jpg"
+                    {...fieldLabelProps}
+                  />
+                </Box>
+                <IconButton
+                  aria-label="Remove image"
+                  onClick={() => removeImage(index)}
+                  disabled={imageFields.length === 1}
+                  sx={{ mb: 0.5 }}
+                >
+                  <DeleteOutlined size={20} />
+                </IconButton>
+              </Stack>
+            ))}
+          </Stack>
         </Card>
 
         <Stack direction="row" spacing={1.5}>

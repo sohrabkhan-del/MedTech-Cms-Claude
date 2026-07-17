@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, FormControlLabel, Grid, Stack, Switch, Typography } from '@mui/material'
+import { Avatar, Box, Button, Chip, FormControlLabel, Grid, Stack, Switch, Typography } from '@mui/material'
 import {
   ArrowLeft as ArrowBackOutlined,
   Pencil,
@@ -9,16 +9,22 @@ import {
   Unlink,
   History,
   Trash2,
+  Gift as GiftIcon,
+  Users,
+  Clock3,
+  CheckCheck,
+  Boxes,
+  Gauge,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { ImageGallery } from '@/components/common/ImageGallery/ImageGallery'
 import { Modal } from '@/components/common/Modal/Modal'
 import { getRewardRuleById } from '@/features/schemes/mockGiftRules'
 import type { RewardRuleRedemptionEntry } from '@/types/giftRule'
-import { Users, Clock3, CheckCheck, Boxes, Gauge } from 'lucide-react'
 
 const redemptionColumns: CommonTableColumn<RewardRuleRedemptionEntry>[] = [
   { key: 'id', header: 'Redemption ID', minWidth: 140, render: (row) => row.id },
@@ -71,21 +77,9 @@ export function GiftRuleDetailsPage() {
     <>
       <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'primary.light',
-              color: 'primary.main',
-              fontSize: '1.25rem',
-            }}
-          >
-            {rule.rewardIcon}
-          </Box>
+          <Avatar src={rule.rewardImages[0]} variant="rounded" sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'primary.light', color: 'primary.main' }}>
+            <GiftIcon size={18} />
+          </Avatar>
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{rule.rewardName}</Typography>
@@ -144,16 +138,22 @@ export function GiftRuleDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Reward Information">
-          <DetailFieldGrid
-            fields={[
-              { label: 'Reward Name', value: rule.rewardName },
-              { label: 'Reward Icon', value: rule.rewardIcon },
-              { label: 'Reward Type', value: rule.ruleType },
-              { label: 'Reward Track', value: rule.rewardTrack },
-              { label: 'Coins Required', value: rule.coinsRequired.toLocaleString('en-IN') },
-              { label: 'Current Status', value: isActive ? 'Active' : 'Deactivated' },
-            ]}
-          />
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <ImageGallery images={rule.rewardImages} alt={rule.rewardName} height={220} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <DetailFieldGrid
+                fields={[
+                  { label: 'Reward Name', value: rule.rewardName },
+                  { label: 'Reward Type', value: rule.ruleType },
+                  { label: 'Reward Track', value: rule.rewardTrack },
+                  { label: 'Coins Required', value: rule.coinsRequired.toLocaleString('en-IN') },
+                  { label: 'Current Status', value: isActive ? 'Active' : 'Deactivated' },
+                ]}
+              />
+            </Grid>
+          </Grid>
         </SectionCard>
 
         <SectionCard title="Availability Information">

@@ -6,7 +6,7 @@ export const giftRuleFormSchema = z
     rewardTrack: z.enum(['Permanent Catalog', 'Scheme Track']),
     ruleType: z.string().min(1, 'Rule type is required'),
     coinsRequired: z.string().min(1, 'Coins required is required'),
-    rewardIcon: z.string().optional(),
+    rewardImages: z.array(z.object({ url: z.string() })),
     availabilityStatus: z.enum(['available', 'unavailable']),
     schemeName: z.string().optional(),
   })
@@ -22,7 +22,7 @@ export const giftRuleFormDefaults: GiftRuleFormValues = {
   rewardTrack: 'Permanent Catalog',
   ruleType: '',
   coinsRequired: '',
-  rewardIcon: '🎁',
+  rewardImages: [{ url: '' }],
   availabilityStatus: 'available',
   schemeName: '',
 }

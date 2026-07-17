@@ -25,7 +25,7 @@ import {
   rewardTypeOptions,
   rewardFrequencyOptions,
 } from '@/features/schemes/mockSchemes'
-import { mockPermanentCatalogRewards } from '@/features/schemes/mockGiftRules'
+import { mockGifts } from '@/features/schemes/mockGifts'
 import type { ApplicableUserType } from '@/types/scheme'
 
 const sectionTitleSx = {
@@ -332,9 +332,9 @@ export function SchemeFormPage() {
                 select
                 {...fieldLabelProps}
               >
-                {mockPermanentCatalogRewards.map((reward) => (
-                  <MenuItem key={reward.id} value={reward.rewardName}>
-                    {reward.rewardName}
+                {mockGifts.map((gift) => (
+                  <MenuItem key={gift.id} value={gift.giftName}>
+                    {gift.giftName}
                   </MenuItem>
                 ))}
               </FormField>

@@ -62,7 +62,10 @@ function buildRewardRule(seed: number, rewardTrack: RewardTrack): RewardRule {
   return {
     id,
     rewardName,
-    rewardIcon: isPermanent ? '🎁' : '🏆',
+    rewardImages: [
+      `https://picsum.photos/seed/medtech-reward-${seed}-${rewardTrack === 'Permanent Catalog' ? 'perm' : 'scheme'}-a/600/600`,
+      `https://picsum.photos/seed/medtech-reward-${seed}-${rewardTrack === 'Permanent Catalog' ? 'perm' : 'scheme'}-b/600/600`,
+    ],
     rewardTrack,
     ruleType,
     coinsRequired: seededNumber(seed, 100, isPermanent ? 3000 : 8000),

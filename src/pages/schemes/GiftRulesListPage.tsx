@@ -1,10 +1,32 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Box, Button, Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import { Sparkles, Award, CalendarRange, Layers, Flame, Plus, Search } from 'lucide-react'
+import {
+  Avatar,
+  AvatarGroup,
+  Box,
+  Button,
+  Chip,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import {
+  Sparkles,
+  Award,
+  CalendarRange,
+  Layers,
+  Flame,
+  Plus,
+  Search,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import {
   mockPermanentCatalogRewards,
@@ -19,7 +41,8 @@ export function GiftRulesListPage() {
   useRegionTopbarHeader({
     icon: <Sparkles size={20} />,
     title: 'Gifting Rules Engine',
-    subtitle: 'Manage permanent catalog rewards and limited-time scheme rewards.',
+    subtitle:
+      'Manage permanent catalog rewards and limited-time scheme rewards.',
   })
   const [search, setSearch] = useState('')
   const [ruleType, setRuleType] = useState<RuleType | 'all'>('all')
@@ -27,7 +50,9 @@ export function GiftRulesListPage() {
   const filteredPermanent = useMemo(
     () =>
       mockPermanentCatalogRewards.filter((rule) => {
-        const searchMatch = !search || rule.rewardName.toLowerCase().includes(search.toLowerCase())
+        const searchMatch =
+          !search ||
+          rule.rewardName.toLowerCase().includes(search.toLowerCase())
         const typeMatch = ruleType === 'all' || rule.ruleType === ruleType
         return searchMatch && typeMatch
       }),
@@ -37,41 +62,78 @@ export function GiftRulesListPage() {
   const filteredScheme = useMemo(
     () =>
       mockSchemeTrackRewards.filter((rule) => {
-        const searchMatch = !search || rule.rewardName.toLowerCase().includes(search.toLowerCase())
+        const searchMatch =
+          !search ||
+          rule.rewardName.toLowerCase().includes(search.toLowerCase())
         const typeMatch = ruleType === 'all' || rule.ruleType === ruleType
         return searchMatch && typeMatch
       }),
     [search, ruleType],
   )
 
-  const handleView = (rule: RewardRule) => navigate(`/scheme-management/gift-rules/${rule.id}`)
-  const handleEdit = (rule: RewardRule) => navigate(`/scheme-management/gift-rules/${rule.id}/edit`)
+  const handleView = (rule: RewardRule) =>
+    navigate(`/scheme-management/gift-rules/${rule.id}`)
+  const handleEdit = (rule: RewardRule) =>
+    navigate(`/scheme-management/gift-rules/${rule.id}/edit`)
 
   const columns: CommonTableColumn<RewardRule>[] = [
     {
-      key: 'rewardIcon',
-      header: 'Reward Icon',
-      minWidth: 60,
-      hideable: false,
-      render: (row) => <Box sx={{ fontSize: '1.25rem', lineHeight: 1 }}>{row.rewardIcon}</Box>,
-    },
-    {
       key: 'rewardName',
       header: 'Reward Name',
-      minWidth: 200,
+      minWidth: 240,
       sortable: true,
       sortValue: (row) => row.rewardName,
       render: (row) => (
-        <Typography
-          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-          onClick={() => handleView(row)}
-        >
-          {row.rewardName}
-        </Typography>
+        <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+          {row.rewardImages && row.rewardImages.length > 0 ? (
+            <AvatarGroup
+              max={3}
+              sx={{
+                '& .MuiAvatar-root': {
+                  width: 28,
+                  height: 28,
+                  fontSize: '0.75rem',
+                  border: '2px solid',
+                  borderColor: 'background.paper',
+                },
+              }}
+            >
+              {row.rewardImages.map((img, idx) => (
+                <Avatar
+                  key={idx}
+                  src={img}
+                  variant="rounded"
+                  alt={`${row.rewardName} ${idx + 1}`}
+                />
+              ))}
+            </AvatarGroup>
+          ) : null}
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.8125rem',
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+            onClick={() => handleView(row)}
+          >
+            {row.rewardName}
+          </Typography>
+        </Stack>
       ),
     },
-    { key: 'rewardTrack', header: 'Reward Track', minWidth: 150, render: (row) => row.rewardTrack },
-    { key: 'ruleType', header: 'Reward Type', minWidth: 180, render: (row) => row.ruleType },
+    {
+      key: 'rewardTrack',
+      header: 'Reward Track',
+      minWidth: 150,
+      render: (row) => row.rewardTrack,
+    },
+    {
+      key: 'ruleType',
+      header: 'Reward Type',
+      minWidth: 180,
+      render: (row) => row.ruleType,
+    },
     {
       key: 'coinsRequired',
       header: 'Coins Required',
@@ -87,8 +149,20 @@ export function GiftRulesListPage() {
       render: (row) => (
         <Chip
           size="small"
-          label={row.availabilityStatus === 'available' ? 'Available' : row.availabilityStatus === 'expired' ? 'Expired' : 'Unavailable'}
-          color={row.availabilityStatus === 'available' ? 'success' : row.availabilityStatus === 'expired' ? 'error' : 'default'}
+          label={
+            row.availabilityStatus === 'available'
+              ? 'Available'
+              : row.availabilityStatus === 'expired'
+                ? 'Expired'
+                : 'Unavailable'
+          }
+          color={
+            row.availabilityStatus === 'available'
+              ? 'success'
+              : row.availabilityStatus === 'expired'
+                ? 'error'
+                : 'default'
+          }
         />
       ),
     },
@@ -96,7 +170,16 @@ export function GiftRulesListPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Box sx={{ flexGrow: 1, maxWidth: 420 }}>
           <TextField
             fullWidth
@@ -104,7 +187,13 @@ export function GiftRulesListPage() {
             placeholder="Search rewards…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            slotProps={{ input: { startAdornment: <Search size={16} style={{ marginRight: 8, opacity: 0.6 }} /> } }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <Search size={16} style={{ marginRight: 8, opacity: 0.6 }} />
+                ),
+              },
+            }}
           />
         </Box>
         <Stack direction="row" spacing={1.5}>
@@ -126,7 +215,11 @@ export function GiftRulesListPage() {
           <Button variant="outlined" onClick={() => {}}>
             Export Catalog
           </Button>
-          <Button variant="contained" startIcon={<Plus size={18} />} onClick={() => navigate('/scheme-management/gift-rules/new')}>
+          <Button
+            variant="contained"
+            startIcon={<Plus size={18} />}
+            onClick={() => navigate('/scheme-management/gift-rules/new')}
+          >
             Create Reward Rule
           </Button>
         </Stack>
@@ -134,19 +227,44 @@ export function GiftRulesListPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Permanent Catalog Rewards" value={giftRulesDashboard.permanentCatalogRewards} icon={<Award size={20} />} iconColor="primary" />
+          <StatCard
+            label="Permanent Catalog Rewards"
+            value={giftRulesDashboard.permanentCatalogRewards}
+            icon={<Award size={20} />}
+            iconColor="primary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Active Scheme Rewards" value={giftRulesDashboard.activeSchemeRewards} icon={<Sparkles size={20} />} iconColor="secondary" />
+          <StatCard
+            label="Active Scheme Rewards"
+            value={giftRulesDashboard.activeSchemeRewards}
+            icon={<Sparkles size={20} />}
+            iconColor="secondary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Current Active Scheme" value={giftRulesDashboard.currentActiveScheme} icon={<CalendarRange size={20} />} iconColor="info" />
+          <StatCard
+            label="Current Active Scheme"
+            value={giftRulesDashboard.currentActiveScheme}
+            icon={<CalendarRange size={20} />}
+            iconColor="info"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Standard Track Rewards" value={giftRulesDashboard.standardTrackRewards} icon={<Layers size={20} />} iconColor="success" />
+          <StatCard
+            label="Standard Track Rewards"
+            value={giftRulesDashboard.standardTrackRewards}
+            icon={<Layers size={20} />}
+            iconColor="success"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="High-Outgo Scheme Rewards" value={giftRulesDashboard.highOutgoSchemeRewards} icon={<Flame size={20} />} iconColor="warning" />
+          <StatCard
+            label="High-Outgo Scheme Rewards"
+            value={giftRulesDashboard.highOutgoSchemeRewards}
+            icon={<Flame size={20} />}
+            iconColor="warning"
+          />
         </Grid>
       </Grid>
 
@@ -169,7 +287,9 @@ export function GiftRulesListPage() {
           />
         </SectionCard>
 
-        <SectionCard title={`Current Active Scheme — ${giftRulesDashboard.currentActiveScheme}`}>
+        <SectionCard
+          title={`Current Active Scheme — ${giftRulesDashboard.currentActiveScheme}`}
+        >
           <CommonTable
             tableKey="gift-rules-active-scheme"
             columns={columns}

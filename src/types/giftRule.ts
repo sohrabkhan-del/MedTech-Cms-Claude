@@ -17,7 +17,7 @@ export interface RewardRuleRedemptionEntry {
 export interface RewardRule {
   id: string
   rewardName: string
-  rewardIcon: string
+  rewardImages: string[]
   rewardTrack: RewardTrack
   ruleType: RuleType
   coinsRequired: number

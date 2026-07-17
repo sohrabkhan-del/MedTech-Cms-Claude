@@ -1,7 +1,17 @@
 import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { Card, Checkbox, FormControlLabel, Grid, MenuItem, Stack, Switch, Typography, Button } from '@mui/material'
+import {
+  Card,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  MenuItem,
+  Stack,
+  Switch,
+  Typography,
+  Button,
+} from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import {
@@ -14,8 +24,8 @@ import {
   schemeTypeOptions,
   rewardTypeOptions,
   rewardFrequencyOptions,
-  schemeProductCategoryOptions,
 } from '@/features/schemes/mockSchemes'
+import { mockPermanentCatalogRewards } from '@/features/schemes/mockGiftRules'
 import type { ApplicableUserType } from '@/types/scheme'
 
 const sectionTitleSx = {
@@ -31,9 +41,24 @@ const fieldLabelProps = {
   slotProps: { inputLabel: { shrink: false, sx: { display: 'none' } } },
 } as const
 
-function FieldLabel({ children, required }: { children: string; required?: boolean }) {
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: string
+  required?: boolean
+}) {
   return (
-    <Typography sx={{ fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'primary.main', mb: 0.75 }}>
+    <Typography
+      sx={{
+        fontWeight: 700,
+        fontSize: '0.6875rem',
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase',
+        color: 'primary.main',
+        mb: 0.75,
+      }}
+    >
       {children}
       {required ? ' *' : ''}
     </Typography>
@@ -44,7 +69,10 @@ const ALL_APPLICABLE_USERS: ApplicableUserType[] = ['Dealer', 'Chemist', 'MR']
 
 export function SchemeFormPage() {
   const navigate = useNavigate()
-  const { schemeId, category } = useParams<{ schemeId: string; category: string }>()
+  const { schemeId, category } = useParams<{
+    schemeId: string
+    category: string
+  }>()
   const [searchParams] = useSearchParams()
   const isEdit = !!schemeId
   const scheme = isEdit ? getSchemeById(schemeId) : undefined
@@ -70,14 +98,22 @@ export function SchemeFormPage() {
           maximumReward: String(prefillSource.maximumReward),
           rewardFrequency: prefillSource.rewardFrequency,
           stackable: prefillSource.stackable,
-          productCategory: prefillSource.eligibleProducts[0]?.productCategory ?? '',
+          productCategory:
+            prefillSource.eligibleProducts[0]?.productCategory ?? '',
           brand: prefillSource.eligibleProducts[0]?.productBrand ?? '',
           startDate: '',
           endDate: '',
           description: prefillSource.description,
-          status: prefillSource.status === 'expired' || prefillSource.status === 'upcoming' ? 'active' : prefillSource.status,
+          status:
+            prefillSource.status === 'expired' ||
+            prefillSource.status === 'upcoming'
+              ? 'active'
+              : prefillSource.status,
         }
-      : { ...schemeFormDefaults, schemeCategory: categorySlug === 'sessional' ? 'seasonal' : 'general' },
+      : {
+          ...schemeFormDefaults,
+          schemeCategory: categorySlug === 'sessional' ? 'seasonal' : 'general',
+        },
   })
 
   const schemeCategory = watch('schemeCategory')
@@ -101,8 +137,17 @@ export function SchemeFormPage() {
 
   return (
     <>
-      <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h1">{isEdit ? 'Edit Scheme' : 'Create Scheme'}</Typography>
+      <Stack
+        sx={{
+          mb: 3,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h1">
+          {isEdit ? 'Edit Scheme' : 'Create Scheme'}
+        </Typography>
       </Stack>
 
       <form onSubmit={submit} noValidate>
@@ -111,23 +156,42 @@ export function SchemeFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Scheme Name</FieldLabel>
-              <FormField name="schemeName" control={control} placeholder="e.g. Quarterly Scan Booster" {...fieldLabelProps} />
+              <FormField
+                name="schemeName"
+                control={control}
+                placeholder="e.g. Quarterly Scan Booster"
+                {...fieldLabelProps}
+              />
               {cloneSource && (
-                <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}>
-                  Cloned from {cloneSource.schemeName} — update the name before saving.
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'warning.main', display: 'block', mt: 0.5 }}
+                >
+                  Cloned from {cloneSource.schemeName} — update the name before
+                  saving.
                 </Typography>
               )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Scheme Category</FieldLabel>
-              <FormField name="schemeCategory" control={control} select {...fieldLabelProps}>
+              <FormField
+                name="schemeCategory"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
                 <MenuItem value="general">General Scheme</MenuItem>
                 <MenuItem value="seasonal">Seasonal Scheme</MenuItem>
               </FormField>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Scheme Type</FieldLabel>
-              <FormField name="schemeType" control={control} select {...fieldLabelProps}>
+              <FormField
+                name="schemeType"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
                 {schemeTypeOptions.map((type) => (
                   <MenuItem key={type} value={type}>
                     {type}
@@ -151,7 +215,9 @@ export function SchemeFormPage() {
                             checked={field.value.includes(userType)}
                             onChange={(e) => {
                               field.onChange(
-                                e.target.checked ? [...field.value, userType] : field.value.filter((u) => u !== userType),
+                                e.target.checked
+                                  ? [...field.value, userType]
+                                  : field.value.filter((u) => u !== userType),
                               )
                             }}
                           />
@@ -160,7 +226,10 @@ export function SchemeFormPage() {
                       />
                     ))}
                     {fieldState.error && (
-                      <Typography variant="caption" sx={{ color: 'error.main', width: '100%' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'error.main', width: '100%' }}
+                      >
                         {fieldState.error.message}
                       </Typography>
                     )}
@@ -176,15 +245,30 @@ export function SchemeFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Bonus Value</FieldLabel>
-              <FormField name="bonusValue" control={control} placeholder="e.g. 25" {...fieldLabelProps} />
+              <FormField
+                name="bonusValue"
+                control={control}
+                placeholder="e.g. 25"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Scan Target</FieldLabel>
-              <FormField name="scanTarget" control={control} placeholder="e.g. 100" {...fieldLabelProps} />
+              <FormField
+                name="scanTarget"
+                control={control}
+                placeholder="e.g. 100"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Reward Type</FieldLabel>
-              <FormField name="rewardType" control={control} select {...fieldLabelProps}>
+              <FormField
+                name="rewardType"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
                 {rewardTypeOptions.map((type) => (
                   <MenuItem key={type} value={type}>
                     {type}
@@ -194,11 +278,21 @@ export function SchemeFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Maximum Reward</FieldLabel>
-              <FormField name="maximumReward" control={control} placeholder="e.g. 2000" {...fieldLabelProps} />
+              <FormField
+                name="maximumReward"
+                control={control}
+                placeholder="e.g. 2000"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Reward Frequency</FieldLabel>
-              <FormField name="rewardFrequency" control={control} select {...fieldLabelProps}>
+              <FormField
+                name="rewardFrequency"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
                 {rewardFrequencyOptions.map((freq) => (
                   <MenuItem key={freq} value={freq}>
                     {freq}
@@ -213,7 +307,12 @@ export function SchemeFormPage() {
                 control={control}
                 render={({ field }) => (
                   <FormControlLabel
-                    control={<Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />}
+                    control={
+                      <Switch
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                      />
+                    }
                     label={field.value ? 'Yes' : 'No'}
                   />
                 )}
@@ -227,17 +326,27 @@ export function SchemeFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Product Category</FieldLabel>
-              <FormField name="productCategory" control={control} select {...fieldLabelProps}>
-                {schemeProductCategoryOptions.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
+              <FormField
+                name="productCategory"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
+                {mockPermanentCatalogRewards.map((reward) => (
+                  <MenuItem key={reward.id} value={reward.rewardName}>
+                    {reward.rewardName}
                   </MenuItem>
                 ))}
               </FormField>
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel>Brand</FieldLabel>
-              <FormField name="brand" control={control} placeholder="e.g. MedTech Labs" {...fieldLabelProps} />
+              <FormField
+                name="brand"
+                control={control}
+                placeholder="e.g. MedTech Labs"
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -247,12 +356,27 @@ export function SchemeFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Start Date</FieldLabel>
-              <FormField name="startDate" control={control} type="date" slotProps={{ inputLabel: { shrink: true } }} />
+              <FormField
+                name="startDate"
+                control={control}
+                type="date"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required={schemeCategory === 'seasonal'}>End Date</FieldLabel>
-              <FormField name="endDate" control={control} type="date" slotProps={{ inputLabel: { shrink: true } }} />
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+              <FieldLabel required={schemeCategory === 'seasonal'}>
+                End Date
+              </FieldLabel>
+              <FormField
+                name="endDate"
+                control={control}
+                type="date"
+                slotProps={{ inputLabel: { shrink: true } }}
+              />
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}
+              >
                 {schemeCategory === 'general'
                   ? 'Optional for general schemes — leave blank to run continuously until manually deactivated.'
                   : 'Mandatory for seasonal schemes — the scheme automatically becomes inactive after this date.'}
@@ -266,11 +390,22 @@ export function SchemeFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={12}>
               <FieldLabel>Description</FieldLabel>
-              <FormField name="description" control={control} multiline minRows={3} {...fieldLabelProps} />
+              <FormField
+                name="description"
+                control={control}
+                multiline
+                minRows={3}
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Status</FieldLabel>
-              <FormField name="status" control={control} select {...fieldLabelProps}>
+              <FormField
+                name="status"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
                 <MenuItem value="draft">Draft</MenuItem>
                 <MenuItem value="active">Active</MenuItem>
                 <MenuItem value="inactive">Inactive</MenuItem>
@@ -283,7 +418,11 @@ export function SchemeFormPage() {
           <Button type="submit" variant="contained">
             {isEdit ? 'Save Changes' : 'Create Scheme'}
           </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate(backTo)}
+          >
             Cancel
           </Button>
         </Stack>

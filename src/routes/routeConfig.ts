@@ -79,10 +79,14 @@ export function findParentRouteEntry(pathname: string): { parent: RouteEntry; en
     if (remainder === 'new') {
       return { parent, entityName: 'Add New' }
     }
-    if (remainder.endsWith('/edit')) {
+    if (remainder.endsWith('/edit') && !remainder.slice(0, -'/edit'.length).includes('/')) {
       const id = remainder.slice(0, -'/edit'.length)
       return { parent, entityName: `Edit ${config.resolveEntityName(id) ?? ''}`.trim() }
     }
+    // Routes nested more than one level below the parent (e.g. container/box drill-down
+    // pages) build their own complete breadcrumb trail locally — skip the global one here
+    // rather than showing a truncated/incorrect entity name.
+    if (remainder.includes('/')) continue
     return { parent, entityName: config.resolveEntityName(remainder) }
   }
   return undefined

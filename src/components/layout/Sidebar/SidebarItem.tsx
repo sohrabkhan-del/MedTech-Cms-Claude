@@ -127,7 +127,7 @@ export function SidebarItem({
           slotProps={{
             primary: {
               sx: {
-                fontSize: isNested ? '0.8125rem' : '0.8rem',
+                fontSize: isNested ? '0.75rem' : '0.8rem',
                 fontWeight: isSelfActive ? 700 : isNested ? 400 : 500,
                 color: isSelfActive
                   ? palette.activeIconColor

@@ -8,6 +8,11 @@ export function Breadcrumbs() {
   const entry = findRouteEntry(location.pathname)
   const detail = entry ? undefined : findParentRouteEntry(location.pathname)
 
+  // Routes 3+ levels deep (e.g. container/box drill-down pages) render their own
+  // complete breadcrumb trail locally, so skip the global one entirely to avoid
+  // a stacked/duplicate trail.
+  if (!entry && !detail) return null
+
   const trailingCrumbs = detail
     ? [
         <Link key="parent" component={RouterLink} to={detail.parent.path} underline="hover" color="text.secondary">

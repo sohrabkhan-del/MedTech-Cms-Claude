@@ -22,7 +22,6 @@ function isGroupActive(group: MenuGroup, pathname: string): boolean {
 }
 
 export function SidebarGroup({ group, railMode, palette }: SidebarGroupProps) {
-  const GroupIcon = group.icon
   const location = useLocation()
   const [open, setOpen] = useState(() =>
     isGroupActive(group, location.pathname),

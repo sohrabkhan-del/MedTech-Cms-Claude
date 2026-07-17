@@ -1,8 +1,8 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Box, Stack, Tab, Tabs, Typography } from '@mui/material'
 import { Box as ViewInArOutlined } from 'lucide-react'
 import { BatchListingTab } from '@/pages/inventory/productBatches/BatchListingTab'
-import { BatchDetailsView } from '@/pages/inventory/productBatches/BatchDetailsView'
 import { ScanningProductsTab } from '@/pages/inventory/productBatches/ScanningProductsTab'
 import { ScanAnalyticsTab } from '@/pages/inventory/productBatches/ScanAnalyticsTab'
 import type { ProductionBatch } from '@/types/productBatch'
@@ -10,14 +10,14 @@ import type { ProductionBatch } from '@/types/productBatch'
 const TAB_LABELS = ['Batch Listing', 'Scanning Products', 'Scan Analytics']
 
 export function ProductBatchesPage() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState(0)
-  const [selectedBatch, setSelectedBatch] = useState<ProductionBatch | null>(null)
 
-  const handleViewBatch = (batch: ProductionBatch) => setSelectedBatch(batch)
-  const handleBack = () => setSelectedBatch(null)
+  const handleViewBatch = (batch: ProductionBatch) => {
+    navigate(`/inventory/product-batches/${batch.id}`)
+  }
 
   const handleTabChange = (_: React.SyntheticEvent, value: number) => {
-    setSelectedBatch(null)
     setActiveTab(value)
   }
 
@@ -45,37 +45,21 @@ export function ProductBatchesPage() {
         </Stack>
       </Stack>
 
-      {!selectedBatch && (
-        <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', mb: 3 }}>
-          <Tabs
-            value={activeTab}
-            onChange={handleTabChange}
-            sx={{
-              minHeight: 40,
-              '& .MuiTab-root': {
-                minHeight: 40,
-                textTransform: 'none',
-                fontWeight: 600,
-                fontSize: '0.8125rem',
-              },
-            }}
-          >
-            {TAB_LABELS.map((label) => (
-              <Tab key={label} label={label} />
-            ))}
-          </Tabs>
-        </Box>
-      )}
+      <Box sx={{ borderBottom: '1px solid', borderColor: 'divider', mb: 3 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          sx={{ minHeight: 40, '& .MuiTab-root': { minHeight: 40, textTransform: 'none', fontWeight: 600, fontSize: '0.8125rem' } }}
+        >
+          {TAB_LABELS.map((label) => (
+            <Tab key={label} label={label} />
+          ))}
+        </Tabs>
+      </Box>
 
-      {selectedBatch ? (
-        <BatchDetailsView batch={selectedBatch} onBack={handleBack} />
-      ) : (
-        <>
-          {activeTab === 0 && <BatchListingTab onViewBatch={handleViewBatch} />}
-          {activeTab === 1 && <ScanningProductsTab />}
-          {activeTab === 2 && <ScanAnalyticsTab />}
-        </>
-      )}
+      {activeTab === 0 && <BatchListingTab onViewBatch={handleViewBatch} />}
+      {activeTab === 1 && <ScanningProductsTab />}
+      {activeTab === 2 && <ScanAnalyticsTab />}
     </>
   )
 }

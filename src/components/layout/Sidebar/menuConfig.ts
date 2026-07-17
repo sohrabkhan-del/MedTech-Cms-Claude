@@ -16,14 +16,10 @@ import {
   Package,
   Factory,
   Box,
-  Truck,
   Megaphone,
-  Trophy,
   Target,
   Gift,
   FolderCheck,
-  Wallet,
-  Gift as RedeemIcon,
   BarChart3,
   ClipboardList,
   SlidersHorizontal,
@@ -133,11 +129,6 @@ export const menuConfig: MenuGroup[] = [
         path: '/inventory/product-batches',
         icon: Box,
       },
-      {
-        label: 'Delivery upload',
-        path: '/inventory/delivery-upload',
-        icon: Truck,
-      },
     ],
   },
   {
@@ -148,11 +139,13 @@ export const menuConfig: MenuGroup[] = [
         label: 'Products Catelog',
         path: '/marketing-products/products-catelog',
         icon: Megaphone,
+        showRegionTopbar: true,
       },
       {
         label: 'Interested Users',
         path: '/marketing-products/interested-users',
         icon: Users,
+        showRegionTopbar: true,
       },
     ],
   },
@@ -189,7 +182,7 @@ export const menuConfig: MenuGroup[] = [
   },
   {
     groupLabel: 'REPORTS & ANALYTICS',
-    icon: Wallet,
+    icon: BarChart3,
     items: [
       {
         label: 'Reports',

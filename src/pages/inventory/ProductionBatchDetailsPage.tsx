@@ -1,3 +1,4 @@
+import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
 import {
   ArrowLeft as ArrowBackOutlined,
@@ -17,6 +18,8 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { getProductionBatchById } from '@/features/inventory/mockProductBatches'
 import type { DistributionJourneyEntry, ProductionBatch, RelatedScheme } from '@/types/productBatch'
 
 const statusColor: Record<ProductionBatch['status'], 'success' | 'default' | 'error'> = {
@@ -39,12 +42,22 @@ const distributionColumns: CommonTableColumn<DistributionJourneyEntry>[] = [
   { key: 'currentOwner', header: 'Current Owner', minWidth: 150, render: (row) => row.currentOwner },
 ]
 
-interface BatchDetailsViewProps {
-  batch: ProductionBatch
-  onBack: () => void
-}
+export function ProductionBatchDetailsPage() {
+  const navigate = useNavigate()
+  const { batchId } = useParams<{ batchId: string }>()
+  const batch = batchId ? getProductionBatchById(batchId) : undefined
 
-export function BatchDetailsView({ batch, onBack }: BatchDetailsViewProps) {
+  if (!batch) {
+    return (
+      <EmptyState
+        title="Batch not found"
+        description="This production batch may have been removed."
+        actionLabel="Back to Product Batches"
+        onAction={() => navigate('/inventory/product-batches')}
+      />
+    )
+  }
+
   return (
     <>
       <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
@@ -66,14 +79,14 @@ export function BatchDetailsView({ batch, onBack }: BatchDetailsViewProps) {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{batch.batchNo}</Typography>
-              <Chip size="small" label={statusColor[batch.status] === 'success' ? 'Active' : batch.status === 'expired' ? 'Expired' : 'Inactive'} color={statusColor[batch.status]} />
+              <Chip size="small" label={batch.status === 'active' ? 'Active' : batch.status === 'expired' ? 'Expired' : 'Inactive'} color={statusColor[batch.status]} />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {batch.productName} · {batch.productCode}
             </Typography>
           </Box>
         </Stack>
-        <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={onBack} sx={{ fontSize: '0.75rem' }}>
+        <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={() => navigate('/inventory/product-batches')} sx={{ fontSize: '0.75rem' }}>
           Back to Batch Listing
         </Button>
       </Stack>

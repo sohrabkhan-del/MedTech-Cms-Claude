@@ -27,6 +27,12 @@ import { FactoryUploadDetailsPage } from '@/pages/inventory/FactoryUploadDetails
 import { FactoryContainerPage } from '@/pages/inventory/FactoryContainerPage'
 import { FactoryBoxPage } from '@/pages/inventory/FactoryBoxPage'
 import { ProductBatchesPage } from '@/pages/inventory/ProductBatchesPage'
+import { ProductionBatchDetailsPage } from '@/pages/inventory/ProductionBatchDetailsPage'
+import { ProductsCatalogPage } from '@/pages/marketing/ProductsCatalogPage'
+import { ProductCatalogDetailsPage } from '@/pages/marketing/ProductCatalogDetailsPage'
+import { ProductCatalogFormPage } from '@/pages/marketing/ProductCatalogFormPage'
+import { InterestedUsersPage } from '@/pages/marketing/InterestedUsersPage'
+import { InterestedUserDetailsPage } from '@/pages/marketing/InterestedUserDetailsPage'
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
@@ -36,6 +42,9 @@ import { getGeoFenceById } from '@/features/fieldOperations/mockGeoFences'
 import { getApprovalRequestById } from '@/features/verification/mockApprovalRequests'
 import { getProductById } from '@/features/inventory/mockProducts'
 import { getBatchById } from '@/features/inventory/mockFactoryUploads'
+import { getProductionBatchById } from '@/features/inventory/mockProductBatches'
+import { getShowcaseProductById } from '@/features/marketing/mockShowcaseProducts'
+import { getInterestedUserById } from '@/features/marketing/mockInterestedUsers'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -49,6 +58,8 @@ const CUSTOM_PATHS = new Set([
   '/inventory/product-master',
   '/inventory/factory-inventory-upload',
   '/inventory/product-batches',
+  '/marketing-products/products-catelog',
+  '/marketing-products/interested-users',
   '/settings/general',
 ])
 
@@ -79,6 +90,18 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/inventory/factory-inventory-upload',
   resolveEntityName: (id) => getBatchById(id)?.batchName,
+})
+registerDetailRoute({
+  parentPath: '/inventory/product-batches',
+  resolveEntityName: (id) => getProductionBatchById(id)?.batchNo,
+})
+registerDetailRoute({
+  parentPath: '/marketing-products/products-catelog',
+  resolveEntityName: (id) => getShowcaseProductById(id)?.productName,
+})
+registerDetailRoute({
+  parentPath: '/marketing-products/interested-users',
+  resolveEntityName: (id) => getInterestedUserById(id)?.userName,
 })
 
 export function AppRouter() {
@@ -119,6 +142,13 @@ export function AppRouter() {
         <Route path="/inventory/factory-inventory-upload/:batchId/:containerId" element={<FactoryContainerPage />} />
         <Route path="/inventory/factory-inventory-upload/:batchId/:containerId/:boxId" element={<FactoryBoxPage />} />
         <Route path="/inventory/product-batches" element={<ProductBatchesPage />} />
+        <Route path="/inventory/product-batches/:batchId" element={<ProductionBatchDetailsPage />} />
+        <Route path="/marketing-products/products-catelog" element={<ProductsCatalogPage />} />
+        <Route path="/marketing-products/products-catelog/new" element={<ProductCatalogFormPage />} />
+        <Route path="/marketing-products/products-catelog/:productId" element={<ProductCatalogDetailsPage />} />
+        <Route path="/marketing-products/products-catelog/:productId/edit" element={<ProductCatalogFormPage />} />
+        <Route path="/marketing-products/interested-users" element={<InterestedUsersPage />} />
+        <Route path="/marketing-products/interested-users/:leadId" element={<InterestedUserDetailsPage />} />
         <Route path="/settings/general" element={<AppearanceSettingsPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))

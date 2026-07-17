@@ -53,7 +53,7 @@ export function RegionTopbar({
         alignItems: { xs: 'stretch', md: 'center' },
         justifyContent: 'space-between',
         p: { xs: 2, md: 1.25 },
-        mb: 1,
+        mb: 3,
         minHeight: { xs: 'auto', md: 58 },
         backgroundColor: 'background.paper',
         border: '1px solid',

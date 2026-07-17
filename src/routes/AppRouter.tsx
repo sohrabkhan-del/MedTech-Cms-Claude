@@ -50,6 +50,17 @@ import { RedemptionDetailsPage } from '@/pages/wallets/RedemptionDetailsPage'
 import { CoinValueRulesListPage } from '@/pages/wallets/CoinValueRulesListPage'
 import { CoinValueRuleDetailsPage } from '@/pages/wallets/CoinValueRuleDetailsPage'
 import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage'
+import { AdminListPage } from '@/pages/systemUsers/AdminListPage'
+import { AdminDetailsPage } from '@/pages/systemUsers/AdminDetailsPage'
+import { AdminFormPage } from '@/pages/systemUsers/AdminFormPage'
+import { MedicalRepListPage } from '@/pages/systemUsers/MedicalRepListPage'
+import { MedicalRepDetailsPage } from '@/pages/systemUsers/MedicalRepDetailsPage'
+import { MedicalRepFormPage } from '@/pages/systemUsers/MedicalRepFormPage'
+import { ProductCategoryListPage } from '@/pages/masters/ProductCategoryListPage'
+import { ProductCategoryDetailsPage } from '@/pages/masters/ProductCategoryDetailsPage'
+import { ProductCategoryFormPage } from '@/pages/masters/ProductCategoryFormPage'
+import { MasterScanLogListPage } from '@/pages/audit/MasterScanLogListPage'
+import { MasterScanLogDetailsPage } from '@/pages/audit/MasterScanLogDetailsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
 import { getDealerById } from '@/features/dealers/mockDealers'
@@ -67,6 +78,10 @@ import { getRewardRuleById } from '@/features/schemes/mockGiftRules'
 import { getWalletById } from '@/features/wallets/mockWallets'
 import { getRedemptionRequestById } from '@/features/wallets/mockRedemptions'
 import { getCoinValueRuleById } from '@/features/wallets/mockCoinRules'
+import { getAdminById } from '@/features/systemUsers/mockAdmins'
+import { getMedicalRepById } from '@/features/systemUsers/mockMedicalReps'
+import { getProductCategoryById } from '@/features/masters/mockProductCategories'
+import { getMasterScanLogById } from '@/features/audit/mockMasterScanLogs'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -90,6 +105,10 @@ const CUSTOM_PATHS = new Set([
   '/rewards-wallet/reward-redemptions',
   '/rewards-wallet/coin-value-rules',
   '/settings/general',
+  '/system-users/admin',
+  '/system-users/medical-representatives',
+  '/masters/product-categories',
+  '/audit/master-scan-table-logs',
 ])
 
 registerDetailRoute({
@@ -160,6 +179,22 @@ registerDetailRoute({
   parentPath: '/rewards-wallet/coin-value-rules',
   resolveEntityName: (id) => getCoinValueRuleById(id)?.modelCode,
 })
+registerDetailRoute({
+  parentPath: '/system-users/admin',
+  resolveEntityName: (id) => getAdminById(id)?.name,
+})
+registerDetailRoute({
+  parentPath: '/system-users/medical-representatives',
+  resolveEntityName: (id) => getMedicalRepById(id)?.name,
+})
+registerDetailRoute({
+  parentPath: '/masters/product-categories',
+  resolveEntityName: (id) => getProductCategoryById(id)?.categoryName,
+})
+registerDetailRoute({
+  parentPath: '/audit/master-scan-table-logs',
+  resolveEntityName: (id) => getMasterScanLogById(id)?.barcodeNumber,
+})
 
 export function AppRouter() {
   return (
@@ -226,6 +261,20 @@ export function AppRouter() {
         <Route path="/rewards-wallet/coin-value-rules" element={<CoinValueRulesListPage />} />
         <Route path="/rewards-wallet/coin-value-rules/:ruleId" element={<CoinValueRuleDetailsPage />} />
         <Route path="/settings/general" element={<AppearanceSettingsPage />} />
+        <Route path="/system-users/admin" element={<AdminListPage />} />
+        <Route path="/system-users/admin/new" element={<AdminFormPage />} />
+        <Route path="/system-users/admin/:adminId" element={<AdminDetailsPage />} />
+        <Route path="/system-users/admin/:adminId/edit" element={<AdminFormPage />} />
+        <Route path="/system-users/medical-representatives" element={<MedicalRepListPage />} />
+        <Route path="/system-users/medical-representatives/new" element={<MedicalRepFormPage />} />
+        <Route path="/system-users/medical-representatives/:mrId" element={<MedicalRepDetailsPage />} />
+        <Route path="/system-users/medical-representatives/:mrId/edit" element={<MedicalRepFormPage />} />
+        <Route path="/masters/product-categories" element={<ProductCategoryListPage />} />
+        <Route path="/masters/product-categories/new" element={<ProductCategoryFormPage />} />
+        <Route path="/masters/product-categories/:categoryId" element={<ProductCategoryDetailsPage />} />
+        <Route path="/masters/product-categories/:categoryId/edit" element={<ProductCategoryFormPage />} />
+        <Route path="/audit/master-scan-table-logs" element={<MasterScanLogListPage />} />
+        <Route path="/audit/master-scan-table-logs/:logId" element={<MasterScanLogDetailsPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))
           .map((entry) => (

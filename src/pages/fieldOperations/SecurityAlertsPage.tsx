@@ -1,6 +1,21 @@
 import { useMemo, useState } from 'react'
-import { Box, Button, Grid, MenuItem, Stack, TextField, Typography, Chip } from '@mui/material'
-import { ShieldAlert as GppMaybeIcon, TriangleAlert as ReportProblemOutlined, CircleCheck as CheckCircleOutlined, Ban as BlockOutlined, Activity as TimelineIcon } from 'lucide-react'
+import {
+  Box,
+  Button,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+  Chip,
+} from '@mui/material'
+import {
+  ShieldAlert as GppMaybeIcon,
+  TriangleAlert as ReportProblemOutlined,
+  CircleCheck as CheckCircleOutlined,
+  Ban as BlockOutlined,
+  Activity as TimelineIcon,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
   CommonTable,
@@ -103,13 +118,31 @@ export function SecurityAlertsPage() {
   }
 
   const columns: CommonTableColumn<SecurityAlert>[] = [
-    { key: 'id', header: 'Alert ID', render: (row) => row.id },
     {
-      key: 'alertType',
-      header: 'Alert Type',
-      minWidth: 170,
+      key: 'affectedUserName',
+      header: 'Affected User',
+      minWidth: 160,
       sortable: true,
-      render: (row) => row.alertType,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => openUser(row.affectedUserId)}
+        >
+          {row.affectedUserName}
+        </Typography>
+      ),
+    },
+    {
+      key: 'severity',
+      header: 'Severity',
+      sortable: true,
+      sortValue: (row) => SEVERITY_CONFIG[row.severity].label,
+      render: (row) => <SeverityChip severity={row.severity} />,
     },
     {
       key: 'description',
@@ -130,38 +163,22 @@ export function SecurityAlertsPage() {
         </Typography>
       ),
     },
+    { key: 'id', header: 'Alert ID', render: (row) => row.id },
     {
-      key: 'affectedUserName',
-      header: 'Affected User',
-      minWidth: 160,
+      key: 'alertType',
+      header: 'Alert Type',
+      minWidth: 170,
       sortable: true,
-      render: (row) => (
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: '0.8125rem',
-            cursor: 'pointer',
-            '&:hover': { textDecoration: 'underline' },
-          }}
-          onClick={() => openUser(row.affectedUserId)}
-        >
-          {row.affectedUserName}
-        </Typography>
-      ),
+      render: (row) => row.alertType,
     },
+
     { key: 'userType', header: 'User Type', render: (row) => row.userType },
     {
       key: 'requestSource',
       header: 'Request Source',
       render: (row) => row.requestSource,
     },
-    {
-      key: 'severity',
-      header: 'Severity',
-      sortable: true,
-      sortValue: (row) => SEVERITY_CONFIG[row.severity].label,
-      render: (row) => <SeverityChip severity={row.severity} />,
-    },
+
     {
       key: 'alertDateTime',
       header: 'Alert Date & Time',
@@ -377,7 +394,9 @@ export function SecurityAlertsPage() {
                     size="small"
                     startIcon={<BlockOutlined size={20} />}
                     disabled={currentUserStatus === 'inactive'}
-                    onClick={() => setUserStatus(userSummary.userId, 'inactive')}
+                    onClick={() =>
+                      setUserStatus(userSummary.userId, 'inactive')
+                    }
                     sx={{ fontSize: '0.75rem' }}
                   >
                     Deactivate User
@@ -393,7 +412,14 @@ export function SecurityAlertsPage() {
                   { label: 'Mobile Number', value: userSummary.mobileNumber },
                   { label: 'Email Address', value: userSummary.email },
                   { label: 'Region', value: userSummary.region },
-                  { label: 'Current Status', value: <StatusChip status={currentUserStatus ?? userSummary.status} /> },
+                  {
+                    label: 'Current Status',
+                    value: (
+                      <StatusChip
+                        status={currentUserStatus ?? userSummary.status}
+                      />
+                    ),
+                  },
                 ]}
               />
             </SectionCard>
@@ -427,8 +453,16 @@ export function SecurityAlertsPage() {
                 <StatCard
                   label="Current Account Status"
                   value={currentUserStatus === 'active' ? 'Active' : 'Inactive'}
-                  icon={currentUserStatus === 'active' ? <CheckCircleOutlined size={20} /> : <BlockOutlined size={20} />}
-                  iconColor={currentUserStatus === 'active' ? 'success' : 'error'}
+                  icon={
+                    currentUserStatus === 'active' ? (
+                      <CheckCircleOutlined size={20} />
+                    ) : (
+                      <BlockOutlined size={20} />
+                    )
+                  }
+                  iconColor={
+                    currentUserStatus === 'active' ? 'success' : 'error'
+                  }
                 />
               </Grid>
             </Grid>
@@ -436,10 +470,19 @@ export function SecurityAlertsPage() {
             <SectionCard title="User Information">
               <DetailFieldGrid
                 fields={[
-                  { label: 'Last Known Location', value: userSummary.lastKnownLocation },
+                  {
+                    label: 'Last Known Location',
+                    value: userSummary.lastKnownLocation,
+                  },
                   { label: 'Source IP Address', value: userSummary.sourceIp },
-                  { label: 'Device Information', value: userSummary.deviceInfo },
-                  { label: 'Registered Device', value: userSummary.registeredDevice },
+                  {
+                    label: 'Device Information',
+                    value: userSummary.deviceInfo,
+                  },
+                  {
+                    label: 'Registered Device',
+                    value: userSummary.registeredDevice,
+                  },
                   { label: 'Region', value: userSummary.region },
                 ]}
               />
@@ -449,8 +492,16 @@ export function SecurityAlertsPage() {
               <CommonTable
                 tableKey="security-alert-user-history"
                 columns={[
-                  { key: 'alertType', header: 'Alert Type', render: (row) => row.alertType },
-                  { key: 'description', header: 'Description', render: (row) => row.description },
+                  {
+                    key: 'alertType',
+                    header: 'Alert Type',
+                    render: (row) => row.alertType,
+                  },
+                  {
+                    key: 'description',
+                    header: 'Description',
+                    render: (row) => row.description,
+                  },
                   {
                     key: 'severity',
                     header: 'Severity',
@@ -458,9 +509,22 @@ export function SecurityAlertsPage() {
                     sortValue: (row) => SEVERITY_CONFIG[row.severity].label,
                     render: (row) => <SeverityChip severity={row.severity} />,
                   },
-                  { key: 'requestSource', header: 'Request Source', render: (row) => row.requestSource },
-                  { key: 'sourceIp', header: 'Source IP Address', render: (row) => row.sourceIp },
-                  { key: 'alertDateTime', header: 'Alert Date & Time', sortable: true, render: (row) => row.alertDateTime },
+                  {
+                    key: 'requestSource',
+                    header: 'Request Source',
+                    render: (row) => row.requestSource,
+                  },
+                  {
+                    key: 'sourceIp',
+                    header: 'Source IP Address',
+                    render: (row) => row.sourceIp,
+                  },
+                  {
+                    key: 'alertDateTime',
+                    header: 'Alert Date & Time',
+                    sortable: true,
+                    render: (row) => row.alertDateTime,
+                  },
                 ]}
                 rows={userAlertHistory}
                 getRowId={(row) => row.id}
@@ -472,7 +536,10 @@ export function SecurityAlertsPage() {
             </SectionCard>
 
             <SectionCard title="Security Timeline">
-              <ActivityTimeline entries={userTimeline} emptyTitle="No timeline activity yet" />
+              <ActivityTimeline
+                entries={userTimeline}
+                emptyTitle="No timeline activity yet"
+              />
             </SectionCard>
           </Stack>
         ) : (

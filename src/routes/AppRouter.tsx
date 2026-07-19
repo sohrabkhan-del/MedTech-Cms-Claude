@@ -61,6 +61,24 @@ import { ProductCategoryDetailsPage } from '@/pages/masters/ProductCategoryDetai
 import { ProductCategoryFormPage } from '@/pages/masters/ProductCategoryFormPage'
 import { MasterScanLogListPage } from '@/pages/audit/MasterScanLogListPage'
 import { MasterScanLogDetailsPage } from '@/pages/audit/MasterScanLogDetailsPage'
+import { AuditLogListPage } from '@/pages/audit/AuditLogListPage'
+import { AuditLogDetailsPage } from '@/pages/audit/AuditLogDetailsPage'
+import { ScanReportListPage } from '@/pages/reports/ScanReportListPage'
+import { ScanReportDetailsPage } from '@/pages/reports/ScanReportDetailsPage'
+import { RewardReportListPage } from '@/pages/reports/RewardReportListPage'
+import { RewardReportDetailsPage } from '@/pages/reports/RewardReportDetailsPage'
+import { WalletReportListPage } from '@/pages/reports/WalletReportListPage'
+import { WalletReportDetailsPage } from '@/pages/reports/WalletReportDetailsPage'
+import { DealerReportListPage } from '@/pages/reports/DealerReportListPage'
+import { DealerReportDetailsPage } from '@/pages/reports/DealerReportDetailsPage'
+import { ChemistReportListPage } from '@/pages/reports/ChemistReportListPage'
+import { ChemistReportDetailsPage } from '@/pages/reports/ChemistReportDetailsPage'
+import { MrPerformanceListPage } from '@/pages/reports/MrPerformanceListPage'
+import { MrPerformanceDetailsPage } from '@/pages/reports/MrPerformanceDetailsPage'
+import { ProductReportListPage } from '@/pages/reports/ProductReportListPage'
+import { ProductReportDetailsPage } from '@/pages/reports/ProductReportDetailsPage'
+import { SchemeReportListPage } from '@/pages/reports/SchemeReportListPage'
+import { SchemeReportDetailsPage } from '@/pages/reports/SchemeReportDetailsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
 import { getDealerById } from '@/features/dealers/mockDealers'
@@ -82,6 +100,15 @@ import { getAdminById } from '@/features/systemUsers/mockAdmins'
 import { getMedicalRepById } from '@/features/systemUsers/mockMedicalReps'
 import { getProductCategoryById } from '@/features/masters/mockProductCategories'
 import { getMasterScanLogById } from '@/features/audit/mockMasterScanLogs'
+import { getAuditLogById } from '@/features/audit/mockAuditLogs'
+import { getScanReportById } from '@/features/reports/mockScanReports'
+import { getRewardReportById } from '@/features/reports/mockRewardReports'
+import { getWalletReportById } from '@/features/reports/mockWalletReports'
+import { getDealerReportById } from '@/features/reports/mockDealerReports'
+import { getChemistReportById } from '@/features/reports/mockChemistReports'
+import { getMrPerformanceReportById } from '@/features/reports/mockMrPerformanceReports'
+import { getProductReportById } from '@/features/reports/mockProductReports'
+import { getSchemeReportById } from '@/features/reports/mockSchemeReports'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -109,6 +136,16 @@ const CUSTOM_PATHS = new Set([
   '/system-users/medical-representatives',
   '/masters/product-categories',
   '/audit/master-scan-table-logs',
+  '/audit/audit-logs',
+  '/reports/scan-reports',
+  '/reports/reward-reports',
+  '/reports/wallet-reports',
+  '/reports/dealer-reports',
+  '/reports/chemist-reports',
+  '/reports/mr-performance',
+  '/reports/product-reports-1',
+  '/reports/product-reports-2',
+  '/reports/scheme-reports',
 ])
 
 registerDetailRoute({
@@ -195,6 +232,46 @@ registerDetailRoute({
   parentPath: '/audit/master-scan-table-logs',
   resolveEntityName: (id) => getMasterScanLogById(id)?.barcodeNumber,
 })
+registerDetailRoute({
+  parentPath: '/audit/audit-logs',
+  resolveEntityName: (id) => getAuditLogById(id)?.id,
+})
+registerDetailRoute({
+  parentPath: '/reports/scan-reports',
+  resolveEntityName: (id) => getScanReportById(id)?.productName,
+})
+registerDetailRoute({
+  parentPath: '/reports/reward-reports',
+  resolveEntityName: (id) => getRewardReportById(id)?.userName,
+})
+registerDetailRoute({
+  parentPath: '/reports/wallet-reports',
+  resolveEntityName: (id) => getWalletReportById(id)?.userName,
+})
+registerDetailRoute({
+  parentPath: '/reports/dealer-reports',
+  resolveEntityName: (id) => getDealerReportById(id)?.dealerName,
+})
+registerDetailRoute({
+  parentPath: '/reports/chemist-reports',
+  resolveEntityName: (id) => getChemistReportById(id)?.chemistName,
+})
+registerDetailRoute({
+  parentPath: '/reports/mr-performance',
+  resolveEntityName: (id) => getMrPerformanceReportById(id)?.mrName,
+})
+registerDetailRoute({
+  parentPath: '/reports/product-reports-1',
+  resolveEntityName: (id) => getProductReportById(id)?.productName,
+})
+registerDetailRoute({
+  parentPath: '/reports/product-reports-2',
+  resolveEntityName: (id) => getProductReportById(id)?.productName,
+})
+registerDetailRoute({
+  parentPath: '/reports/scheme-reports',
+  resolveEntityName: (id) => getSchemeReportById(id)?.schemeName,
+})
 
 export function AppRouter() {
   return (
@@ -275,6 +352,25 @@ export function AppRouter() {
         <Route path="/masters/product-categories/:categoryId/edit" element={<ProductCategoryFormPage />} />
         <Route path="/audit/master-scan-table-logs" element={<MasterScanLogListPage />} />
         <Route path="/audit/master-scan-table-logs/:logId" element={<MasterScanLogDetailsPage />} />
+        <Route path="/audit/audit-logs" element={<AuditLogListPage />} />
+        <Route path="/audit/audit-logs/:logId" element={<AuditLogDetailsPage />} />
+        <Route path="/reports/scan-reports" element={<ScanReportListPage />} />
+        <Route path="/reports/scan-reports/:scanId" element={<ScanReportDetailsPage />} />
+        <Route path="/reports/reward-reports" element={<RewardReportListPage />} />
+        <Route path="/reports/reward-reports/:rewardId" element={<RewardReportDetailsPage />} />
+        <Route path="/reports/wallet-reports" element={<WalletReportListPage />} />
+        <Route path="/reports/wallet-reports/:walletReportId" element={<WalletReportDetailsPage />} />
+        <Route path="/reports/dealer-reports" element={<DealerReportListPage />} />
+        <Route path="/reports/dealer-reports/:dealerReportId" element={<DealerReportDetailsPage />} />
+        <Route path="/reports/chemist-reports" element={<ChemistReportListPage />} />
+        <Route path="/reports/chemist-reports/:chemistReportId" element={<ChemistReportDetailsPage />} />
+        <Route path="/reports/mr-performance" element={<MrPerformanceListPage />} />
+        <Route path="/reports/mr-performance/:mrReportId" element={<MrPerformanceDetailsPage />} />
+        <Route path="/reports/product-reports-1" element={<ProductReportListPage />} />
+        <Route path="/reports/product-reports-1/:productReportId" element={<ProductReportDetailsPage />} />
+        <Route path="/reports/product-reports-2" element={<ProductReportListPage />} />
+        <Route path="/reports/scheme-reports" element={<SchemeReportListPage />} />
+        <Route path="/reports/scheme-reports/:schemeReportId" element={<SchemeReportDetailsPage />} />
         {routeEntries
           .filter((entry) => !CUSTOM_PATHS.has(entry.path))
           .map((entry) => (

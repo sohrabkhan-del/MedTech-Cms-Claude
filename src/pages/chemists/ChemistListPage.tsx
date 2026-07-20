@@ -24,7 +24,7 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { mockChemists, chemistKpis } from '@/features/chemists/mockChemists'
+import { useChemists } from '@/features/chemists/hooks/useChemists'
 import type { Chemist } from '@/types/chemist'
 import type { PartnerZone, PartnerStatus } from '@/types/partner'
 
@@ -39,6 +39,7 @@ const ALL_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
 export function ChemistListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
+  const { chemists, kpis } = useChemists()
   useRegionTopbarHeader({
     icon: <LocalPharmacyIcon size={20} />,
     title: 'Chemists',
@@ -52,7 +53,14 @@ export function ChemistListPage() {
 
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
 
-  const filteredChemists = mockChemists.filter((chemist) => {
+  const chemistKpis = kpis ?? {
+    chemistNetwork: 0,
+    stockRefill: 0,
+    pendingOutreach: 0,
+    averageBasket: 0,
+  }
+
+  const filteredChemists = chemists.filter((chemist) => {
     const regionMatch = !regionZone || chemist.zone === regionZone
     const zoneMatch =
       appliedFilters.zones.length === 0 ||

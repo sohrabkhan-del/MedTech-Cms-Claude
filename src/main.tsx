@@ -5,16 +5,13 @@ import '@fontsource/inter/700.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
-import { AppThemeProvider } from '@/theme/ThemeProvider'
-import { AppearanceProvider } from '@/contexts/AppearanceContext'
+import { AppProviders } from '@/app/providers/AppProviders'
 import './index.css'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppearanceProvider>
-      <AppThemeProvider>
-        <App />
-      </AppThemeProvider>
-    </AppearanceProvider>
+    <AppProviders>
+      <App />
+    </AppProviders>
   </StrictMode>,
 )

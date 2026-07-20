@@ -7,7 +7,7 @@ import {
   sidebarPalettes,
   type SidebarPalette,
 } from '@/components/layout/Sidebar/sidebarPalettes'
-import { currentUser } from '@/features/auth/mockCurrentUser'
+import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useAppearance } from '@/contexts/AppearanceContext'
 import { layout, radius, shadows } from '@/theme/tokens'
 
@@ -63,6 +63,8 @@ function SidebarContent({
   railMode: boolean
   palette: SidebarPalette
 }) {
+  const { user } = useAuth()
+
   return (
     <Box
       sx={{
@@ -94,11 +96,7 @@ function SidebarContent({
         ))}
       </Box>
       <Divider sx={{ borderColor: palette.divider }} />
-      <UserFooterCard
-        user={currentUser}
-        railMode={railMode}
-        palette={palette}
-      />
+      {user && <UserFooterCard user={user} railMode={railMode} palette={palette} />}
     </Box>
   )
 }

@@ -1,0 +1,6 @@
+export { chemistReducer } from '@/features/chemists/slices/chemistSlice'
+export { chemistRoutes } from '@/features/chemists/routes/chemist.routes'
+export { useChemists } from '@/features/chemists/hooks/useChemists'
+export { useChemistDetail } from '@/features/chemists/hooks/useChemistDetail'
+export { chemistService } from '@/features/chemists/services/chemistService'
+export type { Chemist, ChemistKpis, ChemistListFilters } from '@/features/chemists/types/chemist.types'

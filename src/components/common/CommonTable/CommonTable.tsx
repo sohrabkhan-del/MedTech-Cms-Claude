@@ -310,14 +310,14 @@ export function CommonTable<T>({
       </Stack>
 
       <Card>
-        {loading ? (
-          <Boneyard name={`common-table-${tableKey}`} loading fallback={<SkeletonLoader variant="table-rows" rows={6} />}>
-            <SkeletonLoader variant="table-rows" rows={6} />
-          </Boneyard>
-        ) : sortedRows.length === 0 ? (
+        {!loading && sortedRows.length === 0 ? (
           <EmptyState title={emptyTitle} description={emptyDescription} />
         ) : (
-          <>
+          <Boneyard
+            name={`common-table-${tableKey}`}
+            loading={loading}
+            fallback={<SkeletonLoader variant="table-rows" rows={6} />}
+          >
             <TableContainer sx={{ maxHeight: 560 }}>
               <Table stickyHeader size="small">
                 <TableHead>
@@ -411,7 +411,7 @@ export function CommonTable<T>({
                 }}
               />
             </Box>
-          </>
+          </Boneyard>
         )}
 
         {actions && (

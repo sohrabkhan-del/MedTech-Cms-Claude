@@ -2,11 +2,11 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Avatar,
-  Checkbox,
   Chip,
-  FormControlLabel,
   Grid,
+  MenuItem,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import {
@@ -29,12 +29,9 @@ import type { Chemist } from '@/types/chemist'
 import type { PartnerZone, PartnerStatus } from '@/types/partner'
 
 interface ChemistFilters extends Record<string, unknown> {
-  zones: PartnerZone[]
-  statuses: PartnerStatus[]
+  zone: PartnerZone | 'all'
+  status: PartnerStatus | 'all'
 }
-
-const ALL_ZONES: PartnerZone[] = ['North', 'South', 'East', 'West']
-const ALL_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
 
 export function ChemistListPage() {
   const navigate = useNavigate()
@@ -47,8 +44,8 @@ export function ChemistListPage() {
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ChemistFilters>({
-    zones: [],
-    statuses: [],
+    zone: 'all',
+    status: 'all',
   })
 
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
@@ -63,11 +60,9 @@ export function ChemistListPage() {
   const filteredChemists = chemists.filter((chemist) => {
     const regionMatch = !regionZone || chemist.zone === regionZone
     const zoneMatch =
-      appliedFilters.zones.length === 0 ||
-      appliedFilters.zones.includes(chemist.zone)
+      appliedFilters.zone === 'all' || chemist.zone === appliedFilters.zone
     const statusMatch =
-      appliedFilters.statuses.length === 0 ||
-      appliedFilters.statuses.includes(chemist.status)
+      appliedFilters.status === 'all' || chemist.status === appliedFilters.status
     return regionMatch && zoneMatch && statusMatch
   })
 
@@ -221,7 +216,8 @@ export function ChemistListPage() {
         }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          appliedFilters.zones.length + appliedFilters.statuses.length
+          (appliedFilters.zone !== 'all' ? 1 : 0) +
+          (appliedFilters.status !== 'all' ? 1 : 0)
         }
         onExportClick={() => {}}
         onImportClick={() => {}}
@@ -252,54 +248,41 @@ export function ChemistListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
-            <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                Zone
-              </Typography>
-              {ALL_ZONES.map((zone) => (
-                <FormControlLabel
-                  key={zone}
-                  control={
-                    <Checkbox
-                      checked={draft.zones.includes(zone)}
-                      onChange={(e) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          zones: e.target.checked
-                            ? [...prev.zones, zone]
-                            : prev.zones.filter((z) => z !== zone),
-                        }))
-                      }
-                    />
-                  }
-                  label={zone}
-                />
-              ))}
-            </Stack>
-            <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                Status
-              </Typography>
-              {ALL_STATUSES.map((status) => (
-                <FormControlLabel
-                  key={status}
-                  control={
-                    <Checkbox
-                      checked={draft.statuses.includes(status)}
-                      onChange={(e) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          statuses: e.target.checked
-                            ? [...prev.statuses, status]
-                            : prev.statuses.filter((s) => s !== status),
-                        }))
-                      }
-                    />
-                  }
-                  label={status.charAt(0).toUpperCase() + status.slice(1)}
-                />
-              ))}
-            </Stack>
+            <TextField
+              select
+              label="Zone"
+              value={draft.zone}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  zone: e.target.value as PartnerZone | 'all',
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="all">All Zones</MenuItem>
+              <MenuItem value="North">North</MenuItem>
+              <MenuItem value="South">South</MenuItem>
+              <MenuItem value="East">East</MenuItem>
+              <MenuItem value="West">West</MenuItem>
+            </TextField>
+            <TextField
+              select
+              label="Status"
+              value={draft.status}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: e.target.value as PartnerStatus | 'all',
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="pending">Pending</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
+            </TextField>
           </Stack>
         )}
       </FilterDrawer>

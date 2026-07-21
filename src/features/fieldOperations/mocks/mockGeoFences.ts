@@ -8,9 +8,9 @@ import type {
   GeoFenceVerificationEntry,
 } from '@/types/geoFence'
 import type { PartnerZone } from '@/types/partner'
-import { mockDealers } from '@/features/dealers/mockDealers'
-import { mockChemists } from '@/features/chemists/mockChemists'
-import { mrs } from '@/features/partners/mockPartnerData'
+import { mockDealers } from '@/features/userManagement/mockDealers'
+import { mockChemists } from '@/features/userManagement/mockChemists'
+import { mrs } from '@/features/userManagement/mockPartnerData'
 
 const zones: PartnerZone[] = ['North', 'South', 'East', 'West']
 const statuses: GeoFenceStatus[] = ['active', 'active', 'active', 'pending', 'inactive']

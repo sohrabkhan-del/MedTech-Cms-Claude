@@ -1,4 +1,4 @@
-import { mockWallets, getWalletById, walletKpis, walletGiftCategoryOptions } from '@/features/wallets/mockWallets'
+import { mockWallets, getWalletById, walletKpis, walletGiftCategoryOptions } from '@/features/rewardsWallet/mockWallets'
 import type { Wallet } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

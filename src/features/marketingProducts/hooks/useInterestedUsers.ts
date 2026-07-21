@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { interestedUsersService } from '@/features/marketingProducts/services/interestedUsersService'
 import type { InterestedUserLead, LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
-import type { interestedUserKpis } from '@/features/marketing/mockInterestedUsers'
+import type { interestedUserKpis } from '@/features/marketingProducts/mockInterestedUsers'
 
 type InterestedUserKpis = typeof interestedUserKpis
 

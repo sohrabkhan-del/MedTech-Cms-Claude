@@ -3,7 +3,7 @@ import {
   getShowcaseProductById,
   showcaseProductKpis,
   showcaseCategoryOptions,
-} from '@/features/marketing/mockShowcaseProducts'
+} from '@/features/marketingProducts/mockShowcaseProducts'
 import type { ShowcaseProduct, ShowcaseProductFormValues } from '@/features/marketingProducts/types/marketingProducts.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

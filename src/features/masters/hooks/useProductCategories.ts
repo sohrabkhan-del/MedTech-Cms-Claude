@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { productCategoriesService } from '@/features/masters/services/productCategoriesService'
 import type { ProductCategory } from '@/features/masters/types/masters.types'
-import type { productCategoryKpis } from '@/features/masters/mockProductCategories'
+import type { productCategoryKpis } from '@/features/masters/mockMasters'
 
 type ProductCategoryKpis = typeof productCategoryKpis
 

@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { factoryUploadService } from '@/features/inventoryManagement/services/factoryUploadService'
 import type { FactoryBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
-import type { factoryUploadKpis } from '@/features/inventory/mockFactoryUploads'
+import type { factoryUploadKpis } from '@/features/inventoryManagement/mockFactoryUploads'
 
 type FactoryUploadKpis = typeof factoryUploadKpis
 

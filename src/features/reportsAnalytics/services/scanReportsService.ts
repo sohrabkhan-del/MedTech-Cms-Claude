@@ -5,7 +5,7 @@ import {
   scanReportProductOptions,
   scanReportDealerOptions,
   scanReportChemistOptions,
-} from '@/features/reports/mockScanReports'
+} from '@/features/reportsAnalytics/mockScanReports'
 import type { ScanReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
 async function getScanReports(): Promise<ScanReportEntry[]> {

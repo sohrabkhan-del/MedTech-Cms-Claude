@@ -11,7 +11,7 @@ import {
   schemePerformance,
   leaderboard,
   notifications,
-} from '@/features/dashboard/mocks/mockDashboardData'
+} from '@/features/dashboard/mockDashboard'
 import type { DashboardOverview, DashboardWidgetsData } from '@/features/dashboard/types/dashboard.types'
 
 // TODO: replace with real aggregate dashboard endpoints once available.

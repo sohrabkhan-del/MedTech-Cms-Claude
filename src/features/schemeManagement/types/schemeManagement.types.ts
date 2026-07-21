@@ -9,7 +9,7 @@ export type {
   SchemeEligibleProduct,
   SchemeAuditEntry,
 } from '@/types/scheme'
-export { schemeFormSchema, schemeFormDefaults, type SchemeFormValues } from '@/features/schemes/schemeFormSchema'
+export { schemeFormSchema, schemeFormDefaults, type SchemeFormValues } from '@/features/schemeManagement/schemeFormSchema'
 export type {
   Gift,
   GiftStatus,
@@ -19,7 +19,7 @@ export type {
   GiftRedemptionEntry,
   GiftInventoryEntry,
 } from '@/types/gift'
-export { giftFormSchema, giftFormDefaults, type GiftFormValues } from '@/features/schemes/giftFormSchema'
+export { giftFormSchema, giftFormDefaults, type GiftFormValues } from '@/features/schemeManagement/giftFormSchema'
 export type {
   RewardRule,
   RewardTrack,
@@ -28,4 +28,4 @@ export type {
   RewardRuleUserType,
   RewardRuleRedemptionEntry,
 } from '@/types/giftRule'
-export { giftRuleFormSchema, giftRuleFormDefaults, type GiftRuleFormValues } from '@/features/schemes/giftRuleFormSchema'
+export { giftRuleFormSchema, giftRuleFormDefaults, type GiftRuleFormValues } from '@/features/schemeManagement/giftRuleFormSchema'

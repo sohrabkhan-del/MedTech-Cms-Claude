@@ -3,7 +3,7 @@ import {
   getChemistReportById,
   getChemistPerformanceSummary,
   chemistReportKpis,
-} from '@/features/reports/mockChemistReports'
+} from '@/features/reportsAnalytics/mockChemistReports'
 import type { ChemistPerformanceSummary, ChemistReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
 async function getChemistReports(): Promise<ChemistReportRow[]> {

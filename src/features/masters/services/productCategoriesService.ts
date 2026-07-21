@@ -4,7 +4,7 @@ import {
   getParentCategoryName,
   topLevelCategoryOptions,
   productCategoryKpis,
-} from '@/features/masters/mockProductCategories'
+} from '@/features/masters/mockMasters'
 import type { ProductCategory, ProductCategoryFormValues } from '@/features/masters/types/masters.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

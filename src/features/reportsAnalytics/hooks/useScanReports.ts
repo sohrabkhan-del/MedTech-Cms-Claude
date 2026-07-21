@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { scanReportsService } from '@/features/reportsAnalytics/services/scanReportsService'
 import type { ScanReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { scanReportKpis } from '@/features/reports/mockScanReports'
+import type { scanReportKpis } from '@/features/reportsAnalytics/mockScanReports'
 
 type ScanReportKpis = typeof scanReportKpis
 

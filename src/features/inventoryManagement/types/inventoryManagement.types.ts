@@ -1,5 +1,5 @@
 export type { Product, ProductStatus, RewardConfigStatus, ProductAuditEntry, ProductMovementEntry } from '@/types/product'
-export { productFormSchema, productFormDefaults, type ProductFormValues } from '@/features/inventory/productFormSchema'
+export { productFormSchema, productFormDefaults, type ProductFormValues } from '@/features/inventoryManagement/productFormSchema'
 export type {
   FactoryBatch,
   BatchContainer,

@@ -1,6 +1,6 @@
 import type { AlertSeverity, AlertType, SecurityAlert, SecurityTimelineEntry, UserSecuritySummary } from '@/types/securityAlert'
-import { mockDealers } from '@/features/dealers/mockDealers'
-import { mockChemists } from '@/features/chemists/mockChemists'
+import { mockDealers } from '@/features/userManagement/mockDealers'
+import { mockChemists } from '@/features/userManagement/mockChemists'
 
 const alertTypes: AlertType[] = [
   'Duplicate Barcode Scan',

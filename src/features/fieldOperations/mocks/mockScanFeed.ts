@@ -1,7 +1,7 @@
 import type { ScanEvent, ScanResult, ScanUserRole, ScanUserSummary } from '@/types/scanFeed'
 import type { PartnerBase } from '@/types/partner'
-import { mockDealers } from '@/features/dealers/mockDealers'
-import { mockChemists } from '@/features/chemists/mockChemists'
+import { mockDealers } from '@/features/userManagement/mockDealers'
+import { mockChemists } from '@/features/userManagement/mockChemists'
 
 const productNames = ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance', 'PainRelief Gel']
 const productCodes = ['PC-20260011', 'PC-20260022', 'PC-20260033', 'PC-20260044', 'PC-20260055']

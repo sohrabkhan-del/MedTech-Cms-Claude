@@ -7,7 +7,7 @@ import {
   rewardTrackOptions,
   ruleTypeOptions,
   schemeNameOptions,
-} from '@/features/schemes/mockGiftRules'
+} from '@/features/schemeManagement/mockGiftRules'
 import type { RewardRule, GiftRuleFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

@@ -11,4 +11,4 @@ export {
   showcaseProductFormSchema,
   showcaseProductFormDefaults,
   type ShowcaseProductFormValues,
-} from '@/features/marketing/showcaseProductFormSchema'
+} from '@/features/marketingProducts/showcaseProductFormSchema'

@@ -9,7 +9,7 @@ import type {
   SchemeProgress,
   LeaderboardEntry,
   NotificationItem,
-} from '@/features/dashboard/mocks/mockDashboardData'
+} from '@/features/dashboard/mockDashboard'
 
 export type {
   ScanActivityPoint,
@@ -21,7 +21,7 @@ export type {
   SchemeProgress,
   LeaderboardEntry,
   NotificationItem,
-} from '@/features/dashboard/mocks/mockDashboardData'
+} from '@/features/dashboard/mockDashboard'
 
 export interface DashboardOverview {
   topDealers: TopEntity[]

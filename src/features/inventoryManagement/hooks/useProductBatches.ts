@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { productBatchesService } from '@/features/inventoryManagement/services/productBatchesService'
 import type { ProductionBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
-import type { productionBatchKpis } from '@/features/inventory/mockProductBatches'
+import type { productionBatchKpis } from '@/features/inventoryManagement/mockProductBatches'
 
 type ProductionBatchKpis = typeof productionBatchKpis
 

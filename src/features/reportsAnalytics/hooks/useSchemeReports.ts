@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { schemeReportsService } from '@/features/reportsAnalytics/services/schemeReportsService'
 import type { SchemeReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { schemeReportKpis } from '@/features/reports/mockSchemeReports'
+import type { schemeReportKpis } from '@/features/reportsAnalytics/mockSchemeReports'
 
 type SchemeReportKpis = typeof schemeReportKpis
 

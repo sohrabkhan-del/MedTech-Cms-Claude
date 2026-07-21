@@ -1,5 +1,5 @@
-import { mockDealers, getDealerById, dealerKpis } from '@/features/dealers/mockDealers'
-import { mrs } from '@/features/partners/mockPartnerData'
+import { mockDealers, getDealerById, dealerKpis } from '@/features/userManagement/mockDealers'
+import { mrs } from '@/features/userManagement/mockPartnerData'
 import type { Dealer, DealerFormValues } from '@/features/userManagement/types/userManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

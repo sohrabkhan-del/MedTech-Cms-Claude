@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { coinRulesService, type RegionMultiplierMap, type RegionDateMap } from '@/features/rewardsWallet/services/coinRulesService'
 import type { CoinValueRule } from '@/features/rewardsWallet/types/rewardsWallet.types'
-import type { coinRuleKpis, coinDistributionByCategory } from '@/features/wallets/mockCoinRules'
+import type { coinRuleKpis, coinDistributionByCategory } from '@/features/rewardsWallet/mockCoinRules'
 
 type CoinRuleKpis = typeof coinRuleKpis
 type CoinDistributionByCategory = typeof coinDistributionByCategory

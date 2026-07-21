@@ -3,7 +3,7 @@ import {
   getMrPerformanceReportById,
   getMrPerformanceDetails,
   mrPerformanceKpis,
-} from '@/features/reports/mockMrPerformanceReports'
+} from '@/features/reportsAnalytics/mockMrPerformanceReports'
 import type { MrPerformanceDetails, MrPerformanceReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
 async function getMrPerformanceReports(): Promise<MrPerformanceReportRow[]> {

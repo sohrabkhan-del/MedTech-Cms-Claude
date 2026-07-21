@@ -4,7 +4,7 @@ import {
   schemeReportKpis,
   schemeReportTypeOptions,
   schemeReportApplicableUserOptions,
-} from '@/features/reports/mockSchemeReports'
+} from '@/features/reportsAnalytics/mockSchemeReports'
 import type { SchemeReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
 async function getSchemeReports(): Promise<SchemeReportEntry[]> {

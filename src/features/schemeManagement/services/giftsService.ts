@@ -5,7 +5,7 @@ import {
   giftCategoryOptions,
   giftBrandOptions,
   resolveStockStatus,
-} from '@/features/schemes/mockGifts'
+} from '@/features/schemeManagement/mockGifts'
 import type { Gift, GiftFormValues, StockStatus } from '@/features/schemeManagement/types/schemeManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

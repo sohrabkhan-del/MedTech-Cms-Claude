@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { dealerReportsService } from '@/features/reportsAnalytics/services/dealerReportsService'
 import type { DealerReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { dealerReportKpis } from '@/features/reports/mockDealerReports'
+import type { dealerReportKpis } from '@/features/reportsAnalytics/mockDealerReports'
 
 type DealerReportKpis = typeof dealerReportKpis
 

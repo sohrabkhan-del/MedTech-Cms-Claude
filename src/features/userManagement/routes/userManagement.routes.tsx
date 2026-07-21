@@ -6,10 +6,9 @@ import { ApprovalRequestsListPage } from '@/features/userManagement/pages/Approv
 import { ApprovalRequestDetailsPage } from '@/features/userManagement/pages/ApprovalRequestDetailsPage'
 import { RejectedRequestsListPage } from '@/features/userManagement/pages/RejectedRequestsListPage'
 import { RejectedRequestDetailsPage } from '@/features/userManagement/pages/RejectedRequestDetailsPage'
-// Chemists is an existing sibling feature (src/features/chemists) — reused via
-// chemistRoutes, not duplicated here. Register both under the `/partners/*`
-// path family alongside these dealer routes.
-import { chemistRoutes } from '@/features/chemists/routes/chemist.routes'
+import { ChemistListPage } from '@/features/userManagement/pages/ChemistListPage'
+import { ChemistDetailsPage } from '@/features/userManagement/pages/ChemistDetailsPage'
+import { ChemistFormPage } from '@/features/userManagement/pages/ChemistFormPage'
 
 // Register under <ProtectedRoute /> + <DashboardLayout />.
 export const partnersRoutes: RouteObject[] = [
@@ -17,7 +16,10 @@ export const partnersRoutes: RouteObject[] = [
   { path: '/partners/dealers/new', element: <DealerFormPage /> },
   { path: '/partners/dealers/:dealerId', element: <DealerDetailsPage /> },
   { path: '/partners/dealers/:dealerId/edit', element: <DealerFormPage /> },
-  ...chemistRoutes,
+  { path: '/partners/chemists', element: <ChemistListPage /> },
+  { path: '/partners/chemists/new', element: <ChemistFormPage /> },
+  { path: '/partners/chemists/:chemistId', element: <ChemistDetailsPage /> },
+  { path: '/partners/chemists/:chemistId/edit', element: <ChemistFormPage /> },
 ]
 
 export const verificationRoutes: RouteObject[] = [

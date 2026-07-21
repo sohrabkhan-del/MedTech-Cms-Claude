@@ -6,7 +6,7 @@ import type {
   ScanStatus,
   WalletStatus,
 } from '@/types/masterScanLog'
-import { mockProducts } from '@/features/inventory/mockProducts'
+import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 
 const distributors = ['Apex Distribution', 'Meridian Supply Co.', 'Vantage Logistics', 'Prime Channel Partners', 'Horizon Distributors']
 const dealers = ['Om Medical Godown', 'Sunrise Pharma Godown', 'Care Plus Godown', 'Wellness Godown', 'City Drug Godown']

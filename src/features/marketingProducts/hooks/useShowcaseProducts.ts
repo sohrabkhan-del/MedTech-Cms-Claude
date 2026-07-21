@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { showcaseProductsService } from '@/features/marketingProducts/services/showcaseProductsService'
 import type { ShowcaseProduct } from '@/features/marketingProducts/types/marketingProducts.types'
-import type { showcaseProductKpis } from '@/features/marketing/mockShowcaseProducts'
+import type { showcaseProductKpis } from '@/features/marketingProducts/mockShowcaseProducts'
 
 type ShowcaseProductKpis = typeof showcaseProductKpis
 

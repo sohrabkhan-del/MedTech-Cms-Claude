@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { walletReportsService } from '@/features/reportsAnalytics/services/walletReportsService'
 import type { WalletReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { walletReportKpis } from '@/features/reports/mockWalletReports'
+import type { walletReportKpis } from '@/features/reportsAnalytics/mockWalletReports'
 
 type WalletReportKpis = typeof walletReportKpis
 

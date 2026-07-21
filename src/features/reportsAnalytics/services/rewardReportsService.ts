@@ -6,7 +6,7 @@ import {
   rewardReportTypeOptions,
   rewardReportSchemeOptions,
   rewardReportStatusOptions,
-} from '@/features/reports/mockRewardReports'
+} from '@/features/reportsAnalytics/mockRewardReports'
 import type { RewardReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
 async function getRewardReports(): Promise<RewardReportEntry[]> {

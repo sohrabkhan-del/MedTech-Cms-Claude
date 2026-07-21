@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { giftsService } from '@/features/schemeManagement/services/giftsService'
 import type { Gift } from '@/features/schemeManagement/types/schemeManagement.types'
-import type { giftCatalogueKpis } from '@/features/schemes/mockGifts'
+import type { giftCatalogueKpis } from '@/features/schemeManagement/mockGifts'
 
 type GiftCatalogueKpis = typeof giftCatalogueKpis
 

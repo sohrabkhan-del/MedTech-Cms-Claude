@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { verificationService } from '@/features/userManagement/services/verificationService'
 import type { ApprovalRequest, ApprovalStatus } from '@/features/userManagement/types/userManagement.types'
-import type { approvalRequestKpis } from '@/features/verification/mockApprovalRequests'
+import type { approvalRequestKpis } from '@/features/userManagement/mockApprovalRequests'
 
 type ApprovalRequestKpis = typeof approvalRequestKpis
 

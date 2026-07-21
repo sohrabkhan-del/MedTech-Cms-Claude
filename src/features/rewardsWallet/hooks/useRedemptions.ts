@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { redemptionsService } from '@/features/rewardsWallet/services/redemptionsService'
 import type { RedemptionRequest } from '@/features/rewardsWallet/types/rewardsWallet.types'
-import type { redemptionKpis } from '@/features/wallets/mockRedemptions'
+import type { redemptionKpis } from '@/features/rewardsWallet/mockRedemptions'
 
 type RedemptionKpis = typeof redemptionKpis
 

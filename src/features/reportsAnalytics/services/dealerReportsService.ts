@@ -1,4 +1,4 @@
-import { mockDealerReports, getDealerReportById, dealerReportKpis } from '@/features/reports/mockDealerReports'
+import { mockDealerReports, getDealerReportById, dealerReportKpis } from '@/features/reportsAnalytics/mockDealerReports'
 import type { DealerReportDetails, DealerReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
 async function getDealerReports(): Promise<DealerReportRow[]> {

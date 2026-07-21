@@ -1,4 +1,4 @@
-import { mockProducts, getProductById, productKpis, productCategoryOptions } from '@/features/inventory/mockProducts'
+import { mockProducts, getProductById, productKpis, productCategoryOptions } from '@/features/inventoryManagement/mockProducts'
 import type { Product, ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

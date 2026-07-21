@@ -6,7 +6,7 @@ import {
   getProductionBatchById,
   productionBatchKpis,
   scanAnalyticsRows,
-} from '@/features/inventory/mockProductBatches'
+} from '@/features/inventoryManagement/mockProductBatches'
 import type { ProductBatch, ProductionBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

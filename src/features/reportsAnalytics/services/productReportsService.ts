@@ -4,7 +4,7 @@ import {
   productReportKpis,
   productReportCategoryOptions,
   productReportBatchOptions,
-} from '@/features/reports/mockProductReports'
+} from '@/features/reportsAnalytics/mockProductReports'
 import type { ProductReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
 async function getProductReports(): Promise<ProductReportEntry[]> {

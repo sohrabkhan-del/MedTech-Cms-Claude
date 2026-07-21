@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
 import type { Scheme } from '@/features/schemeManagement/types/schemeManagement.types'
-import type { seasonalSchemeKpis } from '@/features/schemes/mockSchemes'
+import type { seasonalSchemeKpis } from '@/features/schemeManagement/mockSchemes'
 
 type SeasonalSchemeKpis = typeof seasonalSchemeKpis
 

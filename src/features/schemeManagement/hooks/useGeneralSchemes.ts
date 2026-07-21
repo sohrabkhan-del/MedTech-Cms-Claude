@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
 import type { Scheme } from '@/features/schemeManagement/types/schemeManagement.types'
-import type { generalSchemeKpis } from '@/features/schemes/mockSchemes'
+import type { generalSchemeKpis } from '@/features/schemeManagement/mockSchemes'
 
 type GeneralSchemeKpis = typeof generalSchemeKpis
 

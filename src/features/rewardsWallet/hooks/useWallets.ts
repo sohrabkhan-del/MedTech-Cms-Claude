@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { walletsService } from '@/features/rewardsWallet/services/walletsService'
 import type { Wallet } from '@/features/rewardsWallet/types/rewardsWallet.types'
-import type { walletKpis } from '@/features/wallets/mockWallets'
+import type { walletKpis } from '@/features/rewardsWallet/mockWallets'
 
 type WalletKpis = typeof walletKpis
 

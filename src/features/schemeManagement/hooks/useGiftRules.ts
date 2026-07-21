@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { giftRulesService } from '@/features/schemeManagement/services/giftRulesService'
 import type { RewardRule } from '@/features/schemeManagement/types/schemeManagement.types'
-import type { giftRulesDashboard } from '@/features/schemes/mockGiftRules'
+import type { giftRulesDashboard } from '@/features/schemeManagement/mockGiftRules'
 
 type GiftRulesDashboard = typeof giftRulesDashboard & { currentActiveScheme: string }
 

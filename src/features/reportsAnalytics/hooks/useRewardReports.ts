@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { rewardReportsService } from '@/features/reportsAnalytics/services/rewardReportsService'
 import type { RewardReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { rewardReportKpis } from '@/features/reports/mockRewardReports'
+import type { rewardReportKpis } from '@/features/reportsAnalytics/mockRewardReports'
 
 type RewardReportKpis = typeof rewardReportKpis
 

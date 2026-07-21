@@ -6,7 +6,7 @@ import {
   addFactoryBatch,
   buildNewBatchFromUpload,
   factoryUploadKpis,
-} from '@/features/inventory/mockFactoryUploads'
+} from '@/features/inventoryManagement/mockFactoryUploads'
 import type { FactoryBatch, BatchContainer, ContainerBox } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

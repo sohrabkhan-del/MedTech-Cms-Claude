@@ -12,7 +12,7 @@ import {
   formatRuleChangeDate,
   type RegionMultiplierMap,
   type RegionDateMap,
-} from '@/features/wallets/mockCoinRules'
+} from '@/features/rewardsWallet/mockCoinRules'
 import type { CoinValueRule } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

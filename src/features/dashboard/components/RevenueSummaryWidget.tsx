@@ -1,6 +1,6 @@
 import { Box, Grid, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
-import type { revenueSummary } from '@/features/dashboard/mocks/mockDashboardData'
+import type { revenueSummary } from '@/features/dashboard/mockDashboard'
 
 interface RevenueSummaryWidgetProps {
   revenueSummary: typeof revenueSummary

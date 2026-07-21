@@ -1,5 +1,5 @@
-import { mockRedemptionRequests, getRedemptionRequestById, redemptionKpis } from '@/features/wallets/mockRedemptions'
-import { giftCategoryOptions } from '@/features/schemes/mockGifts'
+import { mockRedemptionRequests, getRedemptionRequestById, redemptionKpis } from '@/features/rewardsWallet/mockRedemptions'
+import { giftCategoryOptions } from '@/features/schemeManagement/mockGifts'
 import type {
   RedemptionRequest,
   RedemptionStatus,

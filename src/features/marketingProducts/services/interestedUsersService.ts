@@ -1,5 +1,5 @@
-import { mockInterestedUsers, getInterestedUserById, interestedUserKpis } from '@/features/marketing/mockInterestedUsers'
-import { mrs } from '@/features/partners/mockPartnerData'
+import { mockInterestedUsers, getInterestedUserById, interestedUserKpis } from '@/features/marketingProducts/mockInterestedUsers'
+import { mrs } from '@/features/userManagement/mockPartnerData'
 import type { InterestedUserLead, LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

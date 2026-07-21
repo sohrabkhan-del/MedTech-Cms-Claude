@@ -3,7 +3,7 @@ import {
   getApprovalRequestById,
   approvalRequestKpis,
   rejectedRequestKpis,
-} from '@/features/verification/mockApprovalRequests'
+} from '@/features/userManagement/mockApprovalRequests'
 import type { ApprovalRequest, ApprovalStatus } from '@/features/userManagement/types/userManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

@@ -9,8 +9,8 @@ import {
   rewardTypeOptions,
   rewardFrequencyOptions,
   festivalOptions,
-} from '@/features/schemes/mockSchemes'
-import { mockGifts } from '@/features/schemes/mockGifts'
+} from '@/features/schemeManagement/mockSchemes'
+import { mockGifts } from '@/features/schemeManagement/mockGifts'
 import type { Scheme, SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
 
 // TODO: replace mock-backed implementations with apiClient calls once the

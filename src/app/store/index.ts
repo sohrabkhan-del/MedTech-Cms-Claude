@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { persistReducer, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist'
 import { authReducer } from '@/features/auth/slices/authSlice'
 import { authPersistConfig } from '@/app/store/persistConfig'
-import { chemistReducer } from '@/features/chemists/slices/chemistSlice'
+import { chemistReducer } from '@/features/userManagement/slices/chemistSlice'
 import { configureApiClientAuth } from '@/services/apiClient'
 import { logout, setCredentials } from '@/features/auth/slices/authSlice'
 

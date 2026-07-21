@@ -1,7 +1,7 @@
 import { useEffect, useReducer } from 'react'
 import { chemistReportsService } from '@/features/reportsAnalytics/services/chemistReportsService'
 import type { ChemistReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { chemistReportKpis } from '@/features/reports/mockChemistReports'
+import type { chemistReportKpis } from '@/features/reportsAnalytics/mockChemistReports'
 
 type ChemistReportKpis = typeof chemistReportKpis
 

@@ -56,6 +56,7 @@ export function MasterScanLogListPage() {
   const { logs, kpis, filterOptions } = useMasterScanLogs()
   const [view, setView] = useState<'table' | 'tree' | 'bubble'>('table')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [bubbleProducts, setBubbleProducts] = useState<string[]>([])
   const [appliedFilters, setAppliedFilters] = useState<ScanLogFilters>({
     product: 'all',
     batch: 'all',
@@ -220,13 +221,19 @@ export function MasterScanLogListPage() {
     })
   }, [filteredLogs, navigate])
 
+  const bubbleLogs = useMemo(
+    () => (bubbleProducts.length === 0 ? [] : filteredLogs.filter((log) => bubbleProducts.includes(log.productName))),
+    [filteredLogs, bubbleProducts],
+  )
+
   const bubbleNodes = useMemo<BubbleGraphNode[]>(() => {
     const productCounts = new Map<string, { label: string; count: number }>()
     const batchCounts = new Map<string, { label: string; count: number; productId: string }>()
     const distributorCounts = new Map<string, { label: string; count: number; batchId: string }>()
-    const partnerCounts = new Map<string, { label: string; count: number; distributorId: string; onClick: () => void }>()
+    const dealerCounts = new Map<string, { label: string; count: number; distributorId: string }>()
+    const chemistCounts = new Map<string, { label: string; count: number; parentId: string }>()
 
-    for (const log of filteredLogs) {
+    for (const log of bubbleLogs) {
       const productId = `p-${log.productName}`
       const productEntry = productCounts.get(productId)
       productCounts.set(productId, { label: log.productName, count: (productEntry?.count ?? 0) + 1 })
@@ -239,15 +246,23 @@ export function MasterScanLogListPage() {
       const distEntry = distributorCounts.get(distributorId)
       distributorCounts.set(distributorId, { label: log.distributor, count: (distEntry?.count ?? 0) + 1, batchId })
 
-      const partnerName = log.chemist ?? log.dealer ?? `Unassigned (${log.id})`
-      const partnerId = `x-${distributorId}::${partnerName}`
-      const partnerEntry = partnerCounts.get(partnerId)
-      partnerCounts.set(partnerId, {
-        label: partnerName,
-        count: (partnerEntry?.count ?? 0) + 1,
-        distributorId,
-        onClick: () => navigate(`/audit/master-scan-table-logs/${log.id}`),
-      })
+      // A record can carry both a dealer and a chemist — that means the dealer sold on to that chemist,
+      // so the chemist bubble nests under the dealer bubble instead of directly under the distributor.
+      if (log.dealer) {
+        const dealerId = `x-${distributorId}::${log.dealer}`
+        const dealerEntry = dealerCounts.get(dealerId)
+        dealerCounts.set(dealerId, { label: log.dealer, count: (dealerEntry?.count ?? 0) + 1, distributorId })
+
+        if (log.chemist) {
+          const chemistId = `c-${dealerId}::${log.chemist}`
+          const chemistEntry = chemistCounts.get(chemistId)
+          chemistCounts.set(chemistId, { label: log.chemist, count: (chemistEntry?.count ?? 0) + 1, parentId: dealerId })
+        }
+      } else if (log.chemist) {
+        const chemistId = `c-${distributorId}::${log.chemist}`
+        const chemistEntry = chemistCounts.get(chemistId)
+        chemistCounts.set(chemistId, { label: log.chemist, count: (chemistEntry?.count ?? 0) + 1, parentId: distributorId })
+      }
     }
 
     const nodes: BubbleGraphNode[] = []
@@ -260,12 +275,15 @@ export function MasterScanLogListPage() {
     for (const [id, entry] of distributorCounts) {
       nodes.push({ id, label: entry.label, value: entry.count, parentId: entry.batchId, color: '#1E9E5A' })
     }
-    for (const [id, entry] of partnerCounts) {
-      nodes.push({ id, label: entry.label, value: entry.count, parentId: entry.distributorId, color: '#8B5CF6', onClick: entry.onClick })
+    for (const [id, entry] of dealerCounts) {
+      nodes.push({ id, label: entry.label, value: entry.count, parentId: entry.distributorId, color: '#8B5CF6' })
+    }
+    for (const [id, entry] of chemistCounts) {
+      nodes.push({ id, label: entry.label, value: entry.count, parentId: entry.parentId, color: '#E5484D' })
     }
 
     return nodes
-  }, [filteredLogs, navigate])
+  }, [bubbleLogs])
 
   return (
     <>
@@ -342,13 +360,37 @@ export function MasterScanLogListPage() {
         </SectionCard>
       ) : (
         <SectionCard title="Product Journey — Bubble Map">
-          {bubbleNodes.length === 0 ? (
+          <TextField
+            select
+            label="Select Product(s)"
+            size="small"
+            slotProps={{ select: { multiple: true, renderValue: (selected) => (selected as string[]).join(', ') } }}
+            value={bubbleProducts}
+            onChange={(e) => {
+              const value = e.target.value
+              setBubbleProducts(typeof value === 'string' ? value.split(',') : (value as string[]))
+            }}
+            sx={{ minWidth: 280, mb: 2 }}
+          >
+            {options.productOptions.map((p) => (
+              <MenuItem key={p} value={p}>
+                {p}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          {bubbleProducts.length === 0 ? (
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>
+              Select one or more products above to visualize their journey.
+            </Typography>
+          ) : bubbleNodes.length === 0 ? (
             <Typography sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>No records match the applied filters.</Typography>
           ) : (
             <>
               <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem', mb: 1.5 }}>
-                Bubble size reflects record count at each level — Product → Batch → Distributor → Dealer/Chemist. Click an
-                outer bubble to open its scan record.
+                Bubble size reflects record count at each level — Product → Batch → Distributor → Dealer → Chemist (chemist
+                nests under the dealer that supplied it, or directly under the distributor if sold without a dealer). Click a
+                bubble to expand or collapse it.
               </Typography>
               <BubbleGraph nodes={bubbleNodes} height={520} />
             </>

@@ -8,7 +8,6 @@ export interface BubbleGraphNode {
   value?: number
   color?: string
   parentId?: string | null
-  onClick?: () => void
 }
 
 interface BubbleGraphProps {
@@ -59,7 +58,13 @@ function hasChildren(nodes: BubbleGraphNode[], id: string): boolean {
 export function BubbleGraph({ nodes, height = 520, minSize = 28, maxSize = 90 }: BubbleGraphProps) {
   const depthMap = useMemo(() => buildDepthMap(nodes), [nodes])
   const rootIds = useMemo(() => nodes.filter((n) => !n.parentId).map((n) => n.id), [nodes])
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set())
+  const defaultCollapsed = useMemo(() => new Set(nodes.filter((n) => hasChildren(nodes, n.id)).map((n) => n.id)), [nodes])
+  const [collapsed, setCollapsed] = useState<Set<string>>(defaultCollapsed)
+  const [prevNodes, setPrevNodes] = useState(nodes)
+  if (nodes !== prevNodes) {
+    setPrevNodes(nodes)
+    setCollapsed(defaultCollapsed)
+  }
 
   const maxValue = useMemo(() => Math.max(1, ...nodes.map((n) => n.value ?? 1)), [nodes])
 
@@ -111,9 +116,8 @@ export function BubbleGraph({ nodes, height = 520, minSize = 28, maxSize = 90 }:
         formatter: (params: { data?: { id?: string } }) => {
           const node = nodes.find((n) => n.id === params.data?.id)
           if (!node) return ''
-          const clickable = node.onClick ? '<br/><em>Click to view record</em>' : ''
           const expandable = hasChildren(nodes, node.id) ? '<br/><em>Click to expand / collapse</em>' : ''
-          return `<strong>${node.label}</strong>${node.value !== undefined ? `<br/>Records: ${node.value}` : ''}${clickable}${expandable}`
+          return `<strong>${node.label}</strong>${node.value !== undefined ? `<br/>Records: ${node.value}` : ''}${expandable}`
         },
       },
       series: [
@@ -151,16 +155,14 @@ export function BubbleGraph({ nodes, height = 520, minSize = 28, maxSize = 90 }:
       const node = nodes.find((n) => n.id === id)
       if (!node) return
 
-      if (hasChildren(nodes, id)) {
-        setCollapsed((prev) => {
-          const next = new Set(prev)
-          if (next.has(id)) next.delete(id)
-          else next.add(id)
-          return next
-        })
-        return
-      }
-      node.onClick?.()
+      if (!hasChildren(nodes, id)) return
+
+      setCollapsed((prev) => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      })
     },
     [nodes],
   )
@@ -184,8 +186,7 @@ export function BubbleGraph({ nodes, height = 520, minSize = 28, maxSize = 90 }:
       />
       {rootIds.length > 0 && (
         <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem', mt: 1 }}>
-          Drag bubbles to rearrange · click a bubble with children to expand or collapse it · click a leaf bubble to open
-          its record.
+          Drag bubbles to rearrange · click a bubble to expand or collapse its children.
         </Typography>
       )}
     </Box>

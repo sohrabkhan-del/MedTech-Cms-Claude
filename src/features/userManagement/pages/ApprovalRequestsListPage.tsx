@@ -72,10 +72,9 @@ export function ApprovalRequestsListPage() {
   }
 
   const columns: CommonTableColumn<ApprovalRequest>[] = [
-    { key: 'id', header: 'Approval Request ID', minWidth: 150, render: (row) => row.id },
     {
       key: 'applicantName',
-      header: 'Applicant Name',
+      header: 'Partner Name',
       minWidth: 170,
       sortable: true,
       render: (row) => (
@@ -87,7 +86,7 @@ export function ApprovalRequestsListPage() {
         </Typography>
       ),
     },
-    { key: 'requestType', header: 'Request Type', sortable: true, render: (row) => row.requestType },
+    { key: 'requestType', header: 'Partner Type', sortable: true, render: (row) => row.requestType },
     { key: 'city', header: 'City', sortable: true, render: (row) => row.city },
     { key: 'region', header: 'Region', sortable: true, render: (row) => row.region },
     { key: 'submittedDate', header: 'Submitted Date', minWidth: 140, render: (row) => row.submittedDate },
@@ -123,7 +122,7 @@ export function ApprovalRequestsListPage() {
         rows={filteredRequests}
         getRowId={(row) => row.id}
         searchPlaceholder="Search requests…"
-        searchKeys={(row) => `${row.applicantName} ${row.id} ${row.city} ${row.requestType}`}
+        searchKeys={(row) => `${row.applicantName} ${row.city} ${row.requestType}`}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +

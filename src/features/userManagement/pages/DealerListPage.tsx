@@ -10,9 +10,9 @@ import {
 } from '@mui/material'
 import {
   Store as StorefrontIcon,
-  ShoppingCart as ShoppingCartOutlinedIcon,
+  CheckCircle2 as ActiveDealerIcon,
+  XCircle as InactiveDealerIcon,
   ClipboardClock as PendingActionsOutlinedIcon,
-  Truck as LocalShippingOutlinedIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
@@ -51,7 +51,12 @@ export function DealerListPage() {
 
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
 
-  const dealerKpis = kpis ?? { dealerAccounts: 0, activeOrders: 0, pendingKyc: 0, liveDeliveries: 0 }
+  const dealerKpis = kpis ?? {
+    totalDealers: 0,
+    activeDealers: 0,
+    inactiveDealers: 0,
+    pendingApproval: 0,
+  }
 
   const filteredDealers = dealers.filter((dealer) => {
     const regionMatch = !regionZone || dealer.zone === regionZone
@@ -157,34 +162,34 @@ export function DealerListPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Dealer Accounts"
-            value={dealerKpis.dealerAccounts}
+            label="Total Dealer"
+            value={dealerKpis.totalDealers}
             icon={<StorefrontIcon size={20} />}
             iconColor="primary"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Active Orders"
-            value={dealerKpis.activeOrders}
-            icon={<ShoppingCartOutlinedIcon size={20} />}
-            iconColor="secondary"
+            label="Active Dealer"
+            value={dealerKpis.activeDealers}
+            icon={<ActiveDealerIcon size={20} />}
+            iconColor="success"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Pending KYC"
-            value={dealerKpis.pendingKyc}
+            label="Inactive Dealer"
+            value={dealerKpis.inactiveDealers}
+            icon={<InactiveDealerIcon size={20} />}
+            iconColor="error"
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            label="Pending Approval"
+            value={dealerKpis.pendingApproval}
             icon={<PendingActionsOutlinedIcon size={20} />}
             iconColor="warning"
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Live Deliveries"
-            value={dealerKpis.liveDeliveries}
-            icon={<LocalShippingOutlinedIcon size={20} />}
-            iconColor="success"
           />
         </Grid>
       </Grid>
@@ -193,6 +198,7 @@ export function DealerListPage() {
         tableKey="dealers-list"
         columns={columns}
         rows={filteredDealers}
+        loading
         getRowId={(row) => row.id}
         searchPlaceholder="Search dealers…"
         searchKeys={(row) =>

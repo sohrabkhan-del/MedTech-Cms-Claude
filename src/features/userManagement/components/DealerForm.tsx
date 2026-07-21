@@ -111,16 +111,26 @@ export function DealerForm({ control, mrOptions }: DealerFormProps) {
       </Card>
 
       <Card sx={{ p: 3, mb: 3 }}>
-        <Typography sx={sectionTitleSx}>Geo-fence &amp; Scanning Buffer</Typography>
+        <Typography sx={sectionTitleSx}>Scanning Range</Typography>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
           <Button variant="contained" startIcon={<MapOutlinedIcon size={20} />} sx={{ fontSize: '0.75rem' }} onClick={() => {}}>
             Mark Fence on Map
           </Button>
           <Chip label="No fence marked yet" size="small" variant="outlined" />
         </Stack>
-        <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2.5 }}>
           Mark the godown boundary and set the buffer distance within which scans will be accepted.
         </Typography>
+        <Grid container spacing={2.5}>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <FieldLabel required>Scan Radius</FieldLabel>
+            <FormField name="scanRadius" control={control} placeholder="e.g. 200" {...fieldLabelProps} />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6 }}>
+            <FieldLabel required>Buffer Radius (in meters)</FieldLabel>
+            <FormField name="bufferRadius" control={control} placeholder="e.g. 50" {...fieldLabelProps} />
+          </Grid>
+        </Grid>
       </Card>
 
       <Card sx={{ p: 3, mb: 3 }}>

@@ -34,8 +34,8 @@ async function getFactoryUploadKpis() {
 }
 
 /** Same shape used for both "Factory Inventory Upload" and "Delivery Upload" flows. */
-async function uploadFile(file: File): Promise<FactoryBatch> {
-  const batch = buildNewBatchFromUpload(file.name)
+async function uploadFile(manifestFile: File, supportingFile: File): Promise<FactoryBatch> {
+  const batch = buildNewBatchFromUpload(`${manifestFile.name}+${supportingFile.name}`)
   addFactoryBatch(batch)
   return Promise.resolve(batch)
 }

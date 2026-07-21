@@ -5,18 +5,15 @@ export type ScanUserRole = 'Dealer' | 'Chemist'
 export type ScanResult =
   | 'success'
   | 'failed_outside_geofence'
-  | 'failed_duplicate_barcode'
-  | 'failed_invalid_barcode'
-  | 'failed_expired_package'
-  | 'failed_already_redeemed'
+  | 'failed_duplicate_scan'
+  | 'failed_invalid_code'
 
 export interface ScanValidationDetails {
-  barcodeValidation: 'passed' | 'failed'
+  codeValidation: 'passed' | 'failed'
   duplicateScanCheck: 'passed' | 'failed'
   geoFenceValidation: 'passed' | 'failed'
   productEligibility: 'passed' | 'failed'
   rewardEligibility: 'passed' | 'failed'
-  packageStatus: 'valid' | 'expired'
 }
 
 export interface ScanGeoLocation {
@@ -40,8 +37,9 @@ export interface ScanEvent {
   userName: string
   userRole: ScanUserRole
   businessName: string
-  barcodeNumber: string
+  scanCode: string
   productName: string
+  productCode: string
   batchNumber: string
   region: PartnerZone
   result: ScanResult

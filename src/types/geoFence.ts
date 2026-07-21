@@ -41,6 +41,8 @@ export interface GeoFenceAuditEntry {
 export interface GeoFence {
   id: string
   userName: string
+  businessName: string
+  businessAddress: string
   userType: GeoFenceUserType
   linkedUserId?: string
   region: PartnerZone

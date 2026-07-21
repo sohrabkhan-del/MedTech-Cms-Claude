@@ -1,15 +1,16 @@
 export type ProductStatus = 'active' | 'inactive'
 export type RewardConfigStatus = 'configured' | 'pending'
+export type MovementScannedStatus = 'pending' | 'completed'
 
 export interface ProductMovementEntry {
   id: string
   factoryUploadBatch: string
-  containerNumber: string
   quantityUploaded: number
-  assignedDealer: string
-  assignedChemist: string
-  scanCount: number
-  currentStatus: ProductStatus
+  startSerialNo: string
+  endSerialNo: string
+  containerStartSerialNo: string
+  containerEndSerialNo: string
+  scannedStatus: MovementScannedStatus
 }
 
 export interface ProductAuditEntry {
@@ -61,6 +62,8 @@ export interface Product {
   totalDealerAllocations: number
   totalChemistAllocations: number
   totalRewardPointsIssued: number
+  totalSecurityAlerts: number
+  totalShownInterest: number
 
   movementHistory: ProductMovementEntry[]
   auditHistory: ProductAuditEntry[]

@@ -19,19 +19,22 @@ import { getProductReportById } from '@/features/reports/mockProductReports'
 import type { ProductMovementEntry } from '@/types/product'
 
 const scanHistoryColumns: CommonTableColumn<ProductMovementEntry>[] = [
-  { key: 'factoryUploadBatch', header: 'Batch', sortable: true, render: (row) => row.factoryUploadBatch },
-  { key: 'containerNumber', header: 'Container Number', render: (row) => row.containerNumber },
-  { key: 'assignedDealer', header: 'Assigned Dealer', render: (row) => row.assignedDealer },
-  { key: 'assignedChemist', header: 'Assigned Chemist', render: (row) => row.assignedChemist },
+  { key: 'factoryUploadBatch', header: 'Batch Number', sortable: true, render: (row) => row.factoryUploadBatch },
   {
-    key: 'scanCount',
-    header: 'Scan Count',
+    key: 'quantityUploaded',
+    header: 'Quantity',
     align: 'right',
     sortable: true,
-    sortValue: (row) => row.scanCount,
-    render: (row) => row.scanCount.toLocaleString('en-IN'),
+    sortValue: (row) => row.quantityUploaded,
+    render: (row) => row.quantityUploaded.toLocaleString('en-IN'),
   },
-  { key: 'currentStatus', header: 'Status', render: (row) => <StatusBadge status={row.currentStatus} /> },
+  { key: 'startSerialNo', header: 'Start Serial No', render: (row) => row.startSerialNo },
+  { key: 'endSerialNo', header: 'End Serial No', render: (row) => row.endSerialNo },
+  {
+    key: 'scannedStatus',
+    header: 'Scanned Status',
+    render: (row) => (row.scannedStatus === 'completed' ? 'Completed' : 'Pending'),
+  },
 ]
 
 export function ProductReportDetailsPage() {
@@ -50,7 +53,6 @@ export function ProductReportDetailsPage() {
     )
   }
 
-  const totalScansFromMovement = report.movementHistory.reduce((sum, entry) => sum + entry.scanCount, 0)
   const avgRewardPerScan = report.totalScans > 0 ? (report.rewardPoints / report.totalScans).toFixed(2) : '0'
   const scanConversionRate = report.totalQrCodesGenerated > 0 ? ((report.totalScans / report.totalQrCodesGenerated) * 100).toFixed(1) : '0'
 
@@ -120,8 +122,8 @@ export function ProductReportDetailsPage() {
             rows={report.movementHistory}
             getRowId={(row) => row.id}
             searchPlaceholder="Search scan history…"
-            searchKeys={(row) => `${row.factoryUploadBatch} ${row.containerNumber} ${row.assignedDealer} ${row.assignedChemist}`}
-            defaultSortBy="scanCount"
+            searchKeys={(row) => `${row.factoryUploadBatch} ${row.startSerialNo} ${row.endSerialNo}`}
+            defaultSortBy="quantityUploaded"
             defaultSortDir="desc"
             emptyTitle="No scan history yet"
           />
@@ -144,7 +146,7 @@ export function ProductReportDetailsPage() {
               { label: 'Total Factory Uploads', value: report.totalFactoryUploads },
               { label: 'Total Dealer Allocations', value: report.totalDealerAllocations },
               { label: 'Total Chemist Allocations', value: report.totalChemistAllocations },
-              { label: 'Total Successful Scans', value: totalScansFromMovement.toLocaleString('en-IN') },
+              { label: 'Total Successful Scans', value: report.totalScans.toLocaleString('en-IN') },
             ]}
           />
         </SectionCard>

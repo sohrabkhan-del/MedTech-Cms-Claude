@@ -7,9 +7,9 @@ import {
   CircleCheck as CheckCircleOutlined,
   Ban as BlockOutlined,
   Trash2 as DeleteOutlined,
-  Factory as FactoryOutlined,
-  QrCode as QrCode2Outlined,
   Trophy as EmojiEventsOutlined,
+  ShieldAlert as ShieldAlertOutlined,
+  Users as UsersOutlined,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
@@ -23,20 +23,26 @@ import { useProductDetail } from '@/features/inventoryManagement/hooks/useProduc
 import type { ProductAuditEntry, ProductMovementEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 const movementColumns: CommonTableColumn<ProductMovementEntry>[] = [
-  { key: 'factoryUploadBatch', header: 'Factory Upload Batch', sortable: true, render: (row) => row.factoryUploadBatch },
-  { key: 'containerNumber', header: 'Container Number', render: (row) => row.containerNumber },
+  { key: 'factoryUploadBatch', header: 'Batch Number', sortable: true, render: (row) => row.factoryUploadBatch },
   {
     key: 'quantityUploaded',
-    header: 'Quantity Uploaded',
+    header: 'Quantity',
     align: 'right',
     sortable: true,
     sortValue: (row) => row.quantityUploaded,
     render: (row) => row.quantityUploaded.toLocaleString('en-IN'),
   },
-  { key: 'assignedDealer', header: 'Assigned Dealer', render: (row) => row.assignedDealer },
-  { key: 'assignedChemist', header: 'Assigned Chemist', render: (row) => row.assignedChemist },
-  { key: 'scanCount', header: 'Scan Count', align: 'right', sortable: true, sortValue: (row) => row.scanCount, render: (row) => row.scanCount.toLocaleString('en-IN') },
-  { key: 'currentStatus', header: 'Current Product Status', render: (row) => <StatusBadge status={row.currentStatus} /> },
+  { key: 'startSerialNo', header: 'Start Serial No', render: (row) => row.startSerialNo },
+  { key: 'endSerialNo', header: 'End Serial No', render: (row) => row.endSerialNo },
+  { key: 'containerStartSerialNo', header: 'Container Start Serial No', render: (row) => row.containerStartSerialNo },
+  { key: 'containerEndSerialNo', header: 'Container End Serial No', render: (row) => row.containerEndSerialNo },
+  {
+    key: 'scannedStatus',
+    header: 'Scanned Status',
+    sortable: true,
+    sortValue: (row) => row.scannedStatus,
+    render: (row) => (row.scannedStatus === 'completed' ? 'Completed' : 'Pending'),
+  },
 ]
 
 const auditColumns: CommonTableColumn<ProductAuditEntry>[] = [
@@ -127,24 +133,22 @@ export function ProductDetailsPage() {
               { label: 'Product Name', value: product.productName },
               { label: 'Product Category', value: product.productCategory },
               { label: 'Status', value: <StatusBadge status={product.status} /> },
-              { label: 'Dealer Reward Points', value: product.dealerRewardPoints },
-              { label: 'Chemist Reward Points', value: product.chemistRewardPoints },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Factory Uploads" value={product.totalFactoryUploads} icon={<FactoryOutlined size={20} />} iconColor="primary" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total QR Codes Generated" value={product.totalQrCodesGenerated.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             <StatCard label="Total Successful Scans" value={product.totalSuccessfulScans.toLocaleString('en-IN')} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             <StatCard label="Total Reward Points Issued" value={product.totalRewardPointsIssued.toLocaleString('en-IN')} icon={<EmojiEventsOutlined size={20} />} iconColor="warning" />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard label="Security Alert Count" value={product.totalSecurityAlerts} icon={<ShieldAlertOutlined size={20} />} iconColor="error" />
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            <StatCard label="Total Shown Interest" value={product.totalShownInterest} icon={<UsersOutlined size={20} />} iconColor="secondary" />
           </Grid>
         </Grid>
 
@@ -171,7 +175,6 @@ export function ProductDetailsPage() {
                   <DetailFieldGrid
                     fields={[
                       { label: 'SKU', value: product.sku },
-                      { label: 'Brand', value: product.brand },
                       { label: 'MRP', value: `₹${product.mrp.toLocaleString('en-IN')}` },
                       { label: 'Product Status', value: <StatusBadge status={product.status} /> },
                       { label: 'Created Date', value: product.createdDate },
@@ -197,12 +200,8 @@ export function ProductDetailsPage() {
         <SectionCard title="Product Usage Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Total Factory Uploads', value: product.totalFactoryUploads },
-              { label: 'Total QR Codes Generated', value: product.totalQrCodesGenerated.toLocaleString('en-IN') },
-              { label: 'Total Successful Scans', value: product.totalSuccessfulScans.toLocaleString('en-IN') },
               { label: 'Total Dealer Allocations', value: product.totalDealerAllocations },
               { label: 'Total Chemist Allocations', value: product.totalChemistAllocations },
-              { label: 'Total Reward Points Issued', value: product.totalRewardPointsIssued.toLocaleString('en-IN') },
             ]}
           />
         </SectionCard>
@@ -214,7 +213,7 @@ export function ProductDetailsPage() {
             rows={product.movementHistory}
             getRowId={(row) => row.id}
             searchPlaceholder="Search movement history…"
-            searchKeys={(row) => `${row.factoryUploadBatch} ${row.containerNumber} ${row.assignedDealer} ${row.assignedChemist}`}
+            searchKeys={(row) => `${row.factoryUploadBatch} ${row.startSerialNo} ${row.endSerialNo}`}
             emptyTitle="No movement history yet"
           />
         </SectionCard>

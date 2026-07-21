@@ -8,6 +8,7 @@ import type {
   RequestDocument,
   RequestTimelineEntry,
 } from '@/types/approvalRequest'
+import type { OnboardedBy } from '@/types/partner'
 import { mockDealers } from '@/features/dealers/mockDealers'
 import { mockChemists } from '@/features/chemists/mockChemists'
 import { mrs } from '@/features/partners/mockPartnerData'
@@ -45,6 +46,11 @@ function resolveStatus(seed: number): ApprovalStatus {
 
 function resolveRegisteredBy(seed: number): RegisteredBy {
   const options: RegisteredBy[] = ['Self', 'MR', 'Admin']
+  return options[seed % options.length]!
+}
+
+function resolveOnboardedType(seed: number): OnboardedBy {
+  const options: OnboardedBy[] = ['Self', 'MR']
   return options[seed % options.length]!
 }
 
@@ -99,6 +105,7 @@ function buildRequest(seed: number): ApprovalRequest {
   const rejectionReason = status === 'rejected' ? rejectionReasons[seed % rejectionReasons.length]! : undefined
 
   const id = `AR-${1000 + seed}`
+  const onboardedType = resolveOnboardedType(seed)
 
   return {
     id,
@@ -109,6 +116,8 @@ function buildRequest(seed: number): ApprovalRequest {
     region: partner.zone,
     submittedDate: dateFromSeed(seed),
     registeredBy: resolveRegisteredBy(seed),
+    onboardedType,
+    onboardedBy: onboardedType === 'MR' ? mrs[seed % mrs.length]! : partner.ownerName,
 
     storeName: partner.shopName,
     ownerName: partner.ownerName,

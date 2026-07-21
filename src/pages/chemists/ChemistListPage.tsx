@@ -11,9 +11,9 @@ import {
 } from '@mui/material'
 import {
   Pill as LocalPharmacyIcon,
-  Boxes as InventoryOutlinedIcon,
-  Megaphone as CampaignOutlinedIcon,
-  ShoppingBasket as ShoppingBasketOutlinedIcon,
+  CheckCircle2 as ActiveChemistIcon,
+  XCircle as InactiveChemistIcon,
+  ClipboardClock as PendingActionsOutlinedIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
@@ -54,10 +54,10 @@ export function ChemistListPage() {
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
 
   const chemistKpis = kpis ?? {
-    chemistNetwork: 0,
-    stockRefill: 0,
-    pendingOutreach: 0,
-    averageBasket: 0,
+    totalChemists: 0,
+    activeChemists: 0,
+    inactiveChemists: 0,
+    pendingApproval: 0,
   }
 
   const filteredChemists = chemists.filter((chemist) => {
@@ -178,54 +178,34 @@ export function ChemistListPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Chemist Network"
-            value={chemistKpis.chemistNetwork}
+            label="Total Chemist"
+            value={chemistKpis.totalChemists}
             icon={<LocalPharmacyIcon size={20} />}
             iconColor="primary"
-            trend={{
-              direction: 'up',
-              value: '+4.2%',
-              caption: 'vs last period',
-            }}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Stock Refill"
-            value={chemistKpis.stockRefill}
-            icon={<InventoryOutlinedIcon size={20} />}
-            iconColor="secondary"
-            trend={{
-              direction: 'up',
-              value: '+1.8%',
-              caption: 'vs last period',
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Pending Outreach"
-            value={chemistKpis.pendingOutreach}
-            icon={<CampaignOutlinedIcon size={20} />}
-            iconColor="warning"
-            trend={{
-              direction: 'down',
-              value: '-2.1%',
-              caption: 'vs last period',
-            }}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Average Basket"
-            value={`₹${chemistKpis.averageBasket.toLocaleString('en-IN')}`}
-            icon={<ShoppingBasketOutlinedIcon size={20} />}
+            label="Active Chemist"
+            value={chemistKpis.activeChemists}
+            icon={<ActiveChemistIcon size={20} />}
             iconColor="success"
-            trend={{
-              direction: 'up',
-              value: '+6.5%',
-              caption: 'vs last period',
-            }}
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            label="Inactive Chemist"
+            value={chemistKpis.inactiveChemists}
+            icon={<InactiveChemistIcon size={20} />}
+            iconColor="error"
+          />
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <StatCard
+            label="Pending Approval"
+            value={chemistKpis.pendingApproval}
+            icon={<PendingActionsOutlinedIcon size={20} />}
+            iconColor="warning"
           />
         </Grid>
       </Grid>

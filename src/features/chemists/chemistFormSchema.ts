@@ -11,6 +11,8 @@ export const chemistFormSchema = z.object({
   registeredAddress: z.string().min(5, 'Shop address is required'),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+  scanRadius: z.string().optional(),
+  bufferRadius: z.string().optional(),
   assignedMr: z.string().optional(),
   notes: z.string().optional(),
 })
@@ -28,6 +30,8 @@ export const chemistFormDefaults: ChemistFormValues = {
   registeredAddress: '',
   latitude: '',
   longitude: '',
+  scanRadius: '',
+  bufferRadius: '',
   assignedMr: '',
   notes: '',
 }

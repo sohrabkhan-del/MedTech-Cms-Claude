@@ -113,6 +113,7 @@ export function GeoFenceDetailsPage() {
             fields={[
               { label: 'ID', value: fence.id },
               { label: 'User Name', value: fence.userName },
+              { label: 'Business Name', value: fence.businessName },
               { label: 'User Type', value: fence.userType },
               { label: 'Region', value: fence.region },
               { label: 'Radius', value: `${fence.radiusMeters} m` },
@@ -140,6 +141,8 @@ export function GeoFenceDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'User Name', value: fence.userName },
+              { label: 'Business Name', value: fence.businessName },
+              { label: 'Business Address', value: fence.businessAddress },
               { label: 'User Type', value: fence.userType },
               { label: 'Region', value: fence.region },
               { label: 'Zone', value: fence.zone },

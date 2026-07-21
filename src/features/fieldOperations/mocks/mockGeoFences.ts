@@ -19,6 +19,8 @@ const verifiers = ['Rohan Kapoor', 'Neha Joshi', 'Sanjay Iyer', 'Kavita Reddy', 
 interface FenceUser {
   id: string
   name: string
+  businessName: string
+  businessAddress: string
   userType: GeoFenceUserType
   linkedUserId?: string
   latitude: number
@@ -32,7 +34,9 @@ interface FenceUser {
 const fenceUsers: FenceUser[] = [
   ...mockDealers.map((dealer) => ({
     id: dealer.id,
-    name: dealer.shopName,
+    name: dealer.ownerName,
+    businessName: dealer.shopName,
+    businessAddress: dealer.registeredAddress,
     userType: 'Dealer' as const,
     linkedUserId: dealer.id,
     latitude: dealer.geoLock.latitude,
@@ -44,7 +48,9 @@ const fenceUsers: FenceUser[] = [
   })),
   ...mockChemists.map((chemist) => ({
     id: chemist.id,
-    name: chemist.shopName,
+    name: chemist.ownerName,
+    businessName: chemist.shopName,
+    businessAddress: chemist.registeredAddress,
     userType: 'Chemist' as const,
     linkedUserId: chemist.id,
     latitude: chemist.geoLock.latitude,
@@ -57,6 +63,8 @@ const fenceUsers: FenceUser[] = [
   ...mrs.map((mr, index) => ({
     id: `mr-${index + 1}`,
     name: mr,
+    businessName: 'Field Operations',
+    businessAddress: 'Not applicable',
     userType: 'MR' as const,
     latitude: 19 + ((index * 37) % 900) / 100,
     longitude: 72 + ((index * 53) % 900) / 100,
@@ -134,6 +142,8 @@ function buildFence(seed: number): GeoFence {
   return {
     id: `fence-${seed}`,
     userName: user.name,
+    businessName: user.businessName,
+    businessAddress: user.businessAddress,
     userType: user.userType,
     linkedUserId: user.linkedUserId,
     region: user.zone,

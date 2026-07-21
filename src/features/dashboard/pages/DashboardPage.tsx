@@ -1,7 +1,15 @@
 import { Grid } from '@mui/material'
-import { ScanLine, Trophy, Wallet, ClipboardClock } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import {
+  ScanLine,
+  Trophy,
+  Wallet,
+  ClipboardClock,
+  LayoutDashboard,
+} from 'lucide-react'
 import { WelcomeBanner } from '@/components/common/WelcomeBanner/WelcomeBanner'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { ScanActivityChart } from '@/features/dashboard/components/ScanActivityChart'
 import { SchemePerformanceChart } from '@/features/dashboard/components/SchemePerformanceChart'
 import { ActivityTimelineWidget } from '@/features/dashboard/components/ActivityTimelineWidget'
@@ -16,6 +24,13 @@ import { useDashboardOverview } from '@/features/dashboard/hooks/useDashboardOve
 import { useDashboardWidgetsData } from '@/features/dashboard/hooks/useDashboardWidgetsData'
 
 export function DashboardPage() {
+  const navigate = useNavigate()
+  useRegionTopbarHeader({
+    icon: <LayoutDashboard size={20} />,
+    title: 'Dashboard',
+    subtitle:
+      'Real-time overview of scans, rewards, and schemes across the network.',
+  })
   const { overview } = useDashboardOverview()
   const { data: widgets } = useDashboardWidgetsData()
 
@@ -35,6 +50,8 @@ export function DashboardPage() {
         userName="Suryakant"
         statValue="1,284"
         statLabel="Scans today"
+        onPrimaryAction={() => navigate('/reports/scan-reports')}
+        onSecondaryAction={() => navigate('/inventory/factory-inventory-upload/new')}
       />
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -53,7 +70,7 @@ export function DashboardPage() {
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Scheme Progress"
+            label="Interest Activity "
             value="54%"
             icon={<Trophy size={20} />}
             iconColor="secondary"
@@ -94,22 +111,30 @@ export function DashboardPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, lg: 8 }}>
-          <ScanActivityChart scanActivityTrend={widgets?.scanActivityTrend ?? []} />
+          <ScanActivityChart
+            scanActivityTrend={widgets?.scanActivityTrend ?? []}
+          />
         </Grid>
         <Grid size={{ xs: 12, lg: 4 }}>
-          <SchemePerformanceChart schemePerformance={widgets?.schemePerformance ?? []} />
+          <SchemePerformanceChart
+            schemePerformance={widgets?.schemePerformance ?? []}
+          />
         </Grid>
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <ActivityTimelineWidget activityTimeline={widgets?.activityTimeline ?? []} />
+          <ActivityTimelineWidget
+            activityTimeline={widgets?.activityTimeline ?? []}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           <RecentScansWidget recentScans={widgets?.recentScans ?? []} />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 4 }}>
-          <RewardProgressWidget schemePerformance={widgets?.schemePerformance ?? []} />
+          <RewardProgressWidget
+            schemePerformance={widgets?.schemePerformance ?? []}
+          />
         </Grid>
       </Grid>
 
@@ -139,7 +164,9 @@ export function DashboardPage() {
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          <RecentRedemptionsWidget recentRedemptions={widgets?.recentRedemptions ?? []} />
+          <RecentRedemptionsWidget
+            recentRedemptions={widgets?.recentRedemptions ?? []}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           <RevenueSummaryWidget revenueSummary={revenueSummary} />

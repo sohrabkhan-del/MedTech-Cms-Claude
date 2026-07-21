@@ -1,4 +1,4 @@
-import type { CoinRuleRegion, CoinValueRule, RegionCoinHistoryEntry, RegionMultiplierRow } from '@/types/coinRule'
+import type { CoinRulePartnerType, CoinRuleRegion, CoinValueRule, RegionCoinHistoryEntry, RegionMultiplierRow } from '@/types/coinRule'
 import { mockProducts } from '@/features/inventory/mockProducts'
 import { mrs } from '@/features/partners/mockPartnerData'
 
@@ -60,15 +60,16 @@ function buildRegionalHistory(seed: number, ruleId: string, rows: RegionMultipli
   }))
 }
 
-function buildCoinValueRule(seed: number): CoinValueRule {
+function buildCoinValueRule(seed: number, partnerType: CoinRulePartnerType): CoinValueRule {
   const product = mockProducts[seed % mockProducts.length]!
-  const id = `coin-rule-${seed}`
-  const baseCoinValue = seededNumber(seed, 10, 60)
+  const id = `coin-rule-${partnerType.toLowerCase()}-${seed}`
+  const baseCoinValue = seededNumber(partnerType === 'Dealer' ? seed : seed + 500, 10, 60)
   const regions = buildRegionRows(seed, baseCoinValue)
   const reviewer = mrs[seed % mrs.length]!
 
   return {
     id,
+    partnerType,
     modelCode: product.productCode,
     productCategory: product.productCategory,
     productName: product.productName,
@@ -83,10 +84,17 @@ function buildCoinValueRule(seed: number): CoinValueRule {
   }
 }
 
-export const mockCoinValueRules: CoinValueRule[] = mockProducts.slice(0, 30).map((_, index) => buildCoinValueRule(index + 1))
+export const mockCoinValueRules: CoinValueRule[] = [
+  ...mockProducts.slice(0, 30).map((_, index) => buildCoinValueRule(index + 1, 'Dealer')),
+  ...mockProducts.slice(0, 30).map((_, index) => buildCoinValueRule(index + 1, 'Chemist')),
+]
 
 export function getCoinValueRuleById(id: string): CoinValueRule | undefined {
   return mockCoinValueRules.find((rule) => rule.id === id)
+}
+
+export function getCoinValueRulesByPartnerType(partnerType: CoinRulePartnerType): CoinValueRule[] {
+  return mockCoinValueRules.filter((rule) => rule.partnerType === partnerType)
 }
 
 export function highestCurrentPoints(rule: CoinValueRule): number {

@@ -25,6 +25,7 @@ export type {
 } from '@/types/redemption'
 export type {
   CoinRuleRegion,
+  CoinRulePartnerType,
   RegionCoinHistoryEntry,
   RegionMultiplierRow,
   CoinValueRule,

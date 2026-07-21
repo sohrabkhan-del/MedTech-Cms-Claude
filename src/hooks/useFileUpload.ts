@@ -1,7 +1,7 @@
 import { useState } from 'react'
 
 interface UseFileUploadOptions<T> {
-  upload: (file: File) => Promise<T>
+  upload: (manifestFile: File, supportingFile: File) => Promise<T>
 }
 
 /** Shared upload-flow state for file-driven flows (factory inventory upload, delivery upload, etc). */
@@ -10,12 +10,12 @@ export function useFileUpload<T>({ upload }: UseFileUploadOptions<T>) {
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<T | null>(null)
 
-  async function uploadFile(file: File) {
+  async function uploadFiles(manifestFile: File, supportingFile: File) {
     setIsUploading(true)
     setError(null)
 
     try {
-      const uploaded = await upload(file)
+      const uploaded = await upload(manifestFile, supportingFile)
       setResult(uploaded)
       return uploaded
     } catch (err) {
@@ -26,5 +26,5 @@ export function useFileUpload<T>({ upload }: UseFileUploadOptions<T>) {
     }
   }
 
-  return { uploadFile, isUploading, error, result }
+  return { uploadFiles, isUploading, error, result }
 }

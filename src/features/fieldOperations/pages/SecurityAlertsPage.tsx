@@ -69,8 +69,28 @@ export function SecurityAlertsPage() {
 
   const columns: CommonTableColumn<SecurityAlert>[] = [
     {
+      key: 'userName',
+      header: 'User Name',
+      minWidth: 160,
+      sortable: true,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => openUser(row.userId)}
+        >
+          {row.userName}
+        </Typography>
+      ),
+    },
+    { key: 'userType', header: 'User Type', render: (row) => row.userType },
+    {
       key: 'affectedUserName',
-      header: 'Affected User',
+      header: 'Affected User Name',
       minWidth: 160,
       sortable: true,
       render: (row) => (
@@ -87,6 +107,7 @@ export function SecurityAlertsPage() {
         </Typography>
       ),
     },
+    { key: 'affectedUserType', header: 'Affected User Type', render: (row) => row.affectedUserType },
     {
       key: 'severity',
       header: 'Severity',
@@ -95,48 +116,17 @@ export function SecurityAlertsPage() {
       render: (row) => <SeverityChip severity={row.severity} />,
     },
     {
-      key: 'description',
-      header: 'Description',
-      minWidth: 200,
-      render: (row) => (
-        <Typography
-          noWrap
-          sx={{
-            fontSize: '0.8125rem',
-            maxWidth: 260,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-          title={row.description}
-        >
-          {row.description}
-        </Typography>
-      ),
-    },
-    { key: 'id', header: 'Alert ID', render: (row) => row.id },
-    {
       key: 'alertType',
       header: 'Alert Type',
       minWidth: 170,
       sortable: true,
       render: (row) => row.alertType,
     },
-    { key: 'userType', header: 'User Type', render: (row) => row.userType },
-    {
-      key: 'requestSource',
-      header: 'Request Source',
-      render: (row) => row.requestSource,
-    },
     {
       key: 'alertDateTime',
       header: 'Alert Date & Time',
       minWidth: 160,
       render: (row) => row.alertDateTime,
-    },
-    {
-      key: 'userStatus',
-      header: 'User Status',
-      render: (row) => <UserStatusChip status={row.userStatus} />,
     },
   ]
 
@@ -213,7 +203,7 @@ export function SecurityAlertsPage() {
             getRowId={(row) => row.id}
             searchPlaceholder="Search alerts…"
             searchKeys={(row) =>
-              `${row.affectedUserName} ${row.alertType} ${row.id}`
+              `${row.userName} ${row.affectedUserName} ${row.alertType} ${row.id}`
             }
             onFilterClick={() => setFilterOpen(true)}
             filterCount={
@@ -224,7 +214,11 @@ export function SecurityAlertsPage() {
             defaultSortBy="alertDateTime"
             actions={[
               {
-                label: 'View Details',
+                label: 'View User',
+                onClick: (row) => openUser(row.userId),
+              },
+              {
+                label: 'View Affected User',
                 onClick: (row) => openUser(row.affectedUserId),
               },
             ]}

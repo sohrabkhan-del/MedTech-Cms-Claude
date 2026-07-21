@@ -1,12 +1,47 @@
 import type { Product, ProductAuditEntry, ProductMovementEntry, ProductStatus, ProductTimelineEntry } from '@/types/product'
 import { mrs } from '@/features/partners/mockPartnerData'
 
-export const productCategoryOptions = ['Cardiac Care', 'Neuro Care', 'Immunity', 'Diabetes Care', 'Pain Relief']
+export const productCategoryOptions = [
+  'Nebulizers',
+  'Blood Pressure Monitors',
+  'Heating Pads',
+  'Massagers',
+  'Steam Inhalers',
+  'Digital Thermometers',
+  'Pulse Oximeters',
+  'Oxygen Concentrators',
+]
 
-const productNames = ['CardioCare', 'NeuroPlus', 'ImmunoBoost', 'GlucoBalance', 'PainRelief']
-const forms = ['10mg', '500mg', 'Syrup', 'Gel', '250mg']
+const productCatalog: Record<string, string[]> = {
+  Nebulizers: [
+    'Medtech Handyneb Classic',
+    'Medtech Handyneb Super',
+    'Medtech Handyneb Smart',
+    'Medtech Handyneb Gold',
+    'Medtech Travelite Nebulizer',
+    'Medtech Handyneb Plus',
+    'Medtech NEBU-KIT',
+  ],
+  'Blood Pressure Monitors': [
+    'Medtech BP09N Backlight',
+    'Medtech BP11',
+    'Medtech BP11 Backlight',
+    'Medtech BP12',
+    'Medtech BP12 Backlight',
+    'Medtech BP18',
+  ],
+  'Heating Pads': ['Medtech HandyPad HP-01', 'Medtech HandyPad HP-11'],
+  Massagers: ['Medtech Manipol Massager MPV 1', 'Medtech Gun Massager GMV1', 'Medtech Gun Massager GMV4'],
+  'Steam Inhalers': ['Medtech HandyVap 01', 'Medtech HandyVap 100'],
+  'Digital Thermometers': ['Medtech Handy TMP 02'],
+  'Pulse Oximeters': ['Medtech Oxyguard OG05'],
+  'Oxygen Concentrators': ['Medtech OXYTEC-SMART'],
+}
+
+const catalogEntries = Object.entries(productCatalog).flatMap(([category, names]) =>
+  names.map((name) => ({ name, category })),
+)
 const brands = ['MedTech Labs', 'Apollo Pharma', 'National Remedies', 'Sunrise Biotech']
-const dealerNames = ['Rahul Mehta', 'Priya Nair', 'Amit Verma', 'Sunita Rao', 'Vikram Singh']
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -27,17 +62,24 @@ function resolveStatus(seed: number): ProductStatus {
   return (seed * 3 + 1) % 5 === 0 ? 'inactive' : 'active'
 }
 
-function buildMovementHistory(seed: number, productId: string, status: ProductStatus): ProductMovementEntry[] {
-  return Array.from({ length: 3 }).map((_, i) => ({
-    id: `${productId}-movement-${i}`,
-    factoryUploadBatch: `BATCH-${2026000 + seed * 3 + i}`,
-    containerNumber: `CNT-${100000 + seed * 7 + i}`,
-    quantityUploaded: seededNumber(seed + i, 500, 5000),
-    assignedDealer: dealerNames[(seed + i) % dealerNames.length]!,
-    assignedChemist: dealerNames[(seed + i + 1) % dealerNames.length]!,
-    scanCount: seededNumber(seed + i, 50, 800),
-    currentStatus: status,
-  }))
+function buildMovementHistory(seed: number, productId: string): ProductMovementEntry[] {
+  return Array.from({ length: 3 }).map((_, i) => {
+    const quantity = seededNumber(seed + i, 500, 5000)
+    const startSerial = 100000 + seed * 7000 + i * 10000
+    const endSerial = startSerial + quantity - 1
+    const containerStartSerial = startSerial + 500
+    const containerEndSerial = containerStartSerial + Math.min(quantity, 1000) - 1
+    return {
+      id: `${productId}-movement-${i}`,
+      factoryUploadBatch: `BATCH-${2026000 + seed * 3 + i}`,
+      quantityUploaded: quantity,
+      startSerialNo: `SN-${startSerial}`,
+      endSerialNo: `SN-${endSerial}`,
+      containerStartSerialNo: `CSN-${containerStartSerial}`,
+      containerEndSerialNo: `CSN-${containerEndSerial}`,
+      scannedStatus: (seed + i) % 3 === 0 ? 'pending' : 'completed',
+    }
+  })
 }
 
 function buildAuditHistory(seed: number, productId: string): ProductAuditEntry[] {
@@ -77,7 +119,8 @@ function buildTimeline(seed: number, productId: string, status: ProductStatus): 
 
 function buildProduct(seed: number): Product {
   const id = `product-${seed}`
-  const name = `${productNames[seed % productNames.length]} ${forms[Math.floor(seed / productNames.length) % forms.length]}`
+  const entry = catalogEntries[seed % catalogEntries.length]!
+  const name = entry.name
   const status = resolveStatus(seed)
   const dealerRewardPoints = seededNumber(seed, 10, 40)
   const chemistRewardPoints = seededNumber(seed + 1, 15, 50)
@@ -86,11 +129,11 @@ function buildProduct(seed: number): Product {
     id,
     productName: name,
     productCode: `PC-${20260000 + seed * 11}`,
-    productCategory: productCategoryOptions[seed % productCategoryOptions.length]!,
+    productCategory: entry.category,
     status,
     uploadedDate: dateFromSeed(seed),
 
-    description: `${name} is used for effective treatment and management as recommended by healthcare professionals.`,
+    description: `${name} is a home healthcare device from the ${entry.category} range, designed for reliable everyday use.`,
     productImages: [
       `https://picsum.photos/seed/medtech-product-${seed}-a/600/600`,
       `https://picsum.photos/seed/medtech-product-${seed}-b/600/600`,
@@ -113,8 +156,10 @@ function buildProduct(seed: number): Product {
     totalDealerAllocations: seededNumber(seed + 3, 10, 100),
     totalChemistAllocations: seededNumber(seed + 4, 10, 100),
     totalRewardPointsIssued: seededNumber(seed + 5, 5000, 90000),
+    totalSecurityAlerts: seededNumber(seed + 6, 0, 15),
+    totalShownInterest: seededNumber(seed + 7, 0, 60),
 
-    movementHistory: buildMovementHistory(seed, id, status),
+    movementHistory: buildMovementHistory(seed, id),
     auditHistory: buildAuditHistory(seed, id),
     timeline: buildTimeline(seed, id, status),
   }

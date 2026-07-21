@@ -14,8 +14,8 @@ export function getChemistById(id: string): Chemist | undefined {
 }
 
 export const chemistKpis = {
-  chemistNetwork: mockChemists.length,
-  stockRefill: 22,
-  pendingOutreach: mockChemists.filter((c) => c.status === 'pending').length,
-  averageBasket: 1840,
+  totalChemists: mockChemists.length,
+  activeChemists: mockChemists.filter((c) => c.status === 'active').length,
+  inactiveChemists: mockChemists.filter((c) => c.status === 'inactive').length,
+  pendingApproval: mockChemists.filter((c) => c.status === 'pending').length,
 }

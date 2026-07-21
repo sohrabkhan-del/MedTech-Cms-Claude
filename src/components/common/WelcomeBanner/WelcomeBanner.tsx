@@ -26,7 +26,7 @@ export function WelcomeBanner({
   onPrimaryAction,
   primaryActionLabel = 'View Reports',
   onSecondaryAction,
-  secondaryActionLabel = 'Add Scheme',
+  secondaryActionLabel = 'Add Uploads',
   statLabel = 'Scans today',
   statValue = '1,284',
 }: WelcomeBannerProps) {
@@ -43,7 +43,8 @@ export function WelcomeBanner({
         position: 'relative',
         overflow: 'hidden',
         borderRadius: `${radius.xl}px`,
-        background: 'linear-gradient(120deg, #15326E 0%, #1A3E8C 55%, #E8830A 150%)',
+        background:
+          'linear-gradient(120deg, #15326E 0%, #1A3E8C 55%, #E8830A 150%)',
         color: '#FFFFFF',
         px: { xs: 3, md: 4.5 },
         py: { xs: 3.5, md: 4.5 },
@@ -76,20 +77,46 @@ export function WelcomeBanner({
       <Stack
         direction={{ xs: 'column', lg: 'row' }}
         spacing={3}
-        sx={{ alignItems: { xs: 'flex-start', lg: 'center' }, justifyContent: 'space-between', position: 'relative' }}
+        sx={{
+          alignItems: { xs: 'flex-start', lg: 'center' },
+          justifyContent: 'space-between',
+          position: 'relative',
+        }}
       >
         <Box>
-          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}>
+          <Typography
+            variant="caption"
+            sx={{ color: 'rgba(255,255,255,0.75)', fontWeight: 600 }}
+          >
             {today}
           </Typography>
-          <Typography sx={{ fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.875rem' }, mt: 0.5, mb: 1 }}>
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: { xs: '1.5rem', md: '1.875rem' },
+              mt: 0.5,
+              mb: 1,
+            }}
+          >
             {getGreeting()}, {userName}
           </Typography>
-          <Typography sx={{ color: 'rgba(255,255,255,0.85)', fontSize: '0.9rem', maxWidth: 440, mb: 3 }}>
+          <Typography
+            sx={{
+              color: 'rgba(255,255,255,0.85)',
+              fontSize: '0.9rem',
+              maxWidth: 440,
+              mb: 3,
+            }}
+          >
             {message}
           </Typography>
 
-          <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: 'wrap' }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            useFlexGap
+            sx={{ flexWrap: 'wrap' }}
+          >
             <Button
               variant="contained"
               onClick={onPrimaryAction}
@@ -108,7 +135,10 @@ export function WelcomeBanner({
               sx={{
                 borderColor: 'rgba(255,255,255,0.5)',
                 color: '#FFFFFF',
-                '&:hover': { borderColor: '#FFFFFF', backgroundColor: 'rgba(255,255,255,0.1)' },
+                '&:hover': {
+                  borderColor: '#FFFFFF',
+                  backgroundColor: 'rgba(255,255,255,0.1)',
+                },
               }}
             >
               {secondaryActionLabel}
@@ -142,8 +172,15 @@ export function WelcomeBanner({
             <BarChart3 />
           </Box>
           <Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '1.5rem', lineHeight: 1.1 }}>{statValue}</Typography>
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.75)' }}>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: '1.5rem', lineHeight: 1.1 }}
+            >
+              {statValue}
+            </Typography>
+            <Typography
+              variant="caption"
+              sx={{ color: 'rgba(255,255,255,0.75)' }}
+            >
               {statLabel}
             </Typography>
           </Box>

@@ -43,11 +43,10 @@ export function GeoFenceManagementPage() {
   })
 
   const columns: CommonTableColumn<GeoFence>[] = [
-    { key: 'id', header: 'ID', render: (row) => row.id },
     {
       key: 'userName',
       header: 'User Name',
-      minWidth: 180,
+      minWidth: 160,
       sortable: true,
       render: (row) => (
         <Typography
@@ -58,9 +57,24 @@ export function GeoFenceManagementPage() {
         </Typography>
       ),
     },
+    { key: 'businessName', header: 'Business Name', minWidth: 170, sortable: true, render: (row) => row.businessName },
+    {
+      key: 'businessAddress',
+      header: 'Business Address',
+      minWidth: 220,
+      render: (row) => (
+        <Typography
+          noWrap
+          sx={{ fontSize: '0.8125rem', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis' }}
+          title={row.businessAddress}
+        >
+          {row.businessAddress}
+        </Typography>
+      ),
+    },
     { key: 'userType', header: 'User Type', sortable: true, render: (row) => row.userType },
     { key: 'zone', header: 'Location', sortable: true, render: (row) => row.zone },
-    { key: 'radiusMeters', header: 'Radius', align: 'right', sortable: true, sortValue: (row) => row.radiusMeters, render: (row) => `${row.radiusMeters} m` },
+    { key: 'radiusMeters', header: 'Radius (mt)', align: 'right', sortable: true, sortValue: (row) => row.radiusMeters, render: (row) => row.radiusMeters },
     { key: 'lastVerified', header: 'Last Verified', minWidth: 140, render: (row) => row.lastVerified },
     { key: 'status', header: 'Status', sortable: true, sortValue: (row) => row.status, render: (row) => <StatusBadge status={row.status} /> },
   ]
@@ -88,7 +102,7 @@ export function GeoFenceManagementPage() {
         rows={filteredFences}
         getRowId={(row) => row.id}
         searchPlaceholder="Search geo fences…"
-        searchKeys={(row) => `${row.userName} ${row.userType} ${row.zone}`}
+        searchKeys={(row) => `${row.userName} ${row.businessName} ${row.userType} ${row.zone}`}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.userType !== 'all' ? 1 : 0) + (appliedFilters.region !== 'all' ? 1 : 0) + (appliedFilters.status !== 'all' ? 1 : 0)

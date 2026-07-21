@@ -192,8 +192,8 @@ export function LiveScanFeedPage() {
       render: (row) => row.businessName,
     },
     {
-      key: 'barcodeNumber',
-      header: 'Barcode Number',
+      key: 'scanCode',
+      header: 'Scan Code',
       minWidth: 150,
       render: (row) => (
         <Typography
@@ -205,9 +205,21 @@ export function LiveScanFeedPage() {
           }}
           onClick={() => openScan(row.id)}
         >
-          {row.barcodeNumber}
+          {row.scanCode}
         </Typography>
       ),
+    },
+    {
+      key: 'productName',
+      header: 'Product Name',
+      minWidth: 170,
+      render: (row) => row.productName,
+    },
+    {
+      key: 'productCode',
+      header: 'Product Code',
+      minWidth: 140,
+      render: (row) => row.productCode,
     },
     { key: 'region', header: 'Region', render: (row) => row.region },
     {
@@ -303,7 +315,7 @@ export function LiveScanFeedPage() {
             getRowId={(row) => row.id}
             searchPlaceholder="Search scans…"
             searchKeys={(row) =>
-              `${row.userName} ${row.businessName} ${row.barcodeNumber}`
+              `${row.userName} ${row.businessName} ${row.scanCode} ${row.productName} ${row.productCode}`
             }
             onFilterClick={() => setFilterOpen(true)}
             filterCount={
@@ -342,7 +354,7 @@ export function LiveScanFeedPage() {
               <Stack spacing={3}>
                 <TextField
                   select
-                  label="User Filter"
+                  label="Partner Filter"
                   size="small"
                   value={draft.userRole}
                   onChange={(e) =>
@@ -352,7 +364,7 @@ export function LiveScanFeedPage() {
                     }))
                   }
                 >
-                  <MenuItem value="all">All Users</MenuItem>
+                  <MenuItem value="all">All Partners</MenuItem>
                   <MenuItem value="Dealer">Dealer</MenuItem>
                   <MenuItem value="Chemist">Chemist</MenuItem>
                 </TextField>
@@ -454,8 +466,8 @@ export function LiveScanFeedPage() {
                 columns={[
                   { key: 'scanDateTime', header: 'Scan Date & Time', sortable: true, render: (row) => row.scanDateTime },
                   {
-                    key: 'barcodeNumber',
-                    header: 'Barcode Number',
+                    key: 'scanCode',
+                    header: 'Scan Code',
                     render: (row) => (
                       <Typography
                         sx={{
@@ -466,11 +478,12 @@ export function LiveScanFeedPage() {
                         }}
                         onClick={() => openScan(row.id)}
                       >
-                        {row.barcodeNumber}
+                        {row.scanCode}
                       </Typography>
                     ),
                   },
                   { key: 'productName', header: 'Product Name', render: (row) => row.productName },
+                  { key: 'productCode', header: 'Product Code', render: (row) => row.productCode },
                   { key: 'batchNumber', header: 'Batch Number', render: (row) => row.batchNumber },
                   { key: 'region', header: 'Region', render: (row) => row.region },
                   { key: 'sourceIp', header: 'Source IP Address', render: (row) => row.technical.sourceIp },
@@ -485,7 +498,7 @@ export function LiveScanFeedPage() {
                 rows={userScanHistory}
                 getRowId={(row) => row.id}
                 searchPlaceholder="Search scans…"
-                searchKeys={(row) => `${row.barcodeNumber} ${row.productName}`}
+                searchKeys={(row) => `${row.scanCode} ${row.productName} ${row.productCode}`}
                 defaultSortBy="scanDateTime"
                 emptyTitle="No scans recorded"
               />
@@ -505,8 +518,9 @@ export function LiveScanFeedPage() {
               <DetailFieldGrid
                 fields={[
                   { label: 'Scan ID', value: selectedScan.id },
-                  { label: 'Barcode Number', value: selectedScan.barcodeNumber },
+                  { label: 'Scan Code', value: selectedScan.scanCode },
                   { label: 'Product Name', value: selectedScan.productName },
+                  { label: 'Product Code', value: selectedScan.productCode },
                   { label: 'Batch Number', value: selectedScan.batchNumber },
                   { label: 'Scan Date & Time', value: selectedScan.scanDateTime },
                   { label: 'Reward Points Earned', value: selectedScan.rewardPoints.toString() },
@@ -553,9 +567,9 @@ export function LiveScanFeedPage() {
                     Scan Validation Details
                   </Typography>
                   <ValidationRow
-                    label="Barcode Validation"
+                    label="Code Validation"
                     passed={
-                      selectedScan.validation.barcodeValidation === 'passed'
+                      selectedScan.validation.codeValidation === 'passed'
                     }
                   />
                   <ValidationRow
@@ -581,10 +595,6 @@ export function LiveScanFeedPage() {
                     passed={
                       selectedScan.validation.rewardEligibility === 'passed'
                     }
-                  />
-                  <ValidationRow
-                    label="Package Status"
-                    passed={selectedScan.validation.packageStatus === 'valid'}
                   />
                 </Card>
               </Grid>

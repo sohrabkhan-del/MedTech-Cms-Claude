@@ -4,6 +4,7 @@ import { mockDealers } from '@/features/dealers/mockDealers'
 import { mockChemists } from '@/features/chemists/mockChemists'
 
 const productNames = ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance', 'PainRelief Gel']
+const productCodes = ['PC-20260011', 'PC-20260022', 'PC-20260033', 'PC-20260044', 'PC-20260055']
 const devices = ['Android 14 / Chrome 128', 'iOS 18 / Safari 18', 'Android 13 / MedTech App 4.2', 'iOS 17 / MedTech App 4.2']
 const results: ScanResult[] = [
   'success',
@@ -11,10 +12,8 @@ const results: ScanResult[] = [
   'success',
   'success',
   'failed_outside_geofence',
-  'failed_duplicate_barcode',
-  'failed_invalid_barcode',
-  'failed_expired_package',
-  'failed_already_redeemed',
+  'failed_duplicate_scan',
+  'failed_invalid_code',
 ]
 
 interface ScanUser {
@@ -63,19 +62,19 @@ function buildScanEvent(seed: number): ScanEvent {
     userName: user.name,
     userRole: user.role,
     businessName: user.businessName,
-    barcodeNumber: `BC-${100000 + seed * 11}`,
+    scanCode: `SC-${100000 + seed * 11}`,
     productName: productNames[seed % productNames.length]!,
+    productCode: productCodes[seed % productCodes.length]!,
     batchNumber: `BATCH-${2026000 + seed * 3}`,
     region: user.partner.zone,
     result,
     rewardPoints: success ? seededNumber(seed, 10, 60) : 0,
     validation: {
-      barcodeValidation: result === 'failed_invalid_barcode' ? 'failed' : 'passed',
-      duplicateScanCheck: result === 'failed_duplicate_barcode' ? 'failed' : 'passed',
+      codeValidation: result === 'failed_invalid_code' ? 'failed' : 'passed',
+      duplicateScanCheck: result === 'failed_duplicate_scan' ? 'failed' : 'passed',
       geoFenceValidation: result === 'failed_outside_geofence' ? 'failed' : 'passed',
-      productEligibility: result === 'failed_already_redeemed' ? 'failed' : 'passed',
+      productEligibility: 'passed',
       rewardEligibility: success ? 'passed' : 'failed',
-      packageStatus: result === 'failed_expired_package' ? 'expired' : 'valid',
     },
     location: {
       latitude: user.partner.geoLock.latitude,
@@ -113,19 +112,19 @@ export function generateLiveScanEvent(): ScanEvent {
     userName: user.name,
     userRole: user.role,
     businessName: user.businessName,
-    barcodeNumber: `BC-${100000 + seed * 11}`,
+    scanCode: `SC-${100000 + seed * 11}`,
     productName: productNames[seed % productNames.length]!,
+    productCode: productCodes[seed % productCodes.length]!,
     batchNumber: `BATCH-${2026000 + seed * 3}`,
     region: user.partner.zone,
     result,
     rewardPoints: success ? seededNumber(seed, 10, 60) : 0,
     validation: {
-      barcodeValidation: result === 'failed_invalid_barcode' ? 'failed' : 'passed',
-      duplicateScanCheck: result === 'failed_duplicate_barcode' ? 'failed' : 'passed',
+      codeValidation: result === 'failed_invalid_code' ? 'failed' : 'passed',
+      duplicateScanCheck: result === 'failed_duplicate_scan' ? 'failed' : 'passed',
       geoFenceValidation: result === 'failed_outside_geofence' ? 'failed' : 'passed',
-      productEligibility: result === 'failed_already_redeemed' ? 'failed' : 'passed',
+      productEligibility: 'passed',
       rewardEligibility: success ? 'passed' : 'failed',
-      packageStatus: result === 'failed_expired_package' ? 'expired' : 'valid',
     },
     location: {
       latitude: user.partner.geoLock.latitude,

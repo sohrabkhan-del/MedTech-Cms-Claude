@@ -2,10 +2,10 @@ export type { Chemist } from '@/types/chemist'
 export type { PartnerStatus, PartnerZone } from '@/types/partner'
 
 export interface ChemistKpis {
-  chemistNetwork: number
-  stockRefill: number
-  pendingOutreach: number
-  averageBasket: number
+  totalChemists: number
+  activeChemists: number
+  inactiveChemists: number
+  pendingApproval: number
 }
 
 export interface ChemistListFilters {

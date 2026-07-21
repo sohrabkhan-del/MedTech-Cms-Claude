@@ -72,7 +72,7 @@ export function RejectedRequestsListPage() {
     { key: 'id', header: 'Request ID', minWidth: 130, render: (row) => row.id },
     {
       key: 'applicantName',
-      header: 'Applicant Name',
+      header: 'Partner Name',
       minWidth: 160,
       sortable: true,
       render: (row) => (
@@ -84,9 +84,11 @@ export function RejectedRequestsListPage() {
         </Typography>
       ),
     },
-    { key: 'requestType', header: 'User Type', sortable: true, render: (row) => row.requestType },
-    { key: 'storeName', header: 'Shop Name', minWidth: 160, render: (row) => row.storeName },
+    { key: 'requestType', header: 'Partner Type', sortable: true, render: (row) => row.requestType },
+    { key: 'storeName', header: 'Business Name', minWidth: 160, render: (row) => row.storeName },
     { key: 'ownerName', header: 'Owner Name', minWidth: 150, render: (row) => row.ownerName },
+    { key: 'onboardedType', header: 'Onboarded Type', render: (row) => row.onboardedType },
+    { key: 'onboardedBy', header: 'Onboarded By', render: (row) => row.onboardedBy },
     { key: 'region', header: 'Region', render: (row) => row.region },
     { key: 'submittedDate', header: 'Submitted Date', minWidth: 140, render: (row) => row.submittedDate },
     { key: 'decisionDate', header: 'Rejected Date', minWidth: 140, render: (row) => row.decisionDate ?? '—' },

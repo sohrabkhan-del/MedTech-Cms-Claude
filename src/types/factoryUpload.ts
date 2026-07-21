@@ -58,6 +58,16 @@ export interface BatchContainer {
   boxes: ContainerBox[]
 }
 
+export interface BatchScanEntry {
+  id: string
+  scanSerialNumber: string
+  productName: string
+  chemistName: string
+  chemistScanDate: string
+  dealerName: string
+  dealerScanDate: string
+}
+
 export interface BatchAuditEntry {
   id: string
   date: string
@@ -128,6 +138,7 @@ export interface FactoryBatch {
   hasRedemption: boolean
 
   containers: BatchContainer[]
+  scanHistory: BatchScanEntry[]
   auditHistory: BatchAuditEntry[]
   timeline: BatchTimelineEntry[]
 }

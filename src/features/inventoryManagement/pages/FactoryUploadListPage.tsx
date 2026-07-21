@@ -28,21 +28,20 @@ export function FactoryUploadListPage() {
 
   const columns: CommonTableColumn<FactoryBatch>[] = [
     {
-      key: 'batchName',
-      header: 'Batch Name',
-      minWidth: 200,
+      key: 'batchNumber',
+      header: 'Batch Number',
+      minWidth: 160,
       sortable: true,
-      sortValue: (row) => row.batchName,
+      sortValue: (row) => row.batchNumber,
       render: (row) => (
         <Typography
           sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
           onClick={() => navigate(`/inventory/factory-inventory-upload/${row.id}`)}
         >
-          {row.batchName}
+          {row.batchNumber}
         </Typography>
       ),
     },
-    { key: 'batchNumber', header: 'Batch Number', minWidth: 120, render: (row) => row.batchNumber },
     { key: 'batchDate', header: 'Batch Date', minWidth: 120, sortable: true, render: (row) => row.batchDate },
     {
       key: 'quantity',
@@ -118,8 +117,8 @@ export function FactoryUploadListPage() {
         columns={columns}
         rows={batches}
         getRowId={(row) => row.id}
-        searchPlaceholder="Search by batch name or number…"
-        searchKeys={(row) => `${row.batchName} ${row.batchNumber}`}
+        searchPlaceholder="Search by batch number…"
+        searchKeys={(row) => row.batchNumber}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0}
         onExportClick={() => {}}

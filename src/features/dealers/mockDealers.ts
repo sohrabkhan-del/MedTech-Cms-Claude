@@ -15,8 +15,8 @@ export function getDealerById(id: string): Dealer | undefined {
 }
 
 export const dealerKpis = {
-  dealerAccounts: mockDealers.length,
-  activeOrders: 128,
-  pendingKyc: mockDealers.filter((d) => d.status === 'pending').length,
-  liveDeliveries: 36,
+  totalDealers: mockDealers.length,
+  activeDealers: mockDealers.filter((d) => d.status === 'active').length,
+  inactiveDealers: mockDealers.filter((d) => d.status === 'inactive').length,
+  pendingApproval: mockDealers.filter((d) => d.status === 'pending').length,
 }

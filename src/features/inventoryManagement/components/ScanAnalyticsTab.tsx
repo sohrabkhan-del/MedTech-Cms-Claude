@@ -15,7 +15,6 @@ const columns: CommonTableColumn<ScanAnalyticsRow>[] = [
   },
   { key: 'failedScans', header: 'Failed Scans', align: 'right', sortable: true, sortValue: (row) => row.failedScans, render: (row) => row.failedScans },
   { key: 'duplicateScans', header: 'Duplicate Scans', align: 'right', sortable: true, sortValue: (row) => row.duplicateScans, render: (row) => row.duplicateScans },
-  { key: 'pendingScans', header: 'Pending Scans', align: 'right', sortable: true, sortValue: (row) => row.pendingScans, render: (row) => row.pendingScans.toLocaleString('en-IN') },
   {
     key: 'rewardPointsIssued',
     header: 'Reward Points Issued',

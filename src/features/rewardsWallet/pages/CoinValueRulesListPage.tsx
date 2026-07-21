@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
   Chip,
   Grid,
+  MenuItem,
   Stack,
   TextField,
   Typography,
@@ -22,6 +23,7 @@ import { Coins, Layers, Landmark, Package, Pencil } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { Modal } from '@/components/common/Modal/Modal'
+import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import {
   TreeTable,
   type TreeTableColumn,
@@ -29,7 +31,7 @@ import {
 } from '@/components/common/TreeTable/TreeTable'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useCoinRules } from '@/features/rewardsWallet/hooks/useCoinRules'
-import type { CoinRuleRegion, CoinValueRule } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import type { CoinRulePartnerType, CoinRuleRegion, CoinValueRule } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
 const REGIONS: CoinRuleRegion[] = ['North', 'South', 'East', 'West']
 const PIE_COLORS = [
@@ -55,6 +57,11 @@ type MatrixRow =
       currentEffectiveDate: string
     }
 
+interface CoinRuleFilters extends Record<string, unknown> {
+  productCategory: string | 'all'
+  region: CoinRuleRegion | 'all'
+}
+
 type RowEditState =
   | { rowType: 'product'; ruleId: string; label: string; value: string }
   | {
@@ -68,14 +75,61 @@ type RowEditState =
 
 export function CoinValueRulesListPage() {
   const navigate = useNavigate()
+  const { partnerType: partnerTypeParam } = useParams<{ partnerType: string }>()
+  const partnerType: CoinRulePartnerType = partnerTypeParam === 'chemist' ? 'Chemist' : 'Dealer'
+
   useRegionTopbarHeader({
     icon: <Coins size={20} />,
-    title: 'Coin Value Rules',
+    title: `Coin Value Rules — ${partnerType}`,
     subtitle:
       'Configure base coin values, regional multipliers, and monitor reward distribution impact.',
   })
 
-  const { rules, kpis, distributionByCategory, regionMultipliers, baseValueOverrides, setRegionMultiplier, setBaseValueOverride } = useCoinRules()
+  const { rules: allRules, regionMultipliers, baseValueOverrides, setRegionMultiplier, setBaseValueOverride } = useCoinRules()
+
+  const rules = useMemo(() => allRules.filter((rule) => rule.partnerType === partnerType), [allRules, partnerType])
+
+  const kpis = useMemo(
+    () => ({
+      totalOutstandingCoinLiability: rules.reduce((sum, r) => sum + r.regions.reduce((s, x) => s + x.currentPoints, 0), 0),
+      totalConfiguredRules: rules.length,
+      averageBaseCoinValue: rules.length ? Math.round(rules.reduce((sum, r) => sum + r.baseCoinValue, 0) / rules.length) : 0,
+    }),
+    [rules],
+  )
+
+  const distributionByCategory = useMemo(
+    () =>
+      Object.entries(
+        rules.reduce<Record<string, number>>((acc, rule) => {
+          const total = rule.regions.reduce((s, x) => s + x.currentPoints, 0)
+          acc[rule.productCategory] = (acc[rule.productCategory] ?? 0) + total
+          return acc
+        }, {}),
+      ).map(([category, value]) => ({ category, value })),
+    [rules],
+  )
+
+  const productCategoryOptions = useMemo(
+    () => Array.from(new Set(rules.map((r) => r.productCategory))).sort(),
+    [rules],
+  )
+
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<CoinRuleFilters>({
+    productCategory: 'all',
+    region: 'all',
+  })
+
+  const filteredRules = useMemo(
+    () =>
+      rules.filter((rule) => {
+        const categoryMatch = appliedFilters.productCategory === 'all' || rule.productCategory === appliedFilters.productCategory
+        const regionMatch = appliedFilters.region === 'all' || rule.regions.some((r) => r.region === appliedFilters.region)
+        return categoryMatch && regionMatch
+      }),
+    [rules, appliedFilters],
+  )
 
   const [regionEditDialog, setRegionEditDialog] = useState<{
     region: CoinRuleRegion
@@ -143,7 +197,7 @@ export function CoinValueRulesListPage() {
 
   const nodes: TreeTableNode<MatrixRow>[] = useMemo(
     () =>
-      rules.map((rule) => ({
+      filteredRules.map((rule) => ({
         id: rule.id,
         data: { rowType: 'product', rule, baseValue: resolvedBaseValue(rule) },
         children: rule.regions.map((r) => ({
@@ -167,13 +221,13 @@ export function CoinValueRulesListPage() {
         })),
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [rules, regionMultipliers, baseValueOverrides],
+    [filteredRules, regionMultipliers, baseValueOverrides],
   )
 
   const columns: TreeTableColumn<MatrixRow>[] = [
     {
       key: 'name',
-      header: 'Rule / Region',
+      header: 'Product/Region',
       minWidth: 220,
       render: (row) =>
         row.rowType === 'product' ? (
@@ -198,7 +252,7 @@ export function CoinValueRulesListPage() {
     },
     {
       key: 'modelCode',
-      header: 'Model Code',
+      header: 'Product Code',
       minWidth: 120,
       render: (row) => (
         <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
@@ -274,13 +328,6 @@ export function CoinValueRulesListPage() {
           : '—',
     },
     {
-      key: 'previousEffectiveDate',
-      header: 'Previous Date',
-      minWidth: 130,
-      render: (row) =>
-        row.rowType === 'region' ? row.previousEffectiveDate : '—',
-    },
-    {
       key: 'currentPoints',
       header: 'Current Points',
       align: 'right',
@@ -289,13 +336,6 @@ export function CoinValueRulesListPage() {
         row.rowType === 'region'
           ? `${row.currentPoints.toLocaleString('en-IN')} Coins`
           : '—',
-    },
-    {
-      key: 'currentEffectiveDate',
-      header: 'Current Date',
-      minWidth: 130,
-      render: (row) =>
-        row.rowType === 'region' ? row.currentEffectiveDate : '—',
     },
   ]
 
@@ -474,6 +514,11 @@ export function CoinValueRulesListPage() {
           searchKeys={(row) =>
             `${row.rule.modelCode} ${row.rule.productCategory} ${row.rule.productName}`
           }
+          onFilterClick={() => setFilterOpen(true)}
+          filterCount={
+            (appliedFilters.productCategory !== 'all' ? 1 : 0) +
+            (appliedFilters.region !== 'all' ? 1 : 0)
+          }
           actions={[
             {
               label: 'View Rule Details',
@@ -488,6 +533,47 @@ export function CoinValueRulesListPage() {
           defaultExpanded={false}
         />
       </Box>
+
+      <FilterDrawer<CoinRuleFilters>
+        open={filterOpen}
+        onClose={() => setFilterOpen(false)}
+        title="Filter Coin Value Rules"
+        value={appliedFilters}
+        onApply={setAppliedFilters}
+      >
+        {(draft, setDraft) => (
+          <Stack spacing={3}>
+            <TextField
+              select
+              label="Product Category"
+              size="small"
+              value={draft.productCategory}
+              onChange={(e) => setDraft((prev) => ({ ...prev, productCategory: e.target.value }))}
+            >
+              <MenuItem value="all">All Categories</MenuItem>
+              {productCategoryOptions.map((category) => (
+                <MenuItem key={category} value={category}>
+                  {category}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              select
+              label="Region"
+              size="small"
+              value={draft.region}
+              onChange={(e) => setDraft((prev) => ({ ...prev, region: e.target.value as CoinRuleFilters['region'] }))}
+            >
+              <MenuItem value="all">All Regions</MenuItem>
+              {REGIONS.map((region) => (
+                <MenuItem key={region} value={region}>
+                  {region}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Stack>
+        )}
+      </FilterDrawer>
 
       <Modal
         open={!!regionEditDialog}

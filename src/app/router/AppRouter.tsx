@@ -135,7 +135,8 @@ const CUSTOM_PATHS = new Set([
   '/scheme-management/gift-rules',
   '/rewards-wallet/wallet-management',
   '/rewards-wallet/reward-redemptions',
-  '/rewards-wallet/coin-value-rules',
+  '/rewards-wallet/coin-value-rules/dealer',
+  '/rewards-wallet/coin-value-rules/chemist',
   '/settings/general',
   '/system-users/admin',
   '/system-users/medical-representatives',
@@ -347,7 +348,8 @@ export function AppRouter() {
         <Route path="/rewards-wallet/wallet-management/:walletId" element={<WalletDetailsPage />} />
         <Route path="/rewards-wallet/reward-redemptions" element={<RedemptionListPage />} />
         <Route path="/rewards-wallet/reward-redemptions/:requestId" element={<RedemptionDetailsPage />} />
-        <Route path="/rewards-wallet/coin-value-rules" element={<CoinValueRulesListPage />} />
+        <Route path="/rewards-wallet/coin-value-rules/dealer" element={<CoinValueRulesListPage />} />
+        <Route path="/rewards-wallet/coin-value-rules/chemist" element={<CoinValueRulesListPage />} />
         <Route path="/rewards-wallet/coin-value-rules/:ruleId" element={<CoinValueRuleDetailsPage />} />
         <Route path="/settings/general" element={<AppearanceSettingsPage />} />
         <Route path="/system-users/admin" element={<AdminListPage />} />

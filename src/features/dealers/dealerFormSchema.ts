@@ -11,6 +11,8 @@ export const dealerFormSchema = z.object({
   registeredAddress: z.string().min(5, 'Godown address is required'),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+  scanRadius: z.string().optional(),
+  bufferRadius: z.string().optional(),
   assignedMr: z.string().optional(),
   notes: z.string().optional(),
 })
@@ -28,6 +30,8 @@ export const dealerFormDefaults: DealerFormValues = {
   registeredAddress: '',
   latitude: '',
   longitude: '',
+  scanRadius: '',
+  bufferRadius: '',
   assignedMr: '',
   notes: '',
 }

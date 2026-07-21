@@ -31,6 +31,8 @@ export function DealerFormPage() {
       registeredAddress: dealer.registeredAddress,
       latitude: String(dealer.geoLock.latitude),
       longitude: String(dealer.geoLock.longitude),
+      scanRadius: String(dealer.geoLock.allowedRadiusMeters),
+      bufferRadius: String(dealer.geoLock.bufferRadiusMeters),
       assignedMr: dealer.assignedMr,
       notes: dealer.notes ?? '',
     })

@@ -51,7 +51,14 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'OVERVIEW',
     icon: LayoutGrid,
-    items: [{ label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard }],
+    items: [
+      {
+        label: 'Dashboard',
+        path: '/dashboard',
+        icon: LayoutDashboard,
+        showRegionTopbar: true,
+      },
+    ],
   },
   {
     groupLabel: 'FIELD OPERATIONS',
@@ -73,6 +80,28 @@ export const menuConfig: MenuGroup[] = [
         path: '/field-operations/geo-fence-management',
         icon: Fence,
         showRegionTopbar: true,
+      },
+    ],
+  },
+  {
+    groupLabel: 'INVENTORY MANAGEMENT',
+    icon: Package,
+    items: [
+      {
+        label: 'Product Master',
+        path: '/inventory/product-master',
+        icon: Package,
+        showRegionTopbar: true,
+      },
+      {
+        label: 'Factory Inventory Upload',
+        path: '/inventory/factory-inventory-upload',
+        icon: Factory,
+      },
+      {
+        label: 'Product Batches',
+        path: '/inventory/product-batches',
+        icon: Box,
       },
     ],
   },
@@ -113,28 +142,7 @@ export const menuConfig: MenuGroup[] = [
       },
     ],
   },
-  {
-    groupLabel: 'INVENTORY MANAGEMENT',
-    icon: Package,
-    items: [
-      {
-        label: 'Product Master',
-        path: '/inventory/product-master',
-        icon: Package,
-        showRegionTopbar: true,
-      },
-      {
-        label: 'Factory Inventory Upload',
-        path: '/inventory/factory-inventory-upload',
-        icon: Factory,
-      },
-      {
-        label: 'Product Batches',
-        path: '/inventory/product-batches',
-        icon: Box,
-      },
-    ],
-  },
+
   {
     groupLabel: 'MARKETING PRODUCTS',
     icon: Megaphone,
@@ -191,7 +199,16 @@ export const menuConfig: MenuGroup[] = [
       {
         label: 'Coin Value Rules',
         icon: Coins,
-        children: [{ label: "Dealer/Chemist (Tab's)", path: '/rewards-wallet/coin-value-rules' }],
+        children: [
+          {
+            label: 'Dealer',
+            path: '/rewards-wallet/coin-value-rules/dealer',
+          },
+          {
+            label: 'Chemist',
+            path: '/rewards-wallet/coin-value-rules/chemist',
+          },
+        ],
       },
       {
         label: 'Wallet Management',

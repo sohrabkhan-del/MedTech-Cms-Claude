@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import {
   Package as Inventory2Outlined,
   CircleCheck as CheckCircleOutlined,
@@ -12,12 +12,6 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useProductBatches } from '@/features/inventoryManagement/hooks/useProductBatches'
 import { useProductCategoryOptions } from '@/features/inventoryManagement/hooks/useProductCategoryOptions'
 import type { BatchActiveStatus, ProductionBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
-
-const statusConfig: Record<BatchActiveStatus, { label: string; color: 'success' | 'default' | 'error' }> = {
-  active: { label: 'Active', color: 'success' },
-  inactive: { label: 'Inactive', color: 'default' },
-  expired: { label: 'Expired', color: 'error' },
-}
 
 interface BatchListingFilters extends Record<string, unknown> {
   category: string | 'all'
@@ -79,23 +73,8 @@ export function BatchListingTab({ onViewBatch }: BatchListingTabProps) {
     { key: 'productCode', header: 'Product Code', minWidth: 130, render: (row) => row.productCode },
     { key: 'productName', header: 'Product Name', minWidth: 170, sortable: true, sortValue: (row) => row.productName, render: (row) => row.productName },
     { key: 'productCategory', header: 'Product Category', minWidth: 140, render: (row) => row.productCategory },
-    { key: 'manufacturingDate', header: 'Manufacturing Date', minWidth: 150, sortable: true, render: (row) => row.manufacturingDate },
-    { key: 'expiryDate', header: 'Expiry Date', minWidth: 130, sortable: true, render: (row) => row.expiryDate },
-    { key: 'totalPackages', header: 'Total Packages', align: 'right', sortable: true, sortValue: (row) => row.totalPackages, render: (row) => row.totalPackages.toLocaleString('en-IN') },
-    {
-      key: 'qrBarcodeGenerated',
-      header: 'QR / Barcode Generated',
-      minWidth: 160,
-      render: (row) => (row.qrBarcodeGenerated ? <Chip size="small" label="Generated" color="success" /> : <Chip size="small" label="Pending" color="default" />),
-    },
+    { key: 'totalPackages', header: 'Total Products', align: 'right', sortable: true, sortValue: (row) => row.totalPackages, render: (row) => row.totalPackages.toLocaleString('en-IN') },
     { key: 'totalScans', header: 'Total Scans', align: 'right', sortable: true, sortValue: (row) => row.totalScans, render: (row) => row.totalScans.toLocaleString('en-IN') },
-    { key: 'coinValue', header: 'Coin Value', align: 'right', sortable: true, sortValue: (row) => row.coinValue, render: (row) => row.coinValue },
-    {
-      key: 'status',
-      header: 'Status',
-      minWidth: 100,
-      render: (row) => <Chip size="small" label={statusConfig[row.status].label} color={statusConfig[row.status].color} />,
-    },
   ]
 
   return (

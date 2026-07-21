@@ -2,6 +2,7 @@ import type {
   AllocationStatus,
   BatchAuditEntry,
   BatchContainer,
+  BatchScanEntry,
   BatchTimelineEntry,
   BoxProduct,
   ContainerBox,
@@ -144,6 +145,20 @@ function buildContainer(seed: number, batchNumber: string, containerIndex: numbe
   }
 }
 
+function buildScanHistory(products: BoxProduct[], productName: string, batchId: string): BatchScanEntry[] {
+  return products
+    .filter((p) => p.allocatedDealer !== '—' || p.allocatedChemist !== '—')
+    .map((p, i) => ({
+      id: `${batchId}-scan-${i}`,
+      scanSerialNumber: p.serialNumber,
+      productName,
+      chemistName: p.allocatedChemist !== '—' ? p.allocatedChemist : '—',
+      chemistScanDate: p.allocatedChemist !== '—' ? p.chemistAllocationDate : '—',
+      dealerName: p.allocatedDealer !== '—' ? p.allocatedDealer : '—',
+      dealerScanDate: p.allocatedDealer !== '—' ? p.dealerAllocationDate : '—',
+    }))
+}
+
 function buildAuditHistory(seed: number, batchId: string): BatchAuditEntry[] {
   const reviewer = mrs[seed % mrs.length]!
   return [
@@ -239,6 +254,7 @@ function buildBatch(seed: number): FactoryBatch {
     hasRedemption,
 
     containers,
+    scanHistory: buildScanHistory(allProducts, productNames[seed % productNames.length]!, id),
     auditHistory: buildAuditHistory(seed, id),
     timeline: buildTimeline(seed, id, hasRedemption),
   }

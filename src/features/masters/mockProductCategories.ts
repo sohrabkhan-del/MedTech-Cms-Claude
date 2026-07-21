@@ -2,26 +2,14 @@ import type { CategoryProductEntry, CategorySchemeEntry, ProductCategory, Produc
 import { mockProducts } from '@/features/inventory/mockProducts'
 
 const categoryDefs: { name: string; parent?: string }[] = [
-  { name: 'Cardiac Care' },
-  { name: 'Neuro Care' },
-  { name: 'Immunity' },
-  { name: 'Diabetes Care' },
-  { name: 'Pain Relief' },
-  { name: 'Cardiac Supplements', parent: 'Cardiac Care' },
-  { name: 'Blood Pressure Monitors', parent: 'Cardiac Care' },
-  { name: 'Neuro Supplements', parent: 'Neuro Care' },
-  { name: 'Immunity Boosters', parent: 'Immunity' },
-  { name: 'Immunity Syrups', parent: 'Immunity' },
-  { name: 'Diabetes Test Kits', parent: 'Diabetes Care' },
-  { name: 'Insulin & Injectables', parent: 'Diabetes Care' },
-  { name: 'Topical Pain Relief', parent: 'Pain Relief' },
-  { name: 'Oral Pain Relief', parent: 'Pain Relief' },
-  { name: 'Respiratory Care' },
-  { name: 'Skin Care' },
-  { name: 'Vitamins & Minerals' },
-  { name: 'Orthopedic Care' },
-  { name: 'Digestive Health' },
-  { name: 'General Wellness' },
+  { name: 'Nebulizers' },
+  { name: 'Blood Pressure Monitors' },
+  { name: 'Heating Pads' },
+  { name: 'Massagers' },
+  { name: 'Steam Inhalers' },
+  { name: 'Digital Thermometers' },
+  { name: 'Pulse Oximeters' },
+  { name: 'Oxygen Concentrators' },
 ]
 
 const schemeTypes = ['Seasonal Scheme', 'General Scheme', 'Gift Rule Bonus', 'Volume Booster']
@@ -86,7 +74,7 @@ export const mockProductCategories: ProductCategory[] = categoryDefs.map((def, i
     categoryName: def.name,
     categoryCode: `CAT-${20260000 + index * 17}`,
     parentCategoryId: undefined,
-    description: `${def.name} covers products used for management, treatment, and monitoring related to ${def.name.toLowerCase()}.`,
+    description: `${def.name} covers home healthcare devices in the ${def.name.toLowerCase()} range.`,
     status,
     createdDate: dateFromSeed(seed, 'Jan'),
 

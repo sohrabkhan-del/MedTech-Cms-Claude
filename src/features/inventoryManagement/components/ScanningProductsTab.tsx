@@ -25,12 +25,6 @@ const scanStatusConfig: Record<BatchScanStatus, { label: string; color: 'default
   completed: { label: 'Completed', color: 'success' },
 }
 
-const activeStatusConfig: Record<BatchActiveStatus, { label: string; color: 'success' | 'error' | 'default' }> = {
-  active: { label: 'Active', color: 'success' },
-  inactive: { label: 'Inactive', color: 'error' },
-  expired: { label: 'Expired', color: 'default' },
-}
-
 export function ScanningProductsTab() {
   const { batches, kpis } = useScanningProducts()
   const productCategoryOptions = useProductCategoryOptions()
@@ -73,17 +67,9 @@ export function ScanningProductsTab() {
       render: (row) => `${row.serialRangeStart} – ${row.serialRangeEnd}`,
     },
     {
-      key: 'coinValue',
-      header: 'Coin Value',
-      align: 'right',
-      sortable: true,
-      sortValue: (row) => row.coinValue,
-      render: (row) => row.coinValue,
-    },
-    {
       key: 'scanStatus',
-      header: 'Scan Status',
-      minWidth: 120,
+      header: 'Total Scan Status',
+      minWidth: 140,
       render: (row) => <Chip size="small" label={scanStatusConfig[row.scanStatus].label} color={scanStatusConfig[row.scanStatus].color} />,
     },
     {
@@ -93,12 +79,6 @@ export function ScanningProductsTab() {
       sortable: true,
       sortValue: (row) => row.totalScans,
       render: (row) => row.totalScans.toLocaleString('en-IN'),
-    },
-    {
-      key: 'activeStatus',
-      header: 'Active Status',
-      minWidth: 110,
-      render: (row) => <Chip size="small" label={activeStatusConfig[row.activeStatus].label} color={activeStatusConfig[row.activeStatus].color} />,
     },
   ]
 

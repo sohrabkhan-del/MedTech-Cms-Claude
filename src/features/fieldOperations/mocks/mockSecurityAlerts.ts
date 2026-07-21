@@ -47,14 +47,21 @@ function alertDateTime(seed: number): string {
 function buildAlert(seed: number): SecurityAlert {
   const user = alertUsers[seed % alertUsers.length]!
   const alertType = alertTypes[seed % alertTypes.length]!
+  const isDuplicateScan = alertType === 'Duplicate Barcode Scan'
+  const affectedUser = isDuplicateScan
+    ? alertUsers[(seed + 1) % alertUsers.length]!
+    : user
 
   return {
     id: `alert-${seed}`,
     alertType,
     description: alertDescriptions[alertType],
-    affectedUserId: user.id,
-    affectedUserName: user.name,
+    userId: user.id,
+    userName: user.name,
     userType: user.role,
+    affectedUserId: affectedUser.id,
+    affectedUserName: affectedUser.name,
+    affectedUserType: affectedUser.role,
     requestSource: requestSources[seed % requestSources.length]!,
     severity: severities[seed % severities.length]!,
     alertDateTime: alertDateTime(seed),
@@ -73,7 +80,7 @@ export function getUserSecuritySummary(userId: string): UserSecuritySummary | un
   const user = alertUsers.find((u) => u.id === userId)
   if (!user) return undefined
 
-  const userAlerts = mockSecurityAlerts.filter((alert) => alert.affectedUserId === userId)
+  const userAlerts = mockSecurityAlerts.filter((alert) => alert.userId === userId || alert.affectedUserId === userId)
   const highSeverityAlerts = userAlerts.filter((alert) => alert.severity === 'high').length
 
   return {
@@ -95,7 +102,7 @@ export function getUserSecuritySummary(userId: string): UserSecuritySummary | un
 }
 
 export function getUserAlertHistory(userId: string): SecurityAlert[] {
-  return mockSecurityAlerts.filter((alert) => alert.affectedUserId === userId)
+  return mockSecurityAlerts.filter((alert) => alert.userId === userId || alert.affectedUserId === userId)
 }
 
 export function getUserSecurityTimeline(userId: string): SecurityTimelineEntry[] {

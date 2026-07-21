@@ -3,6 +3,7 @@ export { productFormSchema, productFormDefaults, type ProductFormValues } from '
 export type {
   FactoryBatch,
   BatchContainer,
+  BatchScanEntry,
   ContainerBox,
   BoxProduct,
   ProductTraceabilityStatus,

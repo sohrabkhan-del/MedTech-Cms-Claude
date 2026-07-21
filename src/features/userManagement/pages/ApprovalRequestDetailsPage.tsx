@@ -131,9 +131,8 @@ export function ApprovalRequestDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Approval Request ID', value: request.id },
-              { label: 'Applicant Name', value: request.applicantName },
-              { label: 'Request Type', value: request.requestType },
+              { label: 'Partner Name', value: request.applicantName },
+              { label: 'Partner Type', value: request.requestType },
               { label: 'Current Status', value: <StatusBadge status={request.status} /> },
               { label: 'Submitted Date', value: request.submittedDate },
               { label: 'Registered By', value: request.registeredBy },
@@ -160,7 +159,6 @@ export function ApprovalRequestDetailsPage() {
             fields={[
               { label: 'Drug License Number', value: request.drugLicenseNumber },
               { label: 'GST Number', value: request.gstNumber ?? '—' },
-              { label: 'Business Category', value: request.businessCategory },
               { label: 'Registration Source', value: request.registeredBy },
             ]}
           />

@@ -34,6 +34,7 @@ import {
 } from 'lucide-react'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { SkeletonLoader } from '@/components/common/SkeletonLoader/SkeletonLoader'
+import { Skeleton as Boneyard } from 'boneyard-js/react'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 
 export interface CommonTableCreateAction {
@@ -310,7 +311,9 @@ export function CommonTable<T>({
 
       <Card>
         {loading ? (
-          <SkeletonLoader variant="table-rows" rows={6} />
+          <Boneyard name={`common-table-${tableKey}`} loading fallback={<SkeletonLoader variant="table-rows" rows={6} />}>
+            <SkeletonLoader variant="table-rows" rows={6} />
+          </Boneyard>
         ) : sortedRows.length === 0 ? (
           <EmptyState title={emptyTitle} description={emptyDescription} />
         ) : (

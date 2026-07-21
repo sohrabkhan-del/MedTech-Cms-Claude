@@ -23,9 +23,12 @@ export interface SecurityAlert {
   id: string
   alertType: AlertType
   description: string
+  userId: string
+  userName: string
+  userType: ScanUserRole
   affectedUserId: string
   affectedUserName: string
-  userType: ScanUserRole
+  affectedUserType: ScanUserRole
   requestSource: string
   severity: AlertSeverity
   alertDateTime: string

@@ -1,4 +1,4 @@
-import type { PartnerZone } from '@/types/partner'
+import type { OnboardedBy, PartnerZone } from '@/types/partner'
 
 export type RequestType = 'Dealer' | 'Chemist'
 export type RegisteredBy = 'Self' | 'MR' | 'Admin'
@@ -46,6 +46,8 @@ export interface ApprovalRequest {
   region: PartnerZone
   submittedDate: string
   registeredBy: RegisteredBy
+  onboardedType: OnboardedBy
+  onboardedBy: string
 
   storeName: string
   ownerName: string

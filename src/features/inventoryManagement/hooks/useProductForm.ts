@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { productsService } from '@/features/inventoryManagement/services/productsService'
 import type { Product, ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
@@ -30,6 +31,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useProductForm(productId: string | undefined, cloneFromId: string | null) {
   const isEdit = !!productId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -64,9 +66,12 @@ export function useProductForm(productId: string | undefined, cloneFromId: strin
       } else {
         await productsService.createProduct(values)
       }
+      toast.success(isEdit ? 'Product updated successfully.' : 'Product created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save product.')
+      const message = err instanceof Error ? err.message : 'Failed to save product.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

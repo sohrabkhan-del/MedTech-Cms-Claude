@@ -11,6 +11,11 @@ import { ResetOtpPage } from '@/features/auth/pages/ResetOtpPage'
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
 import { NotificationsListPage } from '@/features/notifications/pages/NotificationsListPage'
 import { NotificationDetailPage } from '@/features/notifications/pages/NotificationDetailPage'
+import { PartnerInviteLayout } from '@/layouts/PartnerInviteLayout'
+import { PartnerInviteGate } from '@/features/partnerInvite/pages/PartnerInviteGate'
+import { InviteDetailsPage } from '@/features/partnerInvite/pages/InviteDetailsPage'
+import { InvitePasswordPage } from '@/features/partnerInvite/pages/InvitePasswordPage'
+import { InviteShopDetailsPage } from '@/features/partnerInvite/pages/InviteShopDetailsPage'
 import { LogoutPage } from '@/pages/auth/LogoutPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { DealerListPage } from '@/features/userManagement/pages/DealerListPage'
@@ -36,6 +41,7 @@ import { FactoryUploadFormPage } from '@/features/inventoryManagement/pages/Fact
 import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryUploadDetailsPage'
 import { FactoryContainerPage } from '@/features/inventoryManagement/pages/FactoryContainerPage'
 import { FactoryBoxPage } from '@/features/inventoryManagement/pages/FactoryBoxPage'
+import { BatchUploadsPage } from '@/features/inventoryManagement/pages/BatchUploadsPage'
 import { ProductBatchesPage } from '@/features/inventoryManagement/pages/ProductBatchesPage'
 import { ProductionBatchDetailsPage } from '@/features/inventoryManagement/pages/ProductionBatchDetailsPage'
 import { ProductsCatalogPage } from '@/features/marketingProducts/pages/ProductsCatalogPage'
@@ -134,6 +140,7 @@ const CUSTOM_PATHS = new Set([
   '/verification/rejected-requests',
   '/inventory/product-master',
   '/inventory/factory-inventory-upload',
+  '/inventory/batch-uploads',
   '/inventory/product-batches',
   '/marketing-products/products-catelog',
   '/marketing-products/interested-users',
@@ -308,6 +315,14 @@ export function AppRouter() {
 
       <Route path="/logout" element={<LogoutPage />} />
 
+      <Route element={<PartnerInviteLayout />}>
+        <Route path="/invite/:token" element={<PartnerInviteGate />}>
+          <Route index element={<InviteDetailsPage />} />
+          <Route path="password" element={<InvitePasswordPage />} />
+          <Route path="shop-details" element={<InviteShopDetailsPage />} />
+        </Route>
+      </Route>
+
       <Route element={<ProtectedRoute />}>
       <Route element={<DashboardLayout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -341,6 +356,7 @@ export function AppRouter() {
         <Route path="/inventory/factory-inventory-upload/:batchId" element={<FactoryUploadDetailsPage />} />
         <Route path="/inventory/factory-inventory-upload/:batchId/:containerId" element={<FactoryContainerPage />} />
         <Route path="/inventory/factory-inventory-upload/:batchId/:containerId/:boxId" element={<FactoryBoxPage />} />
+        <Route path="/inventory/batch-uploads" element={<BatchUploadsPage />} />
         <Route path="/inventory/product-batches" element={<ProductBatchesPage />} />
         <Route path="/inventory/product-batches/:batchId" element={<ProductionBatchDetailsPage />} />
         <Route path="/marketing-products/products-catelog" element={<ProductsCatalogPage />} />

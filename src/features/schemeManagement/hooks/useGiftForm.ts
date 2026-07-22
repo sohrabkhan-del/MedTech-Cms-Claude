@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { giftsService } from '@/features/schemeManagement/services/giftsService'
 import type { Gift, GiftFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
 
@@ -34,6 +35,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useGiftForm(giftId: string | undefined) {
   const isEdit = !!giftId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -67,9 +69,12 @@ export function useGiftForm(giftId: string | undefined) {
       } else {
         await giftsService.createGift(values)
       }
+      toast.success(isEdit ? 'Gift updated successfully.' : 'Gift created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save gift.')
+      const message = err instanceof Error ? err.message : 'Failed to save gift.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

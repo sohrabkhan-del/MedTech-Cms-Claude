@@ -1,4 +1,5 @@
 import { useEffect, useReducer } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { medicalRepsService } from '@/features/systemUsers/services/medicalRepsService'
 import type { MedicalRepresentative, PartnerStatus } from '@/features/systemUsers/types/systemUsers.types'
 
@@ -32,6 +33,7 @@ function reducer(state: State, action: Action): State {
 }
 
 export function useMedicalRepDetail(mrId: string | undefined) {
+  const toast = useToast()
   const [state, dispatch] = useReducer(reducer, initialState)
 
   useEffect(() => {
@@ -63,7 +65,13 @@ export function useMedicalRepDetail(mrId: string | undefined) {
 
   async function remove(replacementMrId: string) {
     if (!mrId) return
-    await medicalRepsService.deleteMedicalRep(mrId, replacementMrId)
+    try {
+      await medicalRepsService.deleteMedicalRep(mrId, replacementMrId)
+      toast.success('Medical rep deleted successfully.')
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete medical representative.'
+      toast.error(message)
+    }
   }
 
   const mr = state.mr && state.statusOverride ? { ...state.mr, status: state.statusOverride } : state.mr

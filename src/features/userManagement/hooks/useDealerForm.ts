@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { partnersService } from '@/features/userManagement/services/partnersService'
 import type { Dealer, DealerFormValues } from '@/features/userManagement/types/userManagement.types'
 
@@ -29,6 +30,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useDealerForm(dealerId: string | undefined) {
   const isEdit = !!dealerId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -62,9 +64,12 @@ export function useDealerForm(dealerId: string | undefined) {
       } else {
         await partnersService.createDealer(values)
       }
+      toast.success(isEdit ? 'Dealer updated successfully.' : 'Dealer created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save dealer.')
+      const message = err instanceof Error ? err.message : 'Failed to save dealer.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

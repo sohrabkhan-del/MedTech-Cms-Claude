@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 
 interface UseFileUploadOptions<T> {
   upload: (manifestFile: File, supportingFile: File) => Promise<T>
@@ -6,6 +7,7 @@ interface UseFileUploadOptions<T> {
 
 /** Shared upload-flow state for file-driven flows (factory inventory upload, delivery upload, etc). */
 export function useFileUpload<T>({ upload }: UseFileUploadOptions<T>) {
+  const toast = useToast()
   const [isUploading, setIsUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<T | null>(null)
@@ -17,9 +19,12 @@ export function useFileUpload<T>({ upload }: UseFileUploadOptions<T>) {
     try {
       const uploaded = await upload(manifestFile, supportingFile)
       setResult(uploaded)
+      toast.success('Files uploaded successfully.')
       return uploaded
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Upload failed. Please try again.')
+      const message = err instanceof Error ? err.message : 'Upload failed. Please try again.'
+      setError(message)
+      toast.error(message)
       return null
     } finally {
       setIsUploading(false)

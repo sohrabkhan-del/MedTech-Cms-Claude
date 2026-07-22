@@ -5,6 +5,7 @@ import {
   BadgeCheck,
   LayoutDashboard,
   Bell,
+  UploadCloud,
   Crosshair,
   ShieldAlert,
   Fence,
@@ -106,6 +107,11 @@ export const menuConfig: MenuGroup[] = [
         label: 'Factory Inventory Upload',
         path: '/inventory/factory-inventory-upload',
         icon: Factory,
+      },
+      {
+        label: 'Batch & Distributor Uploads',
+        path: '/inventory/batch-uploads',
+        icon: UploadCloud,
       },
       {
         label: 'Product Batches',

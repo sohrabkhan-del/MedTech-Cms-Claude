@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { giftRulesService } from '@/features/schemeManagement/services/giftRulesService'
 import type { RewardRule, GiftRuleFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
 
@@ -35,6 +36,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useGiftRuleForm(ruleId: string | undefined) {
   const isEdit = !!ruleId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -68,9 +70,12 @@ export function useGiftRuleForm(ruleId: string | undefined) {
       } else {
         await giftRulesService.createRewardRule(values)
       }
+      toast.success(isEdit ? 'Reward rule updated successfully.' : 'Reward rule created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save reward rule.')
+      const message = err instanceof Error ? err.message : 'Failed to save reward rule.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

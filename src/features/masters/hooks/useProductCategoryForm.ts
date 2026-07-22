@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { productCategoriesService } from '@/features/masters/services/productCategoriesService'
 import type { ProductCategory, ProductCategoryFormValues } from '@/features/masters/types/masters.types'
 
@@ -33,6 +34,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useProductCategoryForm(categoryId: string | undefined) {
   const isEdit = !!categoryId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -66,9 +68,12 @@ export function useProductCategoryForm(categoryId: string | undefined) {
       } else {
         await productCategoriesService.createProductCategory(values)
       }
+      toast.success(isEdit ? 'Category updated successfully.' : 'Category created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save product category.')
+      const message = err instanceof Error ? err.message : 'Failed to save product category.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

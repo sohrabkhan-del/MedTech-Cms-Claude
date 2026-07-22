@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { adminsService } from '@/features/systemUsers/services/adminsService'
 import type { Admin, AdminFormValues } from '@/features/systemUsers/types/systemUsers.types'
 
@@ -35,6 +36,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useAdminForm(adminId: string | undefined) {
   const isEdit = !!adminId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -68,9 +70,12 @@ export function useAdminForm(adminId: string | undefined) {
       } else {
         await adminsService.createAdmin(values)
       }
+      toast.success(isEdit ? 'Admin updated successfully.' : 'Admin created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save admin.')
+      const message = err instanceof Error ? err.message : 'Failed to save admin.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

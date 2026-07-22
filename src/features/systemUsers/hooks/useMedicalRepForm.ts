@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { medicalRepsService } from '@/features/systemUsers/services/medicalRepsService'
 import type { MedicalRepFormValues, MedicalRepresentative, PartnerStatus, PartnerZone } from '@/features/systemUsers/types/systemUsers.types'
 
@@ -34,6 +35,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useMedicalRepForm(mrId: string | undefined) {
   const isEdit = !!mrId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -67,9 +69,12 @@ export function useMedicalRepForm(mrId: string | undefined) {
       } else {
         await medicalRepsService.createMedicalRep(values)
       }
+      toast.success(isEdit ? 'Medical rep updated successfully.' : 'Medical rep created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save medical representative.')
+      const message = err instanceof Error ? err.message : 'Failed to save medical representative.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

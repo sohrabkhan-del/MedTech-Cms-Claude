@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { useToast } from '@/contexts/ToastContext'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
 import type { Scheme, SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
 
@@ -39,6 +40,7 @@ function loadReducer(state: LoadState, action: LoadAction): LoadState {
 
 export function useSchemeForm(schemeId: string | undefined, cloneFromId: string | null) {
   const isEdit = !!schemeId
+  const toast = useToast()
   const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -73,9 +75,12 @@ export function useSchemeForm(schemeId: string | undefined, cloneFromId: string 
       } else {
         await schemesService.createScheme(values)
       }
+      toast.success(isEdit ? 'Scheme updated successfully.' : 'Scheme created successfully.')
       return true
     } catch (err) {
-      setSubmitError(err instanceof Error ? err.message : 'Failed to save scheme.')
+      const message = err instanceof Error ? err.message : 'Failed to save scheme.'
+      setSubmitError(message)
+      toast.error(message)
       return false
     } finally {
       setIsSubmitting(false)

@@ -10,6 +10,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
@@ -38,7 +39,7 @@ export function AuditLogListPage() {
     title: 'Audit Logs',
     subtitle: 'Complete history of user and system activities across the platform.',
   })
-  const { logs, kpis, filterOptions } = useAuditLogs()
+  const { logs, kpis, filterOptions, isLoading } = useAuditLogs()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<AuditLogFilters>({
     module: 'all',
@@ -111,16 +112,32 @@ export function AuditLogListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Audit Entries" value={auditKpis.totalEntries} icon={<ClipboardListIcon size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Audit Entries" value={auditKpis.totalEntries} icon={<ClipboardListIcon size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Login Activities" value={auditKpis.loginActivities} icon={<LogIn size={20} />} iconColor="info" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Login Activities" value={auditKpis.loginActivities} icon={<LogIn size={20} />} iconColor="info" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Record Updates" value={auditKpis.recordUpdates} icon={<PencilLine size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Record Updates" value={auditKpis.recordUpdates} icon={<PencilLine size={20} />} iconColor="secondary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Export Activities" value={auditKpis.exportActivities} icon={<Download size={20} />} iconColor="warning" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Export Activities" value={auditKpis.exportActivities} icon={<Download size={20} />} iconColor="warning" />
+          )}
         </Grid>
       </Grid>
 
@@ -137,6 +154,7 @@ export function AuditLogListPage() {
         tableKey="audit-logs-list"
         columns={columns}
         rows={filteredLogs}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by log ID, entity, or performed by…"
         searchKeys={(row) => `${row.id} ${row.entityName} ${row.performedBy} ${row.module}`}

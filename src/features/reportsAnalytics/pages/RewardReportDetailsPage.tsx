@@ -7,6 +7,7 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useRewardReportDetail } from '@/features/reportsAnalytics/hooks/useRewardReportDetail'
 import type { RewardReportStatus } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
@@ -37,9 +38,11 @@ export function RewardReportDetailsPage() {
   const { rewardId } = useParams<{ rewardId: string }>()
   const { report, isLoading } = useRewardReportDetail(rewardId)
 
-  if (!report) {
-    if (isLoading) return null
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
+  if (!report) {
     return (
       <EmptyState
         title="Reward report not found"

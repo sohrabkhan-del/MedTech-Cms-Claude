@@ -7,6 +7,7 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
 import { verificationService } from '@/features/userManagement/services/verificationService'
@@ -46,9 +47,13 @@ const documentColumns: CommonTableColumn<RequestDocument>[] = [
 export function RejectedRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
-  const { request } = useApprovalRequestDetail(requestId)
+  const { request, isLoading } = useApprovalRequestDetail(requestId)
   const [reopened, setReopened] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!request) {
     return (
@@ -167,6 +172,7 @@ export function RejectedRequestDetailsPage() {
             tableKey="rejected-request-documents"
             columns={documentColumns}
             rows={request.documents}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search documents…"
             searchKeys={(row) => row.documentName}
@@ -184,6 +190,7 @@ export function RejectedRequestDetailsPage() {
             tableKey="rejected-request-audit"
             columns={auditColumns}
             rows={request.auditHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search verification notes…"
             searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}

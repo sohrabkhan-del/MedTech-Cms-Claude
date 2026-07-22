@@ -26,13 +26,14 @@ const columns: CommonTableColumn<ScanAnalyticsRow>[] = [
 ]
 
 export function ScanAnalyticsTab() {
-  const { rows } = useScanAnalytics()
+  const { rows, isLoading } = useScanAnalytics()
 
   return (
     <CommonTable
       tableKey="scan-analytics"
       columns={columns}
       rows={rows}
+      loading={isLoading}
       getRowId={(row) => row.batchNumber}
       searchPlaceholder="Search by batch number or product…"
       searchKeys={(row) => `${row.batchNumber} ${row.product}`}

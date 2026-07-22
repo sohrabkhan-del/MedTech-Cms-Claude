@@ -16,6 +16,7 @@ import {
   ClipboardClock as PendingActionsOutlinedIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -36,7 +37,7 @@ interface ChemistFilters extends Record<string, unknown> {
 export function ChemistListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
-  const { chemists, kpis } = useChemists()
+  const { chemists, kpis, isLoading } = useChemists()
   useRegionTopbarHeader({
     icon: <LocalPharmacyIcon size={20} />,
     title: 'Chemists',
@@ -172,36 +173,52 @@ export function ChemistListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Total Chemist"
-            value={chemistKpis.totalChemists}
-            icon={<LocalPharmacyIcon size={20} />}
-            iconColor="primary"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Total Chemist"
+              value={chemistKpis.totalChemists}
+              icon={<LocalPharmacyIcon size={20} />}
+              iconColor="primary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Active Chemist"
-            value={chemistKpis.activeChemists}
-            icon={<ActiveChemistIcon size={20} />}
-            iconColor="success"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Active Chemist"
+              value={chemistKpis.activeChemists}
+              icon={<ActiveChemistIcon size={20} />}
+              iconColor="success"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Inactive Chemist"
-            value={chemistKpis.inactiveChemists}
-            icon={<InactiveChemistIcon size={20} />}
-            iconColor="error"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Inactive Chemist"
+              value={chemistKpis.inactiveChemists}
+              icon={<InactiveChemistIcon size={20} />}
+              iconColor="error"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Pending Approval"
-            value={chemistKpis.pendingApproval}
-            icon={<PendingActionsOutlinedIcon size={20} />}
-            iconColor="warning"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Pending Approval"
+              value={chemistKpis.pendingApproval}
+              icon={<PendingActionsOutlinedIcon size={20} />}
+              iconColor="warning"
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -209,6 +226,7 @@ export function ChemistListPage() {
         tableKey="chemists-list"
         columns={columns}
         rows={filteredChemists}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search chemists…"
         searchKeys={(row) =>

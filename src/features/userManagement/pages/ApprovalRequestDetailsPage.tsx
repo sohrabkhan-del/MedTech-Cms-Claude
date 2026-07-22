@@ -8,6 +8,7 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
 import type { DocumentVerificationStatus, RequestDocument } from '@/features/userManagement/types/userManagement.types'
@@ -46,9 +47,13 @@ const documentColumns: CommonTableColumn<RequestDocument>[] = [
 export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
-  const { request, decide } = useApprovalRequestDetail(requestId)
+  const { request, decide, isLoading } = useApprovalRequestDetail(requestId)
   const [dialog, setDialog] = useState<{ open: boolean; action: 'approve' | 'reject' }>({ open: false, action: 'approve' })
   const [remarks, setRemarks] = useState('')
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
   if (!request) {
     return (
@@ -206,6 +211,7 @@ export function ApprovalRequestDetailsPage() {
             tableKey="approval-request-documents"
             columns={documentColumns}
             rows={request.documents}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search documents…"
             searchKeys={(row) => row.documentName}
@@ -223,6 +229,7 @@ export function ApprovalRequestDetailsPage() {
             tableKey="approval-request-audit"
             columns={auditColumns}
             rows={request.auditHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search audit history…"
             searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}

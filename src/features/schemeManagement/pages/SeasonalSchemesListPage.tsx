@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Sparkle, CalendarClock, CheckCheck, Trophy } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
@@ -29,7 +30,7 @@ interface SeasonalSchemeFilters extends Record<string, unknown> {
 
 export function SeasonalSchemesListPage() {
   const navigate = useNavigate()
-  const { schemes, kpis } = useSeasonalSchemes()
+  const { schemes, kpis, isLoading } = useSeasonalSchemes()
   const { schemeTypeOptions, schemeApplicableUserOptions, festivalOptions } = useSchemeFormOptions()
   useRegionTopbarHeader({
     icon: <Sparkle size={20} />,
@@ -91,16 +92,16 @@ export function SeasonalSchemesListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Seasonal Schemes" value={seasonalSchemeKpis.activeSchemes} icon={<Sparkle size={20} />} iconColor="primary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Active Seasonal Schemes" value={seasonalSchemeKpis.activeSchemes} icon={<Sparkle size={20} />} iconColor="primary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Upcoming Campaigns" value={seasonalSchemeKpis.upcomingCampaigns} icon={<CalendarClock size={20} />} iconColor="info" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Upcoming Campaigns" value={seasonalSchemeKpis.upcomingCampaigns} icon={<CalendarClock size={20} />} iconColor="info" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Completed Campaigns" value={seasonalSchemeKpis.completedCampaigns} icon={<CheckCheck size={20} />} iconColor="success" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Completed Campaigns" value={seasonalSchemeKpis.completedCampaigns} icon={<CheckCheck size={20} />} iconColor="success" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Reward Points Issued" value={seasonalSchemeKpis.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Reward Points Issued" value={seasonalSchemeKpis.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />}
         </Grid>
       </Grid>
 
@@ -109,6 +110,7 @@ export function SeasonalSchemesListPage() {
         columns={columns}
         rows={filteredSchemes}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by scheme name or festival…"
         searchKeys={(row) => `${row.schemeName} ${row.id} ${row.festivalCampaign ?? ''}`}
         onFilterClick={() => setFilterOpen(true)}

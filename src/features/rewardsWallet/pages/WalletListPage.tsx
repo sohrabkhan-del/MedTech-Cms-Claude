@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Wallet as WalletIcon, Coins, Repeat2, Clock3 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
@@ -32,7 +33,7 @@ export function WalletListPage() {
     title: 'Wallet Directory',
     subtitle: 'Manage wallet balances, reward points, and transaction history for Dealers and Chemists.',
   })
-  const { wallets, kpis } = useWallets()
+  const { wallets, kpis, isLoading } = useWallets()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<WalletFilters>({
     userType: 'all',
@@ -117,16 +118,16 @@ export function WalletListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Wallet Balance" value={(kpis?.totalWalletBalance ?? 0).toLocaleString('en-IN')} icon={<WalletIcon size={20} />} iconColor="primary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Wallet Balance" value={(kpis?.totalWalletBalance ?? 0).toLocaleString('en-IN')} icon={<WalletIcon size={20} />} iconColor="primary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Coins Earned" value={(kpis?.totalCoinsEarned ?? 0).toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="success" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Coins Earned" value={(kpis?.totalCoinsEarned ?? 0).toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="success" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Coins Redeemed" value={(kpis?.totalCoinsRedeemed ?? 0).toLocaleString('en-IN')} icon={<Repeat2 size={20} />} iconColor="secondary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Coins Redeemed" value={(kpis?.totalCoinsRedeemed ?? 0).toLocaleString('en-IN')} icon={<Repeat2 size={20} />} iconColor="secondary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending Redemptions" value={(kpis?.pendingRedemptions ?? 0).toLocaleString('en-IN')} icon={<Clock3 size={20} />} iconColor="warning" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Pending Redemptions" value={(kpis?.pendingRedemptions ?? 0).toLocaleString('en-IN')} icon={<Clock3 size={20} />} iconColor="warning" />}
         </Grid>
       </Grid>
 
@@ -135,6 +136,7 @@ export function WalletListPage() {
         columns={columns}
         rows={filteredWallets}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by user name or mobile number…"
         searchKeys={(row) => `${row.userName} ${row.mobileNumber} ${row.userId}`}
         onFilterClick={() => setFilterOpen(true)}

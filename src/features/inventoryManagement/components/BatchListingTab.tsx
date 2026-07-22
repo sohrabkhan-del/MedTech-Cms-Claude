@@ -7,6 +7,7 @@ import {
   QrCode as QrCode2Outlined,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useProductBatches } from '@/features/inventoryManagement/hooks/useProductBatches'
@@ -28,7 +29,7 @@ interface BatchListingTabProps {
 }
 
 export function BatchListingTab({ onViewBatch }: BatchListingTabProps) {
-  const { batches, kpis } = useProductBatches()
+  const { batches, kpis, isLoading } = useProductBatches()
   const productCategoryOptions = useProductCategoryOptions()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<BatchListingFilters>({
@@ -81,16 +82,32 @@ export function BatchListingTab({ onViewBatch }: BatchListingTabProps) {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Batches" value={productionBatchKpis.totalBatches} icon={<Inventory2Outlined size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Batches" value={productionBatchKpis.totalBatches} icon={<Inventory2Outlined size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Batches" value={productionBatchKpis.activeBatches} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Active Batches" value={productionBatchKpis.activeBatches} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Expired Batches" value={productionBatchKpis.expiredBatches} icon={<BlockOutlined size={20} />} iconColor="error" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Expired Batches" value={productionBatchKpis.expiredBatches} icon={<BlockOutlined size={20} />} iconColor="error" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Scans" value={productionBatchKpis.totalScans.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Scans" value={productionBatchKpis.totalScans.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
+          )}
         </Grid>
       </Grid>
 
@@ -98,6 +115,7 @@ export function BatchListingTab({ onViewBatch }: BatchListingTabProps) {
         tableKey="production-batch-listing"
         columns={columns}
         rows={filteredBatches}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by batch no, product code or name…"
         searchKeys={(row) => `${row.batchNo} ${row.productCode} ${row.productName}`}

@@ -1,16 +1,17 @@
 import { mockDealerReports, getDealerReportById, dealerReportKpis } from '@/features/reportsAnalytics/mockDealerReports'
 import type { DealerReportDetails, DealerReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
+import { mockDelay } from '@/services/mockDelay'
 
 async function getDealerReports(): Promise<DealerReportRow[]> {
-  return Promise.resolve(mockDealerReports)
+  return mockDelay(mockDealerReports)
 }
 
 async function getDealerReportDetail(id: string): Promise<DealerReportDetails | undefined> {
-  return Promise.resolve(getDealerReportById(id))
+  return mockDelay(getDealerReportById(id))
 }
 
 async function getDealerReportKpis() {
-  return Promise.resolve(dealerReportKpis)
+  return mockDelay(dealerReportKpis)
 }
 
 export const dealerReportsService = {

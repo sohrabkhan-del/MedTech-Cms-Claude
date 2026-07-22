@@ -18,9 +18,11 @@ import {
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useRedemptionDetail } from '@/features/rewardsWallet/hooks/useRedemptionDetail'
 import type { RedemptionDeliveryStatus, RedemptionHistoryEntry, RedemptionStatus } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
@@ -53,9 +55,13 @@ const historyColumns: CommonTableColumn<RedemptionHistoryEntry>[] = [
 export function RedemptionDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
-  const { request, setStatus, setDeliveryStatus } = useRedemptionDetail(requestId)
+  const { request, setStatus, setDeliveryStatus, isLoading } = useRedemptionDetail(requestId)
   const [deliveryMenuAnchor, setDeliveryMenuAnchor] = useState<HTMLElement | null>(null)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
   if (!request) {
     return (
@@ -206,16 +212,16 @@ export function RedemptionDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Coins Redeemed" value={request.coinsUsed.toLocaleString('en-IN')} icon={<Redo2 size={20} />} iconColor="primary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Coins Redeemed" value={request.coinsUsed.toLocaleString('en-IN')} icon={<Redo2 size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Wallet Balance After Redemption" value={request.walletBalanceAfterRedemption.toLocaleString('en-IN')} icon={<WalletIcon size={20} />} iconColor="secondary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Wallet Balance After Redemption" value={request.walletBalanceAfterRedemption.toLocaleString('en-IN')} icon={<WalletIcon size={20} />} iconColor="secondary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Approval Status" value={statusConfig[currentStatus].label} icon={<CircleCheck size={20} />} iconColor={currentStatus === 'rejected' ? 'error' : 'success'} />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Approval Status" value={statusConfig[currentStatus].label} icon={<CircleCheck size={20} />} iconColor={currentStatus === 'rejected' ? 'error' : 'success'} />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Delivery Status" value={deliveryStatusConfig[currentDelivery].label} icon={<Truck size={20} />} iconColor="warning" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Delivery Status" value={deliveryStatusConfig[currentDelivery].label} icon={<Truck size={20} />} iconColor="warning" />}
           </Grid>
         </Grid>
 
@@ -271,6 +277,7 @@ export function RedemptionDetailsPage() {
             columns={historyColumns}
             rows={request.history}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search redemption history…"
             searchKeys={(row) => `${row.rewardItem} ${row.id}`}
             defaultSortBy="requestDate"

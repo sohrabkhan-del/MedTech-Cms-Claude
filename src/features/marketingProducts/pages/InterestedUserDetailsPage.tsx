@@ -7,6 +7,7 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { Modal } from '@/components/common/Modal/Modal'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useInterestedUserDetail } from '@/features/marketingProducts/hooks/useInterestedUserDetail'
 import { useInterestedUsers } from '@/features/marketingProducts/hooks/useInterestedUsers'
 import type { LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
@@ -20,9 +21,13 @@ const leadStatusConfig: Record<LeadStatus, { label: string; color: 'info' | 'war
 export function InterestedUserDetailsPage() {
   const navigate = useNavigate()
   const { leadId } = useParams<{ leadId: string }>()
-  const { lead, setStatus, remove } = useInterestedUserDetail(leadId)
+  const { lead, setStatus, remove, isLoading } = useInterestedUserDetail(leadId)
   const { kpis } = useInterestedUsers()
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!lead) {
     return (

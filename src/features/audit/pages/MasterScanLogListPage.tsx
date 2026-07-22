@@ -13,6 +13,7 @@ import {
   Circle,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
@@ -53,7 +54,7 @@ export function MasterScanLogListPage() {
     title: 'Master Scan Table Logs',
     subtitle: 'End-to-end product traceability across the supply chain — read-only.',
   })
-  const { logs, kpis, filterOptions } = useMasterScanLogs()
+  const { logs, kpis, filterOptions, isLoading } = useMasterScanLogs()
   const [view, setView] = useState<'table' | 'tree' | 'bubble'>('table')
   const [filterOpen, setFilterOpen] = useState(false)
   const [bubbleProducts, setBubbleProducts] = useState<string[]>([])
@@ -289,24 +290,44 @@ export function MasterScanLogListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Total Products" value={scanKpis.totalProducts} icon={<PackageIcon size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Products" value={scanKpis.totalProducts} icon={<PackageIcon size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Total Batches" value={scanKpis.totalBatches} icon={<Layers size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Batches" value={scanKpis.totalBatches} icon={<Layers size={20} />} iconColor="secondary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Total Barcode Scans" value={scanKpis.totalBarcodeScans} icon={<ScanLine size={20} />} iconColor="info" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Barcode Scans" value={scanKpis.totalBarcodeScans} icon={<ScanLine size={20} />} iconColor="info" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard label="Successful Scans" value={scanKpis.successfulScans} icon={<CircleCheckIcon size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Successful Scans" value={scanKpis.successfulScans} icon={<CircleCheckIcon size={20} />} iconColor="success" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard
-            label="Reward Points Issued"
-            value={scanKpis.rewardPointsIssued.toLocaleString('en-IN')}
-            icon={<TrophyIcon size={20} />}
-            iconColor="warning"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Reward Points Issued"
+              value={scanKpis.rewardPointsIssued.toLocaleString('en-IN')}
+              icon={<TrophyIcon size={20} />}
+              iconColor="warning"
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -338,6 +359,7 @@ export function MasterScanLogListPage() {
           tableKey="master-scan-logs"
           columns={columns}
           rows={filteredLogs}
+          loading={isLoading}
           getRowId={(row) => row.id}
           searchPlaceholder="Search by product, batch, or barcode…"
           searchKeys={(row) => `${row.productName} ${row.productCode} ${row.batchNumber} ${row.barcodeNumber}`}

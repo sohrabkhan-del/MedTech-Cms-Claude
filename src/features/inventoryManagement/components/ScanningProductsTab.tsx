@@ -7,6 +7,7 @@ import {
   CircleCheckBig as TaskAltOutlined,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useScanningProducts } from '@/features/inventoryManagement/hooks/useScanningProducts'
@@ -26,7 +27,7 @@ const scanStatusConfig: Record<BatchScanStatus, { label: string; color: 'default
 }
 
 export function ScanningProductsTab() {
-  const { batches, kpis } = useScanningProducts()
+  const { batches, kpis, isLoading } = useScanningProducts()
   const productCategoryOptions = useProductCategoryOptions()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ProductBatchFilters>({
@@ -86,16 +87,32 @@ export function ScanningProductsTab() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Batches" value={productBatchKpis.totalBatches} icon={<ViewInArOutlined size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Batches" value={productBatchKpis.totalBatches} icon={<ViewInArOutlined size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Batches" value={productBatchKpis.activeBatches} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Active Batches" value={productBatchKpis.activeBatches} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Scans" value={productBatchKpis.totalScans.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Scans" value={productBatchKpis.totalScans.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Scan Completed" value={productBatchKpis.scanCompleted} icon={<TaskAltOutlined size={20} />} iconColor="warning" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Scan Completed" value={productBatchKpis.scanCompleted} icon={<TaskAltOutlined size={20} />} iconColor="warning" />
+          )}
         </Grid>
       </Grid>
 
@@ -103,6 +120,7 @@ export function ScanningProductsTab() {
         tableKey="product-batches-scanning-products"
         columns={columns}
         rows={filteredBatches}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by product code or name…"
         searchKeys={(row) => `${row.productCode} ${row.productName} ${row.batchNo}`}

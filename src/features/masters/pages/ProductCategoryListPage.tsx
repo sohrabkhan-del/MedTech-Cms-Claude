@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { Grid } from '@mui/material'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -34,7 +35,7 @@ export function ProductCategoryListPage() {
     title: 'Product Categories',
     subtitle: 'Organize MedTech products into categories for reporting, schemes, and analytics.',
   })
-  const { categories, kpis } = useProductCategories()
+  const { categories, kpis, isLoading } = useProductCategories()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<CategoryFilters>({
     status: 'all',
@@ -98,16 +99,32 @@ export function ProductCategoryListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Categories" value={categoryKpis.totalCategories} icon={<FolderTreeIcon size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Categories" value={categoryKpis.totalCategories} icon={<FolderTreeIcon size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active" value={categoryKpis.activeCategories} icon={<CircleCheckIcon size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Active" value={categoryKpis.activeCategories} icon={<CircleCheckIcon size={20} />} iconColor="success" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Inactive" value={categoryKpis.inactiveCategories} icon={<BanIcon size={20} />} iconColor="error" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Inactive" value={categoryKpis.inactiveCategories} icon={<BanIcon size={20} />} iconColor="error" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Products Mapped" value={categoryKpis.totalProductsMapped} icon={<PackageIcon size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Products Mapped" value={categoryKpis.totalProductsMapped} icon={<PackageIcon size={20} />} iconColor="secondary" />
+          )}
         </Grid>
       </Grid>
 
@@ -138,6 +155,7 @@ export function ProductCategoryListPage() {
         tableKey="product-categories-list"
         columns={columns}
         rows={filteredCategories}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search categories…"
         searchKeys={(row) => `${row.categoryName} ${row.categoryCode}`}

@@ -6,6 +6,7 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useAuditLogDetail } from '@/features/audit/hooks/useAuditLogDetail'
 import type { AuditChangedField, AuditEntityType, AuditStatus } from '@/features/audit/types/audit.types'
 
@@ -27,7 +28,11 @@ const entityRouteResolver: Partial<Record<AuditEntityType, (entityId: string) =>
 export function AuditLogDetailsPage() {
   const { logId } = useParams<{ logId: string }>()
   const navigate = useNavigate()
-  const { log } = useAuditLogDetail(logId)
+  const { log, isLoading } = useAuditLogDetail(logId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!log) {
     return (
@@ -148,6 +153,7 @@ export function AuditLogDetailsPage() {
             tableKey="audit-log-changed-data"
             columns={changedDataColumns}
             rows={log.changedData}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search changed fields…"
             searchKeys={(row) => row.fieldName}

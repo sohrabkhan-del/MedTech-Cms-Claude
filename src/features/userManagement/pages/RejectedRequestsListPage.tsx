@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Ban as BlockIcon, XCircle as CancelOutlined, Store as StorefrontOutlined, Pill as LocalPharmacyOutlined, Calendar as TodayOutlined } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -33,7 +34,7 @@ interface RejectedFilters extends Record<string, unknown> {
 export function RejectedRequestsListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
-  const { requests, kpis, reviewers, reopen, remove } = useRejectedRequests()
+  const { requests, kpis, reviewers, reopen, remove, isLoading } = useRejectedRequests()
   useRegionTopbarHeader({
     icon: <BlockIcon size={20} />,
     title: 'Rejected Requests',
@@ -101,16 +102,32 @@ export function RejectedRequestsListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Rejected Requests" value={rejectedRequestKpis.totalRejected} icon={<CancelOutlined size={20} />} iconColor="error" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Rejected Requests" value={rejectedRequestKpis.totalRejected} icon={<CancelOutlined size={20} />} iconColor="error" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Dealer Rejections" value={rejectedRequestKpis.dealerRejections} icon={<StorefrontOutlined size={20} />} iconColor="warning" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Dealer Rejections" value={rejectedRequestKpis.dealerRejections} icon={<StorefrontOutlined size={20} />} iconColor="warning" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Chemist Rejections" value={rejectedRequestKpis.chemistRejections} icon={<LocalPharmacyOutlined size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Chemist Rejections" value={rejectedRequestKpis.chemistRejections} icon={<LocalPharmacyOutlined size={20} />} iconColor="secondary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Today's Rejections" value={rejectedRequestKpis.todaysRejections} icon={<TodayOutlined size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Today's Rejections" value={rejectedRequestKpis.todaysRejections} icon={<TodayOutlined size={20} />} iconColor="primary" />
+          )}
         </Grid>
       </Grid>
 
@@ -118,6 +135,7 @@ export function RejectedRequestsListPage() {
         tableKey="rejected-requests-list"
         columns={columns}
         rows={filteredRequests}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search rejected requests…"
         searchKeys={(row) => `${row.applicantName} ${row.id} ${row.storeName} ${row.ownerName}`}

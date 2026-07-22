@@ -38,7 +38,7 @@ export function RewardReportListPage() {
     title: 'Reward Reports',
     subtitle: 'Reward earning and redemption analytics across Dealers, Chemists, and MRs.',
   })
-  const { reports, kpis, filterOptions } = useRewardReports()
+  const { reports, kpis, filterOptions, isLoading } = useRewardReports()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<RewardReportFilters>({
     userType: 'all',
@@ -93,6 +93,7 @@ export function RewardReportListPage() {
   return (
     <>
       <ReportKpiGrid
+        isLoading={isLoading}
         cards={[
           { key: 'total', label: 'Total Rewards Issued', value: kpis?.totalRewardsIssued ?? 0, icon: <Gift size={20} />, iconColor: 'primary' },
           { key: 'points', label: 'Total Points Distributed', value: (kpis?.totalPointsDistributed ?? 0).toLocaleString('en-IN'), icon: <Coins size={20} />, iconColor: 'secondary' },
@@ -106,6 +107,7 @@ export function RewardReportListPage() {
         columns={columns}
         rows={filteredReports}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by user name or scheme…"
         searchKeys={(row) => `${row.userName} ${row.schemeName} ${row.id}`}
         onFilterClick={() => setFilterOpen(true)}

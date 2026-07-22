@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { ClipboardCheck as RuleIcon, ClipboardClock as PendingActionsOutlined, CircleCheck as CheckCircleOutlined, XCircle as CancelOutlined, ClipboardList as ListAltOutlined } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -30,7 +31,7 @@ interface DecisionDialogState {
 export function ApprovalRequestsListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
-  const { requests, kpis, decide } = useApprovalRequests()
+  const { requests, kpis, decide, isLoading } = useApprovalRequests()
   useRegionTopbarHeader({
     icon: <RuleIcon size={20} />,
     title: 'Approval Requests',
@@ -103,16 +104,32 @@ export function ApprovalRequestsListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending Requests" value={approvalRequestKpis.pending} icon={<PendingActionsOutlined size={20} />} iconColor="warning" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Pending Requests" value={approvalRequestKpis.pending} icon={<PendingActionsOutlined size={20} />} iconColor="warning" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Approved Requests" value={approvalRequestKpis.approved} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Approved Requests" value={approvalRequestKpis.approved} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Rejected Requests" value={approvalRequestKpis.rejected} icon={<CancelOutlined size={20} />} iconColor="error" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Rejected Requests" value={approvalRequestKpis.rejected} icon={<CancelOutlined size={20} />} iconColor="error" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Requests" value={approvalRequestKpis.total} icon={<ListAltOutlined size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Requests" value={approvalRequestKpis.total} icon={<ListAltOutlined size={20} />} iconColor="primary" />
+          )}
         </Grid>
       </Grid>
 
@@ -120,6 +137,7 @@ export function ApprovalRequestsListPage() {
         tableKey="approval-requests-list"
         columns={columns}
         rows={filteredRequests}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search requests…"
         searchKeys={(row) => `${row.applicantName} ${row.city} ${row.requestType}`}

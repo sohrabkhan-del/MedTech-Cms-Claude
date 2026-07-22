@@ -19,10 +19,12 @@ import {
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { ImageGallery } from '@/components/common/ImageGallery/ImageGallery'
 import { Modal } from '@/components/common/Modal/Modal'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useGiftRuleDetail } from '@/features/schemeManagement/hooks/useGiftRuleDetail'
 import type { RewardRuleRedemptionEntry } from '@/features/schemeManagement/types/schemeManagement.types'
 
@@ -51,8 +53,12 @@ const redemptionColumns: CommonTableColumn<RewardRuleRedemptionEntry>[] = [
 export function GiftRuleDetailsPage() {
   const navigate = useNavigate()
   const { ruleId } = useParams<{ ruleId: string }>()
-  const { rule, setActive, remove } = useGiftRuleDetail(ruleId)
+  const { rule, setActive, remove, isLoading } = useGiftRuleDetail(ruleId)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={5} />
+  }
 
   if (!rule) {
     return (
@@ -168,19 +174,19 @@ export function GiftRuleDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Total Redemptions" value={rule.totalRedemptions.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Redemptions" value={rule.totalRedemptions.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Pending Redemptions" value={rule.pendingRedemptions} icon={<Clock3 size={20} />} iconColor="warning" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Pending Redemptions" value={rule.pendingRedemptions} icon={<Clock3 size={20} />} iconColor="warning" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Successful Deliveries" value={rule.successfulDeliveries.toLocaleString('en-IN')} icon={<CheckCheck size={20} />} iconColor="success" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Successful Deliveries" value={rule.successfulDeliveries.toLocaleString('en-IN')} icon={<CheckCheck size={20} />} iconColor="success" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Remaining Inventory" value={rule.remainingInventory.toLocaleString('en-IN')} icon={<Boxes size={20} />} iconColor="secondary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Remaining Inventory" value={rule.remainingInventory.toLocaleString('en-IN')} icon={<Boxes size={20} />} iconColor="secondary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Redemption Rate" value={`${rule.redemptionRate}%`} icon={<Gauge size={20} />} iconColor="info" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Redemption Rate" value={`${rule.redemptionRate}%`} icon={<Gauge size={20} />} iconColor="info" />}
           </Grid>
         </Grid>
 
@@ -202,6 +208,7 @@ export function GiftRuleDetailsPage() {
             columns={redemptionColumns}
             rows={rule.redemptionHistory}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search redemption history…"
             searchKeys={(row) => `${row.userName} ${row.schemeName}`}
             defaultSortBy="redemptionDate"

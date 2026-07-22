@@ -1,25 +1,26 @@
 import { mockInterestedUsers, getInterestedUserById, interestedUserKpis } from '@/features/marketingProducts/mockInterestedUsers'
 import { mrs } from '@/features/userManagement/mockPartnerData'
 import type { InterestedUserLead, LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // interested users API is available. setLeadStatus/deleteLead are currently
 // no-ops resolving immediately so the UI/hook contract is stable ahead of time.
 
 async function getInterestedUsers(): Promise<InterestedUserLead[]> {
-  return Promise.resolve(mockInterestedUsers)
+  return mockDelay(mockInterestedUsers)
 }
 
 async function getInterestedUserDetail(id: string): Promise<InterestedUserLead | undefined> {
-  return Promise.resolve(getInterestedUserById(id))
+  return mockDelay(getInterestedUserById(id))
 }
 
 async function getInterestedUserKpis() {
-  return Promise.resolve(interestedUserKpis)
+  return mockDelay(interestedUserKpis)
 }
 
 async function getHandlerOptions(): Promise<string[]> {
-  return Promise.resolve(mrs)
+  return mockDelay(mrs)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract

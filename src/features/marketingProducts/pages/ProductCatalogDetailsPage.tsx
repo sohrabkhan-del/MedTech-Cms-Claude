@@ -16,6 +16,7 @@ import { CommonTable, type CommonTableColumn } from '@/components/common/CommonT
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { ImageGallery } from '@/components/common/ImageGallery/ImageGallery'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useShowcaseProductDetail } from '@/features/marketingProducts/hooks/useShowcaseProductDetail'
 import type { DeliveryStatus, EnquiryStatus, ProductEnquiry, ShowcaseUserType } from '@/features/marketingProducts/types/marketingProducts.types'
 
@@ -41,10 +42,14 @@ interface InterestedUserFilters extends Record<string, unknown> {
 export function ProductCatalogDetailsPage() {
   const navigate = useNavigate()
   const { productId } = useParams<{ productId: string }>()
-  const { product } = useShowcaseProductDetail(productId)
+  const { product, isLoading } = useShowcaseProductDetail(productId)
 
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<InterestedUserFilters>({ enquiryStatus: 'all', deliveryStatus: 'all' })
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!product) {
     return (
@@ -162,6 +167,7 @@ export function ProductCatalogDetailsPage() {
             tableKey="showcase-product-interested-users"
             columns={userColumns}
             rows={filteredUsers}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search interested users…"
             searchKeys={(row) => `${row.userName} ${row.email}`}

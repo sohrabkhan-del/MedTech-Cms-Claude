@@ -8,6 +8,7 @@ import {
   UserX as UserXIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -25,7 +26,7 @@ const ALL_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
 
 export function MedicalRepListPage() {
   const navigate = useNavigate()
-  const { medicalReps, kpis } = useMedicalReps()
+  const { medicalReps, kpis, isLoading } = useMedicalReps()
   useRegionTopbarHeader({
     icon: <UserRoundIcon size={20} />,
     title: 'Medical Representatives',
@@ -99,16 +100,16 @@ export function MedicalRepListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total MRs" value={mrKpis.totalMrs} icon={<UserRoundIcon size={20} />} iconColor="primary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total MRs" value={mrKpis.totalMrs} icon={<UserRoundIcon size={20} />} iconColor="primary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active" value={mrKpis.activeMrs} icon={<UserCheckIcon size={20} />} iconColor="success" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Active" value={mrKpis.activeMrs} icon={<UserCheckIcon size={20} />} iconColor="success" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending" value={mrKpis.pendingMrs} icon={<ClockIcon size={20} />} iconColor="warning" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Pending" value={mrKpis.pendingMrs} icon={<ClockIcon size={20} />} iconColor="warning" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Inactive" value={mrKpis.inactiveMrs} icon={<UserXIcon size={20} />} iconColor="error" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Inactive" value={mrKpis.inactiveMrs} icon={<UserXIcon size={20} />} iconColor="error" />}
         </Grid>
       </Grid>
 
@@ -117,6 +118,7 @@ export function MedicalRepListPage() {
         columns={columns}
         rows={filteredMrs}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search MRs…"
         searchKeys={(row) => `${row.name} ${row.email} ${row.phone}`}
         onFilterClick={() => setFilterOpen(true)}

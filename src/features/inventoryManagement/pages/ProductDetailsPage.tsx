@@ -19,6 +19,7 @@ import { ImageGallery } from '@/components/common/ImageGallery/ImageGallery'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useProductDetail } from '@/features/inventoryManagement/hooks/useProductDetail'
 import type { ProductAuditEntry, ProductMovementEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
@@ -56,7 +57,11 @@ const auditColumns: CommonTableColumn<ProductAuditEntry>[] = [
 export function ProductDetailsPage() {
   const navigate = useNavigate()
   const { productId } = useParams<{ productId: string }>()
-  const { product } = useProductDetail(productId)
+  const { product, isLoading } = useProductDetail(productId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
   if (!product) {
     return (
@@ -211,6 +216,7 @@ export function ProductDetailsPage() {
             tableKey="product-movement-history"
             columns={movementColumns}
             rows={product.movementHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search movement history…"
             searchKeys={(row) => `${row.factoryUploadBatch} ${row.startSerialNo} ${row.endSerialNo}`}
@@ -244,6 +250,7 @@ export function ProductDetailsPage() {
             tableKey="product-audit-history"
             columns={auditColumns}
             rows={product.auditHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search audit history…"
             searchKeys={(row) => `${row.action} ${row.performedBy}`}

@@ -8,6 +8,7 @@ import {
   Trophy as EmojiEventsOutlined,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -28,7 +29,7 @@ interface ProductFilters extends Record<string, unknown> {
 
 export function ProductListPage() {
   const navigate = useNavigate()
-  const { products, kpis } = useProducts()
+  const { products, kpis, isLoading } = useProducts()
   const productCategoryOptions = useProductCategoryOptions()
   useRegionTopbarHeader({
     icon: <Inventory2Icon size={20} />,
@@ -130,36 +131,52 @@ export function ProductListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Total Products"
-            value={productKpis.totalProducts}
-            icon={<Inventory2Icon size={20} />}
-            iconColor="primary"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Total Products"
+              value={productKpis.totalProducts}
+              icon={<Inventory2Icon size={20} />}
+              iconColor="primary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Active Products"
-            value={productKpis.activeProducts}
-            icon={<CheckCircleOutlined size={20} />}
-            iconColor="success"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Active Products"
+              value={productKpis.activeProducts}
+              icon={<CheckCircleOutlined size={20} />}
+              iconColor="success"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Inactive Products"
-            value={productKpis.inactiveProducts}
-            icon={<BlockOutlined size={20} />}
-            iconColor="error"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Inactive Products"
+              value={productKpis.inactiveProducts}
+              icon={<BlockOutlined size={20} />}
+              iconColor="error"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Reward Points Issued"
-            value={productKpis.totalRewardPointsIssued.toLocaleString('en-IN')}
-            icon={<EmojiEventsOutlined size={20} />}
-            iconColor="secondary"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Reward Points Issued"
+              value={productKpis.totalRewardPointsIssued.toLocaleString('en-IN')}
+              icon={<EmojiEventsOutlined size={20} />}
+              iconColor="secondary"
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -167,6 +184,7 @@ export function ProductListPage() {
         tableKey="product-master-list"
         columns={columns}
         rows={filteredProducts}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by product name or code…"
         searchKeys={(row) => `${row.productName} ${row.productCode}`}

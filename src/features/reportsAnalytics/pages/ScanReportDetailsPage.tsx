@@ -6,6 +6,7 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useScanReportDetail } from '@/features/reportsAnalytics/hooks/useScanReportDetail'
 import type { ScanReportResult, ScanReportWalletStatus } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
@@ -26,9 +27,11 @@ export function ScanReportDetailsPage() {
   const { scanId } = useParams<{ scanId: string }>()
   const { report, isLoading } = useScanReportDetail(scanId)
 
-  if (!report) {
-    if (isLoading) return null
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
+  if (!report) {
     return (
       <EmptyState
         title="Scan report not found"

@@ -7,6 +7,7 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { HierarchyTree, type HierarchyTreeNode } from '@/components/common/HierarchyTree/HierarchyTree'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useMasterScanLogDetail } from '@/features/audit/hooks/useMasterScanLogDetail'
 import type { ScanHistoryEntry, ScanLogStatus, ScanLogWalletStatus } from '@/features/audit/types/audit.types'
 
@@ -25,7 +26,11 @@ const walletStatusConfig: Record<ScanLogWalletStatus, { label: string; color: 's
 export function MasterScanLogDetailsPage() {
   const { logId } = useParams<{ logId: string }>()
   const navigate = useNavigate()
-  const { log } = useMasterScanLogDetail(logId)
+  const { log, isLoading } = useMasterScanLogDetail(logId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
   if (!log) {
     return (
@@ -201,6 +206,7 @@ export function MasterScanLogDetailsPage() {
             tableKey="scan-log-scan-history"
             columns={scanHistoryColumns}
             rows={log.scanHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search scan history…"
             searchKeys={(row) => `${row.userName} ${row.device}`}

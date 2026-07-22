@@ -8,24 +8,25 @@ import {
   auditUserRoleOptions,
 } from '@/features/audit/mockAuditLogs'
 import type { AuditLogEntry } from '@/features/audit/types/audit.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // Audit Logs are read-only per product spec — this service only exposes
 // list/detail/kpi/filter-option accessors, no create/update/delete methods.
 
 async function getAuditLogs(): Promise<AuditLogEntry[]> {
-  return Promise.resolve(mockAuditLogs)
+  return mockDelay(mockAuditLogs)
 }
 
 async function getAuditLogDetail(id: string): Promise<AuditLogEntry | undefined> {
-  return Promise.resolve(getAuditLogById(id))
+  return mockDelay(getAuditLogById(id))
 }
 
 async function getAuditLogKpis() {
-  return Promise.resolve(auditLogKpis)
+  return mockDelay(auditLogKpis)
 }
 
 async function getAuditLogFilterOptions() {
-  return Promise.resolve({
+  return mockDelay({
     moduleOptions: auditModuleOptions,
     actionOptions: auditActionOptions,
     entityOptions: auditEntityOptions,

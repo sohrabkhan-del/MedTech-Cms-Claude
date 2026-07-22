@@ -22,6 +22,7 @@ import {
   Search,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import {
   CommonTable,
@@ -40,7 +41,7 @@ export function GiftRulesListPage() {
     subtitle:
       'Manage permanent catalog rewards and limited-time scheme rewards.',
   })
-  const { permanentCatalogRewards, schemeTrackRewards, dashboard } = useGiftRules()
+  const { permanentCatalogRewards, schemeTrackRewards, dashboard, isLoading } = useGiftRules()
   const { ruleTypeOptions } = useGiftRuleFormOptions()
   const [search, setSearch] = useState('')
   const [ruleType, setRuleType] = useState<RuleType | 'all'>('all')
@@ -218,44 +219,64 @@ export function GiftRulesListPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard
-            label="Permanent Catalog Rewards"
-            value={giftRulesDashboard.permanentCatalogRewards}
-            icon={<Award size={20} />}
-            iconColor="primary"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Permanent Catalog Rewards"
+              value={giftRulesDashboard.permanentCatalogRewards}
+              icon={<Award size={20} />}
+              iconColor="primary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard
-            label="Active Scheme Rewards"
-            value={giftRulesDashboard.activeSchemeRewards}
-            icon={<Sparkles size={20} />}
-            iconColor="secondary"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Active Scheme Rewards"
+              value={giftRulesDashboard.activeSchemeRewards}
+              icon={<Sparkles size={20} />}
+              iconColor="secondary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard
-            label="Current Active Scheme"
-            value={giftRulesDashboard.currentActiveScheme}
-            icon={<CalendarRange size={20} />}
-            iconColor="info"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Current Active Scheme"
+              value={giftRulesDashboard.currentActiveScheme}
+              icon={<CalendarRange size={20} />}
+              iconColor="info"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard
-            label="Standard Track Rewards"
-            value={giftRulesDashboard.standardTrackRewards}
-            icon={<Layers size={20} />}
-            iconColor="success"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Standard Track Rewards"
+              value={giftRulesDashboard.standardTrackRewards}
+              icon={<Layers size={20} />}
+              iconColor="success"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-          <StatCard
-            label="High-Outgo Scheme Rewards"
-            value={giftRulesDashboard.highOutgoSchemeRewards}
-            icon={<Flame size={20} />}
-            iconColor="warning"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="High-Outgo Scheme Rewards"
+              value={giftRulesDashboard.highOutgoSchemeRewards}
+              icon={<Flame size={20} />}
+              iconColor="warning"
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -266,6 +287,7 @@ export function GiftRulesListPage() {
             columns={columns}
             rows={filteredPermanent}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchKeys={(row) => `${row.rewardName} ${row.ruleType}`}
             defaultSortBy="rewardName"
             actions={[
@@ -286,6 +308,7 @@ export function GiftRulesListPage() {
             columns={columns}
             rows={filteredScheme}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchKeys={(row) => `${row.rewardName} ${row.ruleType}`}
             defaultSortBy="rewardName"
             actions={[

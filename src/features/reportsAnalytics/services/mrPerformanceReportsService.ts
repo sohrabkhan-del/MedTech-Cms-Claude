@@ -5,21 +5,22 @@ import {
   mrPerformanceKpis,
 } from '@/features/reportsAnalytics/mockMrPerformanceReports'
 import type { MrPerformanceDetails, MrPerformanceReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
+import { mockDelay } from '@/services/mockDelay'
 
 async function getMrPerformanceReports(): Promise<MrPerformanceReportRow[]> {
-  return Promise.resolve(mockMrPerformanceReports)
+  return mockDelay(mockMrPerformanceReports)
 }
 
 async function getMrPerformanceReportDetail(id: string): Promise<MrPerformanceReportRow | undefined> {
-  return Promise.resolve(getMrPerformanceReportById(id))
+  return mockDelay(getMrPerformanceReportById(id))
 }
 
 async function getMrPerformanceDetailsFull(id: string): Promise<MrPerformanceDetails | undefined> {
-  return Promise.resolve(getMrPerformanceDetails(id))
+  return mockDelay(getMrPerformanceDetails(id))
 }
 
 async function getMrPerformanceKpis() {
-  return Promise.resolve(mrPerformanceKpis)
+  return mockDelay(mrPerformanceKpis)
 }
 
 export const mrPerformanceReportsService = {

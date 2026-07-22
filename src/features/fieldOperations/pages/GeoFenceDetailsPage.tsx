@@ -8,6 +8,7 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useGeoFenceDetail } from '@/features/fieldOperations/hooks/useGeoFenceDetail'
 import { useGeoFences } from '@/features/fieldOperations/hooks/useGeoFences'
 import type {
@@ -43,9 +44,13 @@ const auditColumns: CommonTableColumn<GeoFenceAuditEntry>[] = [
 export function GeoFenceDetailsPage() {
   const navigate = useNavigate()
   const { fenceId } = useParams<{ fenceId: string }>()
-  const { geoFence: fence, setStatus, remove } = useGeoFenceDetail(fenceId)
+  const { geoFence: fence, isLoading, setStatus, remove } = useGeoFenceDetail(fenceId)
   const { kpis } = useGeoFences()
   const geoFenceKpis = kpis ?? { activeFences: 0, pendingVerification: 0, averageRadius: 0, verifiedThisWeek: 0 }
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={5} />
+  }
 
   if (!fence) {
     return (
@@ -161,6 +166,7 @@ export function GeoFenceDetailsPage() {
             tableKey="geofence-verification-history"
             columns={verificationColumns}
             rows={fence.verificationHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search verification history…"
             searchKeys={(row) => `${row.verifiedBy} ${row.remarks}`}
@@ -174,6 +180,7 @@ export function GeoFenceDetailsPage() {
             tableKey="geofence-scan-history"
             columns={scanColumns}
             rows={fence.scanHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search scans…"
             searchKeys={(row) => `${row.user} ${row.location}`}
@@ -191,6 +198,7 @@ export function GeoFenceDetailsPage() {
             tableKey="geofence-audit-history"
             columns={auditColumns}
             rows={fence.auditHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search audit history…"
             searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}

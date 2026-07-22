@@ -8,6 +8,7 @@ import {
   UserX as UserXIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -25,7 +26,7 @@ const ALL_STATUSES: AdminStatus[] = ['active', 'pending', 'inactive']
 
 export function AdminListPage() {
   const navigate = useNavigate()
-  const { admins, kpis } = useAdmins()
+  const { admins, kpis, isLoading } = useAdmins()
   useRegionTopbarHeader({
     icon: <BadgeCheckIcon size={20} />,
     title: 'Admin Management',
@@ -84,16 +85,16 @@ export function AdminListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Admins" value={adminKpis.totalAdmins} icon={<BadgeCheckIcon size={20} />} iconColor="primary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Admins" value={adminKpis.totalAdmins} icon={<BadgeCheckIcon size={20} />} iconColor="primary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active" value={adminKpis.activeAdmins} icon={<UserCheckIcon size={20} />} iconColor="success" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Active" value={adminKpis.activeAdmins} icon={<UserCheckIcon size={20} />} iconColor="success" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending" value={adminKpis.pendingAdmins} icon={<ClockIcon size={20} />} iconColor="warning" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Pending" value={adminKpis.pendingAdmins} icon={<ClockIcon size={20} />} iconColor="warning" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Inactive" value={adminKpis.inactiveAdmins} icon={<UserXIcon size={20} />} iconColor="error" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Inactive" value={adminKpis.inactiveAdmins} icon={<UserXIcon size={20} />} iconColor="error" />}
         </Grid>
       </Grid>
 
@@ -102,6 +103,7 @@ export function AdminListPage() {
         columns={columns}
         rows={filteredAdmins}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search admins…"
         searchKeys={(row) => `${row.name} ${row.email} ${row.phone}`}
         onFilterClick={() => setFilterOpen(true)}

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Target, Users, Trophy, Ban } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
@@ -28,7 +29,7 @@ interface GeneralSchemeFilters extends Record<string, unknown> {
 
 export function GeneralSchemesListPage() {
   const navigate = useNavigate()
-  const { schemes, kpis } = useGeneralSchemes()
+  const { schemes, kpis, isLoading } = useGeneralSchemes()
   const { schemeTypeOptions, schemeApplicableUserOptions } = useSchemeFormOptions()
   useRegionTopbarHeader({
     icon: <Target size={20} />,
@@ -87,16 +88,16 @@ export function GeneralSchemesListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active General Schemes" value={generalSchemeKpis.activeSchemes} icon={<Target size={20} />} iconColor="primary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Active General Schemes" value={generalSchemeKpis.activeSchemes} icon={<Target size={20} />} iconColor="primary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Participants" value={generalSchemeKpis.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="secondary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Participants" value={generalSchemeKpis.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="secondary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Reward Points Issued" value={generalSchemeKpis.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Reward Points Issued" value={generalSchemeKpis.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Expired Schemes" value={generalSchemeKpis.expiredSchemes} icon={<Ban size={20} />} iconColor="error" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Expired Schemes" value={generalSchemeKpis.expiredSchemes} icon={<Ban size={20} />} iconColor="error" />}
         </Grid>
       </Grid>
 
@@ -105,6 +106,7 @@ export function GeneralSchemesListPage() {
         columns={columns}
         rows={filteredSchemes}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by scheme name or ID…"
         searchKeys={(row) => `${row.schemeName} ${row.id}`}
         onFilterClick={() => setFilterOpen(true)}

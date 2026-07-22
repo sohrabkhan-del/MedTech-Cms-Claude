@@ -7,25 +7,26 @@ import {
   scanFeedKpis,
 } from '@/features/fieldOperations/mocks/mockScanFeed'
 import type { ScanEvent } from '@/features/fieldOperations/types/fieldOperations.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // scan feed API is available. `subscribeToLiveScans` currently polls a mock
 // generator on an interval — swap for a websocket/SSE subscription.
 
 async function getScanEvents(): Promise<ScanEvent[]> {
-  return Promise.resolve(mockScanEvents)
+  return mockDelay(mockScanEvents)
 }
 
 async function getScanEventDetail(id: string): Promise<ScanEvent | undefined> {
-  return Promise.resolve(getScanEventById(id))
+  return mockDelay(getScanEventById(id))
 }
 
 async function getScanFeedKpis() {
-  return Promise.resolve(scanFeedKpis)
+  return mockDelay(scanFeedKpis)
 }
 
 async function getUserScanProfile(userId: string) {
-  return Promise.resolve({
+  return mockDelay({
     summary: getUserScanSummary(userId),
     history: getUserScanHistory(userId),
   })

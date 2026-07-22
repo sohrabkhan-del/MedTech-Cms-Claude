@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Avatar, Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { CircleCheck as CheckCircleOutlined, Hourglass as HourglassEmptyOutlined, PackageCheck, ClipboardCheck } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
@@ -48,7 +49,7 @@ interface ProductEnquiriesTabProps {
 export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps) {
   const { region } = useRegionFilter()
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
-  const { enquiries, kpis, markEnquiryResponded } = useShowcaseProducts()
+  const { enquiries, kpis, isLoading, markEnquiryResponded } = useShowcaseProducts()
   const showcaseCategoryOptions = useShowcaseCategoryOptions()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<EnquiryFilters>({
@@ -112,16 +113,32 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Enquiries" value={showcaseProductKpis.totalEnquiries} icon={<ClipboardCheck size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Enquiries" value={showcaseProductKpis.totalEnquiries} icon={<ClipboardCheck size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending Enquiries" value={showcaseProductKpis.pendingEnquiries} icon={<HourglassEmptyOutlined size={20} />} iconColor="warning" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Pending Enquiries" value={showcaseProductKpis.pendingEnquiries} icon={<HourglassEmptyOutlined size={20} />} iconColor="warning" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Responded Enquiries" value={showcaseProductKpis.respondedEnquiries} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Responded Enquiries" value={showcaseProductKpis.respondedEnquiries} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Products Delivered" value={showcaseProductKpis.productsDelivered} icon={<PackageCheck size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Products Delivered" value={showcaseProductKpis.productsDelivered} icon={<PackageCheck size={20} />} iconColor="secondary" />
+          )}
         </Grid>
       </Grid>
 
@@ -129,6 +146,7 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
         tableKey="showcase-product-enquiries"
         columns={columns}
         rows={filteredRows}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by product name or user name…"
         searchKeys={(row) => `${row.product.productName} ${row.userName} ${row.product.sku}`}

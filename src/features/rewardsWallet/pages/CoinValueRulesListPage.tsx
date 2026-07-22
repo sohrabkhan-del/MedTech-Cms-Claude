@@ -21,6 +21,7 @@ import {
 } from 'recharts'
 import { Coins, Layers, Landmark, Package, Pencil } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { Modal } from '@/components/common/Modal/Modal'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
@@ -85,7 +86,7 @@ export function CoinValueRulesListPage() {
       'Configure base coin values, regional multipliers, and monitor reward distribution impact.',
   })
 
-  const { rules: allRules, regionMultipliers, baseValueOverrides, setRegionMultiplier, setBaseValueOverride } = useCoinRules()
+  const { rules: allRules, regionMultipliers, baseValueOverrides, setRegionMultiplier, setBaseValueOverride, isLoading } = useCoinRules()
 
   const rules = useMemo(() => allRules.filter((rule) => rule.partnerType === partnerType), [allRules, partnerType])
 
@@ -343,38 +344,54 @@ export function CoinValueRulesListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Total Outstanding Coin Liability"
-            value={(kpis?.totalOutstandingCoinLiability ?? 0).toLocaleString(
-              'en-IN',
-            )}
-            icon={<Landmark size={20} />}
-            iconColor="primary"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Total Outstanding Coin Liability"
+              value={(kpis?.totalOutstandingCoinLiability ?? 0).toLocaleString(
+                'en-IN',
+              )}
+              icon={<Landmark size={20} />}
+              iconColor="primary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Configured Product Rules"
-            value={kpis?.totalConfiguredRules ?? 0}
-            icon={<Package size={20} />}
-            iconColor="secondary"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Configured Product Rules"
+              value={kpis?.totalConfiguredRules ?? 0}
+              icon={<Package size={20} />}
+              iconColor="secondary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Average Base Coin Value"
-            value={kpis?.averageBaseCoinValue ?? 0}
-            icon={<Coins size={20} />}
-            iconColor="success"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Average Base Coin Value"
+              value={kpis?.averageBaseCoinValue ?? 0}
+              icon={<Coins size={20} />}
+              iconColor="success"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Product Categories"
-            value={distributionByCategory.length}
-            icon={<Layers size={20} />}
-            iconColor="warning"
-          />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Product Categories"
+              value={distributionByCategory.length}
+              icon={<Layers size={20} />}
+              iconColor="warning"
+            />
+          )}
         </Grid>
       </Grid>
 

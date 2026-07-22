@@ -14,6 +14,7 @@ import {
   type RegionDateMap,
 } from '@/features/rewardsWallet/mockCoinRules'
 import type { CoinValueRule } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // coin value rules API is available. setBaseCoinValue is currently a no-op
@@ -22,19 +23,19 @@ import type { CoinValueRule } from '@/features/rewardsWallet/types/rewardsWallet
 // helpers below — that is mock persistence, not a page/hook touching mocks.
 
 async function getCoinRules(): Promise<CoinValueRule[]> {
-  return Promise.resolve(mockCoinValueRules)
+  return mockDelay(mockCoinValueRules)
 }
 
 async function getCoinRuleDetail(id: string): Promise<CoinValueRule | undefined> {
-  return Promise.resolve(getCoinValueRuleById(id))
+  return mockDelay(getCoinValueRuleById(id))
 }
 
 async function getCoinRuleKpis() {
-  return Promise.resolve(coinRuleKpis)
+  return mockDelay(coinRuleKpis)
 }
 
 async function getCoinDistributionByCategory() {
-  return Promise.resolve(coinDistributionByCategory)
+  return mockDelay(coinDistributionByCategory)
 }
 
 function getHighestCurrentPoints(rule: CoinValueRule): number {
@@ -42,7 +43,7 @@ function getHighestCurrentPoints(rule: CoinValueRule): number {
 }
 
 async function getRegionMultipliers(): Promise<RegionMultiplierMap> {
-  return Promise.resolve(getStoredMultipliers())
+  return mockDelay(getStoredMultipliers())
 }
 
 async function saveRegionMultipliers(value: RegionMultiplierMap): Promise<void> {
@@ -51,7 +52,7 @@ async function saveRegionMultipliers(value: RegionMultiplierMap): Promise<void> 
 }
 
 async function getRegionMultiplierDates(): Promise<RegionDateMap> {
-  return Promise.resolve(getStoredMultiplierDates())
+  return mockDelay(getStoredMultiplierDates())
 }
 
 async function saveRegionMultiplierDates(value: RegionDateMap): Promise<void> {
@@ -64,7 +65,7 @@ function getChangeDate(): string {
 }
 
 async function getRegionMultiplierDefaults() {
-  return Promise.resolve(regionMultiplierDefaults)
+  return mockDelay(regionMultiplierDefaults)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract

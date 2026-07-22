@@ -19,9 +19,11 @@ import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useSchemeDetail } from '@/features/schemeManagement/hooks/useSchemeDetail'
 import type { Scheme, SchemeAuditEntry, SchemeEligibleProduct, SchemeStatus } from '@/features/schemeManagement/types/schemeManagement.types'
 
@@ -58,8 +60,12 @@ function listPathFor(scheme: Scheme): string {
 export function SchemeDetailsPage() {
   const navigate = useNavigate()
   const { schemeId } = useParams<{ schemeId: string }>()
-  const { scheme, setStatus, remove } = useSchemeDetail(schemeId)
+  const { scheme, setStatus, remove, isLoading } = useSchemeDetail(schemeId)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
   if (!scheme) {
     return (
@@ -160,16 +166,16 @@ export function SchemeDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Reward Points Issued" value={scheme.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Reward Points Issued" value={scheme.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />}
           </Grid>
         </Grid>
 
@@ -210,6 +216,7 @@ export function SchemeDetailsPage() {
             columns={eligibleProductColumns}
             rows={scheme.eligibleProducts}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search eligible products…"
             searchKeys={(row) => `${row.productCode} ${row.productName} ${row.productBrand}`}
             emptyTitle="No eligible products yet"
@@ -245,16 +252,16 @@ export function SchemeDetailsPage() {
         <SectionCard title="Performance Summary">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Reward Points Issued" value={scheme.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Reward Points Issued" value={scheme.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />}
             </Grid>
           </Grid>
         </SectionCard>
@@ -269,6 +276,7 @@ export function SchemeDetailsPage() {
             columns={auditColumns}
             rows={scheme.auditHistory}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search audit history…"
             searchKeys={(row) => `${row.action} ${row.performedBy}`}
             defaultSortBy="date"

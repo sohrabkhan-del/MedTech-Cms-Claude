@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import {
   Box,
   Button,
@@ -34,7 +34,8 @@ import {
 } from 'lucide-react'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { SkeletonLoader } from '@/components/common/SkeletonLoader/SkeletonLoader'
-import { Skeleton as Boneyard } from 'boneyard-js/react'
+import { ImportPreviewDialog } from '@/components/common/CommonTable/ImportPreviewDialog'
+import { exportRowsToCsv, parseImportFile, type ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 
 export interface CommonTableCreateAction {
@@ -77,7 +78,9 @@ interface CommonTableProps<T> {
   actions?: CommonTableAction<T>[]
   onFilterClick?: () => void
   filterCount?: number
+  /** Shows the Export button. Downloads the currently visible columns/rows as CSV; pass a function to run extra logic after the download starts. */
   onExportClick?: () => void
+  /** Shows the Import button. Parses the chosen file and opens a read-only preview; pass a function to run extra logic once parsing succeeds. */
   onImportClick?: () => void
   createAction?: CommonTableCreateAction
   emptyTitle?: string
@@ -121,6 +124,11 @@ export function CommonTable<T>({
     null,
   )
   const { hidden, toggle } = useColumnVisibility(tableKey)
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const [importOpen, setImportOpen] = useState(false)
+  const [importFileName, setImportFileName] = useState<string | null>(null)
+  const [importParsed, setImportParsed] = useState<ParsedImportFile | null>(null)
+  const [importError, setImportError] = useState<string | null>(null)
 
   const visibleColumns = useMemo(
     () => columns.filter((col) => !hidden.has(col.key)),
@@ -180,6 +188,34 @@ export function CommonTable<T>({
   const closeActionMenu = () => {
     setActionMenuAnchor(null)
     setActiveRow(null)
+  }
+
+  const handleExport = () => {
+    exportRowsToCsv(visibleColumns, sortedRows, tableKey)
+    onExportClick?.()
+  }
+
+  const handleImportClick = () => {
+    importInputRef.current?.click()
+  }
+
+  const handleImportFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setImportFileName(file.name)
+    setImportParsed(null)
+    setImportError(null)
+    setImportOpen(true)
+
+    try {
+      const parsed = await parseImportFile(file)
+      setImportParsed(parsed)
+      onImportClick?.()
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Could not parse the file.')
+    }
   }
 
   return (
@@ -264,36 +300,49 @@ export function CommonTable<T>({
               ))}
           </Menu>
           {onImportClick && (
-            <IconButton
-              onClick={onImportClick}
-              aria-label="Import CSV"
-              size="small"
-              sx={{
-                border: '1px solid',
-                borderColor: 'secondary.main',
-                color: 'secondary.main',
-                borderRadius: '8px',
-                paddingX: 2,
-              }}
-            >
-              <Upload size={15} />
-            </IconButton>
+            <>
+              <input
+                ref={importInputRef}
+                type="file"
+                accept=".csv,.xlsx,.xls"
+                hidden
+                onChange={handleImportFileChange}
+              />
+              <Tooltip title="Import from CSV or Excel">
+                <IconButton
+                  onClick={handleImportClick}
+                  aria-label="Import CSV"
+                  size="small"
+                  sx={{
+                    border: '1px solid',
+                    borderColor: 'secondary.main',
+                    color: 'secondary.main',
+                    borderRadius: '8px',
+                    paddingX: 2,
+                  }}
+                >
+                  <Upload size={15} />
+                </IconButton>
+              </Tooltip>
+            </>
           )}
           {onExportClick && (
-            <IconButton
-              onClick={onExportClick}
-              aria-label="Export CSV"
-              size="small"
-              sx={{
-                border: '1px solid',
-                borderColor: 'success.main',
-                color: 'success.main',
-                paddingX: 2,
-                borderRadius: '8px',
-              }}
-            >
-              <Download size={15} />
-            </IconButton>
+            <Tooltip title="Export visible rows to CSV">
+              <IconButton
+                onClick={handleExport}
+                aria-label="Export CSV"
+                size="small"
+                sx={{
+                  border: '1px solid',
+                  borderColor: 'success.main',
+                  color: 'success.main',
+                  paddingX: 2,
+                  borderRadius: '8px',
+                }}
+              >
+                <Download size={15} />
+              </IconButton>
+            </Tooltip>
           )}
           {createAction && (
             <Button
@@ -310,14 +359,12 @@ export function CommonTable<T>({
       </Stack>
 
       <Card>
-        {!loading && sortedRows.length === 0 ? (
+        {loading ? (
+          <SkeletonLoader variant="table-rows" rows={6} />
+        ) : sortedRows.length === 0 ? (
           <EmptyState title={emptyTitle} description={emptyDescription} />
         ) : (
-          <Boneyard
-            name={`common-table-${tableKey}`}
-            loading={loading}
-            fallback={<SkeletonLoader variant="table-rows" rows={6} />}
-          >
+          <>
             <TableContainer sx={{ maxHeight: 560 }}>
               <Table stickyHeader size="small">
                 <TableHead>
@@ -411,7 +458,7 @@ export function CommonTable<T>({
                 }}
               />
             </Box>
-          </Boneyard>
+          </>
         )}
 
         {actions && (
@@ -440,6 +487,16 @@ export function CommonTable<T>({
           </Menu>
         )}
       </Card>
+
+      {onImportClick && (
+        <ImportPreviewDialog
+          open={importOpen}
+          onClose={() => setImportOpen(false)}
+          fileName={importFileName}
+          parsed={importParsed}
+          error={importError}
+        />
+      )}
     </Box>
   )
 }

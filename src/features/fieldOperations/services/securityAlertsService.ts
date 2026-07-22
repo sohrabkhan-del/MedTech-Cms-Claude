@@ -7,25 +7,26 @@ import {
   securityAlertKpis,
 } from '@/features/fieldOperations/mocks/mockSecurityAlerts'
 import type { SecurityAlert } from '@/features/fieldOperations/types/fieldOperations.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // security alerts API is available. `setUserStatus` is currently a no-op
 // resolving immediately — swap for a real activate/deactivate endpoint.
 
 async function getSecurityAlerts(): Promise<SecurityAlert[]> {
-  return Promise.resolve(mockSecurityAlerts)
+  return mockDelay(mockSecurityAlerts)
 }
 
 async function getSecurityAlertDetail(id: string): Promise<SecurityAlert | undefined> {
-  return Promise.resolve(getSecurityAlertById(id))
+  return mockDelay(getSecurityAlertById(id))
 }
 
 async function getSecurityAlertKpis() {
-  return Promise.resolve(securityAlertKpis)
+  return mockDelay(securityAlertKpis)
 }
 
 async function getUserSecurityProfile(userId: string) {
-  return Promise.resolve({
+  return mockDelay({
     summary: getUserSecuritySummary(userId),
     alertHistory: getUserAlertHistory(userId),
     timeline: getUserSecurityTimeline(userId),

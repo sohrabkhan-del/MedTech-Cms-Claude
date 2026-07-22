@@ -1,5 +1,6 @@
 import { mockAdmins, getAdminById, adminKpis } from '@/features/systemUsers/mockAdmins'
 import type { Admin, AdminFormValues, AdminStatus } from '@/features/systemUsers/types/systemUsers.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // admin management API is available. create/update/setStatus/deleteAdmin are
@@ -7,19 +8,19 @@ import type { Admin, AdminFormValues, AdminStatus } from '@/features/systemUsers
 // ahead of time.
 
 async function getAdmins(): Promise<Admin[]> {
-  return Promise.resolve(mockAdmins)
+  return mockDelay(mockAdmins)
 }
 
 async function getAdminDetail(id: string): Promise<Admin | undefined> {
-  return Promise.resolve(getAdminById(id))
+  return mockDelay(getAdminById(id))
 }
 
 async function getAdminKpis() {
-  return Promise.resolve(adminKpis)
+  return mockDelay(adminKpis)
 }
 
 async function getAdminFormOptions() {
-  return Promise.resolve({
+  return mockDelay({
     regionOptions: ['Pan India', 'North', 'South', 'East', 'West'] as Admin['regionAccess'][],
     roleOptions: ['Super Admin', 'Admin'] as Admin['role'][],
     statusOptions: ['active', 'pending', 'inactive'] as Admin['status'][],

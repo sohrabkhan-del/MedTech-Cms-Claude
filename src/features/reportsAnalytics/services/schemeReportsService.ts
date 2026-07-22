@@ -6,21 +6,22 @@ import {
   schemeReportApplicableUserOptions,
 } from '@/features/reportsAnalytics/mockSchemeReports'
 import type { SchemeReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
+import { mockDelay } from '@/services/mockDelay'
 
 async function getSchemeReports(): Promise<SchemeReportEntry[]> {
-  return Promise.resolve(mockSchemeReports)
+  return mockDelay(mockSchemeReports)
 }
 
 async function getSchemeReportDetail(id: string): Promise<SchemeReportEntry | undefined> {
-  return Promise.resolve(getSchemeReportById(id))
+  return mockDelay(getSchemeReportById(id))
 }
 
 async function getSchemeReportKpis() {
-  return Promise.resolve(schemeReportKpis)
+  return mockDelay(schemeReportKpis)
 }
 
 async function getSchemeReportFilterOptions() {
-  return Promise.resolve({
+  return mockDelay({
     typeOptions: schemeReportTypeOptions,
     applicableUserOptions: schemeReportApplicableUserOptions,
   })

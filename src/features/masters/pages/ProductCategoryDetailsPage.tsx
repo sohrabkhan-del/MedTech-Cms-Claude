@@ -15,6 +15,7 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useProductCategoryDetail } from '@/features/masters/hooks/useProductCategoryDetail'
 import { productCategoriesService } from '@/features/masters/services/productCategoriesService'
 import type { CategoryProductEntry, CategorySchemeEntry } from '@/features/masters/types/masters.types'
@@ -28,7 +29,11 @@ const schemeStatusConfig: Record<CategorySchemeEntry['status'], { label: string;
 export function ProductCategoryDetailsPage() {
   const { categoryId } = useParams<{ categoryId: string }>()
   const navigate = useNavigate()
-  const { category } = useProductCategoryDetail(categoryId)
+  const { category, isLoading } = useProductCategoryDetail(categoryId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={5} />
+  }
 
   if (!category) {
     return (
@@ -193,6 +198,7 @@ export function ProductCategoryDetailsPage() {
             tableKey="category-products"
             columns={productColumns}
             rows={category.products}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search products…"
             searchKeys={(row) => `${row.productName} ${row.productCode}`}
@@ -205,6 +211,7 @@ export function ProductCategoryDetailsPage() {
             tableKey="category-active-schemes"
             columns={schemeColumns}
             rows={category.activeSchemes}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search schemes…"
             searchKeys={(row) => `${row.schemeName} ${row.schemeType}`}

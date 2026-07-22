@@ -24,9 +24,11 @@ import {
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { WalletAdjustmentModal, type AdjustmentType } from '@/components/wallets/WalletAdjustmentModal'
 import { useWalletDetail } from '@/features/rewardsWallet/hooks/useWalletDetail'
 import type {
@@ -115,9 +117,13 @@ const activityColumns: CommonTableColumn<RecentRewardActivity>[] = [
 export function WalletDetailsPage() {
   const navigate = useNavigate()
   const { walletId } = useParams<{ walletId: string }>()
-  const { wallet, adjustBalance, exportStatement } = useWalletDetail(walletId)
+  const { wallet, adjustBalance, exportStatement, isLoading } = useWalletDetail(walletId)
   const [adjustmentType, setAdjustmentType] = useState<AdjustmentType | null>(null)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
   if (!wallet) {
     return (
@@ -215,19 +221,19 @@ export function WalletDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Current Wallet Balance" value={currentBalance.toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="primary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Current Wallet Balance" value={currentBalance.toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Lifetime Coins Earned" value={wallet.lifetimeEarned.toLocaleString('en-IN')} icon={<TrendingUp size={20} />} iconColor="success" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Lifetime Coins Earned" value={wallet.lifetimeEarned.toLocaleString('en-IN')} icon={<TrendingUp size={20} />} iconColor="success" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Lifetime Coins Redeemed" value={wallet.lifetimeRedeemed.toLocaleString('en-IN')} icon={<TrendingDown size={20} />} iconColor="secondary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Lifetime Coins Redeemed" value={wallet.lifetimeRedeemed.toLocaleString('en-IN')} icon={<TrendingDown size={20} />} iconColor="secondary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Manual Adjustments" value={wallet.manualAdjustments.toLocaleString('en-IN')} icon={<Wrench size={20} />} iconColor="warning" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Manual Adjustments" value={wallet.manualAdjustments.toLocaleString('en-IN')} icon={<Wrench size={20} />} iconColor="warning" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard label="Pending Redemption Coins" value={wallet.pendingRedemptionCoins.toLocaleString('en-IN')} icon={<Clock3 size={20} />} iconColor="info" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Pending Redemption Coins" value={wallet.pendingRedemptionCoins.toLocaleString('en-IN')} icon={<Clock3 size={20} />} iconColor="info" />}
           </Grid>
         </Grid>
 
@@ -249,6 +255,7 @@ export function WalletDetailsPage() {
             columns={transactionColumns}
             rows={wallet.transactions}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search transactions…"
             searchKeys={(row) => `${row.id} ${row.reason} ${row.referenceNumber}`}
             defaultSortBy="transactionDate"
@@ -263,6 +270,7 @@ export function WalletDetailsPage() {
             columns={redemptionColumns}
             rows={wallet.redemptionHistory}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search redemptions…"
             searchKeys={(row) => `${row.giftName} ${row.category}`}
             defaultSortBy="requestDate"
@@ -274,19 +282,19 @@ export function WalletDetailsPage() {
         <SectionCard title="Earned Coins Breakdown">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              <StatCard label="Product Scans" value={wallet.earnedCoinsBreakdown.productScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="primary" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Product Scans" value={wallet.earnedCoinsBreakdown.productScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="primary" />}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              <StatCard label="Active Schemes" value={wallet.earnedCoinsBreakdown.activeSchemes.toLocaleString('en-IN')} icon={<Sparkles size={20} />} iconColor="secondary" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Active Schemes" value={wallet.earnedCoinsBreakdown.activeSchemes.toLocaleString('en-IN')} icon={<Sparkles size={20} />} iconColor="secondary" />}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              <StatCard label="Referral Program" value={wallet.earnedCoinsBreakdown.referralProgram.toLocaleString('en-IN')} icon={<UserPlus size={20} />} iconColor="info" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Referral Program" value={wallet.earnedCoinsBreakdown.referralProgram.toLocaleString('en-IN')} icon={<UserPlus size={20} />} iconColor="info" />}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              <StatCard label="Promotional Campaigns" value={wallet.earnedCoinsBreakdown.promotionalCampaigns.toLocaleString('en-IN')} icon={<Megaphone size={20} />} iconColor="warning" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Promotional Campaigns" value={wallet.earnedCoinsBreakdown.promotionalCampaigns.toLocaleString('en-IN')} icon={<Megaphone size={20} />} iconColor="warning" />}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              <StatCard label="Manual Credits" value={wallet.earnedCoinsBreakdown.manualCredits.toLocaleString('en-IN')} icon={<Users2 size={20} />} iconColor="success" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Manual Credits" value={wallet.earnedCoinsBreakdown.manualCredits.toLocaleString('en-IN')} icon={<Users2 size={20} />} iconColor="success" />}
             </Grid>
           </Grid>
         </SectionCard>
@@ -297,6 +305,7 @@ export function WalletDetailsPage() {
             columns={activityColumns}
             rows={wallet.recentActivity}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search recent activity…"
             searchKeys={(row) => `${row.productName} ${row.qrCode}`}
             defaultSortBy="date"

@@ -5,6 +5,7 @@ import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useFactoryBatchDetail } from '@/features/inventoryManagement/hooks/useFactoryBatchDetail'
 import type { BatchScanEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
@@ -20,7 +21,11 @@ const scanColumns: CommonTableColumn<BatchScanEntry>[] = [
 export function FactoryUploadDetailsPage() {
   const navigate = useNavigate()
   const { batchId } = useParams<{ batchId: string }>()
-  const { batch } = useFactoryBatchDetail(batchId)
+  const { batch, isLoading } = useFactoryBatchDetail(batchId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={2} />
+  }
 
   if (!batch) {
     return (
@@ -93,6 +98,7 @@ export function FactoryUploadDetailsPage() {
             tableKey="factory-batch-scan-history"
             columns={scanColumns}
             rows={batch.scanHistory}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search scan history…"
             searchKeys={(row) => `${row.scanSerialNumber} ${row.productName} ${row.chemistName} ${row.dealerName}`}

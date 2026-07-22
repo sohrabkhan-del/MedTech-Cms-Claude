@@ -19,6 +19,7 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useProductionBatchDetail } from '@/features/inventoryManagement/hooks/useProductionBatchDetail'
 import type { DistributionJourneyEntry, ProductionBatch, RelatedScheme } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
@@ -45,7 +46,11 @@ const distributionColumns: CommonTableColumn<DistributionJourneyEntry>[] = [
 export function ProductionBatchDetailsPage() {
   const navigate = useNavigate()
   const { batchId } = useParams<{ batchId: string }>()
-  const { batch } = useProductionBatchDetail(batchId)
+  const { batch, isLoading } = useProductionBatchDetail(batchId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={6} />
+  }
 
   if (!batch) {
     return (
@@ -126,6 +131,7 @@ export function ProductionBatchDetailsPage() {
             tableKey="production-batch-distribution-journey"
             columns={distributionColumns}
             rows={batch.distributionJourney}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search distribution journey…"
             searchKeys={(row) => `${row.distributor} ${row.dealer} ${row.chemist}`}

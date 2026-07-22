@@ -7,6 +7,7 @@ import {
   resolveStockStatus,
 } from '@/features/schemeManagement/mockGifts'
 import type { Gift, GiftFormValues, StockStatus } from '@/features/schemeManagement/types/schemeManagement.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // gift catalogue API is available. create/update/setStatus/deleteGift are
@@ -14,19 +15,19 @@ import type { Gift, GiftFormValues, StockStatus } from '@/features/schemeManagem
 // ahead of time.
 
 async function getGifts(): Promise<Gift[]> {
-  return Promise.resolve(mockGifts)
+  return mockDelay(mockGifts)
 }
 
 async function getGiftDetail(id: string): Promise<Gift | undefined> {
-  return Promise.resolve(getGiftById(id))
+  return mockDelay(getGiftById(id))
 }
 
 async function getGiftCatalogueKpis() {
-  return Promise.resolve(giftCatalogueKpis)
+  return mockDelay(giftCatalogueKpis)
 }
 
 async function getGiftFormOptions() {
-  return Promise.resolve({ giftCategoryOptions, giftBrandOptions })
+  return mockDelay({ giftCategoryOptions, giftBrandOptions })
 }
 
 function getStockStatus(gift: Gift): StockStatus {

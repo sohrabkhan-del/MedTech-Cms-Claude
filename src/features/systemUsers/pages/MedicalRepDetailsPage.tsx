@@ -20,9 +20,11 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useMedicalRepDetail } from '@/features/systemUsers/hooks/useMedicalRepDetail'
 import type { MrManagedPartner, MrPartnerSource, MrPartnerType, PartnerStatus } from '@/features/systemUsers/types/systemUsers.types'
@@ -64,13 +66,17 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
 export function MedicalRepDetailsPage() {
   const { mrId } = useParams<{ mrId: string }>()
   const navigate = useNavigate()
-  const { mr, replacementOptions, setStatus, remove } = useMedicalRepDetail(mrId)
+  const { mr, replacementOptions, setStatus, remove, isLoading } = useMedicalRepDetail(mrId)
   const [partnerType, setPartnerType] = useState<'All' | MrPartnerType>('All')
   const [source, setSource] = useState<'All' | MrPartnerSource>('All')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [replacementMrId, setReplacementMrId] = useState('')
   const [partnerFilterOpen, setPartnerFilterOpen] = useState(false)
   const [appliedPartnerFilters, setAppliedPartnerFilters] = useState<PartnerTableFilters>({ statuses: [] })
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={3} />
+  }
 
   if (!mr) {
     return (
@@ -207,21 +213,25 @@ export function MedicalRepDetailsPage() {
       <Stack spacing={3}>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Partners Managed" value={mr.totalPartnersManaged} icon={<UsersIcon size={20} />} iconColor="primary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Partners Managed" value={mr.totalPartnersManaged} icon={<UsersIcon size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Dealers Onboarded" value={mr.totalDealersOnboarded} icon={<StoreIcon size={20} />} iconColor="secondary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Dealers Onboarded" value={mr.totalDealersOnboarded} icon={<StoreIcon size={20} />} iconColor="secondary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Chemists Onboarded" value={mr.totalChemistsOnboarded} icon={<PillIcon size={20} />} iconColor="info" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Chemists Onboarded" value={mr.totalChemistsOnboarded} icon={<PillIcon size={20} />} iconColor="info" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Current Status"
-              value={mr.status.charAt(0).toUpperCase() + mr.status.slice(1)}
-              icon={isActive ? <CircleCheck size={20} /> : <Ban size={20} />}
-              iconColor={isActive ? 'success' : 'error'}
-            />
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Current Status"
+                value={mr.status.charAt(0).toUpperCase() + mr.status.slice(1)}
+                icon={isActive ? <CircleCheck size={20} /> : <Ban size={20} />}
+                iconColor={isActive ? 'success' : 'error'}
+              />
+            )}
           </Grid>
         </Grid>
 
@@ -270,16 +280,16 @@ export function MedicalRepDetailsPage() {
         <SectionCard title="Partner Management">
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <StatCard label="Dealers" value={dealerCount} icon={<StoreIcon size={20} />} iconColor="primary" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Dealers" value={dealerCount} icon={<StoreIcon size={20} />} iconColor="primary" />}
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <StatCard label="Chemists" value={chemistCount} icon={<PillIcon size={20} />} iconColor="secondary" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Chemists" value={chemistCount} icon={<PillIcon size={20} />} iconColor="secondary" />}
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <StatCard label="Onboarded" value={onboardedCount} icon={<UserCheckIcon size={20} />} iconColor="success" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Onboarded" value={onboardedCount} icon={<UserCheckIcon size={20} />} iconColor="success" />}
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <StatCard label="Assigned" value={assignedCount} icon={<UserRoundIcon size={20} />} iconColor="warning" />
+              {isLoading ? <StatCardSkeleton /> : <StatCard label="Assigned" value={assignedCount} icon={<UserRoundIcon size={20} />} iconColor="warning" />}
             </Grid>
           </Grid>
 
@@ -346,6 +356,7 @@ export function MedicalRepDetailsPage() {
             columns={partnerColumns}
             rows={filteredPartners}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search partners…"
             searchKeys={(row) => `${row.partnerName} ${row.city}`}
             onFilterClick={() => setPartnerFilterOpen(true)}

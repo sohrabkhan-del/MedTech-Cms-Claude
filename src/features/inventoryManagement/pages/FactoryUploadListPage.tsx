@@ -8,6 +8,7 @@ import {
   Ban as BlockOutlined,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useFactoryUploads } from '@/features/inventoryManagement/hooks/useFactoryUploads'
@@ -20,7 +21,7 @@ interface BatchFilters extends Record<string, unknown> {
 
 export function FactoryUploadListPage() {
   const navigate = useNavigate()
-  const { batches, kpis } = useFactoryUploads()
+  const { batches, kpis, isLoading } = useFactoryUploads()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<BatchFilters>({ fromDate: '', toDate: '' })
 
@@ -99,16 +100,32 @@ export function FactoryUploadListPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Batches" value={factoryUploadKpis.totalBatches} icon={<FactoryOutlined size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Batches" value={factoryUploadKpis.totalBatches} icon={<FactoryOutlined size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Containers" value={factoryUploadKpis.totalContainers} icon={<Inventory2Outlined size={20} />} iconColor="secondary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Containers" value={factoryUploadKpis.totalContainers} icon={<Inventory2Outlined size={20} />} iconColor="secondary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Products" value={factoryUploadKpis.totalProducts.toLocaleString('en-IN')} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Products" value={factoryUploadKpis.totalProducts.toLocaleString('en-IN')} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Rejected" value={factoryUploadKpis.totalRejected} icon={<BlockOutlined size={20} />} iconColor="error" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Rejected" value={factoryUploadKpis.totalRejected} icon={<BlockOutlined size={20} />} iconColor="error" />
+          )}
         </Grid>
       </Grid>
 
@@ -116,6 +133,7 @@ export function FactoryUploadListPage() {
         tableKey="factory-upload-list"
         columns={columns}
         rows={batches}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by batch number…"
         searchKeys={(row) => row.batchNumber}

@@ -5,25 +5,26 @@ import type {
   RedemptionStatus,
   RedemptionDeliveryStatus,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // redemptions API is available. setStatus/setDeliveryStatus are currently
 // no-ops resolving immediately so the UI/hook contract is stable ahead of time.
 
 async function getRedemptions(): Promise<RedemptionRequest[]> {
-  return Promise.resolve(mockRedemptionRequests)
+  return mockDelay(mockRedemptionRequests)
 }
 
 async function getRedemptionDetail(id: string): Promise<RedemptionRequest | undefined> {
-  return Promise.resolve(getRedemptionRequestById(id))
+  return mockDelay(getRedemptionRequestById(id))
 }
 
 async function getRedemptionKpis() {
-  return Promise.resolve(redemptionKpis)
+  return mockDelay(redemptionKpis)
 }
 
 async function getRedemptionFormOptions() {
-  return Promise.resolve({ rewardCategoryOptions: giftCategoryOptions })
+  return mockDelay({ rewardCategoryOptions: giftCategoryOptions })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract

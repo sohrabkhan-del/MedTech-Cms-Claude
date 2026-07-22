@@ -32,7 +32,7 @@ export function ScanReportListPage() {
     title: 'Scan Reports',
     subtitle: 'Insights into barcode scanning activities performed by Dealers and Chemists.',
   })
-  const { reports, kpis, filterOptions } = useScanReports()
+  const { reports, kpis, filterOptions, isLoading } = useScanReports()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ScanReportFilters>({
     scanResult: 'all',
@@ -87,6 +87,7 @@ export function ScanReportListPage() {
   return (
     <>
       <ReportKpiGrid
+        isLoading={isLoading}
         cards={[
           { key: 'total', label: 'Total Scans', value: kpis?.totalScans ?? 0, icon: <ScanLine size={20} />, iconColor: 'primary' },
           { key: 'successful', label: 'Successful Scans', value: kpis?.successfulScans ?? 0, icon: <CheckCircle2 size={20} />, iconColor: 'success' },
@@ -100,6 +101,7 @@ export function ScanReportListPage() {
         columns={columns}
         rows={filteredReports}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by barcode, product, dealer, or chemist…"
         searchKeys={(row) => `${row.barcodeNumber} ${row.productName} ${row.dealerName ?? ''} ${row.chemistName ?? ''}`}
         onFilterClick={() => setFilterOpen(true)}

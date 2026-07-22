@@ -17,9 +17,11 @@ import {
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useCoinRuleDetail } from '@/features/rewardsWallet/hooks/useCoinRuleDetail'
 import type { CoinRuleRegion, RegionCoinHistoryEntry } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
@@ -33,10 +35,14 @@ const regionInitials: Record<CoinRuleRegion, string> = {
 export function CoinValueRuleDetailsPage() {
   const navigate = useNavigate()
   const { ruleId } = useParams<{ ruleId: string }>()
-  const { rule, highestCurrentPoints, setBaseCoinValue } = useCoinRuleDetail(ruleId)
+  const { rule, highestCurrentPoints, setBaseCoinValue, isLoading } = useCoinRuleDetail(ruleId)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
   const [editDialog, setEditDialog] = useState<'base' | null>(null)
   const [baseValue, setBaseValue] = useState('')
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={3} />
+  }
 
   if (!rule) {
     return (
@@ -205,16 +211,16 @@ export function CoinValueRuleDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Product Category" value={rule.productCategory} icon={<Package size={20} />} iconColor="primary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Product Category" value={rule.productCategory} icon={<Package size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Base Coin Value" value={rule.baseCoinValue} icon={<Coins size={20} />} iconColor="secondary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Base Coin Value" value={rule.baseCoinValue} icon={<Coins size={20} />} iconColor="secondary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Highest Current Points" value={maxCurrentPoints.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="success" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Highest Current Points" value={maxCurrentPoints.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="success" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Multiplier Changes" value={multiplierChanges} icon={<Repeat2 size={20} />} iconColor="warning" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Multiplier Changes" value={multiplierChanges} icon={<Repeat2 size={20} />} iconColor="warning" />}
           </Grid>
         </Grid>
 
@@ -224,6 +230,7 @@ export function CoinValueRuleDetailsPage() {
             columns={regionHistoryColumns}
             rows={rule.regionalHistory}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search…"
             searchKeys={(row) => row.region}
             defaultSortBy="region"

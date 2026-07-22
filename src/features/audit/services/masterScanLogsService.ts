@@ -9,24 +9,25 @@ import {
   productOptions,
 } from '@/features/audit/mockMasterScanLogs'
 import type { MasterScanLogEntry } from '@/features/audit/types/audit.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // Master Scan Table Logs are read-only per product spec — this service only
 // exposes list/detail/kpi/filter-option accessors, no create/update/delete methods.
 
 async function getMasterScanLogs(): Promise<MasterScanLogEntry[]> {
-  return Promise.resolve(mockMasterScanLogs)
+  return mockDelay(mockMasterScanLogs)
 }
 
 async function getMasterScanLogDetail(id: string): Promise<MasterScanLogEntry | undefined> {
-  return Promise.resolve(getMasterScanLogById(id))
+  return mockDelay(getMasterScanLogById(id))
 }
 
 async function getMasterScanLogKpis() {
-  return Promise.resolve(masterScanLogKpis)
+  return mockDelay(masterScanLogKpis)
 }
 
 async function getMasterScanLogFilterOptions() {
-  return Promise.resolve({
+  return mockDelay({
     distributorOptions,
     dealerOptions,
     chemistOptions,

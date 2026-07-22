@@ -8,21 +8,22 @@ import {
   rewardReportStatusOptions,
 } from '@/features/reportsAnalytics/mockRewardReports'
 import type { RewardReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
+import { mockDelay } from '@/services/mockDelay'
 
 async function getRewardReports(): Promise<RewardReportEntry[]> {
-  return Promise.resolve(mockRewardReports)
+  return mockDelay(mockRewardReports)
 }
 
 async function getRewardReportDetail(id: string): Promise<RewardReportEntry | undefined> {
-  return Promise.resolve(getRewardReportById(id))
+  return mockDelay(getRewardReportById(id))
 }
 
 async function getRewardReportKpis() {
-  return Promise.resolve(rewardReportKpis)
+  return mockDelay(rewardReportKpis)
 }
 
 async function getRewardReportFilterOptions() {
-  return Promise.resolve({
+  return mockDelay({
     userTypeOptions: rewardReportUserTypeOptions,
     rewardTypeOptions: rewardReportTypeOptions,
     schemeOptions: rewardReportSchemeOptions,

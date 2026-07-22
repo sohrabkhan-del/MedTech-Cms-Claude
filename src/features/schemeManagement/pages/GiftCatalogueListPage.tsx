@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Avatar, Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Gift as GiftIcon, PackageCheck, PackageX, Repeat2 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
@@ -28,7 +29,7 @@ interface GiftFilters extends Record<string, unknown> {
 
 export function GiftCatalogueListPage() {
   const navigate = useNavigate()
-  const { gifts, kpis } = useGifts()
+  const { gifts, kpis, isLoading } = useGifts()
   const { giftCategoryOptions: categoryOptions, giftBrandOptions: brandOptions } = useGiftFormOptions()
   useRegionTopbarHeader({
     icon: <GiftIcon size={20} />,
@@ -124,16 +125,16 @@ export function GiftCatalogueListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Gifts" value={giftCatalogueKpis.totalGifts} icon={<GiftIcon size={20} />} iconColor="primary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Gifts" value={giftCatalogueKpis.totalGifts} icon={<GiftIcon size={20} />} iconColor="primary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Available Stock" value={giftCatalogueKpis.availableStock.toLocaleString('en-IN')} icon={<PackageCheck size={20} />} iconColor="success" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Available Stock" value={giftCatalogueKpis.availableStock.toLocaleString('en-IN')} icon={<PackageCheck size={20} />} iconColor="success" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Out of Stock" value={giftCatalogueKpis.outOfStock} icon={<PackageX size={20} />} iconColor="error" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Out of Stock" value={giftCatalogueKpis.outOfStock} icon={<PackageX size={20} />} iconColor="error" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Redemptions" value={giftCatalogueKpis.totalRedemptions.toLocaleString('en-IN')} icon={<Repeat2 size={20} />} iconColor="secondary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Redemptions" value={giftCatalogueKpis.totalRedemptions.toLocaleString('en-IN')} icon={<Repeat2 size={20} />} iconColor="secondary" />}
         </Grid>
       </Grid>
 
@@ -142,6 +143,7 @@ export function GiftCatalogueListPage() {
         columns={columns}
         rows={filteredGifts}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by gift name or code…"
         searchKeys={(row) => `${row.giftName} ${row.giftCode} ${row.brand}`}
         onFilterClick={() => setFilterOpen(true)}

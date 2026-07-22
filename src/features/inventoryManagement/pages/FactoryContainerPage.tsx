@@ -11,7 +11,7 @@ import type { ContainerBox } from '@/features/inventoryManagement/types/inventor
 export function FactoryContainerPage() {
   const navigate = useNavigate()
   const { batchId, containerId } = useParams<{ batchId: string; containerId: string }>()
-  const { batch, container } = useContainerDetail(batchId, containerId)
+  const { batch, container, isLoading } = useContainerDetail(batchId, containerId)
 
   if (!batch || !container) {
     return (
@@ -101,6 +101,7 @@ export function FactoryContainerPage() {
             tableKey="factory-container-boxes"
             columns={boxColumns}
             rows={container.boxes}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search boxes…"
             searchKeys={(row) => row.boxNumber}

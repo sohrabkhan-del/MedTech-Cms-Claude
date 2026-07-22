@@ -16,6 +16,7 @@ import {
   Activity as TimelineIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -40,7 +41,7 @@ interface AlertFilters extends Record<string, unknown> {
 }
 
 export function SecurityAlertsPage() {
-  const { alerts, kpis } = useSecurityAlerts()
+  const { alerts, kpis, isLoading } = useSecurityAlerts()
   const [tab, setTab] = useState(0)
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -50,8 +51,14 @@ export function SecurityAlertsPage() {
     userStatus: 'all',
   })
 
-  const { summary: userSummary, alertHistory: userAlertHistory, timeline: userTimeline, currentStatus, setStatus } =
-    useSecurityAlertUserProfile(selectedUserId ?? undefined)
+  const {
+    summary: userSummary,
+    alertHistory: userAlertHistory,
+    timeline: userTimeline,
+    currentStatus,
+    setStatus,
+    isLoading: userAlertHistoryLoading,
+  } = useSecurityAlertUserProfile(selectedUserId ?? undefined)
 
   const securityAlertKpis = kpis ?? { totalAlerts: 0, highSeverity: 0, mediumSeverity: 0, lowSeverity: 0 }
 
@@ -163,36 +170,52 @@ export function SecurityAlertsPage() {
         <>
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Total Security Alerts"
-                value={securityAlertKpis.totalAlerts}
-                icon={<GppMaybeIcon size={20} />}
-                iconColor="primary"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Total Security Alerts"
+                  value={securityAlertKpis.totalAlerts}
+                  icon={<GppMaybeIcon size={20} />}
+                  iconColor="primary"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="High Severity Alerts"
-                value={securityAlertKpis.highSeverity}
-                icon={<ReportProblemOutlined size={20} />}
-                iconColor="error"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="High Severity Alerts"
+                  value={securityAlertKpis.highSeverity}
+                  icon={<ReportProblemOutlined size={20} />}
+                  iconColor="error"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Medium Severity Alerts"
-                value={securityAlertKpis.mediumSeverity}
-                icon={<ReportProblemOutlined size={20} />}
-                iconColor="warning"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Medium Severity Alerts"
+                  value={securityAlertKpis.mediumSeverity}
+                  icon={<ReportProblemOutlined size={20} />}
+                  iconColor="warning"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Low Severity Alerts"
-                value={securityAlertKpis.lowSeverity}
-                icon={<ReportProblemOutlined size={20} />}
-                iconColor="info"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Low Severity Alerts"
+                  value={securityAlertKpis.lowSeverity}
+                  icon={<ReportProblemOutlined size={20} />}
+                  iconColor="info"
+                />
+              )}
             </Grid>
           </Grid>
 
@@ -200,6 +223,7 @@ export function SecurityAlertsPage() {
             tableKey="security-alerts-list"
             columns={columns}
             rows={filteredAlerts}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search alerts…"
             searchKeys={(row) =>
@@ -439,6 +463,7 @@ export function SecurityAlertsPage() {
                   },
                 ]}
                 rows={userAlertHistory}
+                loading={userAlertHistoryLoading}
                 getRowId={(row) => row.id}
                 searchPlaceholder="Search alerts…"
                 searchKeys={(row) => `${row.alertType} ${row.description}`}

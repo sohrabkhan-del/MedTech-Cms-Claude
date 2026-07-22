@@ -12,6 +12,7 @@ import {
 } from '@/features/schemeManagement/mockSchemes'
 import { mockGifts } from '@/features/schemeManagement/mockGifts'
 import type { Scheme, SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // scheme management API is available. create/update/setStatus/deleteScheme
@@ -19,27 +20,27 @@ import type { Scheme, SchemeFormValues } from '@/features/schemeManagement/types
 // stable ahead of time.
 
 async function getGeneralSchemes(): Promise<Scheme[]> {
-  return Promise.resolve(mockGeneralSchemes)
+  return mockDelay(mockGeneralSchemes)
 }
 
 async function getSeasonalSchemes(): Promise<Scheme[]> {
-  return Promise.resolve(mockSeasonalSchemes)
+  return mockDelay(mockSeasonalSchemes)
 }
 
 async function getSchemeDetail(id: string): Promise<Scheme | undefined> {
-  return Promise.resolve(getSchemeById(id))
+  return mockDelay(getSchemeById(id))
 }
 
 async function getGeneralSchemeKpis() {
-  return Promise.resolve(generalSchemeKpis)
+  return mockDelay(generalSchemeKpis)
 }
 
 async function getSeasonalSchemeKpis() {
-  return Promise.resolve(seasonalSchemeKpis)
+  return mockDelay(seasonalSchemeKpis)
 }
 
 async function getSchemeFormOptions() {
-  return Promise.resolve({
+  return mockDelay({
     schemeTypeOptions,
     schemeApplicableUserOptions,
     rewardTypeOptions,

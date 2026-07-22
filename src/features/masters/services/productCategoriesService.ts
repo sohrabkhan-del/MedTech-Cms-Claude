@@ -6,29 +6,30 @@ import {
   productCategoryKpis,
 } from '@/features/masters/mockMasters'
 import type { ProductCategory, ProductCategoryFormValues } from '@/features/masters/types/masters.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // product categories API is available. create/update are currently no-ops
 // resolving immediately so the UI/hook contract is stable ahead of time.
 
 async function getProductCategories(): Promise<ProductCategory[]> {
-  return Promise.resolve(mockProductCategories)
+  return mockDelay(mockProductCategories)
 }
 
 async function getProductCategoryDetail(id: string): Promise<ProductCategory | undefined> {
-  return Promise.resolve(getProductCategoryById(id))
+  return mockDelay(getProductCategoryById(id))
 }
 
 async function getProductCategoryKpis() {
-  return Promise.resolve(productCategoryKpis)
+  return mockDelay(productCategoryKpis)
 }
 
 async function getParentCategoryOptions(excludeId?: string) {
-  return Promise.resolve(mockProductCategories.filter((category) => category.id !== excludeId))
+  return mockDelay(mockProductCategories.filter((category) => category.id !== excludeId))
 }
 
 async function getTopLevelCategoryOptions() {
-  return Promise.resolve(topLevelCategoryOptions)
+  return mockDelay(topLevelCategoryOptions)
 }
 
 function resolveParentCategoryName(parentCategoryId?: string): string | undefined {

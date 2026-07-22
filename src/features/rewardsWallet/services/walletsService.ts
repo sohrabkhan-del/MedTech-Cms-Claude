@@ -1,24 +1,25 @@
 import { mockWallets, getWalletById, walletKpis, walletGiftCategoryOptions } from '@/features/rewardsWallet/mockWallets'
 import type { Wallet } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // wallet management API is available. adjustBalance is currently a no-op
 // resolving immediately so the UI/hook contract is stable ahead of time.
 
 async function getWallets(): Promise<Wallet[]> {
-  return Promise.resolve(mockWallets)
+  return mockDelay(mockWallets)
 }
 
 async function getWalletDetail(id: string): Promise<Wallet | undefined> {
-  return Promise.resolve(getWalletById(id))
+  return mockDelay(getWalletById(id))
 }
 
 async function getWalletKpis() {
-  return Promise.resolve(walletKpis)
+  return mockDelay(walletKpis)
 }
 
 async function getWalletFormOptions() {
-  return Promise.resolve({ walletGiftCategoryOptions })
+  return mockDelay({ walletGiftCategoryOptions })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract

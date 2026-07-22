@@ -5,6 +5,7 @@ import type {
   PartnerStatus,
   PartnerZone,
 } from '@/features/systemUsers/types/systemUsers.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // medical representative management API is available. create/update/setStatus/
@@ -12,26 +13,26 @@ import type {
 // contract is stable ahead of time.
 
 async function getMedicalReps(): Promise<MedicalRepresentative[]> {
-  return Promise.resolve(mockMedicalReps)
+  return mockDelay(mockMedicalReps)
 }
 
 async function getMedicalRepDetail(id: string): Promise<MedicalRepresentative | undefined> {
-  return Promise.resolve(getMedicalRepById(id))
+  return mockDelay(getMedicalRepById(id))
 }
 
 async function getMedicalRepKpis() {
-  return Promise.resolve(mrKpis)
+  return mockDelay(mrKpis)
 }
 
 async function getMedicalRepFormOptions() {
-  return Promise.resolve({
+  return mockDelay({
     regionOptions: ['North', 'South', 'East', 'West'] as PartnerZone[],
     statusOptions: ['active', 'pending', 'inactive'] as PartnerStatus[],
   })
 }
 
 async function getReplacementMrs(region: PartnerZone, excludeId: string): Promise<MedicalRepresentative[]> {
-  return Promise.resolve(getReplacementMrOptions(region, excludeId))
+  return mockDelay(getReplacementMrOptions(region, excludeId))
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract

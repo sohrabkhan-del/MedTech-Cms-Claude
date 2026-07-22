@@ -22,6 +22,7 @@ import {
   Play as PlayArrowIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -92,8 +93,8 @@ export function LiveScanFeedPage() {
     result: 'all',
   })
 
-  const { liveScans, newRowIds, isLive, toggleLive } = useLiveScanFeed()
-  const { summary: userSummary, history: userScanHistory } = useScanUserProfile(selectedUserId ?? undefined)
+  const { liveScans, newRowIds, isLive, toggleLive, isLoading } = useLiveScanFeed()
+  const { summary: userSummary, history: userScanHistory, isLoading: userScanHistoryLoading } = useScanUserProfile(selectedUserId ?? undefined)
   const { scanEvent: selectedScan } = useScanEventDetail(selectedScanId ?? undefined)
 
   const topbarZone = region === 'All India' ? null : (region as PartnerZone)
@@ -237,36 +238,52 @@ export function LiveScanFeedPage() {
         <>
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Total Scans"
-                value={liveKpis.totalScans}
-                icon={<QrCodeScannerIcon size={20} />}
-                iconColor="primary"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Total Scans"
+                  value={liveKpis.totalScans}
+                  icon={<QrCodeScannerIcon size={20} />}
+                  iconColor="primary"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Successful Scans"
-                value={liveKpis.successfulScans}
-                icon={<CheckCircleOutlined size={20} />}
-                iconColor="success"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Successful Scans"
+                  value={liveKpis.successfulScans}
+                  icon={<CheckCircleOutlined size={20} />}
+                  iconColor="success"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Failed Scans"
-                value={liveKpis.failedScans}
-                icon={<CancelOutlined size={20} />}
-                iconColor="error"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Failed Scans"
+                  value={liveKpis.failedScans}
+                  icon={<CancelOutlined size={20} />}
+                  iconColor="error"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Geo-fence Violations"
-                value={liveKpis.geoFenceViolations}
-                icon={<PlaceOutlinedIcon size={20} />}
-                iconColor="warning"
-              />
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Geo-fence Violations"
+                  value={liveKpis.geoFenceViolations}
+                  icon={<PlaceOutlinedIcon size={20} />}
+                  iconColor="warning"
+                />
+              )}
             </Grid>
           </Grid>
 
@@ -312,6 +329,7 @@ export function LiveScanFeedPage() {
             tableKey="live-scan-feed"
             columns={columns}
             rows={filteredScans}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search scans…"
             searchKeys={(row) =>
@@ -496,6 +514,7 @@ export function LiveScanFeedPage() {
                   },
                 ]}
                 rows={userScanHistory}
+                loading={userScanHistoryLoading}
                 getRowId={(row) => row.id}
                 searchPlaceholder="Search scans…"
                 searchKeys={(row) => `${row.scanCode} ${row.productName} ${row.productCode}`}

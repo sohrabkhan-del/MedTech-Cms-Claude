@@ -7,6 +7,7 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useWalletReportDetail } from '@/features/reportsAnalytics/hooks/useWalletReportDetail'
 import type { WalletReportManualAdjustment } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 import type { TransactionStatus, WalletRedemptionStatus, WalletStatus, WalletRedemptionEntry, WalletTransaction } from '@/types/wallet'
@@ -81,9 +82,11 @@ export function WalletReportDetailsPage() {
   const { walletReportId } = useParams<{ walletReportId: string }>()
   const { report, isLoading } = useWalletReportDetail(walletReportId)
 
-  if (!report) {
-    if (isLoading) return null
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={5} />
+  }
 
+  if (!report) {
     return (
       <EmptyState
         title="Wallet report not found"

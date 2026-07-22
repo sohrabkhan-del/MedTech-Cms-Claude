@@ -13,13 +13,18 @@ import { PointsHistoryCard } from '@/features/userManagement/components/PointsHi
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
 import { LicenseDocumentsCard } from '@/features/userManagement/components/LicenseDocumentsCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
 
 export function DealerDetailsPage() {
   const { dealerId } = useParams<{ dealerId: string }>()
   const navigate = useNavigate()
-  const { dealer } = useDealerDetail(dealerId)
+  const { dealer, isLoading } = useDealerDetail(dealerId)
   const [, forceRerender] = useState(0)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!dealer) {
     return (

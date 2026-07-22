@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Redo2, Clock3, CheckCheck, Coins } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
@@ -32,7 +33,7 @@ export function RedemptionListPage() {
     title: 'Redemption Requests',
     subtitle: 'Review, approve, and track fulfillment of reward redemption requests.',
   })
-  const { redemptions, kpis } = useRedemptions()
+  const { redemptions, kpis, isLoading } = useRedemptions()
   const { rewardCategoryOptions } = useRedemptionFormOptions()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<RedemptionFilters>({
@@ -89,16 +90,16 @@ export function RedemptionListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Redemption Requests" value={kpis?.totalRequests ?? 0} icon={<Redo2 size={20} />} iconColor="primary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Redemption Requests" value={kpis?.totalRequests ?? 0} icon={<Redo2 size={20} />} iconColor="primary" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Pending Approvals" value={kpis?.pendingApprovals ?? 0} icon={<Clock3 size={20} />} iconColor="warning" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Pending Approvals" value={kpis?.pendingApprovals ?? 0} icon={<Clock3 size={20} />} iconColor="warning" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Completed Redemptions" value={kpis?.completedRedemptions ?? 0} icon={<CheckCheck size={20} />} iconColor="success" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Completed Redemptions" value={kpis?.completedRedemptions ?? 0} icon={<CheckCheck size={20} />} iconColor="success" />}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Coins Redeemed" value={(kpis?.coinsRedeemed ?? 0).toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="secondary" />
+          {isLoading ? <StatCardSkeleton /> : <StatCard label="Coins Redeemed" value={(kpis?.coinsRedeemed ?? 0).toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="secondary" />}
         </Grid>
       </Grid>
 
@@ -107,6 +108,7 @@ export function RedemptionListPage() {
         columns={columns}
         rows={filteredRequests}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by user name or request ID…"
         searchKeys={(row) => `${row.userName} ${row.id} ${row.rewardItem}`}
         onFilterClick={() => setFilterOpen(true)}

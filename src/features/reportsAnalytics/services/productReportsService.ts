@@ -6,21 +6,22 @@ import {
   productReportBatchOptions,
 } from '@/features/reportsAnalytics/mockProductReports'
 import type { ProductReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
+import { mockDelay } from '@/services/mockDelay'
 
 async function getProductReports(): Promise<ProductReportEntry[]> {
-  return Promise.resolve(mockProductReports)
+  return mockDelay(mockProductReports)
 }
 
 async function getProductReportDetail(id: string): Promise<ProductReportEntry | undefined> {
-  return Promise.resolve(getProductReportById(id))
+  return mockDelay(getProductReportById(id))
 }
 
 async function getProductReportKpis() {
-  return Promise.resolve(productReportKpis)
+  return mockDelay(productReportKpis)
 }
 
 async function getProductReportFilterOptions() {
-  return Promise.resolve({
+  return mockDelay({
     categoryOptions: productReportCategoryOptions,
     batchOptions: productReportBatchOptions,
   })

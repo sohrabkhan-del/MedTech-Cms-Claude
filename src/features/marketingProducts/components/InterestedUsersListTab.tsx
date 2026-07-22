@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { Users, Sparkles, Clock3, CheckCheck } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
@@ -30,7 +31,7 @@ interface InterestedUsersListTabProps {
 export function InterestedUsersListTab({ onViewLead }: InterestedUsersListTabProps) {
   const { region } = useRegionFilter()
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
-  const { leads, kpis, handlerOptions, setStatus, remove } = useInterestedUsers()
+  const { leads, kpis, handlerOptions, isLoading, setStatus, remove } = useInterestedUsers()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<LeadFilters>({
     leadStatus: 'all',
@@ -81,16 +82,32 @@ export function InterestedUsersListTab({ onViewLead }: InterestedUsersListTabPro
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Interested Users" value={interestedUserKpis.totalInterestedUsers} icon={<Users size={20} />} iconColor="primary" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Total Interested Users" value={interestedUserKpis.totalInterestedUsers} icon={<Users size={20} />} iconColor="primary" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="New Leads" value={interestedUserKpis.newLeads} icon={<Sparkles size={20} />} iconColor="info" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="New Leads" value={interestedUserKpis.newLeads} icon={<Sparkles size={20} />} iconColor="info" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Leads In Progress" value={interestedUserKpis.inProgressLeads} icon={<Clock3 size={20} />} iconColor="warning" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Leads In Progress" value={interestedUserKpis.inProgressLeads} icon={<Clock3 size={20} />} iconColor="warning" />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Closed / Converted Leads" value={interestedUserKpis.closedLeads} icon={<CheckCheck size={20} />} iconColor="success" />
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard label="Closed / Converted Leads" value={interestedUserKpis.closedLeads} icon={<CheckCheck size={20} />} iconColor="success" />
+          )}
         </Grid>
       </Grid>
 
@@ -98,6 +115,7 @@ export function InterestedUsersListTab({ onViewLead }: InterestedUsersListTabPro
         tableKey="interested-users-list"
         columns={columns}
         rows={filteredLeads}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by user name or product…"
         searchKeys={(row) => `${row.userName} ${row.interestedProduct}`}

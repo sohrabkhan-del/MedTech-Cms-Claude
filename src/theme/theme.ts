@@ -5,6 +5,7 @@ import { MuiChip } from '@/theme/overrides/MuiChip'
 import { MuiCard, MuiPaper } from '@/theme/overrides/MuiCard'
 import { MuiTableCell, MuiTableRow, MuiTableHead } from '@/theme/overrides/MuiTable'
 import { MuiOutlinedInput, MuiInputLabel, MuiFormHelperText } from '@/theme/overrides/MuiTextField'
+import { MuiSkeleton } from '@/theme/overrides/MuiSkeleton'
 import { getFontOption } from '@/theme/googleFonts'
 
 export function createAppTheme(fontFamily: string): Theme {
@@ -47,6 +48,7 @@ export function createAppTheme(fontFamily: string): Theme {
       MuiOutlinedInput,
       MuiInputLabel,
       MuiFormHelperText,
+      MuiSkeleton,
     },
   })
 }

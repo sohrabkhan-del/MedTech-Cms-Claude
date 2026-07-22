@@ -5,6 +5,7 @@ import {
   showcaseCategoryOptions,
 } from '@/features/marketingProducts/mockShowcaseProducts'
 import type { ShowcaseProduct, ShowcaseProductFormValues } from '@/features/marketingProducts/types/marketingProducts.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // showcase products API is available. create/update/markEnquiryResponded are
@@ -12,19 +13,19 @@ import type { ShowcaseProduct, ShowcaseProductFormValues } from '@/features/mark
 // ahead of time.
 
 async function getShowcaseProducts(): Promise<ShowcaseProduct[]> {
-  return Promise.resolve(mockShowcaseProducts)
+  return mockDelay(mockShowcaseProducts)
 }
 
 async function getShowcaseProductDetail(id: string): Promise<ShowcaseProduct | undefined> {
-  return Promise.resolve(getShowcaseProductById(id))
+  return mockDelay(getShowcaseProductById(id))
 }
 
 async function getShowcaseProductKpis() {
-  return Promise.resolve(showcaseProductKpis)
+  return mockDelay(showcaseProductKpis)
 }
 
 async function getShowcaseCategoryOptions(): Promise<string[]> {
-  return Promise.resolve(showcaseCategoryOptions)
+  return mockDelay(showcaseCategoryOptions)
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract

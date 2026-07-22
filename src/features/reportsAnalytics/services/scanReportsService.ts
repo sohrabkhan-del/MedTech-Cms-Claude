@@ -7,21 +7,22 @@ import {
   scanReportChemistOptions,
 } from '@/features/reportsAnalytics/mockScanReports'
 import type { ScanReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
+import { mockDelay } from '@/services/mockDelay'
 
 async function getScanReports(): Promise<ScanReportEntry[]> {
-  return Promise.resolve(mockScanReports)
+  return mockDelay(mockScanReports)
 }
 
 async function getScanReportDetail(id: string): Promise<ScanReportEntry | undefined> {
-  return Promise.resolve(getScanReportById(id))
+  return mockDelay(getScanReportById(id))
 }
 
 async function getScanReportKpis() {
-  return Promise.resolve(scanReportKpis)
+  return mockDelay(scanReportKpis)
 }
 
 async function getScanReportFilterOptions() {
-  return Promise.resolve({
+  return mockDelay({
     productOptions: scanReportProductOptions,
     dealerOptions: scanReportDealerOptions,
     chemistOptions: scanReportChemistOptions,

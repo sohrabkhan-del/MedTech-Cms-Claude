@@ -27,7 +27,7 @@ const scanStatusConfig: Record<FactoryScanStatus, { label: string; color: 'defau
 export function FactoryBoxPage() {
   const navigate = useNavigate()
   const { batchId, containerId, boxId } = useParams<{ batchId: string; containerId: string; boxId: string }>()
-  const { batch, container, box } = useBoxDetail(batchId, containerId, boxId)
+  const { batch, container, box, isLoading } = useBoxDetail(batchId, containerId, boxId)
 
   const [selectedProduct, setSelectedProduct] = useState<BoxProduct | null>(null)
 
@@ -153,6 +153,7 @@ export function FactoryBoxPage() {
             tableKey="factory-box-traceability"
             columns={columns}
             rows={box.products}
+            loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search by serial or barcode…"
             searchKeys={(row) => `${row.serialNumber} ${row.barcodeNumber} ${row.allocatedDealer} ${row.allocatedChemist}`}

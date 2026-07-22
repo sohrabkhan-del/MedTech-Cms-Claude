@@ -16,6 +16,7 @@ import { ImageGallery } from '@/components/common/ImageGallery/ImageGallery'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useGiftDetail } from '@/features/schemeManagement/hooks/useGiftDetail'
 import { giftsService } from '@/features/schemeManagement/services/giftsService'
 import type { GiftDeliveryStatus, GiftInventoryEntry, GiftRedemptionEntry } from '@/features/schemeManagement/types/schemeManagement.types'
@@ -50,8 +51,12 @@ const inventoryColumns: CommonTableColumn<GiftInventoryEntry>[] = [
 export function GiftDetailsPage() {
   const navigate = useNavigate()
   const { giftId } = useParams<{ giftId: string }>()
-  const { gift, setStatus, remove } = useGiftDetail(giftId)
+  const { gift, setStatus, remove, isLoading } = useGiftDetail(giftId)
   const [deleteOpen, setDeleteOpen] = useState(false)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!gift) {
     return (
@@ -176,6 +181,7 @@ export function GiftDetailsPage() {
             columns={redemptionColumns}
             rows={gift.redemptionHistory}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search redemption history…"
             searchKeys={(row) => `${row.userName} ${row.id}`}
             defaultSortBy="redemptionDate"
@@ -190,6 +196,7 @@ export function GiftDetailsPage() {
             columns={inventoryColumns}
             rows={gift.inventoryHistory}
             getRowId={(row) => row.id}
+            loading={isLoading}
             searchPlaceholder="Search inventory history…"
             searchKeys={(row) => row.updatedBy}
             defaultSortBy="date"

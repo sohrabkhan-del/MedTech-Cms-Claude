@@ -15,8 +15,10 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useAdminDetail } from '@/features/systemUsers/hooks/useAdminDetail'
 
 const infoItemSx = {
@@ -56,7 +58,11 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
 export function AdminDetailsPage() {
   const { adminId } = useParams<{ adminId: string }>()
   const navigate = useNavigate()
-  const { admin, setStatus } = useAdminDetail(adminId)
+  const { admin, setStatus, isLoading } = useAdminDetail(adminId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={2} />
+  }
 
   if (!admin) {
     return (
@@ -150,26 +156,34 @@ export function AdminDetailsPage() {
       <Stack spacing={3}>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Region Access" value={admin.regionAccess} icon={<MapPin size={20} />} iconColor="primary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Region Access" value={admin.regionAccess} icon={<MapPin size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Assigned Role" value={admin.role} icon={<ShieldCheck size={20} />} iconColor="secondary" />
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Assigned Role" value={admin.role} icon={<ShieldCheck size={20} />} iconColor="secondary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Total Actions Logged"
-              value={admin.totalActionsLogged.toLocaleString('en-IN')}
-              icon={<ListChecks size={20} />}
-              iconColor="info"
-            />
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Total Actions Logged"
+                value={admin.totalActionsLogged.toLocaleString('en-IN')}
+                icon={<ListChecks size={20} />}
+                iconColor="info"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Current Status"
-              value={admin.status.charAt(0).toUpperCase() + admin.status.slice(1)}
-              icon={isActive ? <CircleCheck size={20} /> : <Ban size={20} />}
-              iconColor={isActive ? 'success' : 'error'}
-            />
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Current Status"
+                value={admin.status.charAt(0).toUpperCase() + admin.status.slice(1)}
+                icon={isActive ? <CircleCheck size={20} /> : <Ban size={20} />}
+                iconColor={isActive ? 'success' : 'error'}
+              />
+            )}
           </Grid>
         </Grid>
 

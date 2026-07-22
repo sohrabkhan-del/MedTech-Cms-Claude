@@ -9,6 +9,7 @@ import {
   schemeNameOptions,
 } from '@/features/schemeManagement/mockGiftRules'
 import type { RewardRule, GiftRuleFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
+import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // gift rules API is available. create/update/setActive/deleteRule are
@@ -16,23 +17,23 @@ import type { RewardRule, GiftRuleFormValues } from '@/features/schemeManagement
 // ahead of time.
 
 async function getPermanentCatalogRewards(): Promise<RewardRule[]> {
-  return Promise.resolve(mockPermanentCatalogRewards)
+  return mockDelay(mockPermanentCatalogRewards)
 }
 
 async function getSchemeTrackRewards(): Promise<RewardRule[]> {
-  return Promise.resolve(mockSchemeTrackRewards)
+  return mockDelay(mockSchemeTrackRewards)
 }
 
 async function getRewardRuleDetail(id: string): Promise<RewardRule | undefined> {
-  return Promise.resolve(getRewardRuleById(id))
+  return mockDelay(getRewardRuleById(id))
 }
 
 async function getGiftRulesDashboard() {
-  return Promise.resolve({ ...giftRulesDashboard, currentActiveScheme })
+  return mockDelay({ ...giftRulesDashboard, currentActiveScheme })
 }
 
 async function getGiftRuleFormOptions() {
-  return Promise.resolve({ rewardTrackOptions, ruleTypeOptions, schemeNameOptions })
+  return mockDelay({ rewardTrackOptions, ruleTypeOptions, schemeNameOptions })
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract

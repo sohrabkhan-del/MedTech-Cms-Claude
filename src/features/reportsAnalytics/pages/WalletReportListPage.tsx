@@ -32,7 +32,7 @@ export function WalletReportListPage() {
     title: 'Wallet Reports',
     subtitle: 'Displays wallet balances and transaction history.',
   })
-  const { reports, kpis } = useWalletReports()
+  const { reports, kpis, isLoading } = useWalletReports()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<WalletReportFilters>({
     userType: 'all',
@@ -114,6 +114,7 @@ export function WalletReportListPage() {
   return (
     <>
       <ReportKpiGrid
+        isLoading={isLoading}
         cards={[
           { key: 'total', label: 'Total Wallets', value: (kpis?.totalWallets ?? 0).toLocaleString('en-IN'), icon: <WalletIcon size={20} />, iconColor: 'primary' },
           { key: 'outstanding', label: 'Total Balance Outstanding', value: (kpis?.totalBalanceOutstanding ?? 0).toLocaleString('en-IN'), icon: <Coins size={20} />, iconColor: 'secondary' },
@@ -127,6 +128,7 @@ export function WalletReportListPage() {
         columns={columns}
         rows={filteredRows}
         getRowId={(row) => row.id}
+        loading={isLoading}
         searchPlaceholder="Search by user name or mobile number…"
         searchKeys={(row) => `${row.userName} ${row.mobileNumber} ${row.userId}`}
         onFilterClick={() => setFilterOpen(true)}

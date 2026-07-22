@@ -6,4 +6,10 @@ export interface AuthUser {
   email: string
   role: UserRole
   avatarInitial: string
+  avatarUrl?: string
+  phone?: string
+  designation?: string
+  department?: string
+  location?: string
+  joinedOn?: string
 }

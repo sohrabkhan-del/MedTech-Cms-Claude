@@ -3,12 +3,14 @@ import { persistReducer, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, 
 import { authReducer } from '@/features/auth/slices/authSlice'
 import { authPersistConfig } from '@/app/store/persistConfig'
 import { chemistReducer } from '@/features/userManagement/slices/chemistSlice'
+import { notificationsReducer } from '@/features/notifications/slices/notificationsSlice'
 import { configureApiClientAuth } from '@/services/apiClient'
 import { logout, setCredentials } from '@/features/auth/slices/authSlice'
 
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
   chemists: chemistReducer,
+  notifications: notificationsReducer,
 })
 
 export const store = configureStore({

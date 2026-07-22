@@ -11,6 +11,7 @@ interface SidebarGroupProps {
   group: MenuGroup
   railMode: boolean
   palette: SidebarPalette
+  badgeOverrides?: Record<string, number>
 }
 
 function isGroupActive(group: MenuGroup, pathname: string): boolean {
@@ -21,7 +22,7 @@ function isGroupActive(group: MenuGroup, pathname: string): boolean {
   )
 }
 
-export function SidebarGroup({ group, railMode, palette }: SidebarGroupProps) {
+export function SidebarGroup({ group, railMode, palette, badgeOverrides }: SidebarGroupProps) {
   const location = useLocation()
   const [open, setOpen] = useState(() =>
     isGroupActive(group, location.pathname),
@@ -86,6 +87,7 @@ export function SidebarGroup({ group, railMode, palette }: SidebarGroupProps) {
               item={item}
               railMode={railMode}
               palette={palette}
+              badgeOverrides={badgeOverrides}
             />
           ))}
         </List>

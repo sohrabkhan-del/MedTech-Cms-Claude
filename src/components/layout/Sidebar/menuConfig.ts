@@ -4,6 +4,7 @@ import {
   MapPin,
   BadgeCheck,
   LayoutDashboard,
+  Bell,
   Crosshair,
   ShieldAlert,
   Fence,
@@ -37,6 +38,8 @@ export interface MenuItem {
   children?: MenuItem[]
   /** Opts this listing page into the global RegionTopbar rendered by DashboardLayout. */
   showRegionTopbar?: boolean
+  /** Opens the notifications preview popover on click instead of navigating directly to `path`. */
+  notificationsPopover?: boolean
 }
 
 export interface MenuGroup {
@@ -57,6 +60,12 @@ export const menuConfig: MenuGroup[] = [
         path: '/dashboard',
         icon: LayoutDashboard,
         showRegionTopbar: true,
+      },
+      {
+        label: 'Notifications',
+        path: '/notifications',
+        icon: Bell,
+        notificationsPopover: true,
       },
     ],
   },

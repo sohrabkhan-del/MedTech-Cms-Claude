@@ -5,3 +5,5 @@ export const selectCurrentUser = (state: RootState) => state.auth.user
 export const selectIsAuthenticated = (state: RootState) => state.auth.isAuthenticated
 export const selectPendingEmail = (state: RootState) => state.auth.pendingEmail
 export const selectResetRequired = (state: RootState) => state.auth.resetRequired
+export const selectPasswordResetEmail = (state: RootState) => state.auth.passwordResetEmail
+export const selectPasswordResetToken = (state: RootState) => state.auth.passwordResetToken

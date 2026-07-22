@@ -66,9 +66,13 @@ export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light
               fontWeight: 700,
               fontSize: '0.8rem',
               flexShrink: 0,
+              overflow: 'hidden',
+              backgroundImage: user.avatarUrl ? `url(${user.avatarUrl})` : 'none',
+              backgroundSize: 'cover',
+              backgroundPosition: 'center',
             }}
           >
-            {user.avatarInitial}
+            {!user.avatarUrl && user.avatarInitial}
           </Box>
         </Badge>
         {!railMode && (

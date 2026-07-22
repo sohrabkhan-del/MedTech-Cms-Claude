@@ -14,6 +14,11 @@ export const mockAuthAccounts: Record<string, MockAuthAccount> = {
       email: 'superadmin@medtech.in',
       role: 'super_admin',
       avatarInitial: 'S',
+      phone: '+91 98765 43210',
+      designation: 'Platform Administrator',
+      department: 'Corporate IT',
+      location: 'Mumbai, Maharashtra',
+      joinedOn: '2023-04-10',
     },
   },
 }

@@ -18,7 +18,6 @@ const PENDING_PATHS = new Set<string>([
   '/masters/product-categories',
   '/settings/notifications',
   '/settings/authentication',
-  '/settings/profile',
 ])
 
 function flattenItems(items: MenuItem[]): RouteEntry[] {
@@ -44,7 +43,7 @@ export const headerOnlyRouteEntries: RouteEntry[] = [
   { path: '/settings/general', breadcrumbLabel: 'Appearance' },
   { path: '/settings/notifications', breadcrumbLabel: 'Notification Settings', pending: true },
   { path: '/settings/authentication', breadcrumbLabel: 'Authentication Settings', pending: true },
-  { path: '/settings/profile', breadcrumbLabel: 'Profile', pending: true },
+  { path: '/settings/profile', breadcrumbLabel: 'Profile' },
   { path: '/logout', breadcrumbLabel: 'Logout' },
 ]
 

@@ -1,28 +1,25 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { Badge, Box, IconButton, Menu, Stack } from '@mui/material'
 import {
-  Badge,
-  Box,
-  Divider,
-  IconButton,
-  Menu,
-  MenuItem,
-  Stack,
-  Typography,
-} from '@mui/material'
-import { Menu as MenuIcon, Bell, Maximize, Minimize, Settings as SettingsIcon } from 'lucide-react'
+  Menu as MenuIcon,
+  Bell,
+  Maximize,
+  Minimize,
+  Settings as SettingsIcon,
+} from 'lucide-react'
 import { layout, radius, shadows } from '@/theme/tokens'
+import { useAppSelector } from '@/app/store/hooks'
+import { selectUnreadNotificationCount } from '@/features/notifications/slices/notificationsSelectors'
+import { NotificationsMenuContent } from '@/features/notifications/components/NotificationsMenuContent'
 
 interface HeaderProps {
   onMenuClick: () => void
-  notificationCount?: number
 }
 
-export function Header({
-  onMenuClick,
-  notificationCount = 4,
-}: HeaderProps) {
+export function Header({ onMenuClick }: HeaderProps) {
   const navigate = useNavigate()
+  const unreadCount = useAppSelector(selectUnreadNotificationCount)
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -41,18 +38,32 @@ export function Header({
       component="header"
       sx={{
         position: 'sticky',
-        top: 16,
+        top: 0,
         zIndex: (theme) => theme.zIndex.drawer + 1,
-        mx: { xs: 2, sm: 3 },
         mb: 3,
       }}
     >
+      <Box
+        sx={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          height: layout.headerHeight + 16,
+          backgroundColor: 'rgba(245, 245, 245, 0.72)',
+          backdropFilter: 'blur(10px)',
+          WebkitBackdropFilter: 'blur(10px)',
+        }}
+      />
       <Stack
         direction="row"
         sx={{
+          position: 'relative',
           alignItems: 'center',
           height: layout.headerHeight,
           px: 2,
+          mx: { xs: 2, sm: 3 },
+          mt: 2,
           backgroundColor: 'background.paper',
           borderRadius: `${radius.xl}px`,
           boxShadow: shadows.card,
@@ -87,7 +98,7 @@ export function Header({
             size="small"
             aria-label="Notifications"
           >
-            <Badge badgeContent={notificationCount} color="secondary">
+            <Badge badgeContent={unreadCount} color="secondary">
               <Bell size={20} />
             </Badge>
           </IconButton>
@@ -97,32 +108,11 @@ export function Header({
             onClose={() => setNotifAnchor(null)}
             slotProps={{
               paper: {
-                sx: { width: 320, borderRadius: `${radius.lg}px`, mt: 1 },
+                sx: { borderRadius: `${radius.lg}px`, mt: 1 },
               },
             }}
           >
-            <Box sx={{ px: 2, py: 1.5 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>
-                Notifications
-              </Typography>
-            </Box>
-            <Divider />
-            <MenuItem
-              onClick={() => setNotifAnchor(null)}
-              sx={{ whiteSpace: 'normal', py: 1.25 }}
-            >
-              <Typography variant="body1">
-                3 new approval requests are awaiting review.
-              </Typography>
-            </MenuItem>
-            <MenuItem
-              onClick={() => setNotifAnchor(null)}
-              sx={{ whiteSpace: 'normal', py: 1.25 }}
-            >
-              <Typography variant="body1">
-                Factory inventory upload completed successfully.
-              </Typography>
-            </MenuItem>
+            <NotificationsMenuContent onNavigate={() => setNotifAnchor(null)} />
           </Menu>
 
           <IconButton

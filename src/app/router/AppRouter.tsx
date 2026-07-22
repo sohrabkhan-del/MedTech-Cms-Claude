@@ -6,6 +6,11 @@ import { PublicRoute } from '@/features/auth/components/PublicRoute'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { OtpPage } from '@/features/auth/pages/OtpPage'
 import { FirstLoginResetPage } from '@/features/auth/pages/FirstLoginResetPage'
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage'
+import { ResetOtpPage } from '@/features/auth/pages/ResetOtpPage'
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
+import { NotificationsListPage } from '@/features/notifications/pages/NotificationsListPage'
+import { NotificationDetailPage } from '@/features/notifications/pages/NotificationDetailPage'
 import { LogoutPage } from '@/pages/auth/LogoutPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { DealerListPage } from '@/features/userManagement/pages/DealerListPage'
@@ -55,6 +60,7 @@ import { RedemptionDetailsPage } from '@/features/rewardsWallet/pages/Redemption
 import { CoinValueRulesListPage } from '@/features/rewardsWallet/pages/CoinValueRulesListPage'
 import { CoinValueRuleDetailsPage } from '@/features/rewardsWallet/pages/CoinValueRuleDetailsPage'
 import { AppearanceSettingsPage } from '@/features/settings/pages/AppearanceSettingsPage'
+import { ProfileSettingsPage } from '@/features/settings/pages/ProfileSettingsPage'
 import { AdminListPage } from '@/features/systemUsers/pages/AdminListPage'
 import { AdminDetailsPage } from '@/features/systemUsers/pages/AdminDetailsPage'
 import { AdminFormPage } from '@/features/systemUsers/pages/AdminFormPage'
@@ -114,9 +120,11 @@ import { getChemistReportById } from '@/features/reportsAnalytics/mockChemistRep
 import { getMrPerformanceReportById } from '@/features/reportsAnalytics/mockMrPerformanceReports'
 import { getProductReportById } from '@/features/reportsAnalytics/mockProductReports'
 import { getSchemeReportById } from '@/features/reportsAnalytics/mockSchemeReports'
+import { getNotificationById } from '@/features/notifications/mockNotifications'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
+  '/notifications',
   '/partners/dealers',
   '/partners/chemists',
   '/field-operations/live-scan-feed',
@@ -138,6 +146,7 @@ const CUSTOM_PATHS = new Set([
   '/rewards-wallet/coin-value-rules/dealer',
   '/rewards-wallet/coin-value-rules/chemist',
   '/settings/general',
+  '/settings/profile',
   '/system-users/admin',
   '/system-users/medical-representatives',
   '/masters/product-categories',
@@ -154,6 +163,10 @@ const CUSTOM_PATHS = new Set([
   '/reports/scheme-reports',
 ])
 
+registerDetailRoute({
+  parentPath: '/notifications',
+  resolveEntityName: (id) => getNotificationById(id)?.title,
+})
 registerDetailRoute({
   parentPath: '/partners/dealers',
   resolveEntityName: (id) => getDealerById(id)?.shopName,
@@ -287,6 +300,9 @@ export function AppRouter() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/otp" element={<OtpPage />} />
           <Route path="/first-login-reset" element={<FirstLoginResetPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-otp" element={<ResetOtpPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
       </Route>
 
@@ -296,6 +312,8 @@ export function AppRouter() {
       <Route element={<DashboardLayout />}>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/notifications" element={<NotificationsListPage />} />
+        <Route path="/notifications/:notificationId" element={<NotificationDetailPage />} />
         <Route path="/field-operations/live-scan-feed" element={<LiveScanFeedPage />} />
         <Route path="/field-operations/security-alerts" element={<SecurityAlertsPage />} />
         <Route path="/field-operations/geo-fence-management" element={<GeoFenceManagementPage />} />
@@ -352,6 +370,7 @@ export function AppRouter() {
         <Route path="/rewards-wallet/coin-value-rules/chemist" element={<CoinValueRulesListPage />} />
         <Route path="/rewards-wallet/coin-value-rules/:ruleId" element={<CoinValueRuleDetailsPage />} />
         <Route path="/settings/general" element={<AppearanceSettingsPage />} />
+        <Route path="/settings/profile" element={<ProfileSettingsPage />} />
         <Route path="/system-users/admin" element={<AdminListPage />} />
         <Route path="/system-users/admin/new" element={<AdminFormPage />} />
         <Route path="/system-users/admin/:adminId" element={<AdminDetailsPage />} />

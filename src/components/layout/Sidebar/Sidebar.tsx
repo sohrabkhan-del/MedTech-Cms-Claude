@@ -9,6 +9,8 @@ import {
 } from '@/components/layout/Sidebar/sidebarPalettes'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useAppearance } from '@/contexts/AppearanceContext'
+import { useAppSelector } from '@/app/store/hooks'
+import { selectUnreadNotificationCount } from '@/features/notifications/slices/notificationsSelectors'
 import { layout, radius, shadows } from '@/theme/tokens'
 
 interface SidebarProps {
@@ -64,6 +66,8 @@ function SidebarContent({
   palette: SidebarPalette
 }) {
   const { user } = useAuth()
+  const unreadNotificationCount = useAppSelector(selectUnreadNotificationCount)
+  const badgeOverrides = { '/notifications': unreadNotificationCount }
 
   return (
     <Box
@@ -88,7 +92,7 @@ function SidebarContent({
       >
         {menuConfig.map((group, index) => (
           <Box key={group.groupLabel}>
-            <SidebarGroup group={group} railMode={railMode} palette={palette} />
+            <SidebarGroup group={group} railMode={railMode} palette={palette} badgeOverrides={badgeOverrides} />
             {index < menuConfig.length - 1 && (
               <Divider sx={{ borderColor: palette.divider, mx: 2, my: 0.5 }} />
             )}

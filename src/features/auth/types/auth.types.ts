@@ -36,6 +36,33 @@ export interface FirstLoginResetResponse {
   user: AuthUser
 }
 
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ForgotPasswordResponse {
+  email: string
+}
+
+export interface VerifyResetOtpRequest {
+  email: string
+  otp: string
+}
+
+export interface VerifyResetOtpResponse {
+  resetToken: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+  resetToken: string
+  newPassword: string
+}
+
+export interface ResetPasswordResponse {
+  success: true
+}
+
 export interface AuthState {
   token: string | null
   refreshToken: string | null
@@ -44,6 +71,8 @@ export interface AuthState {
   pendingEmail: string | null
   tempPassword: string | null
   resetRequired: boolean
+  passwordResetEmail: string | null
+  passwordResetToken: string | null
 }
 
 export interface LoginFlowData {

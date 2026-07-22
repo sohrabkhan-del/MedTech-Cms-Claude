@@ -8,6 +8,7 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Menu,
   Tooltip,
 } from '@mui/material'
 import { ChevronRight as ChevronRightIcon } from 'lucide-react'
@@ -16,7 +17,8 @@ import {
   sidebarPalettes,
   type SidebarPalette,
 } from '@/components/layout/Sidebar/sidebarPalettes'
-import { transitions } from '@/theme/tokens'
+import { transitions, radius } from '@/theme/tokens'
+import { NotificationsMenuContent } from '@/features/notifications/components/NotificationsMenuContent'
 
 function isDescendantActive(item: MenuItem, pathname: string): boolean {
   if (item.path === pathname) return true
@@ -30,6 +32,7 @@ interface SidebarItemProps {
   depth?: number
   railMode?: boolean
   palette?: SidebarPalette
+  badgeOverrides?: Record<string, number>
 }
 
 export function SidebarItem({
@@ -37,18 +40,25 @@ export function SidebarItem({
   depth = 0,
   railMode = false,
   palette = sidebarPalettes.light,
+  badgeOverrides,
 }: SidebarItemProps) {
+  const badgeCount = (item.path && badgeOverrides?.[item.path]) ?? item.badgeCount
   const location = useLocation()
   const navigate = useNavigate()
   const active = isDescendantActive(item, location.pathname)
   const [open, setOpen] = useState(active)
+  const [popoverAnchor, setPopoverAnchor] = useState<HTMLElement | null>(null)
 
   const hasChildren = !!item.children?.length
   const Icon = item.icon
   const isNested = depth > 0
   const lineLeft = 42 + (depth - 1) * 20
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (item.notificationsPopover) {
+      setPopoverAnchor(event.currentTarget)
+      return
+    }
     if (hasChildren) {
       setOpen((prev) => !prev)
       return
@@ -139,9 +149,9 @@ export function SidebarItem({
           }}
         />
       )}
-      {!railMode && item.badgeCount ? (
+      {!railMode && badgeCount ? (
         <Chip
-          label={item.badgeCount}
+          label={badgeCount}
           size="small"
           color="secondary"
           sx={{
@@ -174,6 +184,18 @@ export function SidebarItem({
       ) : (
         button
       )}
+      {item.notificationsPopover && (
+        <Menu
+          anchorEl={popoverAnchor}
+          open={!!popoverAnchor}
+          onClose={() => setPopoverAnchor(null)}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+          slotProps={{ paper: { sx: { borderRadius: `${radius.lg}px`, ml: 1 } } }}
+        >
+          <NotificationsMenuContent onNavigate={() => setPopoverAnchor(null)} />
+        </Menu>
+      )}
       {hasChildren && !railMode && (
         <Collapse in={open} timeout="auto" unmountOnExit>
           <List component="div" disablePadding>
@@ -183,6 +205,7 @@ export function SidebarItem({
                 item={child}
                 depth={depth + 1}
                 palette={palette}
+                badgeOverrides={badgeOverrides}
               />
             ))}
           </List>

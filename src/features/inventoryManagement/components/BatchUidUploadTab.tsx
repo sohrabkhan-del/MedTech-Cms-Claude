@@ -47,11 +47,10 @@ import type {
 
 const STEP_LABELS = [
   'Upload BMR',
+  'Upload Carton Linkage',
   'Validate & Map Data',
   'Import Confirmation',
-  'BMR Import Success',
-  'Upload Carton Linkage',
-  'Carton Linkage Success',
+  'Import Success',
 ]
 
 const batchColumns: CommonTableColumn<BmrBatchRow>[] = [
@@ -248,69 +247,80 @@ function StepHeader({
 }
 
 interface BatchUidUploadTabProps {
-  onImported?: (batchRows: BmrBatchRow[], mappedBatches: MappedBatch[], uploadFileName: string) => void
+  onImported?: (
+    batchRows: BmrBatchRow[],
+    mappedBatches: MappedBatch[],
+    uploadFileName: string,
+  ) => void
 }
 
 export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
   const [activeStep, setActiveStep] = useState(0)
   const [bmrFile, setBmrFile] = useState<File | null>(null)
+  const [cartonFile, setCartonFile] = useState<File | null>(null)
+
   const [batchRows, setBatchRows] = useState<BmrBatchRow[]>([])
   const [summary, setSummary] = useState<BmrValidationSummary | null>(null)
+  const [cartonRows, setCartonRows] = useState<MasterCartonLinkRow[]>([])
+  const [cartonSummary, setCartonSummary] =
+    useState<MasterCartonUploadSummary | null>(null)
+
   const [isProcessing, setIsProcessing] = useState(false)
-  const [parseError, setParseError] = useState<string | null>(null)
+  const [validateError, setValidateError] = useState<string | null>(null)
   const [toast, setToast] = useState<{
     severity: 'success' | 'warning'
     title: string
     message: string
   } | null>(null)
 
-  const [cartonFile, setCartonFile] = useState<File | null>(null)
-  const [cartonRows, setCartonRows] = useState<MasterCartonLinkRow[]>([])
-  const [cartonSummary, setCartonSummary] =
-    useState<MasterCartonUploadSummary | null>(null)
-  const [cartonParseError, setCartonParseError] = useState<string | null>(null)
-
   const mappedBatches = buildMappedBatches(batchRows)
-  const knownUids = new Set(
-    batchRows
-      .filter((row) => row.isValid)
-      .flatMap((row) => generateUidsForBatch(row).map((u) => u.uid)),
-  )
 
   function resetWizard() {
     setActiveStep(0)
     setBmrFile(null)
+    setCartonFile(null)
     setBatchRows([])
     setSummary(null)
-    setParseError(null)
-    setCartonFile(null)
     setCartonRows([])
     setCartonSummary(null)
-    setCartonParseError(null)
+    setValidateError(null)
   }
 
-  async function handleValidateBmr() {
-    if (!bmrFile) return
+  async function handleValidateAll() {
+    if (!bmrFile || !cartonFile) return
     setIsProcessing(true)
-    setParseError(null)
+    setValidateError(null)
     try {
-      const { rows, summary } = await parseBmrFile(bmrFile)
-      setBatchRows(rows)
-      setSummary(summary)
-      setActiveStep(1)
-      const rejectedCount = summary.duplicateBatches + summary.invalidRanges
-      if (rejectedCount > 0) {
+      const { rows: bmrRows, summary: bmrSummary } = await parseBmrFile(bmrFile)
+      const knownUids = new Set(
+        bmrRows
+          .filter((row) => row.isValid)
+          .flatMap((row) => generateUidsForBatch(row).map((u) => u.uid)),
+      )
+      const { rows: linkRows, summary: linkSummary } =
+        await parseMasterCartonFile(cartonFile, knownUids)
+
+      setBatchRows(bmrRows)
+      setSummary(bmrSummary)
+      setCartonRows(linkRows)
+      setCartonSummary(linkSummary)
+      setActiveStep(2)
+
+      const rejectedBatches =
+        bmrSummary.duplicateBatches + bmrSummary.invalidRanges
+      const rejectedLinks = linkSummary.unknownUids + linkSummary.duplicateUids
+      if (rejectedBatches + rejectedLinks > 0) {
         setToast({
           severity: 'warning',
           title: 'Some rows were rejected',
-          message: `${rejectedCount} row(s) failed validation (${summary.duplicateBatches} duplicate, ${summary.invalidRanges} invalid range) and were excluded.`,
+          message: `${rejectedBatches} BMR row(s) and ${rejectedLinks} carton linkage row(s) failed validation and were excluded.`,
         })
       }
     } catch (err) {
-      setParseError(
+      setValidateError(
         err instanceof Error
           ? err.message
-          : 'Failed to parse the uploaded file.',
+          : 'Failed to parse the uploaded files.',
       )
     } finally {
       setIsProcessing(false)
@@ -321,7 +331,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
     setIsProcessing(true)
     await new Promise((r) => setTimeout(r, 700))
     setIsProcessing(false)
-    setActiveStep(3)
+    setActiveStep(4)
     onImported?.(
       batchRows.filter((row) => row.isValid),
       mappedBatches,
@@ -330,48 +340,8 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
     setToast({
       severity: 'success',
       title: 'Import successful',
-      message: 'Batch and UID data imported successfully.',
-    })
-  }
-
-  async function handleValidateCartonFile() {
-    if (!cartonFile) return
-    setIsProcessing(true)
-    setCartonParseError(null)
-    try {
-      const { rows, summary } = await parseMasterCartonFile(
-        cartonFile,
-        knownUids,
-      )
-      setCartonRows(rows)
-      setCartonSummary(summary)
-      if (summary.unknownUids + summary.duplicateUids > 0) {
-        setToast({
-          severity: 'warning',
-          title: 'Some rows were rejected',
-          message: `${summary.unknownUids} UID(s) not found in this import and ${summary.duplicateUids} duplicate UID(s) were excluded.`,
-        })
-      }
-    } catch (err) {
-      setCartonParseError(
-        err instanceof Error
-          ? err.message
-          : 'Failed to parse the uploaded file.',
-      )
-    } finally {
-      setIsProcessing(false)
-    }
-  }
-
-  async function handleConfirmCartonImport() {
-    setIsProcessing(true)
-    await new Promise((r) => setTimeout(r, 700))
-    setIsProcessing(false)
-    setActiveStep(5)
-    setToast({
-      severity: 'success',
-      title: 'Linkage imported',
-      message: 'Master Carton & Inner Box linkage imported successfully.',
+      message:
+        'Batch, UID, and Master Carton linkage data imported successfully.',
     })
   }
 
@@ -390,30 +360,71 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
           <StepHeader
             icon={<FileSpreadsheet size={20} />}
             title="Upload Batch Manufacturing Report (BMR)"
-            subtitle="Upload the daily BMR (.xlsx / .xls) to validate batches and generate UIDs from each batch's serial range."
+            subtitle="Upload the daily BMR (.xlsx / .xls). Batches and UIDs will be validated after both files are selected."
           />
           <SectionCard title="BMR File">
             <FileDropzone
               file={bmrFile}
               onSelect={(f) => {
                 setBmrFile(f)
-                setParseError(null)
+                setValidateError(null)
               }}
               onRemove={() => {
                 setBmrFile(null)
-                setParseError(null)
+                setValidateError(null)
               }}
               accept=".xls,.xlsx"
               helperText="Must include Batch No., Start Serial Number, and End Serial Number columns"
             />
           </SectionCard>
-          {parseError && <Alert severity="error">{parseError}</Alert>}
           <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
             <Button
               variant="contained"
               disabled={!bmrFile}
+              onClick={() => setActiveStep(1)}
+            >
+              Continue
+            </Button>
+          </Stack>
+        </>
+      )}
+
+      {activeStep === 1 && (
+        <>
+          <StepHeader
+            icon={<Boxes size={20} />}
+            title="Upload Master Carton & Inner Box Linkage"
+            subtitle="Upload the linkage file (UID, Master Carton Number). Reference-only for now — this will be replaced by real line-side scan data."
+          />
+          <SectionCard title="Master Carton Linkage File">
+            <FileDropzone
+              file={cartonFile}
+              onSelect={(f) => {
+                setCartonFile(f)
+                setValidateError(null)
+              }}
+              onRemove={() => {
+                setCartonFile(null)
+                setValidateError(null)
+              }}
+              accept=".xls,.xlsx,.csv"
+              helperText="Must include UID and Master Carton Number columns"
+            />
+          </SectionCard>
+          {validateError && <Alert severity="error">{validateError}</Alert>}
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ justifyContent: 'flex-end' }}
+          >
+            <Button variant="outlined" onClick={() => setActiveStep(0)}>
+              Back
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!cartonFile}
               loading={isProcessing}
-              onClick={handleValidateBmr}
+              onClick={handleValidateAll}
             >
               Validate & Continue
             </Button>
@@ -421,12 +432,12 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
         </>
       )}
 
-      {activeStep === 1 && summary && (
+      {activeStep === 2 && summary && cartonSummary && (
         <>
           <StepHeader
             icon={<Layers size={20} />}
             title="Validate & Map Data"
-            subtitle="Review the validation summary. UIDs are generated as Batch Number + Serial Number for each valid batch."
+            subtitle="Review the validation summary for both the BMR and the Master Carton linkage. UIDs are generated as Batch Number + Serial Number for each valid batch."
           />
 
           <Grid container spacing={2.5}>
@@ -534,22 +545,77 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
             )}
           </SectionCard>
 
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <StatCard
+                label="Linkage Rows"
+                value={cartonSummary.totalRows}
+                icon={<FileSpreadsheet size={20} />}
+                iconColor="primary"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <StatCard
+                label="Valid Links"
+                value={cartonSummary.validRows}
+                icon={<CircleCheck size={20} />}
+                iconColor="success"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <StatCard
+                label="Unknown UIDs"
+                value={cartonSummary.unknownUids}
+                icon={<ListChecks size={20} />}
+                iconColor="error"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <StatCard
+                label="Duplicate UIDs"
+                value={cartonSummary.duplicateUids}
+                icon={<ListChecks size={20} />}
+                iconColor="warning"
+              />
+            </Grid>
+          </Grid>
+
+          {cartonSummary.unknownUids + cartonSummary.duplicateUids > 0 && (
+            <Alert severity="warning">
+              {cartonSummary.unknownUids} UID(s) not found in this BMR import
+              and {cartonSummary.duplicateUids} duplicate UID(s) were excluded
+              from the carton linkage.
+            </Alert>
+          )}
+
+          <SectionCard title="Master Carton Linkage — Mapping">
+            <CommonTable
+              tableKey="master-carton-linkage-preview"
+              columns={cartonLinkColumns}
+              rows={cartonRows}
+              getRowId={(row) => row.id}
+              searchPlaceholder="Search UIDs…"
+              searchKeys={(row) => `${row.uid} ${row.masterCartonNumber}`}
+              emptyTitle="No linkage rows"
+            />
+          </SectionCard>
+
           <Stack
             direction="row"
             spacing={1.5}
             sx={{ justifyContent: 'flex-end' }}
           >
-            <Button variant="outlined" onClick={() => setActiveStep(0)}>
+            <Button variant="outlined" onClick={() => setActiveStep(1)}>
               Back
             </Button>
-            <Button variant="contained" onClick={() => setActiveStep(2)}>
+            <Button variant="contained" onClick={() => setActiveStep(3)}>
               Proceed to Import
             </Button>
           </Stack>
         </>
       )}
 
-      {activeStep === 2 && summary && (
+      {activeStep === 3 && summary && cartonSummary && (
         <>
           <StepHeader
             icon={<ListChecks size={20} />}
@@ -559,7 +625,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
 
           <SectionCard title="Import Summary">
             <Grid container spacing={2.5}>
-              <Grid size={{ xs: 12, sm: 4 }}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <StatCard
                   label="Batches to Import"
                   value={mappedBatches.length}
@@ -567,7 +633,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
                   iconColor="primary"
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <StatCard
                   label="Total UIDs to Import"
                   value={summary.totalUidsGenerated}
@@ -575,7 +641,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
                   iconColor="secondary"
                 />
               </Grid>
-              <Grid size={{ xs: 12, sm: 4 }}>
+              <Grid size={{ xs: 12, sm: 3 }}>
                 <StatCard
                   label="Valid Batches"
                   value={summary.validRows}
@@ -583,13 +649,22 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
                   iconColor="success"
                 />
               </Grid>
+              <Grid size={{ xs: 12, sm: 3 }}>
+                <StatCard
+                  label="Carton Links to Import"
+                  value={cartonSummary.validRows}
+                  icon={<Boxes size={20} />}
+                  iconColor="warning"
+                />
+              </Grid>
             </Grid>
           </SectionCard>
 
           <Alert severity="info">
-            This action will permanently import the validated batches and
-            generate UIDs for each. Rows that failed validation have already
-            been excluded and will not be imported.
+            This action will permanently import the validated batches, generate
+            UIDs for each, and record the Master Carton linkage for reference.
+            Rows that failed validation have already been excluded and will not
+            be imported.
           </Alert>
 
           <Stack
@@ -597,7 +672,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
             spacing={1.5}
             sx={{ justifyContent: 'flex-end' }}
           >
-            <Button variant="outlined" onClick={() => setActiveStep(1)}>
+            <Button variant="outlined" onClick={() => setActiveStep(2)}>
               Back
             </Button>
             <Button
@@ -611,7 +686,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
         </>
       )}
 
-      {activeStep === 3 && summary && (
+      {activeStep === 4 && summary && cartonSummary && (
         <Card sx={{ p: 3 }}>
           <Stack
             spacing={2.5}
@@ -638,158 +713,10 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
               variant="body1"
               sx={{ color: 'text.secondary', maxWidth: 480 }}
             >
-              {mappedBatches.length} batches and{' '}
-              {summary.totalUidsGenerated.toLocaleString('en-IN')} UIDs have
-              been imported and are now available in Product Batches.
-            </Typography>
-            <Button variant="contained" onClick={() => setActiveStep(4)}>
-              Continue to Master Carton Linkage
-            </Button>
-          </Stack>
-        </Card>
-      )}
-
-      {activeStep === 4 && (
-        <>
-          <StepHeader
-            icon={<Boxes size={20} />}
-            title="Upload Master Carton & Inner Box Linkage"
-            subtitle="Upload the linkage file (UID, Master Carton Number) to record which UIDs were packed into which master carton."
-          />
-          <Alert severity="info">
-            Reference-only for now — this data isn't yet generated from
-            line-side scanning. Each UID is checked against the batches just
-            imported.
-          </Alert>
-          <SectionCard title="Master Carton Linkage File">
-            <FileDropzone
-              file={cartonFile}
-              onSelect={(f) => {
-                setCartonFile(f)
-                setCartonParseError(null)
-              }}
-              onRemove={() => {
-                setCartonFile(null)
-                setCartonParseError(null)
-                setCartonRows([])
-                setCartonSummary(null)
-              }}
-              accept=".xls,.xlsx,.csv"
-              helperText="Must include UID and Master Carton Number columns"
-            />
-          </SectionCard>
-          {cartonParseError && (
-            <Alert severity="error">{cartonParseError}</Alert>
-          )}
-
-          {cartonSummary && (
-            <>
-              <Grid container spacing={2.5}>
-                <Grid size={{ xs: 12, sm: 3 }}>
-                  <StatCard
-                    label="Total Rows"
-                    value={cartonSummary.totalRows}
-                    icon={<FileSpreadsheet size={20} />}
-                    iconColor="primary"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 3 }}>
-                  <StatCard
-                    label="Valid Rows"
-                    value={cartonSummary.validRows}
-                    icon={<CircleCheck size={20} />}
-                    iconColor="success"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 3 }}>
-                  <StatCard
-                    label="Unknown UIDs"
-                    value={cartonSummary.unknownUids}
-                    icon={<ListChecks size={20} />}
-                    iconColor="error"
-                  />
-                </Grid>
-                <Grid size={{ xs: 12, sm: 3 }}>
-                  <StatCard
-                    label="Duplicate UIDs"
-                    value={cartonSummary.duplicateUids}
-                    icon={<ListChecks size={20} />}
-                    iconColor="warning"
-                  />
-                </Grid>
-              </Grid>
-
-              <SectionCard title="Master Carton Linkage — Preview">
-                <CommonTable
-                  tableKey="master-carton-linkage-preview"
-                  columns={cartonLinkColumns}
-                  rows={cartonRows}
-                  getRowId={(row) => row.id}
-                  searchPlaceholder="Search UIDs…"
-                  searchKeys={(row) => `${row.uid} ${row.masterCartonNumber}`}
-                  emptyTitle="No linkage rows"
-                />
-              </SectionCard>
-            </>
-          )}
-
-          <Stack
-            direction="row"
-            spacing={1.5}
-            sx={{ justifyContent: 'flex-end' }}
-          >
-            {!cartonSummary ? (
-              <Button
-                variant="contained"
-                disabled={!cartonFile}
-                loading={isProcessing}
-                onClick={handleValidateCartonFile}
-              >
-                Validate & Continue
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                loading={isProcessing}
-                disabled={cartonSummary.validRows === 0}
-                onClick={handleConfirmCartonImport}
-              >
-                Confirm Import
-              </Button>
-            )}
-          </Stack>
-        </>
-      )}
-
-      {activeStep === 5 && cartonSummary && (
-        <Card sx={{ p: 3 }}>
-          <Stack
-            spacing={2.5}
-            sx={{ alignItems: 'center', textAlign: 'center', py: 4 }}
-          >
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'success.light',
-                color: 'success.main',
-              }}
-            >
-              <CircleCheck size={34} />
-            </Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
-              Linkage Imported Successfully
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: 'text.secondary', maxWidth: 480 }}
-            >
-              {cartonSummary.validRows} UID(s) have been linked to their master
-              carton numbers for reference.
+              {mappedBatches.length} batches,{' '}
+              {summary.totalUidsGenerated.toLocaleString('en-IN')} UIDs, and{' '}
+              {cartonSummary.validRows} master carton link(s) have been imported
+              and are now available in Product Batches.
             </Typography>
             <Button variant="contained" onClick={resetWizard}>
               Upload Another File

@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { Box } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { Sidebar } from '@/components/layout/Sidebar/Sidebar'
 import { Header } from '@/components/layout/Header/Header'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs/Breadcrumbs'
@@ -11,6 +11,7 @@ import {
   RegionFilterProvider,
   useRegionFilter,
 } from '@/contexts/RegionFilterContext'
+import { formatLastUpdated } from '@/utils/formatLastUpdated'
 
 function GlobalRegionTopbar() {
   const location = useLocation()
@@ -32,6 +33,29 @@ function GlobalRegionTopbar() {
       dateRange={dateRange}
       onDateRangeChange={setDateRange}
     />
+  )
+}
+
+function LastUpdatedLabel() {
+  const { header } = useRegionFilter()
+  const [, forceTick] = useState(0)
+  const lastUpdated = header?.lastUpdated
+
+  useEffect(() => {
+    if (!lastUpdated) return
+    const interval = setInterval(() => forceTick((n) => n + 1), 30_000)
+    return () => clearInterval(interval)
+  }, [lastUpdated])
+
+  if (!lastUpdated) return null
+
+  return (
+    <Typography
+      variant="caption"
+      sx={{ color: 'text.disabled', fontWeight: 600 }}
+    >
+      {formatLastUpdated(lastUpdated)}
+    </Typography>
   )
 }
 
@@ -86,10 +110,13 @@ export function DashboardLayout() {
                 mb: 1,
                 paddingX: { xs: 0, sm: 1 },
                 display: 'flex',
-                justifyContent: 'flex-start',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 1,
               }}
             >
               <Breadcrumbs />
+              <LastUpdatedLabel />
             </Box>
             <GlobalRegionTopbar />
             <Outlet />

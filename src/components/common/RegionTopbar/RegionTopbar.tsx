@@ -1,5 +1,6 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { Box, Chip, MenuItem, Select, Stack, Typography } from '@mui/material'
+import { CircleCheck } from 'lucide-react'
 import {
   DateRangeFilter,
   type DateRange,
@@ -104,6 +105,18 @@ export function RegionTopbar({
                       borderRadius: '50%',
                       backgroundColor: 'success.main',
                       ml: '8px !important',
+                      animation:
+                        'region-topbar-live-pulse 1.6s ease-in-out infinite',
+                      '@keyframes region-topbar-live-pulse': {
+                        '0%, 100%': {
+                          opacity: 1,
+                          boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.5)',
+                        },
+                        '50%': {
+                          opacity: 0.6,
+                          boxShadow: '0 0 0 4px rgba(46, 125, 50, 0)',
+                        },
+                      },
                     }}
                   />
                 }
@@ -148,6 +161,16 @@ export function RegionTopbar({
             value={region}
             onChange={(e) => onRegionChange(e.target.value)}
             size="small"
+            renderValue={(value) => (
+              <Stack
+                direction="row"
+                spacing={0.75}
+                sx={{ alignItems: 'center' }}
+              >
+                <CircleCheck size={14} />
+                <span>{value}</span>
+              </Stack>
+            )}
             sx={{
               flex: 1,
               minWidth: 0,
@@ -159,7 +182,12 @@ export function RegionTopbar({
             }}
           >
             {REGIONS.map((r) => (
-              <MenuItem key={r} value={r} sx={{ fontSize: '0.8125rem' }}>
+              <MenuItem
+                key={r}
+                value={r}
+                sx={{ fontSize: '0.8125rem', gap: 1 }}
+              >
+                {r === region && <CircleCheck size={14} />}
                 {r}
               </MenuItem>
             ))}
@@ -204,6 +232,9 @@ export function RegionTopbar({
                   sx={{
                     position: 'relative',
                     zIndex: 1,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.5,
                     border: 'none',
                     cursor: 'pointer',
                     px: 2,

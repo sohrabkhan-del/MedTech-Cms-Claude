@@ -1,4 +1,10 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
+import {
+  createContext,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react'
 import type { DateRange } from '@/components/common/DateRangeFilter/DateRangeFilter'
 
 export interface RegionTopbarHeader {
@@ -6,6 +12,7 @@ export interface RegionTopbarHeader {
   title: string
   subtitle?: string
   live?: boolean
+  lastUpdated?: Date
 }
 
 interface RegionFilterContextValue {
@@ -17,11 +24,17 @@ interface RegionFilterContextValue {
   setHeader: (header: RegionTopbarHeader | null) => void
 }
 
-const RegionFilterContext = createContext<RegionFilterContextValue | undefined>(undefined)
+const RegionFilterContext = createContext<RegionFilterContextValue | undefined>(
+  undefined,
+)
 
 export function RegionFilterProvider({ children }: { children: ReactNode }) {
   const [region, setRegion] = useState('All India')
-  const [dateRange, setDateRange] = useState<DateRange>({ from: null, to: null, presetLabel: 'Last 30 Days' })
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: null,
+    to: null,
+    presetLabel: 'Last 30 Days',
+  })
   const [header, setHeader] = useState<RegionTopbarHeader | null>(null)
 
   const value = useMemo(
@@ -29,11 +42,18 @@ export function RegionFilterProvider({ children }: { children: ReactNode }) {
     [region, dateRange, header],
   )
 
-  return <RegionFilterContext.Provider value={value}>{children}</RegionFilterContext.Provider>
+  return (
+    <RegionFilterContext.Provider value={value}>
+      {children}
+    </RegionFilterContext.Provider>
+  )
 }
 
 export function useRegionFilter() {
   const ctx = useContext(RegionFilterContext)
-  if (!ctx) throw new Error('useRegionFilter must be used within a RegionFilterProvider')
+  if (!ctx)
+    throw new Error(
+      'useRegionFilter must be used within a RegionFilterProvider',
+    )
   return ctx
 }

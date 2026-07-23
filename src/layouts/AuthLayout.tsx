@@ -39,8 +39,6 @@ export function AuthLayout() {
       />
 
       <Stack spacing={3} sx={{ position: 'relative', alignItems: 'center', width: '100%', maxWidth: 420 }}>
-        <Box component="img" src="/images/logo/logo.png" alt="MedTech" sx={{ height: 52, width: 'auto' }} />
-
         <Box sx={{ width: '100%' }}>
           <Outlet />
         </Box>

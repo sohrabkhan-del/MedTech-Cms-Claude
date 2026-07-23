@@ -49,6 +49,10 @@ export function WelcomeBanner({
         px: { xs: 3, md: 4.5 },
         py: { xs: 3.5, md: 4.5 },
         mb: 3,
+        '& ::selection': {
+          backgroundColor: 'rgba(255,255,255,0.35)',
+          color: '#FFFFFF',
+        },
       }}
     >
       <Box

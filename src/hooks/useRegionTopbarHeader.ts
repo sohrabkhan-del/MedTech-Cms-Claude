@@ -1,9 +1,15 @@
 import { useEffect, useRef } from 'react'
-import { useRegionFilter, type RegionTopbarHeader } from '@/contexts/RegionFilterContext'
+import {
+  useRegionFilter,
+  type RegionTopbarHeader,
+} from '@/contexts/RegionFilterContext'
 
-export function useRegionTopbarHeader(header: RegionTopbarHeader, enabled = true) {
+export function useRegionTopbarHeader(
+  header: RegionTopbarHeader,
+  enabled = true,
+) {
   const { setHeader } = useRegionFilter()
-  const { icon, title, subtitle, live } = header
+  const { icon, title, subtitle, live, lastUpdated } = header
   const iconRef = useRef(icon)
   iconRef.current = icon
 
@@ -12,7 +18,7 @@ export function useRegionTopbarHeader(header: RegionTopbarHeader, enabled = true
       setHeader(null)
       return
     }
-    setHeader({ icon: iconRef.current, title, subtitle, live })
+    setHeader({ icon: iconRef.current, title, subtitle, live, lastUpdated })
     return () => setHeader(null)
-  }, [title, subtitle, live, enabled, setHeader])
+  }, [title, subtitle, live, lastUpdated, enabled, setHeader])
 }

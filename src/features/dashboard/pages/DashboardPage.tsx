@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Grid } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -27,14 +28,24 @@ import { useDashboardWidgetsData } from '@/features/dashboard/hooks/useDashboard
 
 export function DashboardPage() {
   const navigate = useNavigate()
+  const { overview, isLoading: overviewLoading } = useDashboardOverview()
+  const { data: widgets, isLoading: widgetsLoading } = useDashboardWidgetsData()
+  const isLoaded = !overviewLoading && !widgetsLoading
+
+  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined)
+  const [wasLoaded, setWasLoaded] = useState(false)
+  if (isLoaded && !wasLoaded) {
+    setWasLoaded(true)
+    setLastUpdated(new Date())
+  }
+
   useRegionTopbarHeader({
     icon: <LayoutDashboard size={20} />,
     title: 'Dashboard',
     subtitle:
       'Real-time overview of scans, rewards, and schemes across the network.',
+    lastUpdated,
   })
-  const { overview, isLoading: overviewLoading } = useDashboardOverview()
-  const { data: widgets, isLoading: widgetsLoading } = useDashboardWidgetsData()
 
   const topDealers = overview?.topDealers ?? []
   const topChemists = overview?.topChemists ?? []
@@ -53,7 +64,9 @@ export function DashboardPage() {
         statValue="1,284"
         statLabel="Scans today"
         onPrimaryAction={() => navigate('/reports/scan-reports')}
-        onSecondaryAction={() => navigate('/inventory/factory-inventory-upload/new')}
+        onSecondaryAction={() =>
+          navigate('/inventory/factory-inventory-upload/new')
+        }
       />
 
       <Grid container spacing={3} sx={{ mb: 3 }}>

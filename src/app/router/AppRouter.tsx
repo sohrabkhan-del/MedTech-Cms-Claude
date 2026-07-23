@@ -41,7 +41,8 @@ import { FactoryUploadFormPage } from '@/features/inventoryManagement/pages/Fact
 import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryUploadDetailsPage'
 import { FactoryContainerPage } from '@/features/inventoryManagement/pages/FactoryContainerPage'
 import { FactoryBoxPage } from '@/features/inventoryManagement/pages/FactoryBoxPage'
-import { BatchUploadsPage } from '@/features/inventoryManagement/pages/BatchUploadsPage'
+import { DistributorUploadPage } from '@/features/inventoryManagement/pages/DistributorUploadPage'
+import { DistributorDetailsPage } from '@/features/inventoryManagement/pages/DistributorDetailsPage'
 import { ProductBatchesPage } from '@/features/inventoryManagement/pages/ProductBatchesPage'
 import { ProductionBatchDetailsPage } from '@/features/inventoryManagement/pages/ProductionBatchDetailsPage'
 import { ProductsCatalogPage } from '@/features/marketingProducts/pages/ProductsCatalogPage'
@@ -104,6 +105,7 @@ import { getGeoFenceById } from '@/features/fieldOperations/mocks/mockGeoFences'
 import { getApprovalRequestById } from '@/features/userManagement/mockApprovalRequests'
 import { getProductById } from '@/features/inventoryManagement/mockProducts'
 import { getBatchById } from '@/features/inventoryManagement/mockFactoryUploads'
+import { getDistributorById } from '@/features/inventoryManagement/mockDistributorUpload'
 import { getProductionBatchById } from '@/features/inventoryManagement/mockProductBatches'
 import { getShowcaseProductById } from '@/features/marketingProducts/mockShowcaseProducts'
 import { getInterestedUserById } from '@/features/marketingProducts/mockInterestedUsers'
@@ -140,8 +142,8 @@ const CUSTOM_PATHS = new Set([
   '/verification/rejected-requests',
   '/inventory/product-master',
   '/inventory/factory-inventory-upload',
-  '/inventory/batch-uploads',
   '/inventory/product-batches',
+  '/distributor-upload',
   '/marketing-products/products-catelog',
   '/marketing-products/interested-users',
   '/scheme-management/schemes/general',
@@ -201,6 +203,10 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/inventory/factory-inventory-upload',
   resolveEntityName: (id) => getBatchById(id)?.batchName,
+})
+registerDetailRoute({
+  parentPath: '/distributor-upload',
+  resolveEntityName: (id) => getDistributorById(id)?.distributorName,
 })
 registerDetailRoute({
   parentPath: '/inventory/product-batches',
@@ -324,112 +330,373 @@ export function AppRouter() {
       </Route>
 
       <Route element={<ProtectedRoute />}>
-      <Route element={<DashboardLayout />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/notifications" element={<NotificationsListPage />} />
-        <Route path="/notifications/:notificationId" element={<NotificationDetailPage />} />
-        <Route path="/field-operations/live-scan-feed" element={<LiveScanFeedPage />} />
-        <Route path="/field-operations/security-alerts" element={<SecurityAlertsPage />} />
-        <Route path="/field-operations/geo-fence-management" element={<GeoFenceManagementPage />} />
-        <Route path="/field-operations/geo-fence-management/new" element={<GeoFenceFormPage />} />
-        <Route path="/field-operations/geo-fence-management/:fenceId" element={<GeoFenceDetailsPage />} />
-        <Route path="/field-operations/geo-fence-management/:fenceId/edit" element={<GeoFenceFormPage />} />
-        <Route path="/partners/dealers" element={<DealerListPage />} />
-        <Route path="/partners/dealers/new" element={<DealerFormPage />} />
-        <Route path="/partners/dealers/:dealerId" element={<DealerDetailsPage />} />
-        <Route path="/partners/dealers/:dealerId/edit" element={<DealerFormPage />} />
-        <Route path="/partners/chemists" element={<ChemistListPage />} />
-        <Route path="/partners/chemists/new" element={<ChemistFormPage />} />
-        <Route path="/partners/chemists/:chemistId" element={<ChemistDetailsPage />} />
-        <Route path="/partners/chemists/:chemistId/edit" element={<ChemistFormPage />} />
-        <Route path="/verification/approval-requests" element={<ApprovalRequestsListPage />} />
-        <Route path="/verification/approval-requests/:requestId" element={<ApprovalRequestDetailsPage />} />
-        <Route path="/verification/rejected-requests" element={<RejectedRequestsListPage />} />
-        <Route path="/verification/rejected-requests/:requestId" element={<RejectedRequestDetailsPage />} />
-        <Route path="/inventory/product-master" element={<ProductListPage />} />
-        <Route path="/inventory/product-master/new" element={<ProductFormPage />} />
-        <Route path="/inventory/product-master/:productId" element={<ProductDetailsPage />} />
-        <Route path="/inventory/product-master/:productId/edit" element={<ProductFormPage />} />
-        <Route path="/inventory/factory-inventory-upload" element={<FactoryUploadListPage />} />
-        <Route path="/inventory/factory-inventory-upload/new" element={<FactoryUploadFormPage />} />
-        <Route path="/inventory/factory-inventory-upload/:batchId" element={<FactoryUploadDetailsPage />} />
-        <Route path="/inventory/factory-inventory-upload/:batchId/:containerId" element={<FactoryContainerPage />} />
-        <Route path="/inventory/factory-inventory-upload/:batchId/:containerId/:boxId" element={<FactoryBoxPage />} />
-        <Route path="/inventory/batch-uploads" element={<BatchUploadsPage />} />
-        <Route path="/inventory/product-batches" element={<ProductBatchesPage />} />
-        <Route path="/inventory/product-batches/:batchId" element={<ProductionBatchDetailsPage />} />
-        <Route path="/marketing-products/products-catelog" element={<ProductsCatalogPage />} />
-        <Route path="/marketing-products/products-catelog/new" element={<ProductCatalogFormPage />} />
-        <Route path="/marketing-products/products-catelog/:productId" element={<ProductCatalogDetailsPage />} />
-        <Route path="/marketing-products/products-catelog/:productId/edit" element={<ProductCatalogFormPage />} />
-        <Route path="/marketing-products/interested-users" element={<InterestedUsersPage />} />
-        <Route path="/marketing-products/interested-users/:leadId" element={<InterestedUserDetailsPage />} />
-        <Route path="/scheme-management/schemes/general" element={<GeneralSchemesListPage />} />
-        <Route path="/scheme-management/schemes/sessional" element={<SeasonalSchemesListPage />} />
-        <Route path="/scheme-management/schemes/:category/new" element={<SchemeFormPage />} />
-        <Route path="/scheme-management/schemes/:category/:schemeId" element={<SchemeDetailsPage />} />
-        <Route path="/scheme-management/schemes/:category/:schemeId/edit" element={<SchemeFormPage />} />
-        <Route path="/scheme-management/gift-catalogue" element={<GiftCatalogueListPage />} />
-        <Route path="/scheme-management/gift-catalogue/new" element={<GiftFormPage />} />
-        <Route path="/scheme-management/gift-catalogue/:giftId" element={<GiftDetailsPage />} />
-        <Route path="/scheme-management/gift-catalogue/:giftId/edit" element={<GiftFormPage />} />
-        <Route path="/scheme-management/gift-rules" element={<GiftRulesListPage />} />
-        <Route path="/scheme-management/gift-rules/new" element={<GiftRuleFormPage />} />
-        <Route path="/scheme-management/gift-rules/:ruleId" element={<GiftRuleDetailsPage />} />
-        <Route path="/scheme-management/gift-rules/:ruleId/edit" element={<GiftRuleFormPage />} />
-        <Route path="/rewards-wallet/wallet-management" element={<WalletListPage />} />
-        <Route path="/rewards-wallet/wallet-management/:walletId" element={<WalletDetailsPage />} />
-        <Route path="/rewards-wallet/reward-redemptions" element={<RedemptionListPage />} />
-        <Route path="/rewards-wallet/reward-redemptions/:requestId" element={<RedemptionDetailsPage />} />
-        <Route path="/rewards-wallet/coin-value-rules/dealer" element={<CoinValueRulesListPage />} />
-        <Route path="/rewards-wallet/coin-value-rules/chemist" element={<CoinValueRulesListPage />} />
-        <Route path="/rewards-wallet/coin-value-rules/:ruleId" element={<CoinValueRuleDetailsPage />} />
-        <Route path="/settings/general" element={<AppearanceSettingsPage />} />
-        <Route path="/settings/profile" element={<ProfileSettingsPage />} />
-        <Route path="/system-users/admin" element={<AdminListPage />} />
-        <Route path="/system-users/admin/new" element={<AdminFormPage />} />
-        <Route path="/system-users/admin/:adminId" element={<AdminDetailsPage />} />
-        <Route path="/system-users/admin/:adminId/edit" element={<AdminFormPage />} />
-        <Route path="/system-users/medical-representatives" element={<MedicalRepListPage />} />
-        <Route path="/system-users/medical-representatives/new" element={<MedicalRepFormPage />} />
-        <Route path="/system-users/medical-representatives/:mrId" element={<MedicalRepDetailsPage />} />
-        <Route path="/system-users/medical-representatives/:mrId/edit" element={<MedicalRepFormPage />} />
-        <Route path="/masters/product-categories" element={<ProductCategoryListPage />} />
-        <Route path="/masters/product-categories/new" element={<ProductCategoryFormPage />} />
-        <Route path="/masters/product-categories/:categoryId" element={<ProductCategoryDetailsPage />} />
-        <Route path="/masters/product-categories/:categoryId/edit" element={<ProductCategoryFormPage />} />
-        <Route path="/audit/master-scan-table-logs" element={<MasterScanLogListPage />} />
-        <Route path="/audit/master-scan-table-logs/:logId" element={<MasterScanLogDetailsPage />} />
-        <Route path="/audit/audit-logs" element={<AuditLogListPage />} />
-        <Route path="/audit/audit-logs/:logId" element={<AuditLogDetailsPage />} />
-        <Route path="/reports/scan-reports" element={<ScanReportListPage />} />
-        <Route path="/reports/scan-reports/:scanId" element={<ScanReportDetailsPage />} />
-        <Route path="/reports/reward-reports" element={<RewardReportListPage />} />
-        <Route path="/reports/reward-reports/:rewardId" element={<RewardReportDetailsPage />} />
-        <Route path="/reports/wallet-reports" element={<WalletReportListPage />} />
-        <Route path="/reports/wallet-reports/:walletReportId" element={<WalletReportDetailsPage />} />
-        <Route path="/reports/dealer-reports" element={<DealerReportListPage />} />
-        <Route path="/reports/dealer-reports/:dealerReportId" element={<DealerReportDetailsPage />} />
-        <Route path="/reports/chemist-reports" element={<ChemistReportListPage />} />
-        <Route path="/reports/chemist-reports/:chemistReportId" element={<ChemistReportDetailsPage />} />
-        <Route path="/reports/mr-performance" element={<MrPerformanceListPage />} />
-        <Route path="/reports/mr-performance/:mrReportId" element={<MrPerformanceDetailsPage />} />
-        <Route path="/reports/product-reports-1" element={<ProductReportListPage />} />
-        <Route path="/reports/product-reports-1/:productReportId" element={<ProductReportDetailsPage />} />
-        <Route path="/reports/product-reports-2" element={<ProductReportListPage />} />
-        <Route path="/reports/scheme-reports" element={<SchemeReportListPage />} />
-        <Route path="/reports/scheme-reports/:schemeReportId" element={<SchemeReportDetailsPage />} />
-        {routeEntries
-          .filter((entry) => !CUSTOM_PATHS.has(entry.path))
-          .map((entry) => (
-            <Route
-              key={entry.path}
-              path={entry.path}
-              element={<PlaceholderPage title={entry.breadcrumbLabel} pending={entry.pending} />}
-            />
-          ))}
-      </Route>
+        <Route element={<DashboardLayout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/notifications" element={<NotificationsListPage />} />
+          <Route
+            path="/notifications/:notificationId"
+            element={<NotificationDetailPage />}
+          />
+          <Route
+            path="/field-operations/live-scan-feed"
+            element={<LiveScanFeedPage />}
+          />
+          <Route
+            path="/field-operations/security-alerts"
+            element={<SecurityAlertsPage />}
+          />
+          <Route
+            path="/field-operations/geo-fence-management"
+            element={<GeoFenceManagementPage />}
+          />
+          <Route
+            path="/field-operations/geo-fence-management/new"
+            element={<GeoFenceFormPage />}
+          />
+          <Route
+            path="/field-operations/geo-fence-management/:fenceId"
+            element={<GeoFenceDetailsPage />}
+          />
+          <Route
+            path="/field-operations/geo-fence-management/:fenceId/edit"
+            element={<GeoFenceFormPage />}
+          />
+          <Route path="/partners/dealers" element={<DealerListPage />} />
+          <Route path="/partners/dealers/new" element={<DealerFormPage />} />
+          <Route
+            path="/partners/dealers/:dealerId"
+            element={<DealerDetailsPage />}
+          />
+          <Route
+            path="/partners/dealers/:dealerId/edit"
+            element={<DealerFormPage />}
+          />
+          <Route path="/partners/chemists" element={<ChemistListPage />} />
+          <Route path="/partners/chemists/new" element={<ChemistFormPage />} />
+          <Route
+            path="/partners/chemists/:chemistId"
+            element={<ChemistDetailsPage />}
+          />
+          <Route
+            path="/partners/chemists/:chemistId/edit"
+            element={<ChemistFormPage />}
+          />
+          <Route
+            path="/verification/approval-requests"
+            element={<ApprovalRequestsListPage />}
+          />
+          <Route
+            path="/verification/approval-requests/:requestId"
+            element={<ApprovalRequestDetailsPage />}
+          />
+          <Route
+            path="/verification/rejected-requests"
+            element={<RejectedRequestsListPage />}
+          />
+          <Route
+            path="/verification/rejected-requests/:requestId"
+            element={<RejectedRequestDetailsPage />}
+          />
+          <Route
+            path="/inventory/product-master"
+            element={<ProductListPage />}
+          />
+          <Route
+            path="/inventory/product-master/new"
+            element={<ProductFormPage />}
+          />
+          <Route
+            path="/inventory/product-master/:productId"
+            element={<ProductDetailsPage />}
+          />
+          <Route
+            path="/inventory/product-master/:productId/edit"
+            element={<ProductFormPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload"
+            element={<FactoryUploadListPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload/new"
+            element={<FactoryUploadFormPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload/:batchId"
+            element={<FactoryUploadDetailsPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload/:batchId/:containerId"
+            element={<FactoryContainerPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload/:batchId/:containerId/:boxId"
+            element={<FactoryBoxPage />}
+          />
+          <Route
+            path="/distributor-upload"
+            element={<DistributorUploadPage />}
+          />
+          <Route
+            path="/distributor-upload/:distributorId"
+            element={<DistributorDetailsPage />}
+          />
+          <Route
+            path="/inventory/product-batches"
+            element={<ProductBatchesPage />}
+          />
+          <Route
+            path="/inventory/product-batches/:batchId"
+            element={<ProductionBatchDetailsPage />}
+          />
+          <Route
+            path="/marketing-products/products-catelog"
+            element={<ProductsCatalogPage />}
+          />
+          <Route
+            path="/marketing-products/products-catelog/new"
+            element={<ProductCatalogFormPage />}
+          />
+          <Route
+            path="/marketing-products/products-catelog/:productId"
+            element={<ProductCatalogDetailsPage />}
+          />
+          <Route
+            path="/marketing-products/products-catelog/:productId/edit"
+            element={<ProductCatalogFormPage />}
+          />
+          <Route
+            path="/marketing-products/interested-users"
+            element={<InterestedUsersPage />}
+          />
+          <Route
+            path="/marketing-products/interested-users/:leadId"
+            element={<InterestedUserDetailsPage />}
+          />
+          <Route
+            path="/scheme-management/schemes/general"
+            element={<GeneralSchemesListPage />}
+          />
+          <Route
+            path="/scheme-management/schemes/sessional"
+            element={<SeasonalSchemesListPage />}
+          />
+          <Route
+            path="/scheme-management/schemes/:category/new"
+            element={<SchemeFormPage />}
+          />
+          <Route
+            path="/scheme-management/schemes/:category/:schemeId"
+            element={<SchemeDetailsPage />}
+          />
+          <Route
+            path="/scheme-management/schemes/:category/:schemeId/edit"
+            element={<SchemeFormPage />}
+          />
+          <Route
+            path="/scheme-management/gift-catalogue"
+            element={<GiftCatalogueListPage />}
+          />
+          <Route
+            path="/scheme-management/gift-catalogue/new"
+            element={<GiftFormPage />}
+          />
+          <Route
+            path="/scheme-management/gift-catalogue/:giftId"
+            element={<GiftDetailsPage />}
+          />
+          <Route
+            path="/scheme-management/gift-catalogue/:giftId/edit"
+            element={<GiftFormPage />}
+          />
+          <Route
+            path="/scheme-management/gift-rules"
+            element={<GiftRulesListPage />}
+          />
+          <Route
+            path="/scheme-management/gift-rules/new"
+            element={<GiftRuleFormPage />}
+          />
+          <Route
+            path="/scheme-management/gift-rules/:ruleId"
+            element={<GiftRuleDetailsPage />}
+          />
+          <Route
+            path="/scheme-management/gift-rules/:ruleId/edit"
+            element={<GiftRuleFormPage />}
+          />
+          <Route
+            path="/rewards-wallet/wallet-management"
+            element={<WalletListPage />}
+          />
+          <Route
+            path="/rewards-wallet/wallet-management/:walletId"
+            element={<WalletDetailsPage />}
+          />
+          <Route
+            path="/rewards-wallet/reward-redemptions"
+            element={<RedemptionListPage />}
+          />
+          <Route
+            path="/rewards-wallet/reward-redemptions/:requestId"
+            element={<RedemptionDetailsPage />}
+          />
+          <Route
+            path="/rewards-wallet/coin-value-rules/dealer"
+            element={<CoinValueRulesListPage />}
+          />
+          <Route
+            path="/rewards-wallet/coin-value-rules/chemist"
+            element={<CoinValueRulesListPage />}
+          />
+          <Route
+            path="/rewards-wallet/coin-value-rules/:ruleId"
+            element={<CoinValueRuleDetailsPage />}
+          />
+          <Route
+            path="/settings/general"
+            element={<AppearanceSettingsPage />}
+          />
+          <Route path="/settings/profile" element={<ProfileSettingsPage />} />
+          <Route path="/system-users/admin" element={<AdminListPage />} />
+          <Route path="/system-users/admin/new" element={<AdminFormPage />} />
+          <Route
+            path="/system-users/admin/:adminId"
+            element={<AdminDetailsPage />}
+          />
+          <Route
+            path="/system-users/admin/:adminId/edit"
+            element={<AdminFormPage />}
+          />
+          <Route
+            path="/system-users/medical-representatives"
+            element={<MedicalRepListPage />}
+          />
+          <Route
+            path="/system-users/medical-representatives/new"
+            element={<MedicalRepFormPage />}
+          />
+          <Route
+            path="/system-users/medical-representatives/:mrId"
+            element={<MedicalRepDetailsPage />}
+          />
+          <Route
+            path="/system-users/medical-representatives/:mrId/edit"
+            element={<MedicalRepFormPage />}
+          />
+          <Route
+            path="/masters/product-categories"
+            element={<ProductCategoryListPage />}
+          />
+          <Route
+            path="/masters/product-categories/new"
+            element={<ProductCategoryFormPage />}
+          />
+          <Route
+            path="/masters/product-categories/:categoryId"
+            element={<ProductCategoryDetailsPage />}
+          />
+          <Route
+            path="/masters/product-categories/:categoryId/edit"
+            element={<ProductCategoryFormPage />}
+          />
+          <Route
+            path="/audit/master-scan-table-logs"
+            element={<MasterScanLogListPage />}
+          />
+          <Route
+            path="/audit/master-scan-table-logs/:logId"
+            element={<MasterScanLogDetailsPage />}
+          />
+          <Route path="/audit/audit-logs" element={<AuditLogListPage />} />
+          <Route
+            path="/audit/audit-logs/:logId"
+            element={<AuditLogDetailsPage />}
+          />
+          <Route
+            path="/reports/scan-reports"
+            element={<ScanReportListPage />}
+          />
+          <Route
+            path="/reports/scan-reports/:scanId"
+            element={<ScanReportDetailsPage />}
+          />
+          <Route
+            path="/reports/reward-reports"
+            element={<RewardReportListPage />}
+          />
+          <Route
+            path="/reports/reward-reports/:rewardId"
+            element={<RewardReportDetailsPage />}
+          />
+          <Route
+            path="/reports/wallet-reports"
+            element={<WalletReportListPage />}
+          />
+          <Route
+            path="/reports/wallet-reports/:walletReportId"
+            element={<WalletReportDetailsPage />}
+          />
+          <Route
+            path="/reports/dealer-reports"
+            element={<DealerReportListPage />}
+          />
+          <Route
+            path="/reports/dealer-reports/:dealerReportId"
+            element={<DealerReportDetailsPage />}
+          />
+          <Route
+            path="/reports/chemist-reports"
+            element={<ChemistReportListPage />}
+          />
+          <Route
+            path="/reports/chemist-reports/:chemistReportId"
+            element={<ChemistReportDetailsPage />}
+          />
+          <Route
+            path="/reports/mr-performance"
+            element={<MrPerformanceListPage />}
+          />
+          <Route
+            path="/reports/mr-performance/:mrReportId"
+            element={<MrPerformanceDetailsPage />}
+          />
+          <Route
+            path="/reports/product-reports-1"
+            element={<ProductReportListPage />}
+          />
+          <Route
+            path="/reports/product-reports-1/:productReportId"
+            element={<ProductReportDetailsPage />}
+          />
+          <Route
+            path="/reports/product-reports-2"
+            element={<ProductReportListPage />}
+          />
+          <Route
+            path="/reports/scheme-reports"
+            element={<SchemeReportListPage />}
+          />
+          <Route
+            path="/reports/scheme-reports/:schemeReportId"
+            element={<SchemeReportDetailsPage />}
+          />
+          {routeEntries
+            .filter((entry) => !CUSTOM_PATHS.has(entry.path))
+            .map((entry) => (
+              <Route
+                key={entry.path}
+                path={entry.path}
+                element={
+                  <PlaceholderPage
+                    title={entry.breadcrumbLabel}
+                    pending={entry.pending}
+                  />
+                }
+              />
+            ))}
+        </Route>
       </Route>
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

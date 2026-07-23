@@ -10,11 +10,16 @@ import type {
 interface InviteTokenInfo {
   token: string
   inviteType: PartnerInviteType
+  invitee: PartnerInviteBasicDetails
 }
 
 async function resolveInviteToken(token: string | undefined): Promise<InviteTokenInfo> {
   if (!token) throw new Error('This invite link is invalid or has expired.')
-  return { token, inviteType: 'Dealer' }
+  return {
+    token,
+    inviteType: 'Dealer',
+    invitee: { name: 'Rajesh Kumar', email: 'rajesh.kumar@example.com', phone: '9876543210' },
+  }
 }
 
 async function sendOtp(payload: PartnerInviteBasicDetails): Promise<{ email: string }> {

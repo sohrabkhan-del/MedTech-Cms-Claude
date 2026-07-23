@@ -10,7 +10,6 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
-import { useProductBatches } from '@/features/inventoryManagement/hooks/useProductBatches'
 import { useProductCategoryOptions } from '@/features/inventoryManagement/hooks/useProductCategoryOptions'
 import type { BatchActiveStatus, ProductionBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
@@ -24,12 +23,21 @@ interface BatchListingFilters extends Record<string, unknown> {
   expiryTo: string
 }
 
+interface ProductionBatchKpis {
+  totalBatches: number
+  activeBatches: number
+  expiredBatches: number
+  totalScans: number
+}
+
 interface BatchListingTabProps {
+  batches: ProductionBatch[]
+  kpis: ProductionBatchKpis | null
+  isLoading: boolean
   onViewBatch: (batch: ProductionBatch) => void
 }
 
-export function BatchListingTab({ onViewBatch }: BatchListingTabProps) {
-  const { batches, kpis, isLoading } = useProductBatches()
+export function BatchListingTab({ batches, kpis, isLoading, onViewBatch }: BatchListingTabProps) {
   const productCategoryOptions = useProductCategoryOptions()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<BatchListingFilters>({
@@ -133,8 +141,12 @@ export function BatchListingTab({ onViewBatch }: BatchListingTabProps) {
         actions={[
           { label: 'View Details', onClick: (row) => onViewBatch(row) },
         ]}
-        emptyTitle="No batches found"
-        emptyDescription="Try adjusting your filters or search terms."
+        emptyTitle={batches.length === 0 ? 'No batches uploaded yet' : 'No batches found'}
+        emptyDescription={
+          batches.length === 0
+            ? 'Use "Upload Manifest" to import a Batch Manufacturing Report and generate UIDs.'
+            : 'Try adjusting your filters or search terms.'
+        }
       />
 
       <FilterDrawer<BatchListingFilters>

@@ -1,9 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useController, useForm } from 'react-hook-form'
 import { Navigate } from 'react-router-dom'
-import { Alert, Button, Grid, MenuItem, Stack, Typography } from '@mui/material'
+import { Alert, Button, FormHelperText, Grid, MenuItem, Stack, Typography } from '@mui/material'
 import { LocateFixed, MapPin } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
+import { MultiFileDropzone } from '@/components/common/FileDropzone/MultiFileDropzone'
 import { InviteCard } from '@/features/partnerInvite/components/InviteCard'
 import { InviteSuccessDialog } from '@/features/partnerInvite/components/InviteSuccessDialog'
 import { usePartnerInvite } from '@/features/partnerInvite/PartnerInviteContext'
@@ -12,6 +13,7 @@ import { useGeolocationCapture } from '@/features/partnerInvite/hooks/useGeoloca
 import {
   inviteShopDetailsFormDefaults,
   inviteShopDetailsFormSchema,
+  SHOP_DOCUMENT_ACCEPT,
   type InviteShopDetailsFormValues,
 } from '@/features/partnerInvite/inviteShopDetailsFormSchema'
 
@@ -27,6 +29,10 @@ export function InviteShopDetailsPage() {
   })
   const latitude = watch('latitude')
   const longitude = watch('longitude')
+  const {
+    field: { value: documents, onChange: setDocuments },
+    fieldState: { error: documentsError },
+  } = useController({ name: 'documents', control })
 
   if (!basicDetails) {
     return <Navigate to={`/invite/${token}`} replace />
@@ -79,6 +85,18 @@ export function InviteShopDetailsPage() {
             </FormField>
           </Grid>
         </Grid>
+
+        <Stack spacing={1}>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Shop / Dealer Documents</Typography>
+          <MultiFileDropzone
+            files={documents}
+            accept={SHOP_DOCUMENT_ACCEPT}
+            helperText="or click to browse — accepts PDF, PNG, JPG"
+            onAdd={(newFiles) => setDocuments([...documents, ...newFiles])}
+            onRemove={(index) => setDocuments(documents.filter((_, i) => i !== index))}
+          />
+          {documentsError && <FormHelperText error>{documentsError.message}</FormHelperText>}
+        </Stack>
 
         <Stack
           spacing={1.5}

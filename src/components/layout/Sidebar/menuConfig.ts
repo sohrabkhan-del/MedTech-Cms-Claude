@@ -109,8 +109,8 @@ export const menuConfig: MenuGroup[] = [
         icon: Factory,
       },
       {
-        label: 'Batch & Distributor Uploads',
-        path: '/inventory/batch-uploads',
+        label: 'Distributor Upload',
+        path: '/distributor-upload',
         icon: UploadCloud,
       },
       {
@@ -120,6 +120,7 @@ export const menuConfig: MenuGroup[] = [
       },
     ],
   },
+
   {
     groupLabel: 'PARTNERS',
     icon: Users,

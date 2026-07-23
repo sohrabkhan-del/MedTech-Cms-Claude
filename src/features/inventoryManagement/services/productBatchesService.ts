@@ -2,12 +2,15 @@ import {
   mockProductBatches,
   getProductBatchById,
   productBatchKpis,
-  mockProductionBatches,
+  getMockProductionBatches,
   getProductionBatchById,
-  productionBatchKpis,
-  scanAnalyticsRows,
+  getProductionBatchKpis,
+  getScanAnalyticsRows as getScanAnalyticsRowsData,
+  buildProductionBatchFromUpload,
+  addProductionBatches,
 } from '@/features/inventoryManagement/mockProductBatches'
 import type { ProductBatch, ProductionBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import type { MappedBatch } from '@/types/batchUidUpload'
 import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
@@ -26,19 +29,26 @@ async function getProductBatchKpis() {
 }
 
 async function getProductionBatches(): Promise<ProductionBatch[]> {
-  return mockDelay(mockProductionBatches)
+  return mockDelay(getMockProductionBatches())
 }
 
 async function getProductionBatchDetail(id: string): Promise<ProductionBatch | undefined> {
   return mockDelay(getProductionBatchById(id))
 }
 
-async function getProductionBatchKpis() {
-  return mockDelay(productionBatchKpis)
+async function getProductionBatchKpisData() {
+  return mockDelay(getProductionBatchKpis())
 }
 
 async function getScanAnalyticsRows() {
-  return mockDelay(scanAnalyticsRows)
+  return mockDelay(getScanAnalyticsRowsData())
+}
+
+/** Imports Batch & UID Upload results (Upload Manifest) into the Product Batches registry. */
+async function importUploadedBatches(mappedBatches: MappedBatch[], uploadFileName: string): Promise<ProductionBatch[]> {
+  const batches = mappedBatches.map((mb) => buildProductionBatchFromUpload(mb, uploadFileName))
+  addProductionBatches(batches)
+  return mockDelay(batches)
 }
 
 export const productBatchesService = {
@@ -47,6 +57,7 @@ export const productBatchesService = {
   getProductBatchKpis,
   getProductionBatches,
   getProductionBatchDetail,
-  getProductionBatchKpis,
+  getProductionBatchKpis: getProductionBatchKpisData,
   getScanAnalyticsRows,
+  importUploadedBatches,
 }

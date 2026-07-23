@@ -1,21 +1,59 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Stack, Typography } from '@mui/material'
-import { Factory as FactoryOutlined, Trash2 as DeleteOutlined } from 'lucide-react'
+import {
+  Factory as FactoryOutlined,
+  Trash2 as DeleteOutlined,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useFactoryBatchDetail } from '@/features/inventoryManagement/hooks/useFactoryBatchDetail'
 import type { BatchScanEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 const scanColumns: CommonTableColumn<BatchScanEntry>[] = [
-  { key: 'scanSerialNumber', header: 'Scan Serial Number', minWidth: 150, sortable: true, sortValue: (row) => row.scanSerialNumber, render: (row) => row.scanSerialNumber },
-  { key: 'productName', header: 'Product Name', minWidth: 170, render: (row) => row.productName },
-  { key: 'chemistName', header: 'Chemist Name', minWidth: 170, render: (row) => row.chemistName },
-  { key: 'chemistScanDate', header: 'Chemist Scan Date', minWidth: 150, render: (row) => row.chemistScanDate },
-  { key: 'dealerName', header: 'Dealer Name', minWidth: 170, render: (row) => row.dealerName },
-  { key: 'dealerScanDate', header: 'Dealer Scan Date', minWidth: 150, render: (row) => row.dealerScanDate },
+  {
+    key: 'scanSerialNumber',
+    header: 'Scan Serial Number',
+    minWidth: 150,
+    sortable: true,
+    sortValue: (row) => row.scanSerialNumber,
+    render: (row) => row.scanSerialNumber,
+  },
+  {
+    key: 'productName',
+    header: 'Product Name',
+    minWidth: 170,
+    render: (row) => row.productName,
+  },
+  {
+    key: 'chemistName',
+    header: 'Chemist Name',
+    minWidth: 170,
+    render: (row) => row.chemistName,
+  },
+  {
+    key: 'chemistScanDate',
+    header: 'Chemist Scan Date',
+    minWidth: 150,
+    render: (row) => row.chemistScanDate,
+  },
+  {
+    key: 'dealerName',
+    header: 'Dealer Name',
+    minWidth: 170,
+    render: (row) => row.dealerName,
+  },
+  {
+    key: 'dealerScanDate',
+    header: 'Dealer Scan Date',
+    minWidth: 150,
+    render: (row) => row.dealerScanDate,
+  },
 ]
 
 export function FactoryUploadDetailsPage() {
@@ -40,7 +78,16 @@ export function FactoryUploadDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -64,7 +111,13 @@ export function FactoryUploadDetailsPage() {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5}>
-          <Button variant="outlined" color="error" startIcon={<DeleteOutlined size={20} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteOutlined size={20} />}
+            onClick={() => {}}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Delete
           </Button>
         </Stack>
@@ -73,38 +126,87 @@ export function FactoryUploadDetailsPage() {
       <Stack spacing={3}>
         <SectionCard title="Summary">
           <DetailFieldGrid
-            fields={[
-              { label: 'Upload ID', value: batch.uploadId },
-              { label: 'Production Plan Number', value: batch.productionPlanNumber },
-              { label: 'Batch Number', value: batch.batchNumber },
-              { label: 'Product Name', value: batch.productName },
-              { label: 'Product Code', value: batch.productCode },
-              { label: 'Batch Date', value: batch.batchDate },
-              { label: 'Batch Completion Date', value: batch.batchCompletionDate },
-              { label: 'Assembly Line', value: batch.assemblyLine },
-              { label: 'Export Type', value: batch.exportType },
-              { label: 'Plug Type', value: batch.plugType },
-              { label: 'Issued By', value: batch.issuedBy },
-              { label: 'Month', value: batch.month },
-              { label: 'Total Containers', value: batch.totalContainers },
-              { label: 'Retention Sample Quantity', value: batch.retentionSampleQuantity },
-              { label: 'Remarks', value: batch.remarks },
-            ]}
+            fields={
+              batch.isBmrSourced
+                ? [
+                    { label: 'Product Code', value: batch.productCode },
+                    { label: 'Batch No.', value: batch.batchNumber },
+                    {
+                      label: 'Production Plan No.',
+                      value: batch.productionPlanNumber,
+                    },
+                    { label: 'Batch Issued Date', value: batch.batchDate },
+                    { label: 'Batch Issued By', value: batch.issuedBy },
+                    { label: 'Month', value: batch.month },
+                    { label: 'Qty', value: batch.quantity },
+                    {
+                      label: 'Sample Qty',
+                      value: batch.retentionSampleQuantity,
+                    },
+                    { label: 'Plug Type', value: batch.plugType },
+                    { label: 'Domestic', value: batch.domestic ?? '—' },
+                    { label: 'Export', value: batch.export ?? '—' },
+                    { label: 'Assy Line No.', value: batch.assemblyLine },
+                    {
+                      label: 'Batch Completed Date',
+                      value: batch.batchCompletionDate,
+                    },
+                    { label: 'Produced Qty', value: batch.totalProducts },
+                    {
+                      label: 'Start Serial Number',
+                      value: batch.startSerialNumber,
+                    },
+                    {
+                      label: 'End Serial Number',
+                      value: batch.endSerialNumber,
+                    },
+                  ]
+                : [
+                    { label: 'Upload ID', value: batch.uploadId },
+                    {
+                      label: 'Production Plan Number',
+                      value: batch.productionPlanNumber,
+                    },
+                    { label: 'Batch Number', value: batch.batchNumber },
+                    { label: 'Product Name', value: batch.productName },
+                    { label: 'Product Code', value: batch.productCode },
+                    { label: 'Batch Date', value: batch.batchDate },
+                    {
+                      label: 'Batch Completion Date',
+                      value: batch.batchCompletionDate,
+                    },
+                    { label: 'Assembly Line', value: batch.assemblyLine },
+                    { label: 'Export Type', value: batch.exportType },
+                    { label: 'Plug Type', value: batch.plugType },
+                    { label: 'Issued By', value: batch.issuedBy },
+                    { label: 'Month', value: batch.month },
+                    { label: 'Total Containers', value: batch.totalContainers },
+                    {
+                      label: 'Retention Sample Quantity',
+                      value: batch.retentionSampleQuantity,
+                    },
+                    { label: 'Remarks', value: batch.remarks },
+                  ]
+            }
           />
         </SectionCard>
 
-        <SectionCard title="Scan History">
-          <CommonTable
-            tableKey="factory-batch-scan-history"
-            columns={scanColumns}
-            rows={batch.scanHistory}
-            loading={isLoading}
-            getRowId={(row) => row.id}
-            searchPlaceholder="Search scan history…"
-            searchKeys={(row) => `${row.scanSerialNumber} ${row.productName} ${row.chemistName} ${row.dealerName}`}
-            emptyTitle="No scans recorded yet"
-          />
-        </SectionCard>
+        {!batch.isBmrSourced && (
+          <SectionCard title="Scan History">
+            <CommonTable
+              tableKey="factory-batch-scan-history"
+              columns={scanColumns}
+              rows={batch.scanHistory}
+              loading={isLoading}
+              getRowId={(row) => row.id}
+              searchPlaceholder="Search scan history…"
+              searchKeys={(row) =>
+                `${row.scanSerialNumber} ${row.productName} ${row.chemistName} ${row.dealerName}`
+              }
+              emptyTitle="No scans recorded yet"
+            />
+          </SectionCard>
+        )}
       </Stack>
     </>
   )

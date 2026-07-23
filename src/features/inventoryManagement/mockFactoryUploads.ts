@@ -10,15 +10,30 @@ import type {
   ProductTraceabilityStatus,
   ScanStatus,
 } from '@/types/factoryUpload'
+import type { BmrBatchRow } from '@/types/batchUidUpload'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 import { mrs } from '@/features/userManagement/mockPartnerData'
 
-const productNames = ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance', 'PainRelief Gel']
+const productNames = [
+  'CardioCare 10mg',
+  'NeuroPlus 500mg',
+  'ImmunoBoost Syrup',
+  'GlucoBalance',
+  'PainRelief Gel',
+]
 const assemblyLines = ['Line A', 'Line B', 'Line C']
 const exportTypes = ['Domestic', 'Export']
 const plugTypes = ['Type C', 'Type D', 'Type G']
-const months = ['Jan 2026', 'Feb 2026', 'Mar 2026', 'Apr 2026', 'May 2026', 'Jun 2026', 'Jul 2026']
+const months = [
+  'Jan 2026',
+  'Feb 2026',
+  'Mar 2026',
+  'Apr 2026',
+  'May 2026',
+  'Jun 2026',
+  'Jul 2026',
+]
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -35,7 +50,12 @@ function dateFromSeed(seed: number, month = 'Jul'): string {
   return `${pad(day)} ${month} 2026`
 }
 
-function buildProduct(seed: number, containerNumber: string, boxNumber: string, serial: number): BoxProduct {
+function buildProduct(
+  seed: number,
+  containerNumber: string,
+  boxNumber: string,
+  serial: number,
+): BoxProduct {
   const id = `product-${seed}-${serial}`
   const dealer = mockDealers[seed % mockDealers.length]!
   const chemist = mockChemists[seed % mockChemists.length]!
@@ -68,8 +88,12 @@ function buildProduct(seed: number, containerNumber: string, boxNumber: string, 
   }
 
   const isDealerAssigned = traceabilityStatus !== 'manufactured'
-  const isChemistAssigned = traceabilityStatus === 'chemist_assigned' || traceabilityStatus === 'scanned' || traceabilityStatus === 'redeemed'
-  const isScanned = traceabilityStatus === 'scanned' || traceabilityStatus === 'redeemed'
+  const isChemistAssigned =
+    traceabilityStatus === 'chemist_assigned' ||
+    traceabilityStatus === 'scanned' ||
+    traceabilityStatus === 'redeemed'
+  const isScanned =
+    traceabilityStatus === 'scanned' || traceabilityStatus === 'redeemed'
 
   const rewardPoints = isScanned ? seededNumber(seed, 10, 60) : 0
 
@@ -86,8 +110,14 @@ function buildProduct(seed: number, containerNumber: string, boxNumber: string, 
 
     allocatedChemist: isChemistAssigned ? chemist.shopName : '—',
     chemistCode: isChemistAssigned ? chemist.id : '—',
-    chemistAllocationDate: isChemistAssigned ? dateFromSeed(seed + 2, 'Jul') : '—',
-    currentHolder: isChemistAssigned ? chemist.shopName : isDealerAssigned ? dealer.shopName : 'Factory',
+    chemistAllocationDate: isChemistAssigned
+      ? dateFromSeed(seed + 2, 'Jul')
+      : '—',
+    currentHolder: isChemistAssigned
+      ? chemist.shopName
+      : isDealerAssigned
+        ? dealer.shopName
+        : 'Factory',
 
     currentStatus: traceabilityStatus.replace('_', ' '),
     scanStatus,
@@ -95,30 +125,57 @@ function buildProduct(seed: number, containerNumber: string, boxNumber: string, 
     lastScanDate: isScanned ? dateFromSeed(seed + 4, 'Jul') : '—',
 
     scanDate: isScanned ? dateFromSeed(seed + 4, 'Jul') : '—',
-    scanTime: isScanned ? `${pad(seededNumber(seed, 8, 20))}:${pad(seededNumber(seed + 1, 0, 59))}` : '—',
+    scanTime: isScanned
+      ? `${pad(seededNumber(seed, 8, 20))}:${pad(seededNumber(seed + 1, 0, 59))}`
+      : '—',
     scanBy: isScanned ? chemist.shopName : '—',
     scanLocation: isScanned ? `${chemist.city}, ${chemist.zone} Zone` : '—',
-    geoFenceStatus: isScanned ? (seed % 13 === 0 ? 'Outside Fence' : 'Within Fence') : '—',
-    scanResult: isScanned ? (scanStatus === 'duplicate_attempt' ? 'Duplicate' : 'Valid') : '—',
+    geoFenceStatus: isScanned
+      ? seed % 13 === 0
+        ? 'Outside Fence'
+        : 'Within Fence'
+      : '—',
+    scanResult: isScanned
+      ? scanStatus === 'duplicate_attempt'
+        ? 'Duplicate'
+        : 'Valid'
+      : '—',
     rewardPointsEarned: isScanned ? rewardPoints : 0,
 
     dealerRewardPoints: isDealerAssigned ? seededNumber(seed, 5, 25) : 0,
     chemistRewardPoints: isChemistAssigned ? seededNumber(seed + 1, 5, 30) : 0,
     rewardScheme: isScanned ? 'Standard Scan Reward' : '—',
     walletTransactionId: isScanned ? `WTX-${100000 + seed * 7}` : '—',
-    redemptionStatus: traceabilityStatus === 'redeemed' ? 'Redeemed' : isScanned ? 'Not Redeemed' : '—',
+    redemptionStatus:
+      traceabilityStatus === 'redeemed'
+        ? 'Redeemed'
+        : isScanned
+          ? 'Not Redeemed'
+          : '—',
 
     traceabilityStatus,
   }
 }
 
-function buildBox(seed: number, containerNumber: string, boxIndex: number): ContainerBox {
+function buildBox(
+  seed: number,
+  containerNumber: string,
+  boxIndex: number,
+): ContainerBox {
   const boxNumber = `MCB-${pad(boxIndex + 1, 3)}`
   const productCount = seededNumber(seed, 8, 16)
   const products = Array.from({ length: productCount }).map((_, i) =>
-    buildProduct(seed * 31 + i, containerNumber, boxNumber, boxIndex * 100 + i + 1),
+    buildProduct(
+      seed * 31 + i,
+      containerNumber,
+      boxNumber,
+      boxIndex * 100 + i + 1,
+    ),
   )
-  const allScanned = products.every((p) => p.traceabilityStatus === 'scanned' || p.traceabilityStatus === 'redeemed')
+  const allScanned = products.every(
+    (p) =>
+      p.traceabilityStatus === 'scanned' || p.traceabilityStatus === 'redeemed',
+  )
 
   return {
     id: `${containerNumber}-${boxNumber}`,
@@ -129,10 +186,16 @@ function buildBox(seed: number, containerNumber: string, boxIndex: number): Cont
   }
 }
 
-function buildContainer(seed: number, batchNumber: string, containerIndex: number): BatchContainer {
-  const containerNumber = `PI-2026-${pad(seed % 900 + 100, 3)}`
+function buildContainer(
+  seed: number,
+  batchNumber: string,
+  containerIndex: number,
+): BatchContainer {
+  const containerNumber = `PI-2026-${pad((seed % 900) + 100, 3)}`
   const boxCount = seededNumber(seed, 2, 5)
-  const boxes = Array.from({ length: boxCount }).map((_, i) => buildBox(seed * 17 + i, containerNumber, i))
+  const boxes = Array.from({ length: boxCount }).map((_, i) =>
+    buildBox(seed * 17 + i, containerNumber, i),
+  )
   const productCount = boxes.reduce((sum, b) => sum + b.productCount, 0)
 
   return {
@@ -145,7 +208,11 @@ function buildContainer(seed: number, batchNumber: string, containerIndex: numbe
   }
 }
 
-function buildScanHistory(products: BoxProduct[], productName: string, batchId: string): BatchScanEntry[] {
+function buildScanHistory(
+  products: BoxProduct[],
+  productName: string,
+  batchId: string,
+): BatchScanEntry[] {
   return products
     .filter((p) => p.allocatedDealer !== '—' || p.allocatedChemist !== '—')
     .map((p, i) => ({
@@ -153,7 +220,8 @@ function buildScanHistory(products: BoxProduct[], productName: string, batchId: 
       scanSerialNumber: p.serialNumber,
       productName,
       chemistName: p.allocatedChemist !== '—' ? p.allocatedChemist : '—',
-      chemistScanDate: p.allocatedChemist !== '—' ? p.chemistAllocationDate : '—',
+      chemistScanDate:
+        p.allocatedChemist !== '—' ? p.chemistAllocationDate : '—',
       dealerName: p.allocatedDealer !== '—' ? p.allocatedDealer : '—',
       dealerScanDate: p.allocatedDealer !== '—' ? p.dealerAllocationDate : '—',
     }))
@@ -162,23 +230,71 @@ function buildScanHistory(products: BoxProduct[], productName: string, batchId: 
 function buildAuditHistory(seed: number, batchId: string): BatchAuditEntry[] {
   const reviewer = mrs[seed % mrs.length]!
   return [
-    { id: `${batchId}-audit-0`, date: dateFromSeed(seed, 'Jun'), action: 'Batch Uploaded', performedBy: reviewer, remarks: 'Manifest validated and imported.' },
-    { id: `${batchId}-audit-1`, date: dateFromSeed(seed + 2, 'Jun'), action: 'Containers Packed', performedBy: reviewer, remarks: 'All containers confirmed packed.' },
+    {
+      id: `${batchId}-audit-0`,
+      date: dateFromSeed(seed, 'Jun'),
+      action: 'Batch Uploaded',
+      performedBy: reviewer,
+      remarks: 'Manifest validated and imported.',
+    },
+    {
+      id: `${batchId}-audit-1`,
+      date: dateFromSeed(seed + 2, 'Jun'),
+      action: 'Containers Packed',
+      performedBy: reviewer,
+      remarks: 'All containers confirmed packed.',
+    },
   ]
 }
 
-function buildTimeline(seed: number, batchId: string, hasRedemption: boolean): BatchTimelineEntry[] {
+function buildTimeline(
+  seed: number,
+  batchId: string,
+  hasRedemption: boolean,
+): BatchTimelineEntry[] {
   const timeline: BatchTimelineEntry[] = [
-    { id: `${batchId}-tl-0`, activity: 'Factory Production', dateTime: dateFromSeed(seed, 'Jun') },
-    { id: `${batchId}-tl-1`, activity: 'Batch Created', dateTime: dateFromSeed(seed + 1, 'Jun') },
-    { id: `${batchId}-tl-2`, activity: 'Container Packed', dateTime: dateFromSeed(seed + 2, 'Jun') },
-    { id: `${batchId}-tl-3`, activity: 'Dealer Allocation', dateTime: dateFromSeed(seed + 3, 'Jul') },
-    { id: `${batchId}-tl-4`, activity: 'Chemist Allocation', dateTime: dateFromSeed(seed + 4, 'Jul') },
-    { id: `${batchId}-tl-5`, activity: 'Barcode Scanned', dateTime: dateFromSeed(seed + 5, 'Jul') },
-    { id: `${batchId}-tl-6`, activity: 'Reward Credited', dateTime: dateFromSeed(seed + 6, 'Jul') },
+    {
+      id: `${batchId}-tl-0`,
+      activity: 'Factory Production',
+      dateTime: dateFromSeed(seed, 'Jun'),
+    },
+    {
+      id: `${batchId}-tl-1`,
+      activity: 'Batch Created',
+      dateTime: dateFromSeed(seed + 1, 'Jun'),
+    },
+    {
+      id: `${batchId}-tl-2`,
+      activity: 'Container Packed',
+      dateTime: dateFromSeed(seed + 2, 'Jun'),
+    },
+    {
+      id: `${batchId}-tl-3`,
+      activity: 'Dealer Allocation',
+      dateTime: dateFromSeed(seed + 3, 'Jul'),
+    },
+    {
+      id: `${batchId}-tl-4`,
+      activity: 'Chemist Allocation',
+      dateTime: dateFromSeed(seed + 4, 'Jul'),
+    },
+    {
+      id: `${batchId}-tl-5`,
+      activity: 'Barcode Scanned',
+      dateTime: dateFromSeed(seed + 5, 'Jul'),
+    },
+    {
+      id: `${batchId}-tl-6`,
+      activity: 'Reward Credited',
+      dateTime: dateFromSeed(seed + 6, 'Jul'),
+    },
   ]
   if (hasRedemption) {
-    timeline.push({ id: `${batchId}-tl-7`, activity: 'Redeemed', dateTime: dateFromSeed(seed + 7, 'Jul') })
+    timeline.push({
+      id: `${batchId}-tl-7`,
+      activity: 'Redeemed',
+      dateTime: dateFromSeed(seed + 7, 'Jul'),
+    })
   }
   return timeline
 }
@@ -188,22 +304,39 @@ function buildBatch(seed: number): FactoryBatch {
   const batchNumber = `FU-${100 + seed}`
   const batchName = `Factory Batch ${batchNumber}`
   const containerCount = seededNumber(seed, 2, 4)
-  const containers = Array.from({ length: containerCount }).map((_, i) => buildContainer(seed * 53 + i, batchNumber, i))
+  const containers = Array.from({ length: containerCount }).map((_, i) =>
+    buildContainer(seed * 53 + i, batchNumber, i),
+  )
 
   const totalProducts = containers.reduce((sum, c) => sum + c.productCount, 0)
-  const allProducts = containers.flatMap((c) => c.boxes.flatMap((b) => b.products))
+  const allProducts = containers.flatMap((c) =>
+    c.boxes.flatMap((b) => b.products),
+  )
 
-  const accepted = allProducts.filter((p) => p.productStatus !== 'manufactured').length
+  const accepted = allProducts.filter(
+    (p) => p.productStatus !== 'manufactured',
+  ).length
   const rejected = seededNumber(seed, 0, 4)
   const pending = totalProducts - accepted - rejected
 
-  const assignedToDealers = allProducts.filter((p) => p.allocatedDealer !== '—').length
-  const assignedToChemists = allProducts.filter((p) => p.allocatedChemist !== '—').length
-  const scanned = allProducts.filter((p) => p.traceabilityStatus === 'scanned' || p.traceabilityStatus === 'redeemed').length
+  const assignedToDealers = allProducts.filter(
+    (p) => p.allocatedDealer !== '—',
+  ).length
+  const assignedToChemists = allProducts.filter(
+    (p) => p.allocatedChemist !== '—',
+  ).length
+  const scanned = allProducts.filter(
+    (p) =>
+      p.traceabilityStatus === 'scanned' || p.traceabilityStatus === 'redeemed',
+  ).length
   const pendingAllocation = totalProducts - assignedToDealers
-  const duplicateScanAttempts = allProducts.filter((p) => p.scanStatus === 'duplicate_attempt').length
+  const duplicateScanAttempts = allProducts.filter(
+    (p) => p.scanStatus === 'duplicate_attempt',
+  ).length
   const rewardsIssued = allProducts.filter((p) => p.rewardPoints > 0).length
-  const hasRedemption = allProducts.some((p) => p.traceabilityStatus === 'redeemed')
+  const hasRedemption = allProducts.some(
+    (p) => p.traceabilityStatus === 'redeemed',
+  )
 
   const startSerial = 1
   const endSerial = totalProducts
@@ -254,39 +387,155 @@ function buildBatch(seed: number): FactoryBatch {
     hasRedemption,
 
     containers,
-    scanHistory: buildScanHistory(allProducts, productNames[seed % productNames.length]!, id),
+    scanHistory: buildScanHistory(
+      allProducts,
+      productNames[seed % productNames.length]!,
+      id,
+    ),
     auditHistory: buildAuditHistory(seed, id),
     timeline: buildTimeline(seed, id, hasRedemption),
   }
 }
 
-export const mockFactoryBatches: FactoryBatch[] = Array.from({ length: 18 }).map((_, index) => buildBatch(index + 1))
+export const mockFactoryBatches: FactoryBatch[] = Array.from({
+  length: 18,
+}).map((_, index) => buildBatch(index + 1))
 
 export function getBatchById(id: string): FactoryBatch | undefined {
   return mockFactoryBatches.find((batch) => batch.id === id)
 }
 
-export function getContainerById(batchId: string, containerId: string): BatchContainer | undefined {
-  return getBatchById(batchId)?.containers.find((container) => container.id === containerId)
+export function getContainerById(
+  batchId: string,
+  containerId: string,
+): BatchContainer | undefined {
+  return getBatchById(batchId)?.containers.find(
+    (container) => container.id === containerId,
+  )
 }
 
-export function getBoxById(batchId: string, containerId: string, boxId: string): ContainerBox | undefined {
-  return getContainerById(batchId, containerId)?.boxes.find((box) => box.id === boxId)
+export function getBoxById(
+  batchId: string,
+  containerId: string,
+  boxId: string,
+): ContainerBox | undefined {
+  return getContainerById(batchId, containerId)?.boxes.find(
+    (box) => box.id === boxId,
+  )
 }
 
 export function addFactoryBatch(batch: FactoryBatch): void {
   mockFactoryBatches.unshift(batch)
 }
 
+/** Used by the Manifest File + Supporting File form (FactoryUploadFormPage), which has no
+ *  real batch data to work with — still fabricates a mock batch. */
 export function buildNewBatchFromUpload(fileName: string): FactoryBatch {
   const seed = mockFactoryBatches.length + 1 + (fileName.length % 7)
   return buildBatch(1000 + seed)
 }
 
+/**
+ * Builds a FactoryBatch directly from an uploaded BMR row's real values — no fabricated
+ * containers/boxes/scan history, since a BMR doesn't contain that data (see isBmrSourced).
+ */
+export function buildFactoryBatchFromBmrRow(
+  row: BmrBatchRow,
+  uploadFileName: string,
+): FactoryBatch {
+  const id = `bmr-batch-${row.id}-${Date.now()}`
+
+  return {
+    id,
+    batchName: row.batchNumber,
+    batchNumber: row.batchNumber,
+    batchDate: row.batchIssuedDate,
+    quantity: row.producedQty,
+    startSerialNumber: row.startSerialNumber,
+    endSerialNumber: row.endSerialNumber,
+    masterStartNumber: '—',
+    masterEndNumber: '—',
+    totalContainers: 0,
+    totalProducts: row.producedQty,
+
+    uploadId: uploadFileName,
+    productionPlanNumber: row.productionPlanNumber,
+    productName: row.productCode,
+    productCode: row.productCode,
+    batchCompletionDate: row.batchCompletedDate,
+    assemblyLine: row.assyLineNo,
+    exportType: row.export || row.domestic,
+    plugType: row.plugType,
+    issuedBy: row.batchIssuedByName,
+    month: row.month,
+    retentionSampleQuantity: row.sampleQty,
+    remarks: `Imported from BMR upload (${uploadFileName}).`,
+
+    isBmrSourced: true,
+    domestic: row.domestic,
+    export: row.export,
+
+    totalAccepted: row.producedQty,
+    totalRejected: 0,
+
+    barcodeRangeStart: '—',
+    barcodeRangeEnd: '—',
+    processingSummary: `${row.producedQty.toLocaleString('en-IN')} produced out of ${row.qty.toLocaleString('en-IN')} planned.`,
+    acceptedProducts: row.producedQty,
+    rejectedProducts: 0,
+    pendingProducts: 0,
+
+    totalAssignedToDealers: 0,
+    totalAssignedToChemists: 0,
+    totalScanned: 0,
+    totalPendingAllocation: row.producedQty,
+    duplicateScanAttempts: 0,
+    totalRewardsIssued: 0,
+
+    hasRedemption: false,
+
+    containers: [],
+    scanHistory: [],
+    auditHistory: [
+      {
+        id: `${id}-audit-0`,
+        date: row.batchIssuedDate,
+        action: 'BMR Uploaded',
+        performedBy: row.batchIssuedByName || 'System',
+        remarks: `Imported from ${uploadFileName}.`,
+      },
+    ],
+    timeline: [
+      {
+        id: `${id}-tl-0`,
+        activity: 'Factory Production',
+        dateTime: row.batchIssuedDate,
+      },
+      {
+        id: `${id}-tl-1`,
+        activity: 'Batch Created',
+        dateTime: row.batchCompletedDate || row.batchIssuedDate,
+      },
+    ],
+  }
+}
+
 export const factoryUploadKpis = {
   totalBatches: mockFactoryBatches.length,
-  totalContainers: mockFactoryBatches.reduce((sum, b) => sum + b.totalContainers, 0),
-  totalProducts: mockFactoryBatches.reduce((sum, b) => sum + b.totalProducts, 0),
-  totalAccepted: mockFactoryBatches.reduce((sum, b) => sum + b.totalAccepted, 0),
-  totalRejected: mockFactoryBatches.reduce((sum, b) => sum + b.totalRejected, 0),
+  totalContainers: mockFactoryBatches.reduce(
+    (sum, b) => sum + b.totalContainers,
+    0,
+  ),
+  totalProducts: mockFactoryBatches.reduce(
+    (sum, b) => sum + b.totalProducts,
+    0,
+  ),
+  totalAccepted: mockFactoryBatches.reduce(
+    (sum, b) => sum + b.totalAccepted,
+    0,
+  ),
+  totalRejected: mockFactoryBatches.reduce(
+    (sum, b) => sum + b.totalRejected,
+    0,
+  ),
 }

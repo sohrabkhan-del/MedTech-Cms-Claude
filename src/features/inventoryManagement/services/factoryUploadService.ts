@@ -5,9 +5,15 @@ import {
   getBoxById,
   addFactoryBatch,
   buildNewBatchFromUpload,
+  buildFactoryBatchFromBmrRow,
   factoryUploadKpis,
 } from '@/features/inventoryManagement/mockFactoryUploads'
-import type { FactoryBatch, BatchContainer, ContainerBox } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import type {
+  FactoryBatch,
+  BatchContainer,
+  ContainerBox,
+} from '@/features/inventoryManagement/types/inventoryManagement.types'
+import type { BmrBatchRow } from '@/types/batchUidUpload'
 import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
@@ -18,15 +24,24 @@ async function getFactoryBatches(): Promise<FactoryBatch[]> {
   return mockDelay(mockFactoryBatches)
 }
 
-async function getFactoryBatchDetail(batchId: string): Promise<FactoryBatch | undefined> {
+async function getFactoryBatchDetail(
+  batchId: string,
+): Promise<FactoryBatch | undefined> {
   return mockDelay(getBatchById(batchId))
 }
 
-async function getContainerDetail(batchId: string, containerId: string): Promise<BatchContainer | undefined> {
+async function getContainerDetail(
+  batchId: string,
+  containerId: string,
+): Promise<BatchContainer | undefined> {
   return mockDelay(getContainerById(batchId, containerId))
 }
 
-async function getBoxDetail(batchId: string, containerId: string, boxId: string): Promise<ContainerBox | undefined> {
+async function getBoxDetail(
+  batchId: string,
+  containerId: string,
+  boxId: string,
+): Promise<ContainerBox | undefined> {
   return mockDelay(getBoxById(batchId, containerId, boxId))
 }
 
@@ -35,10 +50,27 @@ async function getFactoryUploadKpis() {
 }
 
 /** Same shape used for both "Factory Inventory Upload" and "Delivery Upload" flows. */
-async function uploadFile(manifestFile: File, supportingFile: File): Promise<FactoryBatch> {
-  const batch = buildNewBatchFromUpload(`${manifestFile.name}+${supportingFile.name}`)
+async function uploadFile(
+  manifestFile: File,
+  supportingFile: File,
+): Promise<FactoryBatch> {
+  const batch = buildNewBatchFromUpload(
+    `${manifestFile.name}+${supportingFile.name}`,
+  )
   addFactoryBatch(batch)
   return mockDelay(batch)
+}
+
+/** Imports a Batch & UID Upload (BMR) result into the Active Product Registry Directory listing — one row per valid BMR batch, using its real uploaded fields. */
+async function importBmrUpload(
+  batchRows: BmrBatchRow[],
+  uploadFileName: string,
+): Promise<FactoryBatch[]> {
+  const batches = batchRows
+    .filter((row) => row.isValid)
+    .map((row) => buildFactoryBatchFromBmrRow(row, uploadFileName))
+  batches.forEach(addFactoryBatch)
+  return mockDelay(batches)
 }
 
 export const factoryUploadService = {
@@ -48,4 +80,5 @@ export const factoryUploadService = {
   getBoxDetail,
   getFactoryUploadKpis,
   uploadFile,
+  importBmrUpload,
 }

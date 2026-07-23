@@ -1,40 +1,65 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Alert, Button, Link, Stack, Typography } from '@mui/material'
+import { Alert, Button, Link, Stack, TextField, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import { InviteCard } from '@/features/partnerInvite/components/InviteCard'
+import { usePartnerInvite } from '@/features/partnerInvite/PartnerInviteContext'
 import { useInviteDetailsService } from '@/features/partnerInvite/hooks/useInviteDetailsService'
 import {
   inviteDetailsFormDefaults,
-  inviteDetailsFormSchema,
   inviteOtpFormDefaults,
   inviteOtpFormSchema,
-  type InviteDetailsFormValues,
   type InviteOtpFormValues,
 } from '@/features/partnerInvite/inviteDetailsFormSchema'
 
-interface OtpStepProps {
-  pendingEmail: string | undefined
-  verifyOtp: (otp: string) => void
-  editDetails: () => void
-  isLoading: boolean
-  error: string | null
-}
+const OTP_RESEND_SECONDS = 30
 
-function OtpStep({ pendingEmail, verifyOtp, editDetails, isLoading, error }: OtpStepProps) {
+export function InviteDetailsPage() {
+  const { invitee } = usePartnerInvite()
+  const { pendingDetails, sendOtp, resendOtp, verifyOtp, isLoading, error } = useInviteDetailsService()
   const { control, handleSubmit } = useForm<InviteOtpFormValues>({
     resolver: zodResolver(inviteOtpFormSchema),
     defaultValues: inviteOtpFormDefaults,
   })
+  const [secondsLeft, setSecondsLeft] = useState(OTP_RESEND_SECONDS)
+  const otpTriggered = useRef(false)
+
+  useEffect(() => {
+    if (!invitee || otpTriggered.current) return
+    otpTriggered.current = true
+    sendOtp(invitee)
+  }, [invitee, sendOtp])
+
+  useEffect(() => {
+    if (!pendingDetails || secondsLeft <= 0) return
+    const timer = setInterval(() => setSecondsLeft((s) => s - 1), 1000)
+    return () => clearInterval(timer)
+  }, [pendingDetails, secondsLeft])
+
+  function handleResend() {
+    resendOtp()
+    setSecondsLeft(OTP_RESEND_SECONDS)
+  }
+
+  const details = invitee ?? inviteDetailsFormDefaults
 
   return (
     <InviteCard
       step={1}
-      title="Verify your email"
-      subtitle={pendingEmail ? `Enter the 6-digit code sent to ${pendingEmail}` : 'Enter the 6-digit code sent to your email'}
+      title="Welcome to MedTech CMS"
+      subtitle={
+        pendingDetails
+          ? `Enter the 6-digit code sent to ${pendingDetails.email}`
+          : "Let's get your partner account set up."
+      }
       onSubmit={handleSubmit((values) => verifyOtp(values.otp))}
     >
       {error && <Alert severity="error">{error}</Alert>}
+
+      <TextField label="Full Name" value={details.name} disabled fullWidth size="small" />
+      <TextField label="Email" type="email" value={details.email} disabled fullWidth size="small" />
+      <TextField label="Phone Number" value={details.phone} disabled fullWidth size="small" />
 
       <FormField
         name="otp"
@@ -49,65 +74,20 @@ function OtpStep({ pendingEmail, verifyOtp, editDetails, isLoading, error }: Otp
         Verify & Continue
       </Button>
 
-      <Stack direction="row" sx={{ justifyContent: 'center' }}>
-        <Link component="button" type="button" variant="body2" underline="hover" onClick={editDetails} sx={{ fontWeight: 500 }}>
-          Change email or phone number
-        </Link>
+      <Stack direction="row" spacing={0.5} sx={{ justifyContent: 'center', alignItems: 'center' }}>
+        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+          Didn't receive the code?
+        </Typography>
+        {secondsLeft > 0 ? (
+          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+            Resend OTP in {secondsLeft}s
+          </Typography>
+        ) : (
+          <Link component="button" type="button" variant="body2" underline="hover" onClick={handleResend} sx={{ fontWeight: 500 }}>
+            Resend OTP
+          </Link>
+        )}
       </Stack>
     </InviteCard>
   )
-}
-
-interface DetailsStepProps {
-  sendOtp: (values: InviteDetailsFormValues) => void
-  isLoading: boolean
-  error: string | null
-}
-
-function DetailsStep({ sendOtp, isLoading, error }: DetailsStepProps) {
-  const { control, handleSubmit } = useForm<InviteDetailsFormValues>({
-    resolver: zodResolver(inviteDetailsFormSchema),
-    defaultValues: inviteDetailsFormDefaults,
-  })
-
-  return (
-    <InviteCard
-      step={1}
-      title="Welcome to MedTech CMS"
-      subtitle="Let's get your partner account set up. Start with your basic details."
-      onSubmit={handleSubmit((values) => sendOtp(values))}
-    >
-      {error && <Alert severity="error">{error}</Alert>}
-
-      <FormField name="name" control={control} label="Full Name" required autoFocus />
-      <FormField name="email" control={control} label="Email" type="email" required />
-      <FormField name="phone" control={control} label="Phone Number" required />
-
-      <Button type="submit" variant="contained" size="large" loading={isLoading} sx={{ py: 1.25 }}>
-        Send OTP
-      </Button>
-
-      <Typography variant="caption" sx={{ color: 'text.disabled', textAlign: 'center' }}>
-        We'll send a one-time verification code to confirm your email.
-      </Typography>
-    </InviteCard>
-  )
-}
-
-export function InviteDetailsPage() {
-  const { phase, pendingDetails, sendOtp, verifyOtp, editDetails, isLoading, error } = useInviteDetailsService()
-
-  if (phase === 'otp') {
-    return (
-      <OtpStep
-        pendingEmail={pendingDetails?.email}
-        verifyOtp={verifyOtp}
-        editDetails={editDetails}
-        isLoading={isLoading}
-        error={error}
-      />
-    )
-  }
-
-  return <DetailsStep sendOtp={sendOtp} isLoading={isLoading} error={error} />
 }

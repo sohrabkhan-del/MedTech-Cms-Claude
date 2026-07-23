@@ -1,43 +1,19 @@
 import type {
   BatchActiveStatus,
-  BatchLifecycleEntry,
   BatchScanStatus,
-  BatchUploadHistoryEntry,
-  DistributionJourneyEntry,
-  FraudDetectionSummary,
   ProductBatch,
   ProductionBatch,
   QrBarcodeInfo,
-  QrCodeStatistics,
-  RelatedRewardSummary,
-  RelatedScheme,
-  RewardSummary,
   ScanAnalyticsRow,
-  ScanStatistics,
 } from '@/types/productBatch'
+import type { MappedBatch } from '@/types/batchUidUpload'
 import { mockFactoryBatches } from '@/features/inventoryManagement/mockFactoryUploads'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
-import { mockDealers } from '@/features/userManagement/mockDealers'
-import { mockChemists } from '@/features/userManagement/mockChemists'
-import { mrs } from '@/features/userManagement/mockPartnerData'
-
-const distributorNames = ['Apex MedDistribution', 'Sunrise Pharma Logistics', 'National Health Supply Co.', 'Care Plus Distributors']
-const schemeNames = ['Festive Bonus Scheme', 'Monsoon Loyalty Drive', 'Quarterly Booster', 'New Year Rewards']
-const uploadFileNames = ['factory-manifest-batch.xlsx', 'production-upload.xls', 'batch-import-final.xlsx']
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
   const frac = x - Math.floor(x)
   return Math.floor(min + frac * (max - min))
-}
-
-function pad(n: number, width = 2): string {
-  return n.toString().padStart(width, '0')
-}
-
-function dateFromSeed(seed: number, month = 'Jul', year = 2026): string {
-  const day = (seed % 27) + 1
-  return `${pad(day)} ${month} ${year}`
 }
 
 function resolveScanStatus(seed: number, totalScanned: number): BatchScanStatus {
@@ -85,182 +61,94 @@ export const productBatchKpis = {
 
 // --- Full production batch model ---
 
-function buildQrBarcodeInfo(seed: number, totalPackages: number): QrBarcodeInfo {
-  const totalScanned = seededNumber(seed, 0, totalPackages)
-  const duplicateScans = seededNumber(seed + 1, 0, 8)
+// Product Batches listing starts empty — rows only appear once a Batch & UID Upload
+// has been completed in this session, via addProductionBatches. (No seeded mock rows;
+// mockFactoryBatches above is still used to derive uploaded batches' product/category data.)
+let uploadedProductionBatches: ProductionBatch[] = []
+
+export function getMockProductionBatches(): ProductionBatch[] {
+  return uploadedProductionBatches
+}
+
+export function addProductionBatches(batches: ProductionBatch[]): void {
+  uploadedProductionBatches = [...batches, ...uploadedProductionBatches]
+}
+
+export function getProductionBatchById(id: string): ProductionBatch | undefined {
+  return uploadedProductionBatches.find((batch) => batch.id === id)
+}
+
+export function getProductionBatchKpis() {
   return {
-    barcodeSeries: `BC-${20260000 + seed * 17}`,
-    serialRangeStart: `SN-${pad(1, 6)}`,
-    serialRangeEnd: `SN-${pad(totalPackages, 6)}`,
-    totalGenerated: totalPackages,
-    totalAvailable: totalPackages - totalScanned,
-    totalScanned,
-    duplicateScans,
+    totalBatches: uploadedProductionBatches.length,
+    activeBatches: uploadedProductionBatches.filter((b) => b.status === 'active').length,
+    expiredBatches: uploadedProductionBatches.filter((b) => b.status === 'expired').length,
+    totalScans: uploadedProductionBatches.reduce((sum, b) => sum + b.totalScans, 0),
   }
 }
 
-function buildDistributionJourney(seed: number): DistributionJourneyEntry[] {
-  return Array.from({ length: 3 }).map((_, i) => {
-    const dealer = mockDealers[(seed + i) % mockDealers.length]!
-    const chemist = mockChemists[(seed + i) % mockChemists.length]!
-    return {
-      id: `dist-${seed}-${i}`,
-      distributor: distributorNames[(seed + i) % distributorNames.length]!,
-      dealer: dealer.shopName,
-      chemist: chemist.shopName,
-      purchaseDate: dateFromSeed(seed + i * 2, 'Jul'),
-      currentOwner: i % 3 === 2 ? chemist.shopName : dealer.shopName,
-    }
-  })
-}
+/** Builds a freshly-imported ProductionBatch (zero scans/journey yet) from a Batch & UID Upload result. */
+export function buildProductionBatchFromUpload(mappedBatch: MappedBatch, uploadFileName: string): ProductionBatch {
+  const product = mockProducts.find((p) => p.productCode === mappedBatch.productCode)
+  const today = new Date().toISOString().slice(0, 10)
+  const id = `production-batch-upload-${mappedBatch.id}-${Date.now()}`
 
-function buildScanStatistics(seed: number, totalScanned: number): ScanStatistics {
-  return {
-    totalSuccessfulScans: totalScanned,
-    failedScans: seededNumber(seed, 0, 15),
-    duplicateScans: seededNumber(seed + 1, 0, 8),
-    geoFenceViolations: seededNumber(seed + 2, 0, 5),
+  const qrBarcodeInfo: QrBarcodeInfo = {
+    barcodeSeries: `BC-${mappedBatch.batchNumber}`,
+    serialRangeStart: mappedBatch.startSerialNumber,
+    serialRangeEnd: mappedBatch.endSerialNumber,
+    totalGenerated: mappedBatch.uidCount,
+    totalAvailable: mappedBatch.uidCount,
+    totalScanned: 0,
+    duplicateScans: 0,
   }
-}
-
-function buildRewardSummary(seed: number, coinValue: number, totalScanned: number): RewardSummary {
-  const bonusCoins = seededNumber(seed, 0, 10)
-  return {
-    baseCoinValue: coinValue,
-    bonusCoins,
-    appliedScheme: schemeNames[seed % schemeNames.length]!,
-    totalRewardPointsIssued: (coinValue + bonusCoins) * totalScanned,
-  }
-}
-
-function buildTimeline(seed: number, batchId: string): BatchLifecycleEntry[] {
-  return [
-    { id: `${batchId}-tl-0`, activity: 'Batch Created', dateTime: dateFromSeed(seed, 'Jun') },
-    { id: `${batchId}-tl-1`, activity: 'QR Generated', dateTime: dateFromSeed(seed + 1, 'Jun') },
-    { id: `${batchId}-tl-2`, activity: 'Uploaded', dateTime: dateFromSeed(seed + 2, 'Jun') },
-    { id: `${batchId}-tl-3`, activity: 'Distributor Assigned', dateTime: dateFromSeed(seed + 3, 'Jul') },
-    { id: `${batchId}-tl-4`, activity: 'Dealer Assigned', dateTime: dateFromSeed(seed + 4, 'Jul') },
-    { id: `${batchId}-tl-5`, activity: 'Chemist Purchased', dateTime: dateFromSeed(seed + 5, 'Jul') },
-    { id: `${batchId}-tl-6`, activity: 'First Scan', dateTime: dateFromSeed(seed + 6, 'Jul') },
-    { id: `${batchId}-tl-7`, activity: 'Last Scan', dateTime: dateFromSeed(seed + 7, 'Jul') },
-  ]
-}
-
-function buildUploadHistory(seed: number, batchId: string, totalPackages: number): BatchUploadHistoryEntry[] {
-  const failed = seededNumber(seed, 0, 5)
-  return [
-    {
-      id: `${batchId}-upload-0`,
-      uploadFile: uploadFileNames[seed % uploadFileNames.length]!,
-      uploadedBy: mrs[seed % mrs.length]!,
-      uploadDate: dateFromSeed(seed, 'Jun'),
-      totalRecords: totalPackages,
-      success: totalPackages - failed,
-      failed,
-    },
-  ]
-}
-
-function buildQrCodeStatistics(seed: number, totalPackages: number, totalScanned: number): QrCodeStatistics {
-  const activated = Math.min(totalPackages, totalScanned + seededNumber(seed, 0, totalPackages - totalScanned || 1))
-  return {
-    totalGenerated: totalPackages,
-    activated,
-    scanned: totalScanned,
-    remaining: totalPackages - activated,
-  }
-}
-
-function buildFraudDetection(seed: number): FraudDetectionSummary {
-  return {
-    duplicateScanCount: seededNumber(seed, 0, 8),
-    invalidBarcodeCount: seededNumber(seed + 1, 0, 5),
-    outsideGeoFence: seededNumber(seed + 2, 0, 4),
-    suspiciousActivity: seededNumber(seed + 3, 0, 3),
-  }
-}
-
-function buildRelatedSchemes(seed: number, batchId: string): RelatedScheme[] {
-  const statuses: RelatedScheme['status'][] = ['active', 'upcoming', 'expired']
-  return Array.from({ length: 2 }).map((_, i) => ({
-    id: `${batchId}-scheme-${i}`,
-    schemeName: schemeNames[(seed + i) % schemeNames.length]!,
-    schemeType: i === 0 ? 'General Scheme' : 'Sessional Scheme',
-    status: statuses[(seed + i) % statuses.length]!,
-  }))
-}
-
-function buildRelatedRewards(seed: number, totalRewardPointsIssued: number): RelatedRewardSummary {
-  const dealerRewards = Math.round(totalRewardPointsIssued * 0.55)
-  const chemistRewards = totalRewardPointsIssued - dealerRewards
-  return {
-    totalRewardsGenerated: totalRewardPointsIssued,
-    dealerRewards,
-    chemistRewards,
-    redeemedRewards: seededNumber(seed, 0, totalRewardPointsIssued || 1),
-  }
-}
-
-function buildProductionBatch(seed: number): ProductionBatch {
-  const factoryBatch = mockFactoryBatches[seed % mockFactoryBatches.length]!
-  const product = mockProducts[seed % mockProducts.length]!
-  const id = `production-batch-${seed}`
-  const status = resolveActiveStatus(seed)
-  const totalPackages = factoryBatch.totalProducts
-  const totalScanned = factoryBatch.totalScanned
-  const coinValue = seededNumber(seed, 5, 50)
-
-  const qrBarcodeInfo = buildQrBarcodeInfo(seed, totalPackages)
-  const scanStatistics = buildScanStatistics(seed, totalScanned)
-  const rewardSummary = buildRewardSummary(seed, coinValue, totalScanned)
 
   return {
     id,
-    batchNo: factoryBatch.batchNumber,
-    productCode: product.productCode,
-    productName: product.productName,
-    productCategory: product.productCategory,
-    manufacturingDate: factoryBatch.batchDate,
-    expiryDate: dateFromSeed(seed, 'Dec', 2027),
-    totalPackages,
+    batchNo: mappedBatch.batchNumber,
+    productCode: mappedBatch.productCode,
+    productName: product?.productName ?? mappedBatch.productCode,
+    productCategory: product?.productCategory ?? 'Uncategorized',
+    manufacturingDate: today,
+    expiryDate: today,
+    totalPackages: mappedBatch.producedQty,
     qrBarcodeGenerated: true,
-    totalScans: totalScanned,
-    coinValue,
-    status,
+    totalScans: 0,
+    coinValue: 0,
+    status: 'active',
 
     qrBarcodeInfo,
-    distributionJourney: buildDistributionJourney(seed),
-    scanStatistics,
-    rewardSummary,
-    timeline: buildTimeline(seed, id),
+    distributionJourney: [],
+    scanStatistics: { totalSuccessfulScans: 0, failedScans: 0, duplicateScans: 0, geoFenceViolations: 0 },
+    rewardSummary: { baseCoinValue: 0, bonusCoins: 0, appliedScheme: '—', totalRewardPointsIssued: 0 },
+    timeline: [{ id: `${id}-tl-0`, activity: 'Uploaded', dateTime: today }],
 
-    uploadHistory: buildUploadHistory(seed, id, totalPackages),
-    qrCodeStatistics: buildQrCodeStatistics(seed, totalPackages, totalScanned),
-    fraudDetection: buildFraudDetection(seed),
-    relatedSchemes: buildRelatedSchemes(seed, id),
-    relatedRewards: buildRelatedRewards(seed, rewardSummary.totalRewardPointsIssued),
+    uploadHistory: [
+      {
+        id: `${id}-upload-0`,
+        uploadFile: uploadFileName,
+        uploadedBy: 'You',
+        uploadDate: today,
+        totalRecords: mappedBatch.producedQty,
+        success: mappedBatch.producedQty,
+        failed: 0,
+      },
+    ],
+    qrCodeStatistics: { totalGenerated: mappedBatch.uidCount, activated: 0, scanned: 0, remaining: mappedBatch.uidCount },
+    fraudDetection: { duplicateScanCount: 0, invalidBarcodeCount: 0, outsideGeoFence: 0, suspiciousActivity: 0 },
+    relatedSchemes: [],
+    relatedRewards: { totalRewardsGenerated: 0, dealerRewards: 0, chemistRewards: 0, redeemedRewards: 0 },
   }
 }
 
-export const mockProductionBatches: ProductionBatch[] = mockFactoryBatches.map((_, index) => buildProductionBatch(index + 1))
-
-export function getProductionBatchById(id: string): ProductionBatch | undefined {
-  return mockProductionBatches.find((batch) => batch.id === id)
+export function getScanAnalyticsRows(): ScanAnalyticsRow[] {
+  return uploadedProductionBatches.map((batch) => ({
+    batchNumber: batch.batchNo,
+    product: batch.productName,
+    successfulScans: batch.scanStatistics.totalSuccessfulScans,
+    failedScans: batch.scanStatistics.failedScans,
+    duplicateScans: batch.scanStatistics.duplicateScans,
+    pendingScans: Math.max(batch.totalPackages - batch.scanStatistics.totalSuccessfulScans, 0),
+    rewardPointsIssued: batch.rewardSummary.totalRewardPointsIssued,
+  }))
 }
-
-export const productionBatchKpis = {
-  totalBatches: mockProductionBatches.length,
-  activeBatches: mockProductionBatches.filter((b) => b.status === 'active').length,
-  expiredBatches: mockProductionBatches.filter((b) => b.status === 'expired').length,
-  totalScans: mockProductionBatches.reduce((sum, b) => sum + b.totalScans, 0),
-}
-
-export const scanAnalyticsRows: ScanAnalyticsRow[] = mockProductionBatches.map((batch) => ({
-  batchNumber: batch.batchNo,
-  product: batch.productName,
-  successfulScans: batch.scanStatistics.totalSuccessfulScans,
-  failedScans: batch.scanStatistics.failedScans,
-  duplicateScans: batch.scanStatistics.duplicateScans,
-  pendingScans: Math.max(batch.totalPackages - batch.scanStatistics.totalSuccessfulScans, 0),
-  rewardPointsIssued: batch.rewardSummary.totalRewardPointsIssued,
-}))

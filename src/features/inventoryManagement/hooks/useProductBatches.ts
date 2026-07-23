@@ -1,9 +1,14 @@
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import { productBatchesService } from '@/features/inventoryManagement/services/productBatchesService'
 import type { ProductionBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
-import type { productionBatchKpis } from '@/features/inventoryManagement/mockProductBatches'
+import type { MappedBatch } from '@/types/batchUidUpload'
 
-type ProductionBatchKpis = typeof productionBatchKpis
+interface ProductionBatchKpis {
+  totalBatches: number
+  activeBatches: number
+  expiredBatches: number
+  totalScans: number
+}
 
 interface State {
   batches: ProductionBatch[]
@@ -30,11 +35,14 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-/** Production batches (the "Batch Listing" tab) — see useFactoryUploads for factory-upload batches. */
+/**
+ * Production batches (the "Batch Listing" tab). Starts empty — rows only appear once a
+ * Batch & UID Upload (Upload Manifest) has been completed in this session.
+ */
 export function useProductBatches() {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let cancelled = false
     dispatch({ type: 'loading' })
 
@@ -51,5 +59,15 @@ export function useProductBatches() {
     }
   }, [])
 
-  return state
+  useEffect(() => load(), [load])
+
+  const importManifest = useCallback(
+    async (mappedBatches: MappedBatch[], uploadFileName: string) => {
+      await productBatchesService.importUploadedBatches(mappedBatches, uploadFileName)
+      load()
+    },
+    [load],
+  )
+
+  return { ...state, importManifest }
 }

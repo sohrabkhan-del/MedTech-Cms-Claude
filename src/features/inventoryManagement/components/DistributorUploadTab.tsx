@@ -25,7 +25,11 @@ const columns: CommonTableColumn<DistributorUploadRow>[] = [
   },
 ]
 
-export function DistributorUploadTab() {
+interface DistributorUploadTabProps {
+  onImported?: (rows: DistributorUploadRow[], uploadFileName: string) => void
+}
+
+export function DistributorUploadTab({ onImported }: DistributorUploadTabProps = {}) {
   const [file, setFile] = useState<File | null>(null)
   const [rows, setRows] = useState<DistributorUploadRow[]>([])
   const [summary, setSummary] = useState<DistributorUploadSummary | null>(null)
@@ -47,6 +51,7 @@ export function DistributorUploadTab() {
     await new Promise((r) => setTimeout(r, 700))
     setIsProcessing(false)
     setImported(true)
+    onImported?.(rows, file?.name ?? 'distributor-upload.xlsx')
   }
 
   function resetUpload() {

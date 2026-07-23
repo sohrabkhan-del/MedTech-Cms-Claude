@@ -1,4 +1,9 @@
-export type ProductTraceabilityStatus = 'manufactured' | 'dealer_assigned' | 'chemist_assigned' | 'scanned' | 'redeemed'
+export type ProductTraceabilityStatus =
+  | 'manufactured'
+  | 'dealer_assigned'
+  | 'chemist_assigned'
+  | 'scanned'
+  | 'redeemed'
 export type ScanStatus = 'scanned' | 'not_scanned' | 'duplicate_attempt'
 export type RewardStatus = 'issued' | 'pending' | 'not_applicable'
 export type AllocationStatus = 'allocated' | 'pending'
@@ -117,6 +122,14 @@ export interface FactoryBatch {
   month: string
   retentionSampleQuantity: number
   remarks: string
+
+  /** True when this batch was created from a real BMR upload (Active Product Registry Directory
+   *  "Upload Manifest" journey) — its fields are the actual uploaded values, and it has no
+   *  container/box packing data since a BMR doesn't contain that. False/undefined for the
+   *  legacy mock-seeded batches, which still have fabricated containers/scan history. */
+  isBmrSourced?: boolean
+  domestic?: string
+  export?: string
 
   totalAccepted: number
   totalRejected: number

@@ -3,12 +3,13 @@ import { Outlet, useParams } from 'react-router-dom'
 import { Alert, Box, CircularProgress, Stack } from '@mui/material'
 import { partnerInviteService } from '@/features/partnerInvite/services/partnerInviteService'
 import { PartnerInviteProvider } from '@/features/partnerInvite/PartnerInviteContext'
-import type { PartnerInviteType } from '@/types/partnerInvite'
+import type { PartnerInviteBasicDetails, PartnerInviteType } from '@/types/partnerInvite'
 
 export function PartnerInviteGate() {
   const { token } = useParams<{ token: string }>()
   const [status, setStatus] = useState<'loading' | 'ready' | 'invalid'>('loading')
   const [inviteType, setInviteType] = useState<PartnerInviteType>('Dealer')
+  const [invitee, setInvitee] = useState<PartnerInviteBasicDetails | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -17,6 +18,7 @@ export function PartnerInviteGate() {
       .then((info) => {
         if (cancelled) return
         setInviteType(info.inviteType)
+        setInvitee(info.invitee)
         setStatus('ready')
       })
       .catch(() => {
@@ -44,7 +46,7 @@ export function PartnerInviteGate() {
   }
 
   return (
-    <PartnerInviteProvider token={token!} inviteType={inviteType}>
+    <PartnerInviteProvider token={token!} inviteType={inviteType} invitee={invitee}>
       <Outlet />
     </PartnerInviteProvider>
   )

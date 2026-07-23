@@ -4,6 +4,7 @@ import type { PartnerInviteBasicDetails, PartnerInviteShopDetails, PartnerInvite
 interface PartnerInviteContextValue {
   token: string
   inviteType: PartnerInviteType
+  invitee: PartnerInviteBasicDetails | null
   basicDetails: PartnerInviteBasicDetails | null
   password: string | null
   shopDetails: PartnerInviteShopDetails | null
@@ -17,17 +18,18 @@ const PartnerInviteContext = createContext<PartnerInviteContextValue | null>(nul
 interface PartnerInviteProviderProps {
   token: string
   inviteType: PartnerInviteType
+  invitee: PartnerInviteBasicDetails | null
   children: ReactNode
 }
 
-export function PartnerInviteProvider({ token, inviteType, children }: PartnerInviteProviderProps) {
+export function PartnerInviteProvider({ token, inviteType, invitee, children }: PartnerInviteProviderProps) {
   const [basicDetails, setBasicDetails] = useState<PartnerInviteBasicDetails | null>(null)
   const [password, setPassword] = useState<string | null>(null)
   const [shopDetails, setShopDetails] = useState<PartnerInviteShopDetails | null>(null)
 
   const value = useMemo(
-    () => ({ token, inviteType, basicDetails, password, shopDetails, setBasicDetails, setPassword, setShopDetails }),
-    [token, inviteType, basicDetails, password, shopDetails],
+    () => ({ token, inviteType, invitee, basicDetails, password, shopDetails, setBasicDetails, setPassword, setShopDetails }),
+    [token, inviteType, invitee, basicDetails, password, shopDetails],
   )
 
   return <PartnerInviteContext.Provider value={value}>{children}</PartnerInviteContext.Provider>

@@ -18,6 +18,7 @@ export interface PartnerInviteShopDetails {
   zone: 'North' | 'South' | 'East' | 'West'
   latitude: string
   longitude: string
+  documents: File[]
 }
 
 export interface PartnerInviteState {

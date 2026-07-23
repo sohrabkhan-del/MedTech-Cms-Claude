@@ -8,7 +8,6 @@ import type { PartnerInviteBasicDetails } from '@/types/partnerInvite'
 export function useInviteDetailsService() {
   const navigate = useNavigate()
   const { token, setBasicDetails } = usePartnerInvite()
-  const [phase, setPhase] = useState<'details' | 'otp'>('details')
   const [pendingDetails, setPendingDetails] = useState<PartnerInviteBasicDetails | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -19,9 +18,21 @@ export function useInviteDetailsService() {
     try {
       await partnerInviteService.sendOtp(details)
       setPendingDetails(details)
-      setPhase('otp')
     } catch (err) {
       setError(getAuthErrorMessage(err, 'Unable to send OTP. Please try again.'))
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function resendOtp() {
+    if (!pendingDetails) return
+    setIsLoading(true)
+    setError(null)
+    try {
+      await partnerInviteService.sendOtp(pendingDetails)
+    } catch (err) {
+      setError(getAuthErrorMessage(err, 'Unable to resend OTP. Please try again.'))
     } finally {
       setIsLoading(false)
     }
@@ -42,10 +53,5 @@ export function useInviteDetailsService() {
     }
   }
 
-  function editDetails() {
-    setPhase('details')
-    setError(null)
-  }
-
-  return { phase, pendingDetails, sendOtp, verifyOtp, editDetails, isLoading, error }
+  return { pendingDetails, sendOtp, resendOtp, verifyOtp, isLoading, error }
 }

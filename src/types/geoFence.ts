@@ -2,6 +2,7 @@ import type { PartnerZone } from '@/types/partner'
 
 export type GeoFenceUserType = 'Dealer' | 'Chemist' | 'MR'
 export type GeoFenceStatus = 'active' | 'pending' | 'inactive'
+export type GeoFenceScope = 'global' | 'user'
 
 export interface GeoFenceVerificationEntry {
   id: string
@@ -40,6 +41,7 @@ export interface GeoFenceAuditEntry {
 
 export interface GeoFence {
   id: string
+  scope: GeoFenceScope
   userName: string
   businessName: string
   businessAddress: string

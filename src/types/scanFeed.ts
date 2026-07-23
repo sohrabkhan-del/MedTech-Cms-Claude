@@ -59,6 +59,7 @@ export interface ScanUserSummary {
   address: string
   zone: PartnerZone
   businessName: string
+  businessNames: string[]
   status: 'active' | 'inactive'
   lastScanDateTime: string
   totalScans: number

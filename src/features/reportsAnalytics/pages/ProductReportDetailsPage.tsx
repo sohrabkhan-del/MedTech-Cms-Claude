@@ -15,7 +15,8 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { getProductReportById } from '@/features/reportsAnalytics/mockProductReports'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { useProductReportDetail } from '@/features/reportsAnalytics/hooks/useProductReportDetail'
 import type { ProductMovementEntry } from '@/types/product'
 
 const scanHistoryColumns: CommonTableColumn<ProductMovementEntry>[] = [
@@ -40,7 +41,11 @@ const scanHistoryColumns: CommonTableColumn<ProductMovementEntry>[] = [
 export function ProductReportDetailsPage() {
   const navigate = useNavigate()
   const { productReportId } = useParams<{ productReportId: string }>()
-  const report = productReportId ? getProductReportById(productReportId) : undefined
+  const { report, isLoading } = useProductReportDetail(productReportId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!report) {
     return (

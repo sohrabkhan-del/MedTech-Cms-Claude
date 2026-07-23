@@ -13,13 +13,18 @@ import { PointsHistoryCard } from '@/features/userManagement/components/PointsHi
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
 import { LicenseDocumentsCard } from '@/features/userManagement/components/LicenseDocumentsCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { getChemistById } from '@/features/userManagement/mockChemists'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
 
 export function ChemistDetailsPage() {
   const { chemistId } = useParams<{ chemistId: string }>()
   const navigate = useNavigate()
-  const chemist = getChemistById(chemistId ?? '')
+  const { chemist, isLoading } = useChemistDetail(chemistId)
   const [, forceRerender] = useState(0)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!chemist) {
     return (

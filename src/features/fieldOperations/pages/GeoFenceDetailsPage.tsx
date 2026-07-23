@@ -82,7 +82,7 @@ export function GeoFenceDetailsPage() {
             <FenceIcon size={20} />
           </Box>
           <Box>
-            <Typography variant="h1">{fence.userName}</Typography>
+            <Typography variant="h1">{fence.businessName}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {fence.id} · {fence.userType}
             </Typography>

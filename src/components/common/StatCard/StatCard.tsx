@@ -13,14 +13,16 @@ interface StatCardProps {
     value: string
     caption?: string
   }
+  onClick?: () => void
 }
 
-export function StatCard({ label, value, icon, iconColor = 'primary', trend }: StatCardProps) {
+export function StatCard({ label, value, icon, iconColor = 'primary', trend, onClick }: StatCardProps) {
   return (
     <Card
+      onClick={onClick}
       sx={{
         height: '100%',
-        cursor: 'default',
+        cursor: onClick ? 'pointer' : 'default',
         '&:hover': {
           boxShadow: shadows.cardHover,
           transform: 'translateY(-2px)',

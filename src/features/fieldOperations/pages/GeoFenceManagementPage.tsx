@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Grid, MenuItem, Stack, Tab, Tabs, TextField, Typography } from '@mui/material'
 import { Fence as FenceIcon, CircleCheck as CheckCircleOutlined, ClipboardClock as PendingActionsOutlined, Target as TrackChangesIcon, CalendarCheck as EventAvailableOutlined } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -19,6 +19,8 @@ interface GeoFenceFilters extends Record<string, unknown> {
   status: GeoFence['status'] | 'all'
 }
 
+type RuleTab = 'all' | 'Chemist' | 'Dealer'
+
 export function GeoFenceManagementPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
@@ -28,6 +30,7 @@ export function GeoFenceManagementPage() {
     title: 'Geo Fence Management',
     subtitle: 'Manage location-based scan validation for Dealers, Chemists, and MRs.',
   })
+  const [tab, setTab] = useState<RuleTab>('all')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({ userType: 'all', region: 'all', status: 'all' })
 
@@ -36,12 +39,18 @@ export function GeoFenceManagementPage() {
   const geoFenceKpis = kpis ?? { activeFences: 0, pendingVerification: 0, averageRadius: 0, verifiedThisWeek: 0 }
 
   const filteredFences = geoFences.filter((fence) => {
+    const tabMatch = tab === 'all' ? true : fence.scope === 'user' && fence.userType === tab
     const topbarRegionMatch = !topbarZone || fence.region === topbarZone
     const userTypeMatch = appliedFilters.userType === 'all' || fence.userType === appliedFilters.userType
     const regionMatch = appliedFilters.region === 'all' || fence.region === appliedFilters.region
     const statusMatch = appliedFilters.status === 'all' || fence.status === appliedFilters.status
-    return topbarRegionMatch && userTypeMatch && regionMatch && statusMatch
+    return tabMatch && topbarRegionMatch && userTypeMatch && regionMatch && statusMatch
   })
+
+  const createAction =
+    tab === 'all'
+      ? { label: 'Add Geo Fence Rule', to: '/field-operations/geo-fence-management/new?scope=global' }
+      : { label: 'Add Geo Fence', to: `/field-operations/geo-fence-management/new?scope=user&userType=${tab}` }
 
   const columns: CommonTableColumn<GeoFence>[] = [
     {
@@ -87,14 +96,26 @@ export function GeoFenceManagementPage() {
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Active Geo Fences" value={geoFenceKpis.activeFences} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+            <StatCard
+              label="Active Geo Fences"
+              value={geoFenceKpis.activeFences}
+              icon={<CheckCircleOutlined size={20} />}
+              iconColor="success"
+              onClick={() => setAppliedFilters((prev) => ({ ...prev, status: 'active' }))}
+            />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Pending Verification" value={geoFenceKpis.pendingVerification} icon={<PendingActionsOutlined size={20} />} iconColor="warning" />
+            <StatCard
+              label="Pending Verification"
+              value={geoFenceKpis.pendingVerification}
+              icon={<PendingActionsOutlined size={20} />}
+              iconColor="warning"
+              onClick={() => setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))}
+            />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
@@ -113,6 +134,12 @@ export function GeoFenceManagementPage() {
         </Grid>
       </Grid>
 
+      <Tabs value={tab} onChange={(_, value: RuleTab) => setTab(value)} sx={{ mb: 2.5 }}>
+        <Tab label="All" value="all" />
+        <Tab label="Chemist" value="Chemist" />
+        <Tab label="Dealer" value="Dealer" />
+      </Tabs>
+
       <CommonTable
         tableKey="geo-fence-list"
         columns={columns}
@@ -126,7 +153,7 @@ export function GeoFenceManagementPage() {
           (appliedFilters.userType !== 'all' ? 1 : 0) + (appliedFilters.region !== 'all' ? 1 : 0) + (appliedFilters.status !== 'all' ? 1 : 0)
         }
         onExportClick={() => {}}
-        createAction={{ label: 'Add Geo Fence', to: '/field-operations/geo-fence-management/new' }}
+        createAction={createAction}
         defaultSortBy="userName"
         actions={[
           { label: 'View', onClick: (row) => navigate(`/field-operations/geo-fence-management/${row.id}`) },

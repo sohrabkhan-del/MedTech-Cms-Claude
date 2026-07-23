@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { Box, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import type { NotificationItem } from '@/features/dashboard/types/dashboard.types'
@@ -7,8 +8,10 @@ interface NotificationsWidgetProps {
 }
 
 export function NotificationsWidget({ notifications }: NotificationsWidgetProps) {
+  const navigate = useNavigate()
+
   return (
-    <WidgetCard title="Notifications" subtitle="Recent system alerts">
+    <WidgetCard title="Notifications" subtitle="Recent system alerts" onCardClick={() => navigate('/notifications')}>
       <Stack spacing={2}>
         {notifications.map((note) => (
           <Stack key={note.id} direction="row" spacing={1.5}>

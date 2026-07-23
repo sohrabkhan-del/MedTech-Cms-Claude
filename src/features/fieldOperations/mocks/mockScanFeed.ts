@@ -95,6 +95,9 @@ export const mockScanEvents: ScanEvent[] = Array.from({ length: 160 }).map((_, i
 
 let liveScanCounter = mockScanEvents.length
 
+const MAX_TRACKED_LIVE_EVENTS = 200
+const liveScanEvents = new Map<string, ScanEvent>()
+
 /** Generates one synthetic scan event for the live feed, distinct from the seeded mock history. */
 export function generateLiveScanEvent(): ScanEvent {
   liveScanCounter += 1
@@ -105,7 +108,7 @@ export function generateLiveScanEvent(): ScanEvent {
   const now = new Date()
   const scanDateTimeLabel = `${pad(now.getDate())} Jul 2026, ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
 
-  return {
+  const scanEvent: ScanEvent = {
     id: `scan-live-${seed}`,
     scanDateTime: scanDateTimeLabel,
     userId: user.id,
@@ -139,10 +142,30 @@ export function generateLiveScanEvent(): ScanEvent {
       appVersion: '4.2.1',
     },
   }
+
+  liveScanEvents.set(scanEvent.id, scanEvent)
+  if (liveScanEvents.size > MAX_TRACKED_LIVE_EVENTS) {
+    const oldestKey = liveScanEvents.keys().next().value
+    if (oldestKey) liveScanEvents.delete(oldestKey)
+  }
+
+  return scanEvent
 }
 
 export function getScanEventById(id: string): ScanEvent | undefined {
-  return mockScanEvents.find((scan) => scan.id === id)
+  return mockScanEvents.find((scan) => scan.id === id) ?? liveScanEvents.get(id)
+}
+
+function getUserGodowns(user: ScanUser): string[] {
+  const sameRolePeers = scanUsers.filter((u) => u.role === user.role)
+  const userIndex = sameRolePeers.findIndex((u) => u.id === user.id)
+  const godownCount = (userIndex % 3) + 1
+
+  return Array.from({ length: godownCount }).map((_, i) => {
+    if (i === 0) return user.businessName
+    const peer = sameRolePeers[(userIndex + i * 7) % sameRolePeers.length]!
+    return peer.businessName
+  })
 }
 
 export function getUserScanSummary(userId: string): ScanUserSummary | undefined {
@@ -162,6 +185,7 @@ export function getUserScanSummary(userId: string): ScanUserSummary | undefined 
     address: user.partner.registeredAddress,
     zone: user.partner.zone,
     businessName: user.businessName,
+    businessNames: getUserGodowns(user),
     status: user.partner.status === 'inactive' ? 'inactive' : 'active',
     lastScanDateTime: userScans[0]?.scanDateTime ?? '—',
     totalScans: userScans.length,

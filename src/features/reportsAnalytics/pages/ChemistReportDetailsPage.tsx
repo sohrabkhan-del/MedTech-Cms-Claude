@@ -17,7 +17,8 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { getChemistReportById, getChemistPerformanceSummary } from '@/features/reportsAnalytics/mockChemistReports'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { useChemistReportDetail } from '@/features/reportsAnalytics/hooks/useChemistReportDetail'
 import type { ScanHistoryEntry, PointsHistoryEntry, InterestedProductEntry } from '@/types/partner'
 
 function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
@@ -51,8 +52,11 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
 export function ChemistReportDetailsPage() {
   const { chemistReportId } = useParams<{ chemistReportId: string }>()
   const navigate = useNavigate()
-  const report = getChemistReportById(chemistReportId ?? '')
-  const summary = getChemistPerformanceSummary(chemistReportId ?? '')
+  const { report, summary, isLoading } = useChemistReportDetail(chemistReportId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!report || !summary) {
     return (

@@ -16,7 +16,8 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { getSchemeReportById } from '@/features/reportsAnalytics/mockSchemeReports'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { useSchemeReportDetail } from '@/features/reportsAnalytics/hooks/useSchemeReportDetail'
 import type { SchemeEligibleProduct, SchemeStatus } from '@/types/scheme'
 
 const statusConfig: Record<SchemeStatus, { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }> = {
@@ -43,7 +44,11 @@ const eligibleProductColumns: CommonTableColumn<SchemeEligibleProduct>[] = [
 export function SchemeReportDetailsPage() {
   const navigate = useNavigate()
   const { schemeReportId } = useParams<{ schemeReportId: string }>()
-  const report = schemeReportId ? getSchemeReportById(schemeReportId) : undefined
+  const { report, isLoading } = useSchemeReportDetail(schemeReportId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!report) {
     return (

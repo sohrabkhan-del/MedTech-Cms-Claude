@@ -82,6 +82,8 @@ interface CommonTableProps<T> {
   onExportClick?: () => void
   /** Shows the Import button. Parses the chosen file and opens a read-only preview; pass a function to run extra logic once parsing succeeds. */
   onImportClick?: () => void
+  /** When provided, makes each row clickable (hover highlight + pointer cursor) and calls this with the clicked row. */
+  onRowClick?: (row: T) => void
   createAction?: CommonTableCreateAction
   emptyTitle?: string
   emptyDescription?: string
@@ -103,6 +105,7 @@ export function CommonTable<T>({
   filterCount = 0,
   onExportClick,
   onImportClick,
+  onRowClick,
   createAction,
   emptyTitle = 'No records found',
   emptyDescription = 'Try adjusting your search or filters.',
@@ -413,7 +416,12 @@ export function CommonTable<T>({
                 </TableHead>
                 <TableBody>
                   {pagedRows.map((row) => (
-                    <TableRow key={getRowId(row)}>
+                    <TableRow
+                      key={getRowId(row)}
+                      hover={!!onRowClick}
+                      onClick={onRowClick ? () => onRowClick(row) : undefined}
+                      sx={onRowClick ? { cursor: 'pointer' } : undefined}
+                    >
                       {visibleColumns.map((col) => (
                         <TableCell
                           key={col.key}
@@ -427,7 +435,10 @@ export function CommonTable<T>({
                         <TableCell align="right">
                           <IconButton
                             size="small"
-                            onClick={(e) => openActionMenu(e, row)}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openActionMenu(e, row)
+                            }}
                             aria-label="Row actions"
                           >
                             <MoreVertical size={20} />

@@ -25,7 +25,10 @@ import { ChemistListPage } from '@/features/userManagement/pages/ChemistListPage
 import { ChemistDetailsPage } from '@/features/userManagement/pages/ChemistDetailsPage'
 import { ChemistFormPage } from '@/features/userManagement/pages/ChemistFormPage'
 import { LiveScanFeedPage } from '@/features/fieldOperations/pages/LiveScanFeedPage'
+import { ScanDetailsPage } from '@/features/fieldOperations/pages/ScanDetailsPage'
+import { ScanUserProfilePage } from '@/features/fieldOperations/pages/ScanUserProfilePage'
 import { SecurityAlertsPage } from '@/features/fieldOperations/pages/SecurityAlertsPage'
+import { SecurityAlertDetailsPage } from '@/features/fieldOperations/pages/SecurityAlertDetailsPage'
 import { GeoFenceManagementPage } from '@/features/fieldOperations/pages/GeoFenceManagementPage'
 import { GeoFenceDetailsPage } from '@/features/fieldOperations/pages/GeoFenceDetailsPage'
 import { GeoFenceFormPage } from '@/features/fieldOperations/pages/GeoFenceFormPage'
@@ -102,6 +105,8 @@ import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
 import { getDealerById } from '@/features/userManagement/mockDealers'
 import { getChemistById } from '@/features/userManagement/mockChemists'
 import { getGeoFenceById } from '@/features/fieldOperations/mocks/mockGeoFences'
+import { getScanEventById } from '@/features/fieldOperations/mocks/mockScanFeed'
+import { getUserSecuritySummary } from '@/features/fieldOperations/mocks/mockSecurityAlerts'
 import { getApprovalRequestById } from '@/features/userManagement/mockApprovalRequests'
 import { getProductById } from '@/features/inventoryManagement/mockProducts'
 import { getBatchById } from '@/features/inventoryManagement/mockFactoryUploads'
@@ -186,7 +191,15 @@ registerDetailRoute({
 })
 registerDetailRoute({
   parentPath: '/field-operations/geo-fence-management',
-  resolveEntityName: (id) => getGeoFenceById(id)?.userName,
+  resolveEntityName: (id) => getGeoFenceById(id)?.businessName,
+})
+registerDetailRoute({
+  parentPath: '/field-operations/live-scan-feed',
+  resolveEntityName: (id) => getScanEventById(id)?.scanCode,
+})
+registerDetailRoute({
+  parentPath: '/field-operations/security-alerts',
+  resolveEntityName: (id) => getUserSecuritySummary(id)?.userName,
 })
 registerDetailRoute({
   parentPath: '/verification/approval-requests',
@@ -343,8 +356,20 @@ export function AppRouter() {
             element={<LiveScanFeedPage />}
           />
           <Route
+            path="/field-operations/live-scan-feed/user/:userId"
+            element={<ScanUserProfilePage />}
+          />
+          <Route
+            path="/field-operations/live-scan-feed/:scanId"
+            element={<ScanDetailsPage />}
+          />
+          <Route
             path="/field-operations/security-alerts"
             element={<SecurityAlertsPage />}
+          />
+          <Route
+            path="/field-operations/security-alerts/:userId"
+            element={<SecurityAlertDetailsPage />}
           />
           <Route
             path="/field-operations/geo-fence-management"

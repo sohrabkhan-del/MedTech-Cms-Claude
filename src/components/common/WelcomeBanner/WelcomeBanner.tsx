@@ -26,7 +26,7 @@ export function WelcomeBanner({
   onPrimaryAction,
   primaryActionLabel = 'View Reports',
   onSecondaryAction,
-  secondaryActionLabel = 'Add Uploads',
+  secondaryActionLabel = 'Add Inventory Upload',
   statLabel = 'Scans today',
   statValue = '1,284',
 }: WelcomeBannerProps) {

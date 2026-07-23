@@ -7,7 +7,8 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { getDealerReportById } from '@/features/reportsAnalytics/mockDealerReports'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { useDealerReportDetail } from '@/features/reportsAnalytics/hooks/useDealerReportDetail'
 import type { InterestedProductEntry, PointsHistoryEntry, ScanHistoryEntry } from '@/types/partner'
 import type { WalletRedemptionEntry, WalletRedemptionStatus } from '@/types/wallet'
 
@@ -83,7 +84,11 @@ const redemptionColumns: CommonTableColumn<WalletRedemptionEntry>[] = [
 export function DealerReportDetailsPage() {
   const navigate = useNavigate()
   const { dealerReportId } = useParams<{ dealerReportId: string }>()
-  const report = dealerReportId ? getDealerReportById(dealerReportId) : undefined
+  const { report, isLoading } = useDealerReportDetail(dealerReportId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!report) {
     return (

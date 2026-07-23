@@ -1,6 +1,6 @@
 import type {
-  TopEntity,
-  revenueSummary,
+  EntityLeaderboardEntry,
+  pointsSummary,
   ScanActivityPoint,
   RewardMixSlice,
   ActivityEvent,
@@ -16,7 +16,7 @@ export type {
   RewardMixSlice,
   ActivityEvent,
   RecentScan,
-  TopEntity,
+  EntityLeaderboardEntry,
   Redemption,
   SchemeProgress,
   LeaderboardEntry,
@@ -24,10 +24,10 @@ export type {
 } from '@/features/dashboard/mockDashboard'
 
 export interface DashboardOverview {
-  topDealers: TopEntity[]
-  topChemists: TopEntity[]
-  topProducts: TopEntity[]
-  revenueSummary: typeof revenueSummary
+  dealerLeaderboard: EntityLeaderboardEntry[]
+  chemistLeaderboard: EntityLeaderboardEntry[]
+  topProducts: EntityLeaderboardEntry[]
+  pointsSummary: typeof pointsSummary
 }
 
 export interface DashboardWidgetsData {

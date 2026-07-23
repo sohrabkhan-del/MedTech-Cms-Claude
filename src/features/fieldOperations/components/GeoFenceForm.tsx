@@ -1,10 +1,10 @@
-import type { Control } from 'react-hook-form'
-import { Card, Grid, MenuItem, Typography } from '@mui/material'
+import { Controller, type Control } from 'react-hook-form'
+import { Autocomplete, Card, Grid, MenuItem, TextField, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import type { GeoFenceFormValues } from '@/features/fieldOperations/types/fieldOperations.types'
 
 const zones: GeoFenceFormValues['region'][] = ['North', 'South', 'East', 'West']
-const userTypes: GeoFenceFormValues['userType'][] = ['Dealer', 'Chemist', 'MR']
+const userTypes: GeoFenceFormValues['userType'][] = ['Dealer', 'Chemist']
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -41,47 +41,62 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 
 interface GeoFenceFormProps {
   control: Control<GeoFenceFormValues>
-  userOptions: { id: string; name: string }[]
+  userOptions: { id: string; name: string; userType: GeoFenceFormValues['userType'] }[]
+  scope?: 'global' | 'user'
 }
 
-export function GeoFenceForm({ control, userOptions }: GeoFenceFormProps) {
+export function GeoFenceForm({ control, userOptions, scope = 'user' }: GeoFenceFormProps) {
+  const selectableUsers = userOptions.filter((user) => user.userType === 'Dealer' || user.userType === 'Chemist')
+
   return (
     <>
-      <Card sx={{ p: 3, mb: 3 }}>
-        <Typography sx={sectionTitleSx}>Basic Information</Typography>
-        <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FieldLabel required>User</FieldLabel>
-            <FormField name="userId" control={control} select {...fieldLabelProps}>
-              {userOptions.map((user) => (
-                <MenuItem key={user.id} value={user.id}>
-                  {user.name}
-                </MenuItem>
-              ))}
-            </FormField>
+      {scope === 'user' && (
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Typography sx={sectionTitleSx}>Basic Information</Typography>
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>User</FieldLabel>
+              <Controller
+                name="userId"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Autocomplete
+                    options={selectableUsers}
+                    getOptionLabel={(option) => option.name}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    value={selectableUsers.find((user) => user.id === field.value) ?? null}
+                    onChange={(_, selected) => field.onChange(selected?.id ?? '')}
+                    size="small"
+                    renderInput={(params) => (
+                      <TextField {...params} error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    )}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>User Type</FieldLabel>
+              <FormField name="userType" control={control} select {...fieldLabelProps}>
+                {userTypes.map((type) => (
+                  <MenuItem key={type} value={type}>
+                    {type}
+                  </MenuItem>
+                ))}
+              </FormField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Region</FieldLabel>
+              <FormField name="region" control={control} select {...fieldLabelProps}>
+                {zones.map((zone) => (
+                  <MenuItem key={zone} value={zone}>
+                    {zone}
+                  </MenuItem>
+                ))}
+              </FormField>
+            </Grid>
           </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FieldLabel required>User Type</FieldLabel>
-            <FormField name="userType" control={control} select {...fieldLabelProps}>
-              {userTypes.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </FormField>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FieldLabel required>Region</FieldLabel>
-            <FormField name="region" control={control} select {...fieldLabelProps}>
-              {zones.map((zone) => (
-                <MenuItem key={zone} value={zone}>
-                  {zone}
-                </MenuItem>
-              ))}
-            </FormField>
-          </Grid>
-        </Grid>
-      </Card>
+        </Card>
+      )}
 
       <Card sx={{ p: 3, mb: 3 }}>
         <Typography sx={sectionTitleSx}>Location Configuration</Typography>

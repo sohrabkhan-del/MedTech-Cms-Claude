@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { Box, Chip, LinearProgress, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import type { SchemeProgress } from '@/features/dashboard/types/dashboard.types'
@@ -7,8 +8,14 @@ interface RewardProgressWidgetProps {
 }
 
 export function RewardProgressWidget({ schemePerformance }: RewardProgressWidgetProps) {
+  const navigate = useNavigate()
+
   return (
-    <WidgetCard title="Reward Progress" subtitle="Redemption completion across active schemes">
+    <WidgetCard
+      title="Reward Progress"
+      subtitle="Redemption completion across active schemes"
+      onCardClick={() => navigate('/scheme-management/schemes/general')}
+    >
       <Stack spacing={2.5}>
         {schemePerformance.map((scheme) => (
           <Box key={scheme.id}>

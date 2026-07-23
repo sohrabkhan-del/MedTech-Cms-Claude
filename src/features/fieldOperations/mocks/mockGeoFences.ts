@@ -141,6 +141,7 @@ function buildFence(seed: number): GeoFence {
 
   return {
     id: `fence-${seed}`,
+    scope: 'user',
     userName: user.name,
     businessName: user.businessName,
     businessAddress: user.businessAddress,
@@ -161,7 +162,35 @@ function buildFence(seed: number): GeoFence {
   }
 }
 
-export const mockGeoFences: GeoFence[] = fenceUsers.map((_, index) => buildFence(index + 1))
+function buildGlobalFence(userType: GeoFenceUserType, radius: number, buffer: number, seed: number): GeoFence {
+  const status: GeoFenceStatus = 'active'
+  return {
+    id: `fence-global-${userType.toLowerCase()}`,
+    scope: 'global',
+    userName: `Default ${userType} Rule`,
+    businessName: 'Applies to all',
+    businessAddress: 'Not applicable',
+    userType,
+    region: 'North',
+    zone: 'North',
+    latitude: 19,
+    longitude: 72,
+    radiusMeters: radius,
+    bufferDistanceMeters: buffer,
+    lastVerified: '01 Jul 2026',
+    status,
+    verificationHistory: buildVerificationHistory(seed, radius),
+    scanHistory: [],
+    timeline: buildTimeline(seed, status),
+    auditHistory: buildAuditHistory(seed),
+  }
+}
+
+export const mockGeoFences: GeoFence[] = [
+  ...fenceUsers.map((_, index) => buildFence(index + 1)),
+  buildGlobalFence('Dealer', 150, 50, 9001),
+  buildGlobalFence('Chemist', 100, 40, 9002),
+]
 
 export function getGeoFenceById(id: string): GeoFence | undefined {
   return mockGeoFences.find((fence) => fence.id === id)

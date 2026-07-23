@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Area, AreaChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { ChartTooltip } from '@/components/common/ChartCard/ChartTooltip'
+import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
 import type { ScanActivityPoint } from '@/features/dashboard/types/dashboard.types'
 
 interface ScanActivityChartProps {
@@ -8,8 +11,18 @@ interface ScanActivityChartProps {
 }
 
 export function ScanActivityChart({ scanActivityTrend }: ScanActivityChartProps) {
+  const navigate = useNavigate()
+  const [dateRange, setDateRange] = useState<DateRangeValue>('7')
+
   return (
-    <ChartCard title="Scan Activity" subtitle="Scans vs. rewards issued, last 7 days" height={320} onRefresh={() => {}} onExport={() => {}}>
+    <ChartCard
+      title="Scan Activity"
+      subtitle="Scans vs. rewards issued, last 7 days"
+      height={320}
+      dateRange={dateRange}
+      onDateRangeChange={setDateRange}
+      onCardClick={() => navigate('/reports/scan-reports')}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={scanActivityTrend} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
           <defs>

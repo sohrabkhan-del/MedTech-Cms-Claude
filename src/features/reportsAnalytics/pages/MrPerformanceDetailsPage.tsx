@@ -22,7 +22,8 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { getMrPerformanceDetails } from '@/features/reportsAnalytics/mockMrPerformanceReports'
+import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { useMrPerformanceReportDetail } from '@/features/reportsAnalytics/hooks/useMrPerformanceReportDetail'
 import type { MrMonthlyActivity } from '@/types/mrPerformanceReport'
 import type { MrManagedPartner } from '@/types/medicalRep'
 
@@ -63,7 +64,11 @@ function performanceColor(score: number): 'success' | 'warning' | 'error' {
 export function MrPerformanceDetailsPage() {
   const { mrReportId } = useParams<{ mrReportId: string }>()
   const navigate = useNavigate()
-  const details = getMrPerformanceDetails(mrReportId ?? '')
+  const { details, isLoading } = useMrPerformanceReportDetail(mrReportId)
+
+  if (isLoading) {
+    return <DetailsPageSkeleton sections={4} />
+  }
 
   if (!details) {
     return (

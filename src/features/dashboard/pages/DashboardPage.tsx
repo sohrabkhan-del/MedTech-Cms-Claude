@@ -14,11 +14,9 @@ import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { WidgetCardSkeleton } from '@/components/common/WidgetCard/WidgetCardSkeleton'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { ScanActivityChart } from '@/features/dashboard/components/ScanActivityChart'
-import { SchemePerformanceChart } from '@/features/dashboard/components/SchemePerformanceChart'
 import { ActivityTimelineWidget } from '@/features/dashboard/components/ActivityTimelineWidget'
 import { RecentScansWidget } from '@/features/dashboard/components/RecentScansWidget'
 import { RewardProgressWidget } from '@/features/dashboard/components/RewardProgressWidget'
-import { TopEntityListWidget } from '@/features/dashboard/components/TopEntityListWidget'
 import { RecentRedemptionsWidget } from '@/features/dashboard/components/RecentRedemptionsWidget'
 import { RevenueSummaryWidget } from '@/features/dashboard/components/RevenueSummaryWidget'
 import { LeaderboardWidget } from '@/features/dashboard/components/LeaderboardWidget'
@@ -47,13 +45,13 @@ export function DashboardPage() {
     lastUpdated,
   })
 
-  const topDealers = overview?.topDealers ?? []
-  const topChemists = overview?.topChemists ?? []
+  const dealerLeaderboard = overview?.dealerLeaderboard ?? []
+  const chemistLeaderboard = overview?.chemistLeaderboard ?? []
   const topProducts = overview?.topProducts ?? []
-  const revenueSummary = overview?.revenueSummary ?? {
-    totalRewardValue: '₹0',
-    totalRedemptions: 0,
-    avgOrderValue: '₹0',
+  const pointsSummary = overview?.pointsSummary ?? {
+    totalPointsEarned: 0,
+    totalPointsClaimed: 0,
+    totalRewardPoints: 0,
     monthlyGrowth: '0%',
   }
 
@@ -89,8 +87,39 @@ export function DashboardPage() {
                   value: '+8.3%',
                   caption: 'since last week',
                 }}
+                onClick={() => navigate('/reports/scan-reports')}
               />
             </Grid>
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              <StatCard
+                label="Rewards Claimed"
+                value={pointsSummary.totalPointsClaimed.toLocaleString('en-IN')}
+                icon={<Wallet size={20} />}
+                iconColor="success"
+                trend={{
+                  direction: 'up',
+                  value: '+12.4%',
+                  caption: 'since last week',
+                }}
+                onClick={() => navigate('/reports/wallet-reports')}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+              {' '}
+              <StatCard
+                label="Pending Reviews"
+                value="17"
+                icon={<ClipboardClock size={20} />}
+                iconColor="warning"
+                trend={{
+                  direction: 'down',
+                  value: '-2.0%',
+                  caption: 'since last week',
+                }}
+                onClick={() => navigate('/verification/approval-requests')}
+              />
+            </Grid>
+
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
                 label="Interest Activity "
@@ -102,32 +131,7 @@ export function DashboardPage() {
                   value: '+3.1%',
                   caption: 'since last week',
                 }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Rewards Claimed"
-                value="1,842"
-                icon={<Wallet size={20} />}
-                iconColor="success"
-                trend={{
-                  direction: 'up',
-                  value: '+12.4%',
-                  caption: 'since last week',
-                }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard
-                label="Pending Reviews"
-                value="17"
-                icon={<ClipboardClock size={20} />}
-                iconColor="warning"
-                trend={{
-                  direction: 'down',
-                  value: '-2.0%',
-                  caption: 'since last week',
-                }}
+                onClick={() => navigate('/marketing-products/interested-users')}
               />
             </Grid>
           </>
@@ -135,21 +139,12 @@ export function DashboardPage() {
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, lg: 8 }}>
+        <Grid size={{ xs: 12, lg: 12 }}>
           {widgetsLoading ? (
             <WidgetCardSkeleton bodyHeight={320} />
           ) : (
             <ScanActivityChart
               scanActivityTrend={widgets?.scanActivityTrend ?? []}
-            />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, lg: 4 }}>
-          {widgetsLoading ? (
-            <WidgetCardSkeleton bodyHeight={320} />
-          ) : (
-            <SchemePerformanceChart
-              schemePerformance={widgets?.schemePerformance ?? []}
             />
           )}
         </Grid>
@@ -184,36 +179,27 @@ export function DashboardPage() {
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           {overviewLoading ? (
             <WidgetCardSkeleton />
           ) : (
-            <TopEntityListWidget
+            <LeaderboardWidget
+              leaderboard={dealerLeaderboard}
               title="Top Dealers"
               subtitle="Ranked by scan volume"
-              entities={topDealers}
+              linkTo="/partners/dealers"
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           {overviewLoading ? (
             <WidgetCardSkeleton />
           ) : (
-            <TopEntityListWidget
+            <LeaderboardWidget
+              leaderboard={chemistLeaderboard}
               title="Top Chemists"
               subtitle="Ranked by redemptions"
-              entities={topChemists}
-            />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          {overviewLoading ? (
-            <WidgetCardSkeleton />
-          ) : (
-            <TopEntityListWidget
-              title="Top Products"
-              subtitle="Ranked by units scanned"
-              entities={topProducts}
+              linkTo="/partners/chemists"
             />
           )}
         </Grid>
@@ -233,21 +219,27 @@ export function DashboardPage() {
           {overviewLoading ? (
             <WidgetCardSkeleton />
           ) : (
-            <RevenueSummaryWidget revenueSummary={revenueSummary} />
+            <RevenueSummaryWidget pointsSummary={pointsSummary} />
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          {widgetsLoading ? (
-            <WidgetCardSkeleton />
-          ) : (
-            <LeaderboardWidget leaderboard={widgets?.leaderboard ?? []} />
-          )}
-        </Grid>
+
         <Grid size={{ xs: 12, md: 6, lg: 6 }}>
           {widgetsLoading ? (
             <WidgetCardSkeleton />
           ) : (
             <NotificationsWidget notifications={widgets?.notifications ?? []} />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
+          {overviewLoading ? (
+            <WidgetCardSkeleton />
+          ) : (
+            <LeaderboardWidget
+              leaderboard={topProducts}
+              title="Top Products"
+              subtitle="Ranked by units scanned"
+              linkTo="/inventory/product-master"
+            />
           )}
         </Grid>
       </Grid>

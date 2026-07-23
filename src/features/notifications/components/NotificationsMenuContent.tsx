@@ -89,6 +89,8 @@ export function NotificationsMenuContent({ onNavigate, limit = 5 }: Notification
       <Box sx={{ p: 1 }}>
         <Button
           fullWidth
+          variant="outlined"
+          color="primary"
           size="small"
           onClick={() => {
             onNavigate()

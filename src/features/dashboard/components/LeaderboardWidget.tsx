@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { Box, Stack, Typography } from '@mui/material'
 import { Trophy } from 'lucide-react'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
@@ -7,14 +8,34 @@ const rankColors = ['#F7941D', '#9CA3AF', '#B08D57']
 
 interface LeaderboardWidgetProps {
   leaderboard: LeaderboardEntry[]
+  title?: string
+  subtitle?: string
+  linkTo?: string
 }
 
-export function LeaderboardWidget({ leaderboard }: LeaderboardWidgetProps) {
+export function LeaderboardWidget({
+  leaderboard,
+  title = 'Leaderboard',
+  subtitle = 'Top point earners this month',
+  linkTo = '/reports/reward-reports',
+}: LeaderboardWidgetProps) {
+  const navigate = useNavigate()
+
   return (
-    <WidgetCard title="Leaderboard" subtitle="Top point earners this month">
+    <WidgetCard title={title} subtitle={subtitle} onCardClick={() => navigate(linkTo)}>
       <Stack spacing={2}>
         {leaderboard.map((entry) => (
-          <Stack key={entry.id} direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Stack
+            key={entry.id}
+            direction="row"
+            spacing={1.5}
+            sx={{ alignItems: 'center', cursor: entry.linkTo ? 'pointer' : 'default' }}
+            onClick={(e) => {
+              if (!entry.linkTo) return
+              e.stopPropagation()
+              navigate(entry.linkTo)
+            }}
+          >
             <Box
               sx={{
                 width: 28,

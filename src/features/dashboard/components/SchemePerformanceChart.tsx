@@ -1,6 +1,9 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { ChartTooltip } from '@/components/common/ChartCard/ChartTooltip'
+import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
 import type { SchemeProgress } from '@/features/dashboard/types/dashboard.types'
 
 function truncateLabel(label: string, maxLength = 14): string {
@@ -12,10 +15,19 @@ interface SchemePerformanceChartProps {
 }
 
 export function SchemePerformanceChart({ schemePerformance }: SchemePerformanceChartProps) {
+  const navigate = useNavigate()
   const data = schemePerformance.map((s) => ({ name: s.name, Progress: s.progress }))
+  const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
   return (
-    <ChartCard title="Scheme Performance" subtitle="Redemption progress by active scheme" height={280} onRefresh={() => {}}>
+    <ChartCard
+      title="Scheme Performance"
+      subtitle="Redemption progress by active scheme"
+      height={280}
+      dateRange={dateRange}
+      onDateRangeChange={setDateRange}
+      onCardClick={() => navigate('/scheme-management/schemes/general')}
+    >
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />

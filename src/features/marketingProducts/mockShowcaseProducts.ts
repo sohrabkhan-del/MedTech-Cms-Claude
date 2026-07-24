@@ -59,7 +59,6 @@ function buildShowcaseProduct(seed: number): ShowcaseProduct {
   const enquiries = buildEnquiries(seed, id)
   const responded = enquiries.filter((e) => e.enquiryStatus === 'responded').length
   const delivered = enquiries.filter((e) => e.deliveryStatus === 'delivered').length
-  const rewardPoints = seededNumber(seed, 10, 60)
 
   return {
     id,
@@ -67,18 +66,14 @@ function buildShowcaseProduct(seed: number): ShowcaseProduct {
     sku: `SKU-SC-${100000 + seed * 17}`,
     category: showcaseCategoryOptions[seed % showcaseCategoryOptions.length]!,
     price: seededNumber(seed, 199, 2499),
-    status: seed % 7 === 0 ? 'inactive' : 'active',
-    rewardPoints,
 
     description: `${name} is a promotional showcase item highlighted to Dealers and Chemists as part of ongoing marketing campaigns.`,
     productImage: `https://picsum.photos/seed/medtech-showcase-${seed}/600/600`,
-    showcaseVisible: seed % 9 !== 0,
     featuredProduct: seed % 5 === 0,
     region: regions[seed % regions.length]!,
 
     totalInterestedUsers: enquiries.length,
     totalProductViews: seededNumber(seed, 200, 5000),
-    rewardPointsAllocated: rewardPoints * enquiries.length,
     productsDelivered: delivered,
 
     enquiries,

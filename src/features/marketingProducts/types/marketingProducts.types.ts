@@ -1,6 +1,5 @@
 export type {
   ShowcaseProduct,
-  ShowcaseProductStatus,
   ShowcaseUserType,
   EnquiryStatus,
   DeliveryStatus,

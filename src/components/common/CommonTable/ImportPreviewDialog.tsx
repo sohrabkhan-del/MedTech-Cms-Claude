@@ -5,22 +5,21 @@ import type { ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 interface ImportPreviewDialogProps {
   open: boolean
   onClose: () => void
+  onConfirm: () => void
   fileName: string | null
   parsed: ParsedImportFile | null
   error: string | null
-  maxPreviewRows?: number
 }
 
 export function ImportPreviewDialog({
   open,
   onClose,
+  onConfirm,
   fileName,
   parsed,
   error,
-  maxPreviewRows = 20,
 }: ImportPreviewDialogProps) {
-  const previewRows = parsed?.rows.slice(0, maxPreviewRows) ?? []
-  const remaining = parsed ? parsed.rows.length - previewRows.length : 0
+  const rows = parsed?.rows ?? []
 
   return (
     <Modal
@@ -29,7 +28,9 @@ export function ImportPreviewDialog({
       title="Import Preview"
       description={fileName ?? undefined}
       maxWidth="md"
-      secondaryActionLabel="Close"
+      secondaryActionLabel="Cancel"
+      primaryActionLabel={parsed && !error ? 'Confirm' : undefined}
+      onPrimaryAction={onConfirm}
     >
       {error && <Alert severity="error">{error}</Alert>}
 
@@ -37,7 +38,7 @@ export function ImportPreviewDialog({
         <Box>
           <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1.5 }}>
             Detected {parsed.rows.length} row{parsed.rows.length === 1 ? '' : 's'} across {parsed.headers.length} column
-            {parsed.headers.length === 1 ? '' : 's'}. Review the data below — nothing has been saved yet.
+            {parsed.headers.length === 1 ? '' : 's'}. Review the data below, then confirm to add it to your listing.
           </Typography>
 
           <TableContainer sx={{ maxHeight: 400, border: '1px solid', borderColor: 'divider', borderRadius: '8px' }}>
@@ -52,7 +53,7 @@ export function ImportPreviewDialog({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {previewRows.map((row, i) => (
+                {rows.map((row, i) => (
                   <TableRow key={i}>
                     {parsed.headers.map((header) => (
                       <TableCell key={header} sx={{ fontSize: '0.8125rem' }}>
@@ -64,12 +65,6 @@ export function ImportPreviewDialog({
               </TableBody>
             </Table>
           </TableContainer>
-
-          {remaining > 0 && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
-              +{remaining} more row{remaining === 1 ? '' : 's'} not shown in this preview.
-            </Typography>
-          )}
         </Box>
       )}
     </Modal>

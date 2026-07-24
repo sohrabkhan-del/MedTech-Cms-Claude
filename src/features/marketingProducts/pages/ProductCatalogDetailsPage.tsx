@@ -6,7 +6,6 @@ import {
   Megaphone,
   CircleCheck as CheckCircleOutlined,
   Eye,
-  Trophy,
   Star,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
@@ -113,24 +112,19 @@ export function ProductCatalogDetailsPage() {
               { label: 'Product Name', value: product.productName },
               { label: 'Category', value: product.category },
               { label: 'Price (₹)', value: `₹${product.price.toLocaleString('en-IN')}` },
-              { label: 'Status', value: <Chip size="small" label={product.status === 'active' ? 'Active' : 'Inactive'} color={product.status === 'active' ? 'success' : 'default'} /> },
-              { label: 'Reward Points', value: product.rewardPoints },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Product Status" value={product.status === 'active' ? 'Active' : 'Inactive'} icon={<CheckCircleOutlined size={20} />} iconColor={product.status === 'active' ? 'success' : 'error'} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard label="Total Interested Users" value={product.totalInterestedUsers} icon={<Megaphone size={20} />} iconColor="primary" />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard label="Total Product Views" value={product.totalProductViews.toLocaleString('en-IN')} icon={<Eye size={20} />} iconColor="secondary" />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Reward Points Allocated" value={product.rewardPointsAllocated.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
+            <StatCard label="Products Delivered" value={product.productsDelivered} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
           </Grid>
         </Grid>
 
@@ -152,7 +146,6 @@ export function ProductCatalogDetailsPage() {
                     fields={[
                       { label: 'Price (₹)', value: `₹${product.price.toLocaleString('en-IN')}` },
                       { label: 'Total Interested Users', value: product.totalInterestedUsers },
-                      { label: 'Showcase Visibility Status', value: product.showcaseVisible ? 'Visible' : 'Hidden' },
                       { label: 'Featured Product', value: product.featuredProduct ? 'Yes' : 'No' },
                     ]}
                   />
@@ -184,9 +177,6 @@ export function ProductCatalogDetailsPage() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             <StatCard label="Total Product Views" value={product.totalProductViews.toLocaleString('en-IN')} icon={<Eye size={20} />} iconColor="secondary" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Reward Points Allocated" value={product.rewardPointsAllocated.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             <StatCard label="Products Delivered" value={product.productsDelivered} icon={<CheckCircleOutlined size={20} />} iconColor="success" />

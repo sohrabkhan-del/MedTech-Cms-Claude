@@ -65,10 +65,17 @@ async function uploadFile(
 async function importBmrUpload(
   batchRows: BmrBatchRow[],
   uploadFileName: string,
+  containerCountByBatch: Record<string, number>,
 ): Promise<FactoryBatch[]> {
   const batches = batchRows
     .filter((row) => row.isValid)
-    .map((row) => buildFactoryBatchFromBmrRow(row, uploadFileName))
+    .map((row) =>
+      buildFactoryBatchFromBmrRow(
+        row,
+        uploadFileName,
+        containerCountByBatch[row.batchNumber] ?? 0,
+      ),
+    )
   batches.forEach(addFactoryBatch)
   return mockDelay(batches)
 }

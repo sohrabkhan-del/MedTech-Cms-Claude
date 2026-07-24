@@ -154,7 +154,10 @@ export function ProductBatchesPage() {
           </IconButton>
         </Stack>
         <DialogContent sx={{ px: 3, pb: 3 }}>
-          <BatchUidUploadTab onImported={handleImported} />
+          <BatchUidUploadTab
+            onImported={handleImported}
+            onDone={() => setUploadOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </>

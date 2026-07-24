@@ -64,12 +64,12 @@ export function DealerDetailsPage() {
 
       <PartnerSummaryHeader
         partner={dealer}
-        shopLabel="Godown Name"
+        shopLabel="Business Name"
         onActivate={() => forceRerender((n) => n + 1)}
         onDeactivate={() => forceRerender((n) => n + 1)}
       />
 
-      <PartnerDetailsFieldsCard partner={dealer} shopLabel="Godown Name" />
+      <PartnerDetailsFieldsCard partner={dealer} shopLabel="Business Name" />
 
       <PartnerStatisticsCards partner={dealer} />
 

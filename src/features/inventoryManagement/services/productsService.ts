@@ -1,5 +1,6 @@
-import { mockProducts, getProductById, productKpis, productCategoryOptions } from '@/features/inventoryManagement/mockProducts'
+import { mockProducts, getProductById, productKpis, productCategoryOptions, productFromImportedRow } from '@/features/inventoryManagement/mockProducts'
 import type { Product, ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import type { ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
@@ -32,6 +33,12 @@ async function updateProduct(_id: string, _values: ProductFormValues): Promise<v
   return Promise.resolve()
 }
 
+// Maps parsed xlsx rows onto Product records for the mock store. Real imports
+// will need a backend endpoint that validates/maps columns server-side.
+async function importProducts(parsed: ParsedImportFile): Promise<Product[]> {
+  return mockDelay(parsed.rows.map((row, i) => productFromImportedRow(row, mockProducts.length + i + 1)))
+}
+
 export const productsService = {
   getProducts,
   getProductDetail,
@@ -39,4 +46,5 @@ export const productsService = {
   getProductCategoryOptions,
   createProduct,
   updateProduct,
+  importProducts,
 }

@@ -1,48 +1,35 @@
 import {
-  addDistributors,
-  generateMockDistributorRows,
-  getDistributorById,
-  getMockDistributors,
+  addDispatchInvoice,
+  getDispatchInvoiceById,
+  getMockDispatchInvoices,
 } from '@/features/inventoryManagement/mockDistributorUpload'
-import type {
-  DistributorRecord,
-  DistributorUploadRow,
-  DistributorUploadSummary,
-} from '@/types/distributorUpload'
+import type { DispatchInvoiceMeta } from '@/features/inventoryManagement/dispatchReportParser'
+import type { DispatchInvoice, DispatchUploadRow } from '@/types/distributorUpload'
 import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // distributor upload API is available.
 
-async function previewUpload(
-  fileName: string,
-): Promise<{
-  rows: DistributorUploadRow[]
-  summary: DistributorUploadSummary
-}> {
-  return mockDelay(generateMockDistributorRows(fileName), 500)
-}
-
 async function confirmImport(
-  rows: DistributorUploadRow[],
+  rows: DispatchUploadRow[],
   uploadFileName: string,
-): Promise<DistributorRecord[]> {
-  return mockDelay(addDistributors(rows, uploadFileName), 700)
+  invoiceMeta: DispatchInvoiceMeta,
+): Promise<DispatchInvoice> {
+  return mockDelay(addDispatchInvoice(rows, uploadFileName, invoiceMeta), 700)
 }
 
-async function getDistributors(): Promise<DistributorRecord[]> {
-  return mockDelay(getMockDistributors())
+async function getDispatchInvoices(): Promise<DispatchInvoice[]> {
+  return mockDelay(getMockDispatchInvoices())
 }
 
-async function getDistributorDetail(
+async function getDispatchInvoiceDetail(
   id: string,
-): Promise<DistributorRecord | undefined> {
-  return mockDelay(getDistributorById(id))
+): Promise<DispatchInvoice | undefined> {
+  return mockDelay(getDispatchInvoiceById(id))
 }
 
 export const distributorUploadService = {
-  previewUpload,
   confirmImport,
-  getDistributors,
-  getDistributorDetail,
+  getDispatchInvoices,
+  getDispatchInvoiceDetail,
 }

@@ -65,7 +65,7 @@ export function PartnerDetailsFieldsCard({ partner, shopLabel, showGeoLockStatus
         )}
         <FieldRow label="License Number" value={partner.licenseNumber} />
         <FieldRow label="Onboarded By" value={partner.onboardedBy} />
-        <FieldRow label="Available Coins" value={partner.availableCoins.toLocaleString('en-IN')} />
+        <FieldRow label="Points Earned" value={partner.availableCoins.toLocaleString('en-IN')} />
       </Grid>
     </Card>
   )

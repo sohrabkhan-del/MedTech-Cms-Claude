@@ -68,7 +68,7 @@ export function DealerListPage() {
   const columns: CommonTableColumn<Dealer>[] = [
     {
       key: 'shopName',
-      header: 'Godown Name',
+      header: 'Business Name',
       minWidth: 220,
       sortable: true,
       sortValue: (row) => row.shopName,
@@ -144,7 +144,7 @@ export function DealerListPage() {
     },
     {
       key: 'availableCoins',
-      header: 'Available Coins',
+      header: 'Points Earned',
       align: 'center',
       minWidth: 100,
       sortable: true,
@@ -165,6 +165,9 @@ export function DealerListPage() {
               value={dealerKpis.totalDealers}
               icon={<StorefrontIcon size={20} />}
               iconColor="primary"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'all' }))
+              }
             />
           )}
         </Grid>
@@ -177,6 +180,9 @@ export function DealerListPage() {
               value={dealerKpis.activeDealers}
               icon={<ActiveDealerIcon size={20} />}
               iconColor="success"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'active' }))
+              }
             />
           )}
         </Grid>
@@ -189,6 +195,9 @@ export function DealerListPage() {
               value={dealerKpis.inactiveDealers}
               icon={<InactiveDealerIcon size={20} />}
               iconColor="error"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'inactive' }))
+              }
             />
           )}
         </Grid>
@@ -201,6 +210,9 @@ export function DealerListPage() {
               value={dealerKpis.pendingApproval}
               icon={<PendingActionsOutlinedIcon size={20} />}
               iconColor="warning"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))
+              }
             />
           )}
         </Grid>

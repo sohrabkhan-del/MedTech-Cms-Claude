@@ -1,7 +1,7 @@
 export type SchemeCategory = 'general' | 'seasonal'
 export type SchemeStatus = 'draft' | 'active' | 'inactive' | 'expired' | 'upcoming'
 export type SchemeType = 'Scan Target' | 'Volume Bonus' | 'Loyalty Multiplier' | 'Flat Bonus'
-export type ApplicableUserType = 'Dealer' | 'Chemist' | 'MR'
+export type ApplicableUserType = 'Dealer' | 'Chemist'
 export type RewardType = 'Fixed Points' | 'Percentage Bonus' | 'Multiplier' | 'Tiered'
 export type RewardFrequency = 'One-time' | 'Per Scan' | 'Weekly' | 'Monthly'
 

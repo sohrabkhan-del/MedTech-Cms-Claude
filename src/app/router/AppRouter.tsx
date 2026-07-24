@@ -41,6 +41,7 @@ import { ProductDetailsPage } from '@/features/inventoryManagement/pages/Product
 import { ProductFormPage } from '@/features/inventoryManagement/pages/ProductFormPage'
 import { FactoryUploadListPage } from '@/features/inventoryManagement/pages/FactoryUploadListPage'
 import { FactoryUploadFormPage } from '@/features/inventoryManagement/pages/FactoryUploadFormPage'
+import { BatchUidUploadPage } from '@/features/inventoryManagement/pages/BatchUidUploadPage'
 import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryUploadDetailsPage'
 import { FactoryContainerPage } from '@/features/inventoryManagement/pages/FactoryContainerPage'
 import { FactoryBoxPage } from '@/features/inventoryManagement/pages/FactoryBoxPage'
@@ -110,7 +111,7 @@ import { getUserSecuritySummary } from '@/features/fieldOperations/mocks/mockSec
 import { getApprovalRequestById } from '@/features/userManagement/mockApprovalRequests'
 import { getProductById } from '@/features/inventoryManagement/mockProducts'
 import { getBatchById } from '@/features/inventoryManagement/mockFactoryUploads'
-import { getDistributorById } from '@/features/inventoryManagement/mockDistributorUpload'
+import { getDispatchInvoiceById } from '@/features/inventoryManagement/mockDistributorUpload'
 import { getProductionBatchById } from '@/features/inventoryManagement/mockProductBatches'
 import { getShowcaseProductById } from '@/features/marketingProducts/mockShowcaseProducts'
 import { getInterestedUserById } from '@/features/marketingProducts/mockInterestedUsers'
@@ -219,7 +220,7 @@ registerDetailRoute({
 })
 registerDetailRoute({
   parentPath: '/distributor-upload',
-  resolveEntityName: (id) => getDistributorById(id)?.distributorName,
+  resolveEntityName: (id) => getDispatchInvoiceById(id)?.invoiceNo,
 })
 registerDetailRoute({
   parentPath: '/inventory/product-batches',
@@ -446,6 +447,10 @@ export function AppRouter() {
           <Route
             path="/inventory/factory-inventory-upload/new"
             element={<FactoryUploadFormPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload/upload-bmr"
+            element={<BatchUidUploadPage />}
           />
           <Route
             path="/inventory/factory-inventory-upload/:batchId"

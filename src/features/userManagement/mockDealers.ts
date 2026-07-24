@@ -14,6 +14,10 @@ export function getDealerById(id: string): Dealer | undefined {
   return mockDealers.find((dealer) => dealer.id === id)
 }
 
+export function getDealerByShopName(shopName: string): Dealer | undefined {
+  return mockDealers.find((dealer) => dealer.shopName === shopName)
+}
+
 export const dealerKpis = {
   totalDealers: mockDealers.length,
   activeDealers: mockDealers.filter((d) => d.status === 'active').length,

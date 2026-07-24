@@ -114,9 +114,9 @@ export const menuConfig: MenuGroup[] = [
         icon: UploadCloud,
       },
       {
-        label: 'Product Batches',
-        path: '/inventory/product-batches',
-        icon: Box,
+        label: 'Product Categories',
+        path: '/masters/product-categories',
+        icon: SlidersHorizontal,
       },
     ],
   },
@@ -164,7 +164,7 @@ export const menuConfig: MenuGroup[] = [
     icon: Megaphone,
     items: [
       {
-        label: 'Products Catelog',
+        label: 'Marketing catalogue',
         path: '/marketing-products/products-catelog',
         icon: Megaphone,
         showRegionTopbar: true,
@@ -315,17 +315,7 @@ export const menuConfig: MenuGroup[] = [
       },
     ],
   },
-  {
-    groupLabel: 'Masters',
-    icon: SlidersHorizontal,
-    items: [
-      {
-        label: 'Product Categories',
-        path: '/masters/product-categories',
-        icon: SlidersHorizontal,
-      },
-    ],
-  },
+
   {
     groupLabel: 'Audit',
     icon: ClipboardList,

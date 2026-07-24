@@ -15,6 +15,7 @@ interface ModalProps {
   onPrimaryAction?: () => void
   primaryActionColor?: 'primary' | 'error'
   secondaryActionLabel?: string
+  onSecondaryAction?: () => void
   loading?: boolean
 }
 
@@ -29,6 +30,7 @@ export function Modal({
   onPrimaryAction,
   primaryActionColor = 'primary',
   secondaryActionLabel = 'Cancel',
+  onSecondaryAction,
   loading = false,
 }: ModalProps) {
   const isMobile = useIsMobile()
@@ -62,7 +64,7 @@ export function Modal({
 
       {(primaryActionLabel || secondaryActionLabel) && (
         <DialogActions sx={{ px: 3, py: 2.5 }}>
-          <Button variant="outlined" color="primary" onClick={onClose} disabled={loading}>
+          <Button variant="outlined" color="primary" onClick={onSecondaryAction ?? onClose} disabled={loading}>
             {secondaryActionLabel}
           </Button>
           {primaryActionLabel && (

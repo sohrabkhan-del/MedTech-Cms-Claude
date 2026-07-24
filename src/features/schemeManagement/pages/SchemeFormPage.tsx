@@ -60,7 +60,7 @@ function FieldLabel({
   )
 }
 
-const ALL_APPLICABLE_USERS: ApplicableUserType[] = ['Dealer', 'Chemist', 'MR']
+const ALL_APPLICABLE_USERS: ApplicableUserType[] = ['Dealer', 'Chemist']
 
 export function SchemeFormPage() {
   const navigate = useNavigate()

@@ -1,33 +1,99 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Grid, Stack, Typography } from '@mui/material'
-import { Truck, Phone, Mail, MapPin, FileText, Calendar } from 'lucide-react'
+import { Truck, Package, Weight, Boxes } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useDistributorDetail } from '@/features/inventoryManagement/hooks/useDistributorDetail'
+import type { DispatchLineItem } from '@/types/distributorUpload'
 
 export function DistributorDetailsPage() {
   const navigate = useNavigate()
   const { distributorId } = useParams<{ distributorId: string }>()
-  const { distributor, isLoading } = useDistributorDetail(distributorId)
+  const { invoice, isLoading } = useDistributorDetail(distributorId)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={3} />
   }
 
-  if (!distributor) {
+  if (!invoice) {
     return (
       <EmptyState
-        title="Distributor not found"
-        description="This distributor may have been removed."
+        title="Invoice not found"
+        description="This dispatch invoice may have been removed."
         actionLabel="Back to Distributor Upload"
         onAction={() => navigate('/distributor-upload')}
       />
     )
   }
+
+  const totalCartonWeight = invoice.lineItems.reduce(
+    (sum, item) => sum + item.cartonWeight,
+    0,
+  )
+  const totalDispatchQty = invoice.lineItems.reduce(
+    (sum, item) => sum + item.dispatchQty,
+    0,
+  )
+
+  const lineItemColumns: CommonTableColumn<DispatchLineItem>[] = [
+    {
+      key: 'srNo',
+      header: 'Sr. No.',
+      align: 'center',
+      minWidth: 70,
+      sortable: true,
+      sortValue: (row) => row.srNo,
+      render: (row) => row.srNo,
+    },
+    {
+      key: 'itemCode',
+      header: 'Item Code',
+      minWidth: 120,
+      sortable: true,
+      sortValue: (row) => row.itemCode,
+      render: (row) => row.itemCode,
+    },
+    {
+      key: 'itemName',
+      header: 'Item Name',
+      minWidth: 260,
+      render: (row) => row.itemName,
+    },
+    {
+      key: 'cartonNo',
+      header: 'Carton No.',
+      align: 'center',
+      minWidth: 110,
+      sortable: true,
+      sortValue: (row) => row.cartonNo,
+      render: (row) => row.cartonNo,
+    },
+    {
+      key: 'cartonWeight',
+      header: 'Carton Weight',
+      align: 'center',
+      minWidth: 120,
+      sortable: true,
+      sortValue: (row) => row.cartonWeight,
+      render: (row) => row.cartonWeight.toFixed(2),
+    },
+    {
+      key: 'dispatchQty',
+      header: 'Dispatch Qty',
+      align: 'center',
+      minWidth: 110,
+      sortable: true,
+      sortValue: (row) => row.dispatchQty,
+      render: (row) => row.dispatchQty,
+    },
+  ]
 
   return (
     <Stack spacing={3}>
@@ -56,15 +122,9 @@ export function DistributorDetailsPage() {
             <Truck size={22} />
           </Box>
           <Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Typography variant="h1">
-                {distributor.distributorName}
-              </Typography>
-              <StatusBadge status={distributor.status} />
-            </Stack>
+            <Typography variant="h1">{invoice.customerName}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {distributor.distributorCode} · {distributor.city},{' '}
-              {distributor.region} Zone
+              {invoice.invoiceNo} · {invoice.date}
             </Typography>
           </Box>
         </Stack>
@@ -73,144 +133,66 @@ export function DistributorDetailsPage() {
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Region"
-            value={distributor.region}
-            icon={<MapPin size={20} />}
+            label="Transporter"
+            value={invoice.transporter}
+            icon={<Truck size={20} />}
             iconColor="primary"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="City"
-            value={distributor.city}
-            icon={<MapPin size={20} />}
+            label="Total Box Qty"
+            value={invoice.totalBoxQty}
+            icon={<Boxes size={20} />}
             iconColor="secondary"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Contact Person"
-            value={distributor.contactPerson}
-            icon={<Phone size={20} />}
-            iconColor="success"
+            label="Total Carton Weight"
+            value={totalCartonWeight.toFixed(2)}
+            icon={<Weight size={20} />}
+            iconColor="warning"
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            label="Uploaded On"
-            value={distributor.uploadedDate}
-            icon={<Calendar size={20} />}
-            iconColor="warning"
+            label="Total Dispatch Qty"
+            value={totalDispatchQty}
+            icon={<Package size={20} />}
+            iconColor="success"
           />
         </Grid>
       </Grid>
 
-      <SectionCard title="Distributor Information">
+      <SectionCard title="Dispatch Loading Report">
         <DetailFieldGrid
           fields={[
-            { label: 'Distributor Name', value: distributor.distributorName },
-            { label: 'Distributor Code', value: distributor.distributorCode },
-            {
-              label: 'Status',
-              value: <StatusBadge status={distributor.status} />,
-            },
-            { label: 'Contact Person', value: distributor.contactPerson },
-            { label: 'Phone', value: distributor.phone },
-            { label: 'Email', value: distributor.email },
-            { label: 'City', value: distributor.city },
-            { label: 'Region', value: distributor.region },
+            { label: 'Customer Name', value: invoice.customerName },
+            { label: 'Invoice No.', value: invoice.invoiceNo },
+            { label: 'Transporter', value: invoice.transporter },
+            { label: 'Total Box Qty', value: invoice.totalBoxQty },
+            { label: 'Vehicle No.', value: invoice.vehicleNo || '—' },
+            { label: 'Date', value: invoice.date },
+            { label: 'Format No.', value: invoice.formatNo },
+            { label: 'Rev. No.', value: invoice.revNo },
+            { label: 'Rev. Date', value: invoice.revDate },
           ]}
         />
       </SectionCard>
 
-      <SectionCard title="Address">
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start' }}>
-          <Box sx={{ color: 'text.secondary', mt: 0.25 }}>
-            <MapPin size={18} />
-          </Box>
-          <Typography variant="body1">{distributor.address}</Typography>
-        </Stack>
-      </SectionCard>
-
-      <SectionCard title="Compliance & Documentation">
-        <DetailFieldGrid
-          fields={[
-            { label: 'GST Number', value: distributor.gstNumber },
-            { label: 'Source File', value: distributor.uploadFile },
-            { label: 'Uploaded Date', value: distributor.uploadedDate },
-          ]}
+      <SectionCard title="Item-wise Carton Listing">
+        <CommonTable
+          tableKey="dispatch-invoice-line-items"
+          columns={lineItemColumns}
+          rows={invoice.lineItems}
+          loading={isLoading}
+          getRowId={(row) => row.id}
+          searchPlaceholder="Search by item code, name or carton no…"
+          searchKeys={(row) => `${row.itemCode} ${row.itemName} ${row.cartonNo}`}
+          defaultSortBy="srNo"
+          emptyTitle="No line items on this invoice"
         />
-      </SectionCard>
-
-      <SectionCard title="Contact Details">
-        <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'primary.light',
-                  color: 'primary.main',
-                }}
-              >
-                <Phone size={18} />
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  Phone
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-                  {distributor.phone}
-                </Typography>
-              </Box>
-            </Stack>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-              <Box
-                sx={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: '10px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: 'secondary.light',
-                  color: 'secondary.main',
-                }}
-              >
-                <Mail size={18} />
-              </Box>
-              <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  Email
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-                  {distributor.email}
-                </Typography>
-              </Box>
-            </Stack>
-          </Grid>
-        </Grid>
-      </SectionCard>
-
-      <SectionCard title="Import Metadata">
-        <Stack
-          direction="row"
-          spacing={1.5}
-          sx={{ alignItems: 'center', color: 'text.secondary' }}
-        >
-          <FileText size={18} />
-          <Typography variant="body1">
-            Imported from <strong>{distributor.uploadFile}</strong> on{' '}
-            {distributor.uploadedDate}.
-          </Typography>
-        </Stack>
       </SectionCard>
     </Stack>
   )

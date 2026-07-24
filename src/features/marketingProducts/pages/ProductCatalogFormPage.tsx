@@ -54,9 +54,6 @@ export function ProductCatalogFormPage() {
       sku: product.sku,
       price: String(product.price),
       category: product.category,
-      rewardPoints: String(product.rewardPoints),
-      status: product.status,
-      showcaseVisible: product.showcaseVisible,
       featuredProduct: product.featuredProduct,
       productImage: product.productImage,
       description: product.description,
@@ -113,36 +110,12 @@ export function ProductCatalogFormPage() {
                 ))}
               </FormField>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Reward Points</FieldLabel>
-              <FormField name="rewardPoints" control={control} placeholder="e.g. 25" {...fieldLabelProps} />
-            </Grid>
           </Grid>
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
           <Typography sx={sectionTitleSx}>Product Settings</Typography>
           <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Status</FieldLabel>
-              <FormField name="status" control={control} select {...fieldLabelProps}>
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
-              </FormField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel>Show in App</FieldLabel>
-              <Controller
-                name="showcaseVisible"
-                control={control}
-                render={({ field }) => (
-                  <FormControlLabel
-                    control={<Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />}
-                    label={field.value ? 'Yes' : 'No'}
-                  />
-                )}
-              />
-            </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel>Featured Product</FieldLabel>
               <Controller

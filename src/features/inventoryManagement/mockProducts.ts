@@ -49,6 +49,11 @@ function seededNumber(seed: number, min: number, max: number): number {
   return Math.floor(min + frac * (max - min))
 }
 
+function seededRoundHundred(seed: number, min: number, max: number): number {
+  const steps = Math.floor((max - min) / 100) + 1
+  return min + seededNumber(seed, 0, steps) * 100
+}
+
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`
 }
@@ -122,8 +127,8 @@ function buildProduct(seed: number): Product {
   const entry = catalogEntries[seed % catalogEntries.length]!
   const name = entry.name
   const status = resolveStatus(seed)
-  const dealerRewardPoints = seededNumber(seed, 10, 40)
-  const chemistRewardPoints = seededNumber(seed + 1, 15, 50)
+  const dealerRewardPoints = seededRoundHundred(seed, 100, 500)
+  const chemistRewardPoints = seededRoundHundred(seed + 1, 100, 500)
 
   return {
     id,
@@ -169,6 +174,75 @@ export const mockProducts: Product[] = Array.from({ length: 45 }).map((_, index)
 
 export function getProductById(id: string): Product | undefined {
   return mockProducts.find((product) => product.id === id)
+}
+
+/** Finds a value in an imported row by trying a list of likely xlsx header spellings, case/space-insensitively. */
+function pickField(row: Record<string, string>, keys: string[]): string {
+  const normalized = new Map(
+    Object.entries(row).map(([header, value]) => [header.trim().toLowerCase().replace(/[\s_-]+/g, ''), value]),
+  )
+  for (const key of keys) {
+    const value = normalized.get(key)
+    if (value) return value
+  }
+  return ''
+}
+
+/** Builds a full Product from one imported xlsx row, mapping common header spellings and filling the rest with defaults. */
+export function productFromImportedRow(row: Record<string, string>, seed: number): Product {
+  const id = `product-import-${Date.now()}-${seed}`
+  const productName = pickField(row, ['productname', 'name']) || `Imported Product ${seed}`
+  const productCategory =
+    pickField(row, ['productcategory', 'category']) || productCategoryOptions[0]!
+  const mrpRaw = pickField(row, ['mrp', 'price'])
+  const mrp = Number(mrpRaw.replace(/[^0-9.]/g, '')) || 0
+  const dealerRewardPoints = Number(pickField(row, ['dealerrewardpoints', 'dealerpoints']).replace(/[^0-9.]/g, '')) || 0
+  const chemistRewardPoints = Number(pickField(row, ['chemistrewardpoints', 'chemistpoints']).replace(/[^0-9.]/g, '')) || 0
+  const today = dateFromSeed(seed % 27, 'Jul')
+
+  return {
+    id,
+    productName,
+    productCode: pickField(row, ['productcode', 'code', 'sku']) || `PC-IMPORT-${Date.now()}${seed}`,
+    productCategory,
+    status: 'active',
+    uploadedDate: today,
+
+    description: pickField(row, ['description']) || `${productName} — imported from uploaded file.`,
+    productImages: [],
+    sku: pickField(row, ['sku']) || `SKU-IMPORT-${Date.now()}${seed}`,
+    brand: pickField(row, ['brand']) || brands[0]!,
+    mrp,
+    manufacturingDetails: pickField(row, ['manufacturingdetails']) || '',
+    createdDate: today,
+    lastUpdatedDate: today,
+
+    dealerRewardPoints,
+    chemistRewardPoints,
+    rewardConfigStatus: dealerRewardPoints > 0 && chemistRewardPoints > 0 ? 'configured' : 'pending',
+
+    totalFactoryUploads: 0,
+    totalQrCodesGenerated: 0,
+    totalSuccessfulScans: 0,
+    totalDealerAllocations: 0,
+    totalChemistAllocations: 0,
+    totalRewardPointsIssued: 0,
+    totalSecurityAlerts: 0,
+    totalShownInterest: 0,
+
+    movementHistory: [],
+    auditHistory: [
+      {
+        id: `${id}-audit-0`,
+        date: today,
+        action: 'Product Created',
+        performedBy: 'Import',
+        previousValue: '—',
+        updatedValue: 'Product added via xlsx import',
+      },
+    ],
+    timeline: [{ id: `${id}-tl-0`, activity: 'Product Created', dateTime: today }],
+  }
 }
 
 export const productKpis = {

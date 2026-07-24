@@ -5,7 +5,7 @@ export const schemeFormSchema = z
     schemeName: z.string().min(2, 'Scheme name is required'),
     schemeCategory: z.enum(['general', 'seasonal']),
     schemeType: z.string().min(1, 'Scheme type is required'),
-    applicableUsers: z.array(z.enum(['Dealer', 'Chemist', 'MR'])).min(1, 'Select at least one applicable user type'),
+    applicableUsers: z.array(z.enum(['Dealer', 'Chemist'])).min(1, 'Select at least one applicable user type'),
 
     bonusValue: z.string().min(1, 'Bonus value is required'),
     scanTarget: z.string().min(1, 'Scan target is required'),

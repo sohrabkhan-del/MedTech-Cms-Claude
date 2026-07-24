@@ -39,8 +39,6 @@ function resolveApplicableUsers(seed: number): ApplicableUserType[] {
     ['Dealer'],
     ['Chemist'],
     ['Dealer', 'Chemist'],
-    ['Dealer', 'Chemist', 'MR'],
-    ['MR'],
   ]
   return options[seed % options.length]!
 }
@@ -179,7 +177,7 @@ export const seasonalSchemeKpis = {
   rewardPointsIssued: mockSeasonalSchemes.reduce((sum, s) => sum + s.rewardPointsIssued, 0),
 }
 
-export const schemeApplicableUserOptions: ApplicableUserType[] = ['Dealer', 'Chemist', 'MR']
+export const schemeApplicableUserOptions: ApplicableUserType[] = ['Dealer', 'Chemist']
 export const schemeTypeOptions = schemeTypes
 export const rewardTypeOptions = rewardTypes
 export const rewardFrequencyOptions = rewardFrequencies

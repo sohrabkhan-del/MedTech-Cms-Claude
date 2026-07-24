@@ -75,10 +75,11 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
       key: 'product',
       header: 'Product',
       minWidth: 220,
+      align: 'center',
       sortable: true,
       sortValue: (row) => row.product.productName,
       render: (row) => (
-        <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
+        <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', justifyContent: 'center' }}>
           <Avatar src={row.product.productImage} variant="rounded" sx={{ width: 32, height: 32 }} />
           <Typography
             sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
@@ -89,22 +90,24 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
         </Stack>
       ),
     },
-    { key: 'sku', header: 'SKU', minWidth: 130, render: (row) => row.product.sku },
-    { key: 'category', header: 'Category', minWidth: 130, render: (row) => row.product.category },
-    { key: 'price', header: 'Price (₹)', align: 'right', sortable: true, sortValue: (row) => row.product.price, render: (row) => `₹${row.product.price.toLocaleString('en-IN')}` },
-    { key: 'userName', header: 'User Name', minWidth: 150, render: (row) => row.userName },
-    { key: 'userType', header: 'User Type', minWidth: 100, render: (row) => row.userType },
-    { key: 'interestedDate', header: 'Interested Date', minWidth: 140, sortable: true, render: (row) => row.interestedDate },
+    { key: 'sku', header: 'SKU', minWidth: 130, align: 'center', render: (row) => row.product.sku },
+    { key: 'category', header: 'Category', minWidth: 130, align: 'center', render: (row) => row.product.category },
+    { key: 'price', header: 'Price (₹)', align: 'center', sortable: true, sortValue: (row) => row.product.price, render: (row) => `₹${row.product.price.toLocaleString('en-IN')}` },
+    { key: 'userName', header: 'User Name', minWidth: 150, align: 'center', render: (row) => row.userName },
+    { key: 'userType', header: 'User Type', minWidth: 100, align: 'center', render: (row) => row.userType },
+    { key: 'interestedDate', header: 'Interested Date', minWidth: 140, align: 'center', sortable: true, render: (row) => row.interestedDate },
     {
       key: 'enquiryStatus',
       header: 'Enquiry Status',
       minWidth: 130,
+      align: 'center',
       render: (row) => <Chip size="small" label={enquiryStatusConfig[row.enquiryStatus].label} color={enquiryStatusConfig[row.enquiryStatus].color} />,
     },
     {
       key: 'deliveryStatus',
       header: 'Delivery Status',
       minWidth: 140,
+      align: 'center',
       render: (row) => <Chip size="small" label={deliveryStatusConfig[row.deliveryStatus].label} color={deliveryStatusConfig[row.deliveryStatus].color} />,
     },
   ]

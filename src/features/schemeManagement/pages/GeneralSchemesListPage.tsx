@@ -73,7 +73,7 @@ export function GeneralSchemesListPage() {
     },
     { key: 'schemeType', header: 'Scheme Type', minWidth: 150, render: (row) => row.schemeType },
     { key: 'applicableUsers', header: 'Applicable To', minWidth: 160, render: (row) => row.applicableUsers.join(', ') },
-    { key: 'bonusValue', header: 'Bonus Value', align: 'right', sortable: true, sortValue: (row) => row.bonusValue, render: (row) => row.bonusValue },
+    { key: 'bonusValue', header: 'Bonus Value', align: 'center', sortable: true, sortValue: (row) => row.bonusValue, render: (row) => row.bonusValue },
     { key: 'startDate', header: 'Start Date', minWidth: 120, sortable: true, render: (row) => row.startDate },
     { key: 'endDate', header: 'End Date', minWidth: 120, render: (row) => row.endDate ?? 'Ongoing' },
     {

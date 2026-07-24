@@ -1,37 +1,44 @@
-export interface DistributorUploadRow {
+export interface DispatchLineItem {
   id: string
-  distributorName: string
-  distributorCode: string
-  contactPerson: string
-  phone: string
-  email: string
-  city: string
-  region: 'North' | 'South' | 'East' | 'West'
-  gstNumber: string
+  srNo: number
+  itemCode: string
+  itemName: string
+  cartonNo: string
+  cartonWeight: number
+  dispatchQty: number
+}
+
+export interface DispatchInvoice {
+  id: string
+  invoiceNo: string
+  customerName: string
+  transporter: string
+  vehicleNo: string
+  totalBoxQty: number
+  date: string
+  formatNo: string
+  revNo: string
+  revDate: string
+  uploadFile: string
+  uploadedDate: string
+  lineItems: DispatchLineItem[]
+}
+
+export interface DispatchUploadRow {
+  id: string
+  srNo: number
+  itemCode: string
+  itemName: string
+  cartonNo: string
+  cartonWeight: number
+  dispatchQty: number
   isValid: boolean
   validationNote?: string
 }
 
-export interface DistributorUploadSummary {
+export interface DispatchUploadSummary {
   totalRows: number
   validRows: number
-  duplicateCodes: number
-  invalidGst: number
-}
-
-/** An imported distributor, as shown in the Distributor Upload listing after a successful import. */
-export interface DistributorRecord {
-  id: string
-  distributorName: string
-  distributorCode: string
-  contactPerson: string
-  phone: string
-  email: string
-  city: string
-  region: 'North' | 'South' | 'East' | 'West'
-  gstNumber: string
-  address: string
-  status: 'active' | 'inactive'
-  uploadFile: string
-  uploadedDate: string
+  duplicateCartons: number
+  invalidWeights: number
 }

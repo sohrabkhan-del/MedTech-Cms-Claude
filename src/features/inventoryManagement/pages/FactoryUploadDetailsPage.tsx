@@ -13,53 +13,106 @@ import {
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useFactoryBatchDetail } from '@/features/inventoryManagement/hooks/useFactoryBatchDetail'
+import { getChemistByShopName } from '@/features/userManagement/mockChemists'
+import { getDealerByShopName } from '@/features/userManagement/mockDealers'
 import type { BatchScanEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
-const scanColumns: CommonTableColumn<BatchScanEntry>[] = [
-  {
-    key: 'scanSerialNumber',
-    header: 'Scan Serial Number',
-    minWidth: 150,
-    sortable: true,
-    sortValue: (row) => row.scanSerialNumber,
-    render: (row) => row.scanSerialNumber,
-  },
-  {
-    key: 'productName',
-    header: 'Product Name',
-    minWidth: 170,
-    render: (row) => row.productName,
-  },
-  {
-    key: 'chemistName',
-    header: 'Chemist Name',
-    minWidth: 170,
-    render: (row) => row.chemistName,
-  },
-  {
-    key: 'chemistScanDate',
-    header: 'Chemist Scan Date',
-    minWidth: 150,
-    render: (row) => row.chemistScanDate,
-  },
-  {
-    key: 'dealerName',
-    header: 'Dealer Name',
-    minWidth: 170,
-    render: (row) => row.dealerName,
-  },
-  {
-    key: 'dealerScanDate',
-    header: 'Dealer Scan Date',
-    minWidth: 150,
-    render: (row) => row.dealerScanDate,
-  },
-]
+function PartnerNameCell({
+  name,
+  onClick,
+}: {
+  name: string
+  onClick?: () => void
+}) {
+  if (name === '—' || !onClick) return <>{name}</>
+  return (
+    <Typography
+      component="span"
+      sx={{
+        fontSize: 'inherit',
+        fontWeight: 'inherit',
+        cursor: 'pointer',
+        '&:hover': { textDecoration: 'underline' },
+      }}
+      onClick={onClick}
+    >
+      {name}
+    </Typography>
+  )
+}
+
+function buildScanColumns(
+  navigate: ReturnType<typeof useNavigate>,
+): CommonTableColumn<BatchScanEntry>[] {
+  return [
+    {
+      key: 'scanSerialNumber',
+      header: 'Scan Serial Number',
+      minWidth: 150,
+      sortable: true,
+      sortValue: (row) => row.scanSerialNumber,
+      render: (row) => row.scanSerialNumber,
+    },
+    {
+      key: 'productName',
+      header: 'Product Name',
+      minWidth: 170,
+      render: (row) => row.productName,
+    },
+    {
+      key: 'chemistName',
+      header: 'Chemist Name',
+      minWidth: 170,
+      render: (row) => {
+        const chemist = getChemistByShopName(row.chemistName)
+        return (
+          <PartnerNameCell
+            name={row.chemistName}
+            onClick={
+              chemist
+                ? () => navigate(`/partners/chemists/${chemist.id}`)
+                : undefined
+            }
+          />
+        )
+      },
+    },
+    {
+      key: 'chemistScanDate',
+      header: 'Chemist Scan Date',
+      minWidth: 150,
+      render: (row) => row.chemistScanDate,
+    },
+    {
+      key: 'dealerName',
+      header: 'Dealer Name',
+      minWidth: 170,
+      render: (row) => {
+        const dealer = getDealerByShopName(row.dealerName)
+        return (
+          <PartnerNameCell
+            name={row.dealerName}
+            onClick={
+              dealer ? () => navigate(`/partners/dealers/${dealer.id}`) : undefined
+            }
+          />
+        )
+      },
+    },
+    {
+      key: 'dealerScanDate',
+      header: 'Dealer Scan Date',
+      minWidth: 150,
+      render: (row) => row.dealerScanDate,
+    },
+  ]
+}
 
 export function FactoryUploadDetailsPage() {
   const navigate = useNavigate()
   const { batchId } = useParams<{ batchId: string }>()
   const { batch, isLoading } = useFactoryBatchDetail(batchId)
+  const scanColumns = buildScanColumns(navigate)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={2} />
@@ -191,22 +244,21 @@ export function FactoryUploadDetailsPage() {
           />
         </SectionCard>
 
-        {!batch.isBmrSourced && (
-          <SectionCard title="Scan History">
-            <CommonTable
-              tableKey="factory-batch-scan-history"
-              columns={scanColumns}
-              rows={batch.scanHistory}
-              loading={isLoading}
-              getRowId={(row) => row.id}
-              searchPlaceholder="Search scan history…"
-              searchKeys={(row) =>
-                `${row.scanSerialNumber} ${row.productName} ${row.chemistName} ${row.dealerName}`
-              }
-              emptyTitle="No scans recorded yet"
-            />
-          </SectionCard>
-        )}
+        <SectionCard title="Scan History">
+          <CommonTable
+            tableKey="factory-batch-scan-history"
+            columns={scanColumns}
+            rows={batch.scanHistory}
+            loading={isLoading}
+            getRowId={(row) => row.id}
+            searchPlaceholder="Search scan history…"
+            searchKeys={(row) =>
+              `${row.scanSerialNumber} ${row.productName} ${row.chemistName} ${row.dealerName}`
+            }
+            emptyTitle="No scans recorded yet"
+            emptyDescription="Scan activity for this batch will appear here once products are scanned."
+          />
+        </SectionCard>
       </Stack>
     </>
   )

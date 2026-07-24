@@ -225,8 +225,8 @@ export function SchemeDetailsPage() {
 
         <SectionCard title="Eligible Users">
           <Grid container spacing={2}>
-            {(['Dealer', 'Chemist', 'MR'] as const).map((userType) => (
-              <Grid key={userType} size={{ xs: 12, sm: 4 }}>
+            {(['Dealer', 'Chemist'] as const).map((userType) => (
+              <Grid key={userType} size={{ xs: 12, sm: 6 }}>
                 <Stack
                   direction="row"
                   spacing={1.5}

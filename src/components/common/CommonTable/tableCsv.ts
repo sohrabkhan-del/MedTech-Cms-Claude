@@ -8,7 +8,7 @@ function cellText<T>(column: CommonTableColumn<T>, row: T): string | number {
   return typeof rendered === 'string' || typeof rendered === 'number' ? rendered : ''
 }
 
-export function exportRowsToCsv<T>(
+export function exportRowsToXlsx<T>(
   columns: CommonTableColumn<T>[],
   rows: T[],
   fileName: string,
@@ -17,15 +17,9 @@ export function exportRowsToCsv<T>(
     Object.fromEntries(columns.map((col) => [col.header, cellText(col, row)])),
   )
   const worksheet = XLSX.utils.json_to_sheet(data, { header: columns.map((col) => col.header) })
-  const csv = XLSX.utils.sheet_to_csv(worksheet)
-
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = `${fileName}.csv`
-  link.click()
-  URL.revokeObjectURL(url)
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1')
+  XLSX.writeFile(workbook, `${fileName}.xlsx`)
 }
 
 export interface ParsedImportFile {

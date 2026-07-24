@@ -13,6 +13,10 @@ export function getChemistById(id: string): Chemist | undefined {
   return mockChemists.find((chemist) => chemist.id === id)
 }
 
+export function getChemistByShopName(shopName: string): Chemist | undefined {
+  return mockChemists.find((chemist) => chemist.shopName === shopName)
+}
+
 export const chemistKpis = {
   totalChemists: mockChemists.length,
   activeChemists: mockChemists.filter((c) => c.status === 'active').length,

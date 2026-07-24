@@ -160,7 +160,7 @@ export function ChemistListPage() {
     },
     {
       key: 'availableCoins',
-      header: 'Available Coins',
+      header: 'Points Earned',
       minWidth: 100,
       align: 'center',
       sortable: true,
@@ -181,6 +181,9 @@ export function ChemistListPage() {
               value={chemistKpis.totalChemists}
               icon={<LocalPharmacyIcon size={20} />}
               iconColor="primary"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'all' }))
+              }
             />
           )}
         </Grid>
@@ -193,6 +196,9 @@ export function ChemistListPage() {
               value={chemistKpis.activeChemists}
               icon={<ActiveChemistIcon size={20} />}
               iconColor="success"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'active' }))
+              }
             />
           )}
         </Grid>
@@ -205,6 +211,9 @@ export function ChemistListPage() {
               value={chemistKpis.inactiveChemists}
               icon={<InactiveChemistIcon size={20} />}
               iconColor="error"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'inactive' }))
+              }
             />
           )}
         </Grid>
@@ -217,6 +226,9 @@ export function ChemistListPage() {
               value={chemistKpis.pendingApproval}
               icon={<PendingActionsOutlinedIcon size={20} />}
               iconColor="warning"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))
+              }
             />
           )}
         </Grid>

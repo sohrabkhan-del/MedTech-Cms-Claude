@@ -71,8 +71,16 @@ export function useFactoryUploads() {
   useEffect(() => load(), [load])
 
   const importBmrUpload = useCallback(
-    async (batchRows: BmrBatchRow[], uploadFileName: string) => {
-      await factoryUploadService.importBmrUpload(batchRows, uploadFileName)
+    async (
+      batchRows: BmrBatchRow[],
+      uploadFileName: string,
+      containerCountByBatch: Record<string, number>,
+    ) => {
+      await factoryUploadService.importBmrUpload(
+        batchRows,
+        uploadFileName,
+        containerCountByBatch,
+      )
       load()
     },
     [load],

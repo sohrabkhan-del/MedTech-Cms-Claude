@@ -251,10 +251,17 @@ interface BatchUidUploadTabProps {
     batchRows: BmrBatchRow[],
     mappedBatches: MappedBatch[],
     uploadFileName: string,
+    /** Distinct Master Carton count per batch number, derived from the uploaded carton linkage file. */
+    containerCountByBatch: Record<string, number>,
   ) => void
+  /** Called automatically a couple seconds after a successful import, to leave the wizard. */
+  onDone?: () => void
 }
 
-export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
+export function BatchUidUploadTab({
+  onImported,
+  onDone,
+}: BatchUidUploadTabProps = {}) {
   const [activeStep, setActiveStep] = useState(0)
   const [bmrFile, setBmrFile] = useState<File | null>(null)
   const [cartonFile, setCartonFile] = useState<File | null>(null)
@@ -274,17 +281,6 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
   } | null>(null)
 
   const mappedBatches = buildMappedBatches(batchRows)
-
-  function resetWizard() {
-    setActiveStep(0)
-    setBmrFile(null)
-    setCartonFile(null)
-    setBatchRows([])
-    setSummary(null)
-    setCartonRows([])
-    setCartonSummary(null)
-    setValidateError(null)
-  }
 
   async function handleValidateAll() {
     if (!bmrFile || !cartonFile) return
@@ -327,6 +323,33 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
     }
   }
 
+  function countContainersByBatch(): Record<string, number> {
+    const batchNumberByUid = new Map<string, string>()
+    for (const row of batchRows) {
+      if (!row.isValid) continue
+      for (const generated of generateUidsForBatch(row)) {
+        batchNumberByUid.set(generated.uid, row.batchNumber)
+      }
+    }
+
+    const cartonsByBatch = new Map<string, Set<string>>()
+    for (const link of cartonRows) {
+      if (!link.isValid) continue
+      const batchNumber = batchNumberByUid.get(link.uid)
+      if (!batchNumber) continue
+      const cartons = cartonsByBatch.get(batchNumber) ?? new Set<string>()
+      cartons.add(link.masterCartonNumber)
+      cartonsByBatch.set(batchNumber, cartons)
+    }
+
+    return Object.fromEntries(
+      [...cartonsByBatch.entries()].map(([batchNumber, cartons]) => [
+        batchNumber,
+        cartons.size,
+      ]),
+    )
+  }
+
   async function handleConfirmImport() {
     setIsProcessing(true)
     await new Promise((r) => setTimeout(r, 700))
@@ -336,6 +359,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
       batchRows.filter((row) => row.isValid),
       mappedBatches,
       bmrFile?.name ?? 'bmr-upload.xlsx',
+      countContainersByBatch(),
     )
     setToast({
       severity: 'success',
@@ -343,6 +367,9 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
       message:
         'Batch, UID, and Master Carton linkage data imported successfully.',
     })
+    if (onDone) {
+      setTimeout(onDone, 2000)
+    }
   }
 
   return (
@@ -426,7 +453,7 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
               loading={isProcessing}
               onClick={handleValidateAll}
             >
-              Validate & Continue
+              Validate
             </Button>
           </Stack>
         </>
@@ -702,6 +729,16 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
                 justifyContent: 'center',
                 backgroundColor: 'success.light',
                 color: 'success.main',
+                animation: 'batch-import-success-pop 0.5s ease-out, batch-import-success-ring 1.2s ease-out',
+                '@keyframes batch-import-success-pop': {
+                  '0%': { transform: 'scale(0)' },
+                  '60%': { transform: 'scale(1.15)' },
+                  '100%': { transform: 'scale(1)' },
+                },
+                '@keyframes batch-import-success-ring': {
+                  '0%': { boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.4)' },
+                  '100%': { boxShadow: '0 0 0 18px rgba(46, 125, 50, 0)' },
+                },
               }}
             >
               <CircleCheck size={34} />
@@ -718,9 +755,6 @@ export function BatchUidUploadTab({ onImported }: BatchUidUploadTabProps = {}) {
               {cartonSummary.validRows} master carton link(s) have been imported
               and are now available in Product Batches.
             </Typography>
-            <Button variant="contained" onClick={resetWizard}>
-              Upload Another File
-            </Button>
           </Stack>
         </Card>
       )}

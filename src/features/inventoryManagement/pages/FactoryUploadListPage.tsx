@@ -1,22 +1,12 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Button,
-  Dialog,
-  DialogContent,
-  Grid,
-  IconButton,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Button, Grid, Stack, TextField, Typography } from '@mui/material'
 import {
   Factory as FactoryOutlined,
   Package as Inventory2Outlined,
   CircleCheck as CheckCircleOutlined,
   Ban as BlockOutlined,
   UploadCloud,
-  X,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -25,12 +15,8 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
-import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
-import { radius } from '@/theme/tokens'
-import { BatchUidUploadTab } from '@/features/inventoryManagement/components/BatchUidUploadTab'
 import { useFactoryUploads } from '@/features/inventoryManagement/hooks/useFactoryUploads'
 import type { FactoryBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
-import type { BmrBatchRow, MappedBatch } from '@/types/batchUidUpload'
 
 interface BatchFilters extends Record<string, unknown> {
   fromDate: string
@@ -39,22 +25,13 @@ interface BatchFilters extends Record<string, unknown> {
 
 export function FactoryUploadListPage() {
   const navigate = useNavigate()
-  const isMobile = useIsMobile()
-  const { batches, kpis, isLoading, importBmrUpload } = useFactoryUploads()
+  const { batches, kpis, isLoading } = useFactoryUploads()
   const [filterOpen, setFilterOpen] = useState(false)
-  const [uploadOpen, setUploadOpen] = useState(false)
+  const [statFilter, setStatFilter] = useState<'all' | 'containers' | 'rejected'>('all')
   const [appliedFilters, setAppliedFilters] = useState<BatchFilters>({
     fromDate: '',
     toDate: '',
   })
-
-  async function handleImported(
-    batchRows: BmrBatchRow[],
-    _mappedBatches: MappedBatch[],
-    uploadFileName: string,
-  ) {
-    await importBmrUpload(batchRows, uploadFileName)
-  }
 
   const factoryUploadKpis = kpis ?? {
     totalBatches: 0,
@@ -63,6 +40,12 @@ export function FactoryUploadListPage() {
     totalAccepted: 0,
     totalRejected: 0,
   }
+
+  const displayedBatches = useMemo(() => {
+    if (statFilter === 'containers') return batches.filter((b) => b.totalContainers > 0)
+    if (statFilter === 'rejected') return batches.filter((b) => b.totalRejected > 0)
+    return batches
+  }, [batches, statFilter])
 
   const columns: CommonTableColumn<FactoryBatch>[] = [
     {
@@ -118,7 +101,7 @@ export function FactoryUploadListPage() {
     {
       key: 'quantity',
       header: 'Qty',
-      align: 'right',
+      align: 'center',
       sortable: true,
       sortValue: (row) => row.quantity,
       render: (row) => row.quantity.toLocaleString('en-IN'),
@@ -126,7 +109,7 @@ export function FactoryUploadListPage() {
     {
       key: 'retentionSampleQuantity',
       header: 'Sample Qty',
-      align: 'right',
+      align: 'center',
       minWidth: 100,
       render: (row) => row.retentionSampleQuantity.toLocaleString('en-IN'),
     },
@@ -149,12 +132,6 @@ export function FactoryUploadListPage() {
       render: (row) => row.export ?? '—',
     },
     {
-      key: 'assemblyLine',
-      header: 'Assy Line No.',
-      minWidth: 110,
-      render: (row) => row.assemblyLine,
-    },
-    {
       key: 'batchCompletionDate',
       header: 'Batch Completed Date',
       minWidth: 150,
@@ -163,7 +140,7 @@ export function FactoryUploadListPage() {
     {
       key: 'totalProducts',
       header: 'Produced Qty',
-      align: 'right',
+      align: 'center',
       sortable: true,
       sortValue: (row) => row.totalProducts,
       render: (row) => row.totalProducts.toLocaleString('en-IN'),
@@ -171,12 +148,14 @@ export function FactoryUploadListPage() {
     {
       key: 'startSerialNumber',
       header: 'Start Serial',
+      align: 'center',
       minWidth: 110,
       render: (row) => row.startSerialNumber,
     },
     {
       key: 'endSerialNumber',
       header: 'End Serial',
+      align: 'center',
       minWidth: 110,
       render: (row) => row.endSerialNumber,
     },
@@ -222,9 +201,11 @@ export function FactoryUploadListPage() {
         <Button
           variant="contained"
           startIcon={<UploadCloud size={18} />}
-          onClick={() => setUploadOpen(true)}
+          onClick={() =>
+            navigate('/inventory/factory-inventory-upload/upload-bmr')
+          }
         >
-          Upload Manifest
+          Upload Inventory
         </Button>
       </Stack>
 
@@ -238,6 +219,7 @@ export function FactoryUploadListPage() {
               value={factoryUploadKpis.totalBatches}
               icon={<FactoryOutlined size={20} />}
               iconColor="primary"
+              onClick={() => setStatFilter('all')}
             />
           )}
         </Grid>
@@ -250,6 +232,7 @@ export function FactoryUploadListPage() {
               value={factoryUploadKpis.totalContainers}
               icon={<Inventory2Outlined size={20} />}
               iconColor="secondary"
+              onClick={() => setStatFilter('containers')}
             />
           )}
         </Grid>
@@ -262,6 +245,7 @@ export function FactoryUploadListPage() {
               value={factoryUploadKpis.totalProducts.toLocaleString('en-IN')}
               icon={<CheckCircleOutlined size={20} />}
               iconColor="success"
+              onClick={() => setStatFilter('all')}
             />
           )}
         </Grid>
@@ -274,6 +258,7 @@ export function FactoryUploadListPage() {
               value={factoryUploadKpis.totalRejected}
               icon={<BlockOutlined size={20} />}
               iconColor="error"
+              onClick={() => setStatFilter('rejected')}
             />
           )}
         </Grid>
@@ -282,13 +267,16 @@ export function FactoryUploadListPage() {
       <CommonTable
         tableKey="factory-upload-list"
         columns={columns}
-        rows={batches}
+        rows={displayedBatches}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by batch number…"
         searchKeys={(row) => row.batchNumber}
         onFilterClick={() => setFilterOpen(true)}
-        filterCount={appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0}
+        filterCount={
+          (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0) +
+          (statFilter !== 'all' ? 1 : 0)
+        }
         onExportClick={() => {}}
         defaultSortBy="batchDate"
         defaultSortDir="desc"
@@ -300,8 +288,18 @@ export function FactoryUploadListPage() {
           },
           { label: 'Delete Batch', onClick: () => {}, danger: true },
         ]}
-        emptyTitle="No batches found"
-        emptyDescription="Try adjusting your filters or search terms."
+        emptyTitle={
+          statFilter === 'containers'
+            ? 'No batches with containers packed yet'
+            : statFilter === 'rejected'
+              ? 'No rejected batches'
+              : 'No batches found'
+        }
+        emptyDescription={
+          statFilter === 'all'
+            ? 'Try adjusting your filters or search terms.'
+            : 'Try a different stat card or clear the filter.'
+        }
       />
 
       <FilterDrawer<BatchFilters>
@@ -336,42 +334,6 @@ export function FactoryUploadListPage() {
           </Stack>
         )}
       </FilterDrawer>
-
-      <Dialog
-        open={uploadOpen}
-        onClose={() => setUploadOpen(false)}
-        fullWidth
-        fullScreen={isMobile}
-        maxWidth="lg"
-        slotProps={{
-          paper: { sx: { borderRadius: isMobile ? 0 : `${radius.xl}px` } },
-        }}
-      >
-        <Stack
-          direction="row"
-          sx={{
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            px: 3,
-            pt: 3,
-            pb: 1,
-          }}
-        >
-          <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
-            Upload Manifest
-          </Typography>
-          <IconButton
-            onClick={() => setUploadOpen(false)}
-            size="small"
-            aria-label="Close"
-          >
-            <X size={20} />
-          </IconButton>
-        </Stack>
-        <DialogContent sx={{ px: 3, pb: 3 }}>
-          <BatchUidUploadTab onImported={handleImported} />
-        </DialogContent>
-      </Dialog>
     </>
   )
 }

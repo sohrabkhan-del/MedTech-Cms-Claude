@@ -69,7 +69,7 @@ export function PartnerSummaryHeader({
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
                 <Typography variant="caption" sx={{ display: 'block' }}>
-                  Wallet Points
+                  Points Earned
                 </Typography>
                 <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'primary.main' }}>
                   {partner.availableCoins.toLocaleString('en-IN')}

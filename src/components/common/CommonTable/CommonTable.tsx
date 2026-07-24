@@ -35,7 +35,7 @@ import {
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { SkeletonLoader } from '@/components/common/SkeletonLoader/SkeletonLoader'
 import { ImportPreviewDialog } from '@/components/common/CommonTable/ImportPreviewDialog'
-import { exportRowsToCsv, parseImportFile, type ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
+import { exportRowsToXlsx, parseImportFile, type ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 
 export interface CommonTableCreateAction {
@@ -80,8 +80,8 @@ interface CommonTableProps<T> {
   filterCount?: number
   /** Shows the Export button. Downloads the currently visible columns/rows as CSV; pass a function to run extra logic after the download starts. */
   onExportClick?: () => void
-  /** Shows the Import button. Parses the chosen file and opens a read-only preview; pass a function to run extra logic once parsing succeeds. */
-  onImportClick?: () => void
+  /** Shows the Import button. Parses the chosen file, opens a preview, and calls this with the parsed rows when the user confirms the import. */
+  onImportClick?: (parsed: ParsedImportFile) => void
   /** When provided, makes each row clickable (hover highlight + pointer cursor) and calls this with the clicked row. */
   onRowClick?: (row: T) => void
   createAction?: CommonTableCreateAction
@@ -194,7 +194,7 @@ export function CommonTable<T>({
   }
 
   const handleExport = () => {
-    exportRowsToCsv(visibleColumns, sortedRows, tableKey)
+    exportRowsToXlsx(visibleColumns, sortedRows, tableKey)
     onExportClick?.()
   }
 
@@ -215,10 +215,14 @@ export function CommonTable<T>({
     try {
       const parsed = await parseImportFile(file)
       setImportParsed(parsed)
-      onImportClick?.()
     } catch (err) {
       setImportError(err instanceof Error ? err.message : 'Could not parse the file.')
     }
+  }
+
+  const handleImportConfirm = () => {
+    if (importParsed) onImportClick?.(importParsed)
+    setImportOpen(false)
   }
 
   return (
@@ -307,14 +311,14 @@ export function CommonTable<T>({
               <input
                 ref={importInputRef}
                 type="file"
-                accept=".csv,.xlsx,.xls"
+                accept=".xlsx,.xls"
                 hidden
                 onChange={handleImportFileChange}
               />
-              <Tooltip title="Import from CSV or Excel">
+              <Tooltip title="Import from Excel">
                 <IconButton
                   onClick={handleImportClick}
-                  aria-label="Import CSV"
+                  aria-label="Import Excel"
                   size="small"
                   sx={{
                     border: '1px solid',
@@ -330,10 +334,10 @@ export function CommonTable<T>({
             </>
           )}
           {onExportClick && (
-            <Tooltip title="Export visible rows to CSV">
+            <Tooltip title="Export visible rows to Excel">
               <IconButton
                 onClick={handleExport}
-                aria-label="Export CSV"
+                aria-label="Export Excel"
                 size="small"
                 sx={{
                   border: '1px solid',
@@ -389,7 +393,13 @@ export function CommonTable<T>({
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
-                              display: 'block',
+                              display: 'flex',
+                              justifyContent:
+                                col.align === 'center'
+                                  ? 'center'
+                                  : col.align === 'right'
+                                    ? 'flex-end'
+                                    : 'flex-start',
                             }}
                           >
                             {col.sortable ? (
@@ -503,6 +513,7 @@ export function CommonTable<T>({
         <ImportPreviewDialog
           open={importOpen}
           onClose={() => setImportOpen(false)}
+          onConfirm={handleImportConfirm}
           fileName={importFileName}
           parsed={importParsed}
           error={importError}

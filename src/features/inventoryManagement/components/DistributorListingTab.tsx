@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import { Truck, MapPin as MapPinOutlined, Building2 } from 'lucide-react'
+import { Grid, Stack, TextField, Typography } from '@mui/material'
+import { Truck, FileText, Package } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
@@ -9,25 +9,17 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
-import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
-import type { DistributorRecord } from '@/types/distributorUpload'
+import type { DispatchInvoice } from '@/types/distributorUpload'
 
-interface DistributorListingFilters extends Record<string, unknown> {
-  region: DistributorRecord['region'] | 'all'
-  city: string
+interface DispatchListingFilters extends Record<string, unknown> {
+  customerName: string
+  transporter: string
 }
 
 interface DistributorListingTabProps {
-  distributors: DistributorRecord[]
+  distributors: DispatchInvoice[]
   isLoading: boolean
 }
-
-const regions: DistributorRecord['region'][] = [
-  'North',
-  'South',
-  'East',
-  'West',
-]
 
 export function DistributorListingTab({
   distributors,
@@ -35,42 +27,41 @@ export function DistributorListingTab({
 }: DistributorListingTabProps) {
   const navigate = useNavigate()
   const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] =
-    useState<DistributorListingFilters>({ region: 'all', city: '' })
+  const [appliedFilters, setAppliedFilters] = useState<DispatchListingFilters>({
+    customerName: '',
+    transporter: '',
+  })
 
-  const cityCount = useMemo(
-    () => new Set(distributors.map((d) => d.city)).size,
+  const totalBoxes = useMemo(
+    () => distributors.reduce((sum, invoice) => sum + invoice.totalBoxQty, 0),
     [distributors],
   )
 
-  const filteredDistributors = useMemo(
+  const filteredInvoices = useMemo(
     () =>
-      distributors.filter((d) => {
-        const regionMatch =
-          appliedFilters.region === 'all' || d.region === appliedFilters.region
-        const cityMatch =
-          !appliedFilters.city ||
-          d.city.toLowerCase().includes(appliedFilters.city.toLowerCase())
-        return regionMatch && cityMatch
+      distributors.filter((invoice) => {
+        const customerMatch =
+          !appliedFilters.customerName ||
+          invoice.customerName
+            .toLowerCase()
+            .includes(appliedFilters.customerName.toLowerCase())
+        const transporterMatch =
+          !appliedFilters.transporter ||
+          invoice.transporter
+            .toLowerCase()
+            .includes(appliedFilters.transporter.toLowerCase())
+        return customerMatch && transporterMatch
       }),
     [distributors, appliedFilters],
   )
 
-  const columns: CommonTableColumn<DistributorRecord>[] = [
+  const columns: CommonTableColumn<DispatchInvoice>[] = [
     {
-      key: 'distributorCode',
-      header: 'Distributor Code',
-      minWidth: 130,
+      key: 'invoiceNo',
+      header: 'Invoice No.',
+      minWidth: 150,
       sortable: true,
-      sortValue: (row) => row.distributorCode,
-      render: (row) => row.distributorCode,
-    },
-    {
-      key: 'distributorName',
-      header: 'Distributor Name',
-      minWidth: 200,
-      sortable: true,
-      sortValue: (row) => row.distributorName,
+      sortValue: (row) => row.invoiceNo,
       render: (row) => (
         <Typography
           sx={{
@@ -81,55 +72,47 @@ export function DistributorListingTab({
           }}
           onClick={() => navigate(`/distributor-upload/${row.id}`)}
         >
-          {row.distributorName}
+          {row.invoiceNo}
         </Typography>
       ),
     },
     {
-      key: 'contactPerson',
-      header: 'Contact Person',
-      minWidth: 150,
-      render: (row) => row.contactPerson,
+      key: 'customerName',
+      header: 'Customer Name',
+      minWidth: 190,
+      sortable: true,
+      sortValue: (row) => row.customerName,
+      render: (row) => row.customerName,
     },
     {
-      key: 'phone',
-      header: 'Phone',
+      key: 'transporter',
+      header: 'Transporter',
+      minWidth: 170,
+      sortable: true,
+      sortValue: (row) => row.transporter,
+      render: (row) => row.transporter,
+    },
+    {
+      key: 'totalBoxQty',
+      header: 'Total Box Qty',
+      align: 'center',
       minWidth: 120,
-      render: (row) => row.phone,
-    },
-    {
-      key: 'city',
-      header: 'City',
-      minWidth: 110,
       sortable: true,
-      sortValue: (row) => row.city,
-      render: (row) => row.city,
+      sortValue: (row) => row.totalBoxQty,
+      render: (row) => row.totalBoxQty.toLocaleString('en-IN'),
     },
     {
-      key: 'region',
-      header: 'Region',
-      minWidth: 100,
-      sortable: true,
-      sortValue: (row) => row.region,
-      render: (row) => row.region,
-    },
-    {
-      key: 'gstNumber',
-      header: 'GST Number',
-      minWidth: 160,
-      render: (row) => row.gstNumber,
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      minWidth: 110,
-      render: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-      key: 'uploadedDate',
-      header: 'Uploaded Date',
+      key: 'vehicleNo',
+      header: 'Vehicle No.',
       minWidth: 130,
-      render: (row) => row.uploadedDate,
+      render: (row) => row.vehicleNo || '—',
+    },
+    {
+      key: 'date',
+      header: 'Date',
+      minWidth: 120,
+      sortable: true,
+      render: (row) => row.date,
     },
   ]
 
@@ -141,9 +124,9 @@ export function DistributorListingTab({
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Distributors"
+              label="Total Invoices"
               value={distributors.length}
-              icon={<Truck size={20} />}
+              icon={<FileText size={20} />}
               iconColor="primary"
             />
           )}
@@ -153,9 +136,9 @@ export function DistributorListingTab({
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Cities Covered"
-              value={cityCount}
-              icon={<MapPinOutlined size={20} />}
+              label="Total Box Qty"
+              value={totalBoxes.toLocaleString('en-IN')}
+              icon={<Package size={20} />}
               iconColor="secondary"
             />
           )}
@@ -165,9 +148,9 @@ export function DistributorListingTab({
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Regions Covered"
-              value={new Set(distributors.map((d) => d.region)).size}
-              icon={<Building2 size={20} />}
+              label="Transporters Used"
+              value={new Set(distributors.map((d) => d.transporter)).size}
+              icon={<Truck size={20} />}
               iconColor="success"
             />
           )}
@@ -177,17 +160,17 @@ export function DistributorListingTab({
       <CommonTable
         tableKey="distributor-listing"
         columns={columns}
-        rows={filteredDistributors}
+        rows={filteredInvoices}
         loading={isLoading}
         getRowId={(row) => row.id}
-        searchPlaceholder="Search by distributor name, code or city…"
+        searchPlaceholder="Search by customer name, invoice no. or transporter…"
         searchKeys={(row) =>
-          `${row.distributorName} ${row.distributorCode} ${row.city}`
+          `${row.customerName} ${row.invoiceNo} ${row.transporter}`
         }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          (appliedFilters.region !== 'all' ? 1 : 0) +
-          (appliedFilters.city ? 1 : 0)
+          (appliedFilters.customerName ? 1 : 0) +
+          (appliedFilters.transporter ? 1 : 0)
         }
         actions={[
           {
@@ -196,53 +179,43 @@ export function DistributorListingTab({
           },
         ]}
         onExportClick={() => {}}
-        defaultSortBy="distributorName"
+        defaultSortBy="date"
+        defaultSortDir="desc"
         emptyTitle={
           distributors.length === 0
-            ? 'No distributors uploaded yet'
-            : 'No distributors found'
+            ? 'No dispatch invoices uploaded yet'
+            : 'No invoices found'
         }
         emptyDescription={
           distributors.length === 0
-            ? 'Use "Upload Distributor Batches" to import distributor master data.'
+            ? 'Use "Upload Distributor Batches" to import a dispatch loading report.'
             : 'Try adjusting your filters or search terms.'
         }
       />
 
-      <FilterDrawer<DistributorListingFilters>
+      <FilterDrawer<DispatchListingFilters>
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
-        title="Filter Distributors"
+        title="Filter Invoices"
         value={appliedFilters}
         onApply={setAppliedFilters}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <TextField
-              select
-              label="Region"
+              label="Customer Name"
               size="small"
-              value={draft.region}
+              value={draft.customerName}
               onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  region: e.target.value as DistributorListingFilters['region'],
-                }))
+                setDraft((prev) => ({ ...prev, customerName: e.target.value }))
               }
-            >
-              <MenuItem value="all">All Regions</MenuItem>
-              {regions.map((region) => (
-                <MenuItem key={region} value={region}>
-                  {region}
-                </MenuItem>
-              ))}
-            </TextField>
+            />
             <TextField
-              label="City"
+              label="Transporter"
               size="small"
-              value={draft.city}
+              value={draft.transporter}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, city: e.target.value }))
+                setDraft((prev) => ({ ...prev, transporter: e.target.value }))
               }
             />
           </Stack>

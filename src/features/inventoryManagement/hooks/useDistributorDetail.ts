@@ -1,20 +1,20 @@
 import { useEffect, useReducer } from 'react'
 import { distributorUploadService } from '@/features/inventoryManagement/services/distributorUploadService'
-import type { DistributorRecord } from '@/types/distributorUpload'
+import type { DispatchInvoice } from '@/types/distributorUpload'
 
 interface State {
-  distributor: DistributorRecord | undefined
+  invoice: DispatchInvoice | undefined
   isLoading: boolean
   error: string | null
 }
 
 type Action =
   | { type: 'loading' }
-  | { type: 'succeeded'; distributor: DistributorRecord | undefined }
+  | { type: 'succeeded'; invoice: DispatchInvoice | undefined }
   | { type: 'failed'; error: string }
 
 const initialState: State = {
-  distributor: undefined,
+  invoice: undefined,
   isLoading: false,
   error: null,
 }
@@ -22,40 +22,40 @@ const initialState: State = {
 function reducer(_state: State, action: Action): State {
   switch (action.type) {
     case 'loading':
-      return { distributor: undefined, isLoading: true, error: null }
+      return { invoice: undefined, isLoading: true, error: null }
     case 'succeeded':
-      return { distributor: action.distributor, isLoading: false, error: null }
+      return { invoice: action.invoice, isLoading: false, error: null }
     case 'failed':
-      return { distributor: undefined, isLoading: false, error: action.error }
+      return { invoice: undefined, isLoading: false, error: action.error }
   }
 }
 
-export function useDistributorDetail(distributorId: string | undefined) {
+export function useDistributorDetail(invoiceId: string | undefined) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   useEffect(() => {
-    if (!distributorId) return
+    if (!invoiceId) return
 
     let cancelled = false
     dispatch({ type: 'loading' })
 
     distributorUploadService
-      .getDistributorDetail(distributorId)
-      .then((distributor) => {
-        if (!cancelled) dispatch({ type: 'succeeded', distributor })
+      .getDispatchInvoiceDetail(invoiceId)
+      .then((invoice) => {
+        if (!cancelled) dispatch({ type: 'succeeded', invoice })
       })
       .catch((err: Error) => {
         if (!cancelled)
           dispatch({
             type: 'failed',
-            error: err.message ?? 'Failed to load distributor.',
+            error: err.message ?? 'Failed to load dispatch invoice.',
           })
       })
 
     return () => {
       cancelled = true
     }
-  }, [distributorId])
+  }, [invoiceId])
 
   return state
 }

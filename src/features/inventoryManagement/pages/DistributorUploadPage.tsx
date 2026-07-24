@@ -13,18 +13,20 @@ import { radius } from '@/theme/tokens'
 import { DistributorUploadTab } from '@/features/inventoryManagement/components/DistributorUploadTab'
 import { DistributorListingTab } from '@/features/inventoryManagement/components/DistributorListingTab'
 import { useDistributors } from '@/features/inventoryManagement/hooks/useDistributors'
-import type { DistributorUploadRow } from '@/types/distributorUpload'
+import type { DispatchInvoiceMeta } from '@/features/inventoryManagement/dispatchReportParser'
+import type { DispatchUploadRow } from '@/types/distributorUpload'
 
 export function DistributorUploadPage() {
   const isMobile = useIsMobile()
   const [uploadOpen, setUploadOpen] = useState(false)
-  const { distributors, isLoading, importDistributors } = useDistributors()
+  const { invoices, isLoading, importDispatch } = useDistributors()
 
   async function handleImported(
-    rows: DistributorUploadRow[],
+    rows: DispatchUploadRow[],
     uploadFileName: string,
+    invoiceMeta: DispatchInvoiceMeta,
   ) {
-    await importDistributors(rows, uploadFileName)
+    await importDispatch(rows, uploadFileName, invoiceMeta)
   }
 
   return (
@@ -56,8 +58,8 @@ export function DistributorUploadPage() {
           <Stack>
             <Typography variant="h1">Distributor Upload</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Import distributor master data via Excel and manage the
-              distributor directory.
+              Import dispatch loading reports via Excel and track shipments to
+              distributors.
             </Typography>
           </Stack>
         </Stack>
@@ -72,7 +74,7 @@ export function DistributorUploadPage() {
       </Stack>
 
       <DistributorListingTab
-        distributors={distributors}
+        distributors={invoices}
         isLoading={isLoading}
       />
 
@@ -108,7 +110,10 @@ export function DistributorUploadPage() {
           </IconButton>
         </Stack>
         <DialogContent sx={{ px: 3, pb: 3 }}>
-          <DistributorUploadTab onImported={handleImported} />
+          <DistributorUploadTab
+            onImported={handleImported}
+            onDone={() => setUploadOpen(false)}
+          />
         </DialogContent>
       </Dialog>
     </>

@@ -1,43 +1,76 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Stack, TextField, Typography } from '@mui/material'
-import { ClipboardCheck as RuleIcon, CircleCheck as CheckCircleOutlined, XCircle as CancelOutlined, MapPin as PlaceOutlined, Download as DownloadOutlined } from 'lucide-react'
+import {
+  ClipboardCheck as RuleIcon,
+  CircleCheck as CheckCircleOutlined,
+  XCircle as CancelOutlined,
+  MapPin as PlaceOutlined,
+  Download as DownloadOutlined,
+} from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
-import type { DocumentVerificationStatus, RequestDocument } from '@/features/userManagement/types/userManagement.types'
+import type {
+  DocumentVerificationStatus,
+  RequestDocument,
+} from '@/features/userManagement/types/userManagement.types'
 
-const DOC_STATUS_CONFIG: Record<DocumentVerificationStatus, { label: string; color: 'success' | 'warning' | 'error' }> = {
+const DOC_STATUS_CONFIG: Record<
+  DocumentVerificationStatus,
+  { label: string; color: 'success' | 'warning' | 'error' }
+> = {
   verified: { label: 'Verified', color: 'success' },
   pending: { label: 'Pending', color: 'warning' },
   rejected: { label: 'Rejected', color: 'error' },
 }
 
 const documentColumns: CommonTableColumn<RequestDocument>[] = [
-  { key: 'documentName', header: 'Document Name', render: (row) => row.documentName },
-  { key: 'uploadDate', header: 'Upload Date', sortable: true, render: (row) => row.uploadDate },
+  {
+    key: 'documentName',
+    header: 'Document Name',
+    render: (row) => row.documentName,
+  },
+  {
+    key: 'uploadDate',
+    header: 'Upload Date',
+    sortable: true,
+    render: (row) => row.uploadDate,
+  },
   {
     key: 'verificationStatus',
     header: 'Status',
     sortable: true,
     sortValue: (row) => DOC_STATUS_CONFIG[row.verificationStatus].label,
     render: (row) => (
-      <Chip label={DOC_STATUS_CONFIG[row.verificationStatus].label} size="small" color={DOC_STATUS_CONFIG[row.verificationStatus].color} variant="filled" />
+      <Chip
+        label={DOC_STATUS_CONFIG[row.verificationStatus].label}
+        size="small"
+        color={DOC_STATUS_CONFIG[row.verificationStatus].color}
+        variant="filled"
+      />
     ),
   },
   {
     key: 'actions',
     header: '',
-    align: 'right',
+    align: 'center',
     hideable: false,
     render: () => (
-      <Button size="small" startIcon={<DownloadOutlined size={20} />} sx={{ fontSize: '0.75rem' }}>
+      <Button
+        size="small"
+        startIcon={<DownloadOutlined size={20} />}
+        sx={{ fontSize: '0.75rem' }}
+      >
         Preview
       </Button>
     ),
@@ -48,7 +81,10 @@ export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
   const { request, decide, isLoading } = useApprovalRequestDetail(requestId)
-  const [dialog, setDialog] = useState<{ open: boolean; action: 'approve' | 'reject' }>({ open: false, action: 'approve' })
+  const [dialog, setDialog] = useState<{
+    open: boolean
+    action: 'approve' | 'reject'
+  }>({ open: false, action: 'approve' })
   const [remarks, setRemarks] = useState('')
 
   if (isLoading) {
@@ -76,16 +112,31 @@ export function ApprovalRequestDetailsPage() {
     setDialog({ open: false, action: 'approve' })
   }
 
-  const auditColumns: CommonTableColumn<(typeof request.auditHistory)[number]>[] = [
+  const auditColumns: CommonTableColumn<
+    (typeof request.auditHistory)[number]
+  >[] = [
     { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
     { key: 'action', header: 'Action', render: (row) => row.action },
-    { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
+    {
+      key: 'performedBy',
+      header: 'Performed By',
+      render: (row) => row.performedBy,
+    },
     { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
   ]
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -138,7 +189,10 @@ export function ApprovalRequestDetailsPage() {
             fields={[
               { label: 'Partner Name', value: request.applicantName },
               { label: 'Partner Type', value: request.requestType },
-              { label: 'Current Status', value: <StatusBadge status={request.status} /> },
+              {
+                label: 'Current Status',
+                value: <StatusBadge status={request.status} />,
+              },
               { label: 'Submitted Date', value: request.submittedDate },
               { label: 'Registered By', value: request.registeredBy },
             ]}
@@ -162,7 +216,10 @@ export function ApprovalRequestDetailsPage() {
         <SectionCard title="Business Information">
           <DetailFieldGrid
             fields={[
-              { label: 'Drug License Number', value: request.drugLicenseNumber },
+              {
+                label: 'Drug License Number',
+                value: request.drugLicenseNumber,
+              },
               { label: 'GST Number', value: request.gstNumber ?? '—' },
               { label: 'Registration Source', value: request.registeredBy },
             ]}
@@ -195,9 +252,21 @@ export function ApprovalRequestDetailsPage() {
                 label: 'Geo Verification Status',
                 value: (
                   <Chip
-                    label={request.geoVerificationStatus === 'verified' ? 'Verified' : request.geoVerificationStatus === 'flagged' ? 'Flagged' : 'Unverified'}
+                    label={
+                      request.geoVerificationStatus === 'verified'
+                        ? 'Verified'
+                        : request.geoVerificationStatus === 'flagged'
+                          ? 'Flagged'
+                          : 'Unverified'
+                    }
                     size="small"
-                    color={request.geoVerificationStatus === 'verified' ? 'success' : request.geoVerificationStatus === 'flagged' ? 'error' : 'warning'}
+                    color={
+                      request.geoVerificationStatus === 'verified'
+                        ? 'success'
+                        : request.geoVerificationStatus === 'flagged'
+                          ? 'error'
+                          : 'warning'
+                    }
                     variant="filled"
                   />
                 ),
@@ -221,7 +290,10 @@ export function ApprovalRequestDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Approval Timeline">
-          <ActivityTimeline entries={request.timeline} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={request.timeline}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
 
         <SectionCard title="Audit History">
@@ -232,7 +304,9 @@ export function ApprovalRequestDetailsPage() {
             loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search audit history…"
-            searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}
+            searchKeys={(row) =>
+              `${row.action} ${row.performedBy} ${row.remarks}`
+            }
             defaultSortBy="date"
             emptyTitle="No audit records yet"
           />
@@ -242,7 +316,9 @@ export function ApprovalRequestDetailsPage() {
       <Modal
         open={dialog.open}
         onClose={() => setDialog({ open: false, action: 'approve' })}
-        title={dialog.action === 'approve' ? 'Approve Request' : 'Reject Request'}
+        title={
+          dialog.action === 'approve' ? 'Approve Request' : 'Reject Request'
+        }
         description={
           dialog.action === 'approve'
             ? 'The applicant will be activated and eligible for login and reward activities.'
@@ -257,7 +333,11 @@ export function ApprovalRequestDetailsPage() {
           multiline
           minRows={3}
           size="small"
-          label={dialog.action === 'approve' ? 'Remarks (optional)' : 'Rejection Reason'}
+          label={
+            dialog.action === 'approve'
+              ? 'Remarks (optional)'
+              : 'Rejection Reason'
+          }
           required={dialog.action === 'reject'}
           value={remarks}
           onChange={(e) => setRemarks(e.target.value)}

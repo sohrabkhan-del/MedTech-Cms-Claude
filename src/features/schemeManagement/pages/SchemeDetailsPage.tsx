@@ -20,14 +20,25 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useSchemeDetail } from '@/features/schemeManagement/hooks/useSchemeDetail'
-import type { Scheme, SchemeAuditEntry, SchemeEligibleProduct, SchemeStatus } from '@/features/schemeManagement/types/schemeManagement.types'
+import type {
+  Scheme,
+  SchemeAuditEntry,
+  SchemeEligibleProduct,
+  SchemeStatus,
+} from '@/features/schemeManagement/types/schemeManagement.types'
 
-const statusConfig: Record<SchemeStatus, { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }> = {
+const statusConfig: Record<
+  SchemeStatus,
+  { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }
+> = {
   active: { label: 'Active', color: 'success' },
   inactive: { label: 'Inactive', color: 'default' },
   expired: { label: 'Expired', color: 'error' },
@@ -36,25 +47,74 @@ const statusConfig: Record<SchemeStatus, { label: string; color: 'success' | 'de
 }
 
 const eligibleProductColumns: CommonTableColumn<SchemeEligibleProduct>[] = [
-  { key: 'productCode', header: 'Product Code', minWidth: 130, render: (row) => row.productCode },
-  { key: 'productName', header: 'Product Name', minWidth: 190, sortable: true, sortValue: (row) => row.productName, render: (row) => row.productName },
-  { key: 'productCategory', header: 'Product Category', minWidth: 150, render: (row) => row.productCategory },
-  { key: 'productBrand', header: 'Product Brand', minWidth: 150, render: (row) => row.productBrand },
-  { key: 'bonusPoints', header: 'Bonus Points', align: 'right', sortable: true, sortValue: (row) => row.bonusPoints, render: (row) => row.bonusPoints },
-  { key: 'status', header: 'Status', render: (row) => <Chip size="small" label={row.status === 'active' ? 'Active' : 'Inactive'} color={row.status === 'active' ? 'success' : 'default'} /> },
+  {
+    key: 'productCode',
+    header: 'Product Code',
+    minWidth: 130,
+    render: (row) => row.productCode,
+  },
+  {
+    key: 'productName',
+    header: 'Product Name',
+    minWidth: 190,
+    sortable: true,
+    sortValue: (row) => row.productName,
+    render: (row) => row.productName,
+  },
+  {
+    key: 'productCategory',
+    header: 'Product Category',
+    minWidth: 150,
+    render: (row) => row.productCategory,
+  },
+  {
+    key: 'productBrand',
+    header: 'Product Brand',
+    minWidth: 150,
+    render: (row) => row.productBrand,
+  },
+  {
+    key: 'bonusPoints',
+    header: 'Bonus Points',
+    align: 'center',
+    sortable: true,
+    sortValue: (row) => row.bonusPoints,
+    render: (row) => row.bonusPoints,
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    render: (row) => (
+      <Chip
+        size="small"
+        label={row.status === 'active' ? 'Active' : 'Inactive'}
+        color={row.status === 'active' ? 'success' : 'default'}
+      />
+    ),
+  },
 ]
 
 const auditColumns: CommonTableColumn<SchemeAuditEntry>[] = [
   { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
   { key: 'action', header: 'Action', render: (row) => row.action },
-  { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
-  { key: 'previousValue', header: 'Previous Value', render: (row) => row.previousValue },
+  {
+    key: 'performedBy',
+    header: 'Performed By',
+    render: (row) => row.performedBy,
+  },
+  {
+    key: 'previousValue',
+    header: 'Previous Value',
+    render: (row) => row.previousValue,
+  },
   { key: 'newValue', header: 'New Value', render: (row) => row.newValue },
   { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
 ]
 
 function listPathFor(scheme: Scheme): string {
-  return scheme.schemeCategory === 'general' ? '/scheme-management/schemes/general' : '/scheme-management/schemes/sessional'
+  return scheme.schemeCategory === 'general'
+    ? '/scheme-management/schemes/general'
+    : '/scheme-management/schemes/sessional'
 }
 
 export function SchemeDetailsPage() {
@@ -88,7 +148,16 @@ export function SchemeDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -107,27 +176,58 @@ export function SchemeDetailsPage() {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{scheme.schemeName}</Typography>
-              <Chip size="small" label={statusConfig[scheme.status].label} color={statusConfig[scheme.status].color} />
+              <Chip
+                size="small"
+                label={statusConfig[scheme.status].label}
+                color={statusConfig[scheme.status].color}
+              />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {scheme.id} · {scheme.schemeCategory === 'general' ? 'General Scheme' : 'Seasonal Scheme'}
+              {scheme.id} ·{' '}
+              {scheme.schemeCategory === 'general'
+                ? 'General Scheme'
+                : 'Seasonal Scheme'}
             </Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-          <Button variant="outlined" startIcon={<Pencil size={20} />} onClick={() => navigate(`${listPath}/${scheme.id}/edit`)} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<Pencil size={20} />}
+            onClick={() => navigate(`${listPath}/${scheme.id}/edit`)}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Edit Scheme
           </Button>
           {scheme.status !== 'active' ? (
-            <Button variant="outlined" color="success" startIcon={<CircleCheck size={20} />} onClick={() => setStatus('active')} sx={{ fontSize: '0.75rem' }}>
+            <Button
+              variant="outlined"
+              color="success"
+              startIcon={<CircleCheck size={20} />}
+              onClick={() => setStatus('active')}
+              sx={{ fontSize: '0.75rem' }}
+            >
               Activate
             </Button>
           ) : (
-            <Button variant="outlined" color="warning" startIcon={<Ban size={20} />} onClick={() => setStatus('inactive')} sx={{ fontSize: '0.75rem' }}>
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<Ban size={20} />}
+              onClick={() => setStatus('inactive')}
+              sx={{ fontSize: '0.75rem' }}
+            >
               Deactivate
             </Button>
           )}
-          <Button variant="outlined" color="error" startIcon={<Clock3 size={20} />} disabled={scheme.status === 'expired'} onClick={() => setStatus('expired')} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<Clock3 size={20} />}
+            disabled={scheme.status === 'expired'}
+            onClick={() => setStatus('expired')}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Expire
           </Button>
           <Button
@@ -138,10 +238,21 @@ export function SchemeDetailsPage() {
           >
             Clone
           </Button>
-          <Button variant="outlined" color="error" startIcon={<Trash2 size={20} />} onClick={() => setDeleteOpen(true)} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<Trash2 size={20} />}
+            onClick={() => setDeleteOpen(true)}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Delete
           </Button>
-          <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={() => navigate(listPath)} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackOutlined size={20} />}
+            onClick={() => navigate(listPath)}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Back
           </Button>
         </Stack>
@@ -153,45 +264,116 @@ export function SchemeDetailsPage() {
             fields={[
               { label: 'Scheme ID', value: scheme.id },
               { label: 'Scheme Name', value: scheme.schemeName },
-              { label: 'Scheme Category', value: scheme.schemeCategory === 'general' ? 'General' : 'Seasonal' },
+              {
+                label: 'Scheme Category',
+                value:
+                  scheme.schemeCategory === 'general' ? 'General' : 'Seasonal',
+              },
               { label: 'Scheme Type', value: scheme.schemeType },
-              { label: 'Applicable Users', value: scheme.applicableUsers.join(', ') },
+              {
+                label: 'Applicable Users',
+                value: scheme.applicableUsers.join(', '),
+              },
               { label: 'Bonus Value', value: scheme.bonusValue },
               { label: 'Start Date', value: scheme.startDate },
               { label: 'End Date', value: scheme.endDate ?? 'Ongoing' },
-              { label: 'Status', value: <Chip size="small" label={statusConfig[scheme.status].label} color={statusConfig[scheme.status].color} /> },
+              {
+                label: 'Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={statusConfig[scheme.status].label}
+                    color={statusConfig[scheme.status].color}
+                  />
+                ),
+              },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Total Participants"
+                value={scheme.totalParticipants.toLocaleString('en-IN')}
+                icon={<Users size={20} />}
+                iconColor="primary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Total Product Scans"
+                value={scheme.totalProductScans.toLocaleString('en-IN')}
+                icon={<ScanLine size={20} />}
+                iconColor="secondary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Reward Points Issued" value={scheme.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Reward Points Issued"
+                value={scheme.rewardPointsIssued.toLocaleString('en-IN')}
+                icon={<Trophy size={20} />}
+                iconColor="warning"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Completion Rate"
+                value={`${scheme.completionRate}%`}
+                icon={<Gauge size={20} />}
+                iconColor="success"
+              />
+            )}
           </Grid>
         </Grid>
 
         <SectionCard title="Scheme Configuration">
           <DetailFieldGrid
             fields={[
-              { label: 'Scheme Category', value: scheme.schemeCategory === 'general' ? 'General' : 'Seasonal' },
+              {
+                label: 'Scheme Category',
+                value:
+                  scheme.schemeCategory === 'general' ? 'General' : 'Seasonal',
+              },
               { label: 'Scheme Type', value: scheme.schemeType },
-              { label: 'Applicable To', value: scheme.applicableUsers.join(', ') },
-              { label: 'Product List', value: `${scheme.eligibleProducts.length} products` },
+              {
+                label: 'Applicable To',
+                value: scheme.applicableUsers.join(', '),
+              },
+              {
+                label: 'Product List',
+                value: `${scheme.eligibleProducts.length} products`,
+              },
               { label: 'Scan Target', value: scheme.scanTarget },
               { label: 'Bonus Value', value: scheme.bonusValue },
               { label: 'Description', value: scheme.description },
               { label: 'Start Date', value: scheme.startDate },
               { label: 'End Date', value: scheme.endDate ?? 'Ongoing' },
-              { label: 'Status', value: <Chip size="small" label={statusConfig[scheme.status].label} color={statusConfig[scheme.status].color} /> },
+              {
+                label: 'Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={statusConfig[scheme.status].label}
+                    color={statusConfig[scheme.status].color}
+                  />
+                ),
+              },
             ]}
           />
         </SectionCard>
@@ -203,7 +385,10 @@ export function SchemeDetailsPage() {
               { label: 'Bonus Points', value: scheme.bonusPoints },
               { label: 'Multiplier', value: `${scheme.multiplier}x` },
               { label: 'Target Quantity', value: scheme.targetQuantity },
-              { label: 'Maximum Reward', value: scheme.maximumReward.toLocaleString('en-IN') },
+              {
+                label: 'Maximum Reward',
+                value: scheme.maximumReward.toLocaleString('en-IN'),
+              },
               { label: 'Reward Frequency', value: scheme.rewardFrequency },
               { label: 'Stackable', value: scheme.stackable ? 'Yes' : 'No' },
             ]}
@@ -218,7 +403,9 @@ export function SchemeDetailsPage() {
             getRowId={(row) => row.id}
             loading={isLoading}
             searchPlaceholder="Search eligible products…"
-            searchKeys={(row) => `${row.productCode} ${row.productName} ${row.productBrand}`}
+            searchKeys={(row) =>
+              `${row.productCode} ${row.productName} ${row.productBrand}`
+            }
             emptyTitle="No eligible products yet"
           />
         </SectionCard>
@@ -230,17 +417,36 @@ export function SchemeDetailsPage() {
                 <Stack
                   direction="row"
                   spacing={1.5}
-                  sx={{ alignItems: 'center', p: 2, borderRadius: '10px', border: '1px solid', borderColor: 'divider' }}
+                  sx={{
+                    alignItems: 'center',
+                    p: 2,
+                    borderRadius: '10px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
                 >
                   {scheme.applicableUsers.includes(userType) ? (
-                    <CircleCheck size={20} color="var(--mui-palette-success-main, #1E9E5A)" />
+                    <CircleCheck
+                      size={20}
+                      color="var(--mui-palette-success-main, #1E9E5A)"
+                    />
                   ) : (
-                    <Ban size={20} color="var(--mui-palette-text-disabled, #9CA3AF)" />
+                    <Ban
+                      size={20}
+                      color="var(--mui-palette-text-disabled, #9CA3AF)"
+                    />
                   )}
                   <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{userType}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {scheme.applicableUsers.includes(userType) ? 'Eligible' : 'Not Eligible'}
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
+                      {userType}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary' }}
+                    >
+                      {scheme.applicableUsers.includes(userType)
+                        ? 'Eligible'
+                        : 'Not Eligible'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -252,22 +458,61 @@ export function SchemeDetailsPage() {
         <SectionCard title="Performance Summary">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Total Participants"
+                  value={scheme.totalParticipants.toLocaleString('en-IN')}
+                  icon={<Users size={20} />}
+                  iconColor="primary"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Total Product Scans"
+                  value={scheme.totalProductScans.toLocaleString('en-IN')}
+                  icon={<ScanLine size={20} />}
+                  iconColor="secondary"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Reward Points Issued" value={scheme.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Reward Points Issued"
+                  value={scheme.rewardPointsIssued.toLocaleString('en-IN')}
+                  icon={<Trophy size={20} />}
+                  iconColor="warning"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Completion Rate"
+                  value={`${scheme.completionRate}%`}
+                  icon={<Gauge size={20} />}
+                  iconColor="success"
+                />
+              )}
             </Grid>
           </Grid>
         </SectionCard>
 
         <SectionCard title="Scheme Timeline">
-          <ActivityTimeline entries={scheme.timeline} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={scheme.timeline}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
 
         <SectionCard title="Audit History">
@@ -285,7 +530,15 @@ export function SchemeDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Internal Notes">
-          <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>{scheme.internalNotes}</Typography>
+          <Typography
+            sx={{
+              fontSize: '0.8125rem',
+              color: 'text.secondary',
+              lineHeight: 1.6,
+            }}
+          >
+            {scheme.internalNotes}
+          </Typography>
         </SectionCard>
       </Stack>
 

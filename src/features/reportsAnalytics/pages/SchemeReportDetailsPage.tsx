@@ -14,13 +14,19 @@ import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useSchemeReportDetail } from '@/features/reportsAnalytics/hooks/useSchemeReportDetail'
 import type { SchemeEligibleProduct, SchemeStatus } from '@/types/scheme'
 
-const statusConfig: Record<SchemeStatus, { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }> = {
+const statusConfig: Record<
+  SchemeStatus,
+  { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }
+> = {
   active: { label: 'Active', color: 'success' },
   inactive: { label: 'Inactive', color: 'default' },
   expired: { label: 'Expired', color: 'error' },
@@ -29,15 +35,50 @@ const statusConfig: Record<SchemeStatus, { label: string; color: 'success' | 'de
 }
 
 const eligibleProductColumns: CommonTableColumn<SchemeEligibleProduct>[] = [
-  { key: 'productCode', header: 'Product Code', minWidth: 130, render: (row) => row.productCode },
-  { key: 'productName', header: 'Product Name', minWidth: 190, sortable: true, sortValue: (row) => row.productName, render: (row) => row.productName },
-  { key: 'productCategory', header: 'Product Category', minWidth: 150, render: (row) => row.productCategory },
-  { key: 'productBrand', header: 'Product Brand', minWidth: 150, render: (row) => row.productBrand },
-  { key: 'bonusPoints', header: 'Bonus Points', align: 'right', sortable: true, sortValue: (row) => row.bonusPoints, render: (row) => row.bonusPoints },
+  {
+    key: 'productCode',
+    header: 'Product Code',
+    minWidth: 130,
+    render: (row) => row.productCode,
+  },
+  {
+    key: 'productName',
+    header: 'Product Name',
+    minWidth: 190,
+    sortable: true,
+    sortValue: (row) => row.productName,
+    render: (row) => row.productName,
+  },
+  {
+    key: 'productCategory',
+    header: 'Product Category',
+    minWidth: 150,
+    render: (row) => row.productCategory,
+  },
+  {
+    key: 'productBrand',
+    header: 'Product Brand',
+    minWidth: 150,
+    render: (row) => row.productBrand,
+  },
+  {
+    key: 'bonusPoints',
+    header: 'Bonus Points',
+    align: 'center',
+    sortable: true,
+    sortValue: (row) => row.bonusPoints,
+    render: (row) => row.bonusPoints,
+  },
   {
     key: 'status',
     header: 'Status',
-    render: (row) => <Chip size="small" label={row.status === 'active' ? 'Active' : 'Inactive'} color={row.status === 'active' ? 'success' : 'default'} />,
+    render: (row) => (
+      <Chip
+        size="small"
+        label={row.status === 'active' ? 'Active' : 'Inactive'}
+        color={row.status === 'active' ? 'success' : 'default'}
+      />
+    ),
   },
 ]
 
@@ -62,11 +103,23 @@ export function SchemeReportDetailsPage() {
   }
 
   const { scheme } = report
-  const avgRewardPerParticipant = scheme.totalParticipants > 0 ? Math.round(scheme.rewardPointsIssued / scheme.totalParticipants) : 0
+  const avgRewardPerParticipant =
+    scheme.totalParticipants > 0
+      ? Math.round(scheme.rewardPointsIssued / scheme.totalParticipants)
+      : 0
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -85,15 +138,27 @@ export function SchemeReportDetailsPage() {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{report.schemeName}</Typography>
-              <Chip size="small" label={statusConfig[report.status].label} color={statusConfig[report.status].color} />
+              <Chip
+                size="small"
+                label={statusConfig[report.status].label}
+                color={statusConfig[report.status].color}
+              />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {scheme.id} · {report.schemeCategory === 'general' ? 'General Scheme' : 'Seasonal Scheme'}
+              {scheme.id} ·{' '}
+              {report.schemeCategory === 'general'
+                ? 'General Scheme'
+                : 'Seasonal Scheme'}
             </Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-          <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={() => navigate('/reports/scheme-reports')} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackOutlined size={20} />}
+            onClick={() => navigate('/reports/scheme-reports')}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Back
           </Button>
         </Stack>
@@ -105,12 +170,25 @@ export function SchemeReportDetailsPage() {
             fields={[
               { label: 'Scheme ID', value: scheme.id },
               { label: 'Scheme Name', value: report.schemeName },
-              { label: 'Scheme Category', value: report.schemeCategory === 'general' ? 'General' : 'Seasonal' },
+              {
+                label: 'Scheme Category',
+                value:
+                  report.schemeCategory === 'general' ? 'General' : 'Seasonal',
+              },
               { label: 'Scheme Type', value: scheme.schemeType },
               { label: 'Applicable To', value: report.applicableTo },
               { label: 'Start Date', value: report.startDate },
               { label: 'End Date', value: report.endDate ?? 'Ongoing' },
-              { label: 'Status', value: <Chip size="small" label={statusConfig[report.status].label} color={statusConfig[report.status].color} /> },
+              {
+                label: 'Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={statusConfig[report.status].label}
+                    color={statusConfig[report.status].color}
+                  />
+                ),
+              },
             ]}
           />
         </SectionCard>
@@ -122,7 +200,10 @@ export function SchemeReportDetailsPage() {
               { label: 'Bonus Points', value: scheme.bonusPoints },
               { label: 'Multiplier', value: `${scheme.multiplier}x` },
               { label: 'Target Quantity', value: scheme.targetQuantity },
-              { label: 'Maximum Reward', value: scheme.maximumReward.toLocaleString('en-IN') },
+              {
+                label: 'Maximum Reward',
+                value: scheme.maximumReward.toLocaleString('en-IN'),
+              },
               { label: 'Reward Frequency', value: scheme.rewardFrequency },
               { label: 'Stackable', value: scheme.stackable ? 'Yes' : 'No' },
               { label: 'Scan Target', value: scheme.scanTarget },
@@ -137,29 +218,50 @@ export function SchemeReportDetailsPage() {
             rows={scheme.eligibleProducts}
             getRowId={(row) => row.id}
             searchPlaceholder="Search eligible products…"
-            searchKeys={(row) => `${row.productCode} ${row.productName} ${row.productBrand}`}
+            searchKeys={(row) =>
+              `${row.productCode} ${row.productName} ${row.productBrand}`
+            }
             emptyTitle="No eligible products yet"
           />
         </SectionCard>
 
         <SectionCard title="Eligible Users">
           <Grid container spacing={2}>
-            {(['Dealer', 'Chemist', 'MR'] as const).map((userType) => (
-              <Grid key={userType} size={{ xs: 12, sm: 4 }}>
+            {(['Dealer', 'Chemist'] as const).map((userType) => (
+              <Grid key={userType} size={{ xs: 12, sm: 6 }}>
                 <Stack
                   direction="row"
                   spacing={1.5}
-                  sx={{ alignItems: 'center', p: 2, borderRadius: '10px', border: '1px solid', borderColor: 'divider' }}
+                  sx={{
+                    alignItems: 'center',
+                    p: 2,
+                    borderRadius: '10px',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                  }}
                 >
                   {scheme.applicableUsers.includes(userType) ? (
-                    <CircleCheck size={20} color="var(--mui-palette-success-main, #1E9E5A)" />
+                    <CircleCheck
+                      size={20}
+                      color="var(--mui-palette-success-main, #1E9E5A)"
+                    />
                   ) : (
-                    <Ban size={20} color="var(--mui-palette-text-disabled, #9CA3AF)" />
+                    <Ban
+                      size={20}
+                      color="var(--mui-palette-text-disabled, #9CA3AF)"
+                    />
                   )}
                   <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{userType}</Typography>
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {scheme.applicableUsers.includes(userType) ? 'Eligible' : 'Not Eligible'}
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
+                      {userType}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary' }}
+                    >
+                      {scheme.applicableUsers.includes(userType)
+                        ? 'Eligible'
+                        : 'Not Eligible'}
                     </Typography>
                   </Box>
                 </Stack>
@@ -171,16 +273,36 @@ export function SchemeReportDetailsPage() {
         <SectionCard title="Participant Statistics">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />
+              <StatCard
+                label="Total Participants"
+                value={scheme.totalParticipants.toLocaleString('en-IN')}
+                icon={<Users size={20} />}
+                iconColor="primary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />
+              <StatCard
+                label="Total Product Scans"
+                value={scheme.totalProductScans.toLocaleString('en-IN')}
+                icon={<ScanLine size={20} />}
+                iconColor="secondary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />
+              <StatCard
+                label="Completion Rate"
+                value={`${scheme.completionRate}%`}
+                icon={<Gauge size={20} />}
+                iconColor="success"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Avg. Reward / Participant" value={avgRewardPerParticipant.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+              <StatCard
+                label="Avg. Reward / Participant"
+                value={avgRewardPerParticipant.toLocaleString('en-IN')}
+                icon={<Trophy size={20} />}
+                iconColor="warning"
+              />
             </Grid>
           </Grid>
         </SectionCard>
@@ -188,10 +310,22 @@ export function SchemeReportDetailsPage() {
         <SectionCard title="Reward Distribution">
           <DetailFieldGrid
             fields={[
-              { label: 'Reward Points Issued', value: scheme.rewardPointsIssued.toLocaleString('en-IN') },
-              { label: 'Total Product Scans', value: scheme.totalProductScans.toLocaleString('en-IN') },
-              { label: 'Average Reward per Participant', value: avgRewardPerParticipant.toLocaleString('en-IN') },
-              { label: 'Maximum Reward Cap', value: scheme.maximumReward.toLocaleString('en-IN') },
+              {
+                label: 'Reward Points Issued',
+                value: scheme.rewardPointsIssued.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Total Product Scans',
+                value: scheme.totalProductScans.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Average Reward per Participant',
+                value: avgRewardPerParticipant.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Maximum Reward Cap',
+                value: scheme.maximumReward.toLocaleString('en-IN'),
+              },
             ]}
           />
         </SectionCard>
@@ -199,22 +333,45 @@ export function SchemeReportDetailsPage() {
         <SectionCard title="Performance Analytics">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Participants" value={scheme.totalParticipants.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="primary" />
+              <StatCard
+                label="Total Participants"
+                value={scheme.totalParticipants.toLocaleString('en-IN')}
+                icon={<Users size={20} />}
+                iconColor="primary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Product Scans" value={scheme.totalProductScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />
+              <StatCard
+                label="Total Product Scans"
+                value={scheme.totalProductScans.toLocaleString('en-IN')}
+                icon={<ScanLine size={20} />}
+                iconColor="secondary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Reward Points Issued" value={scheme.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+              <StatCard
+                label="Reward Points Issued"
+                value={scheme.rewardPointsIssued.toLocaleString('en-IN')}
+                icon={<Trophy size={20} />}
+                iconColor="warning"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Completion Rate" value={`${scheme.completionRate}%`} icon={<Gauge size={20} />} iconColor="success" />
+              <StatCard
+                label="Completion Rate"
+                value={`${scheme.completionRate}%`}
+                icon={<Gauge size={20} />}
+                iconColor="success"
+              />
             </Grid>
           </Grid>
         </SectionCard>
 
         <SectionCard title="Scheme Timeline">
-          <ActivityTimeline entries={scheme.timeline} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={scheme.timeline}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
 
         <SectionCard title="Completion Report">
@@ -223,7 +380,16 @@ export function SchemeReportDetailsPage() {
               { label: 'Completion Rate', value: `${scheme.completionRate}%` },
               { label: 'Target Quantity', value: scheme.targetQuantity },
               { label: 'Scan Target', value: scheme.scanTarget },
-              { label: 'Scheme Status', value: <Chip size="small" label={statusConfig[report.status].label} color={statusConfig[report.status].color} /> },
+              {
+                label: 'Scheme Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={statusConfig[report.status].label}
+                    color={statusConfig[report.status].color}
+                  />
+                ),
+              },
               { label: 'Start Date', value: report.startDate },
               { label: 'End Date', value: report.endDate ?? 'Ongoing' },
             ]}

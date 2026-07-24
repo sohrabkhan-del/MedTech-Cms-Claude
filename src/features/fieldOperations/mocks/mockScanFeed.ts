@@ -4,7 +4,7 @@ import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 
 const productNames = ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance', 'PainRelief Gel']
-const productCodes = ['PC-20260011', 'PC-20260022', 'PC-20260033', 'PC-20260044', 'PC-20260055']
+const productCodes = ['S0H6-2', 'S0H6-1', 'CU82-S0H6-5-1', 'CU82-S0H6-5-2', 'S0H4-1']
 const devices = ['Android 14 / Chrome 128', 'iOS 18 / Safari 18', 'Android 13 / MedTech App 4.2', 'iOS 17 / MedTech App 4.2']
 const results: ScanResult[] = [
   'success',
@@ -50,10 +50,18 @@ function isSuccess(result: ScanResult): boolean {
   return result === 'success'
 }
 
+function buildScanCode(seed: number, productCode: string): string {
+  const yearMonth = `25${pad(((seed % 12) + 1))}`
+  const sequence = String((seed * 37) % 100000).padStart(5, '0')
+  const suffix = String(100000 + ((seed * 6151) % 900000))
+  return `${productCode}-${yearMonth}-${sequence}_${suffix}`
+}
+
 function buildScanEvent(seed: number): ScanEvent {
   const user = scanUsers[seed % scanUsers.length]!
   const result = results[seed % results.length]!
   const success = isSuccess(result)
+  const productCode = productCodes[seed % productCodes.length]!
 
   return {
     id: `scan-${seed}`,
@@ -62,9 +70,9 @@ function buildScanEvent(seed: number): ScanEvent {
     userName: user.name,
     userRole: user.role,
     businessName: user.businessName,
-    scanCode: `SC-${100000 + seed * 11}`,
+    scanCode: buildScanCode(seed, productCode),
     productName: productNames[seed % productNames.length]!,
-    productCode: productCodes[seed % productCodes.length]!,
+    productCode,
     batchNumber: `BATCH-${2026000 + seed * 3}`,
     region: user.partner.zone,
     result,
@@ -107,6 +115,7 @@ export function generateLiveScanEvent(): ScanEvent {
   const success = isSuccess(result)
   const now = new Date()
   const scanDateTimeLabel = `${pad(now.getDate())} Jul 2026, ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`
+  const productCode = productCodes[seed % productCodes.length]!
 
   const scanEvent: ScanEvent = {
     id: `scan-live-${seed}`,
@@ -115,9 +124,9 @@ export function generateLiveScanEvent(): ScanEvent {
     userName: user.name,
     userRole: user.role,
     businessName: user.businessName,
-    scanCode: `SC-${100000 + seed * 11}`,
+    scanCode: buildScanCode(seed, productCode),
     productName: productNames[seed % productNames.length]!,
-    productCode: productCodes[seed % productCodes.length]!,
+    productCode,
     batchNumber: `BATCH-${2026000 + seed * 3}`,
     region: user.partner.zone,
     result,

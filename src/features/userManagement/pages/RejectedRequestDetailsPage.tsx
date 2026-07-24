@@ -1,43 +1,76 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Stack, Typography } from '@mui/material'
-import { Ban as BlockIcon, RotateCcw as RestoreOutlined, CircleCheck as CheckCircleOutlined, Trash2 as DeleteOutlined, Download as DownloadOutlined } from 'lucide-react'
+import {
+  Ban as BlockIcon,
+  RotateCcw as RestoreOutlined,
+  CircleCheck as CheckCircleOutlined,
+  Trash2 as DeleteOutlined,
+  Download as DownloadOutlined,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
 import { verificationService } from '@/features/userManagement/services/verificationService'
-import type { DocumentVerificationStatus, RequestDocument } from '@/features/userManagement/types/userManagement.types'
+import type {
+  DocumentVerificationStatus,
+  RequestDocument,
+} from '@/features/userManagement/types/userManagement.types'
 
-const DOC_STATUS_CONFIG: Record<DocumentVerificationStatus, { label: string; color: 'success' | 'warning' | 'error' }> = {
+const DOC_STATUS_CONFIG: Record<
+  DocumentVerificationStatus,
+  { label: string; color: 'success' | 'warning' | 'error' }
+> = {
   verified: { label: 'Verified', color: 'success' },
   pending: { label: 'Pending', color: 'warning' },
   rejected: { label: 'Rejected', color: 'error' },
 }
 
 const documentColumns: CommonTableColumn<RequestDocument>[] = [
-  { key: 'documentName', header: 'Document Name', render: (row) => row.documentName },
-  { key: 'uploadDate', header: 'Upload Date', sortable: true, render: (row) => row.uploadDate },
+  {
+    key: 'documentName',
+    header: 'Document Name',
+    render: (row) => row.documentName,
+  },
+  {
+    key: 'uploadDate',
+    header: 'Upload Date',
+    sortable: true,
+    render: (row) => row.uploadDate,
+  },
   {
     key: 'verificationStatus',
     header: 'Status',
     sortable: true,
     sortValue: (row) => DOC_STATUS_CONFIG[row.verificationStatus].label,
     render: (row) => (
-      <Chip label={DOC_STATUS_CONFIG[row.verificationStatus].label} size="small" color={DOC_STATUS_CONFIG[row.verificationStatus].color} variant="filled" />
+      <Chip
+        label={DOC_STATUS_CONFIG[row.verificationStatus].label}
+        size="small"
+        color={DOC_STATUS_CONFIG[row.verificationStatus].color}
+        variant="filled"
+      />
     ),
   },
   {
     key: 'actions',
     header: '',
-    align: 'right',
+    align: 'center',
     hideable: false,
     render: () => (
-      <Button size="small" startIcon={<DownloadOutlined size={20} />} sx={{ fontSize: '0.75rem' }}>
+      <Button
+        size="small"
+        startIcon={<DownloadOutlined size={20} />}
+        sx={{ fontSize: '0.75rem' }}
+      >
         Download
       </Button>
     ),
@@ -77,20 +110,42 @@ export function RejectedRequestDetailsPage() {
     navigate('/verification/rejected-requests')
   }
 
-  const auditColumns: CommonTableColumn<(typeof request.auditHistory)[number]>[] = [
+  const auditColumns: CommonTableColumn<
+    (typeof request.auditHistory)[number]
+  >[] = [
     { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
     { key: 'action', header: 'Action', render: (row) => row.action },
-    { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
+    {
+      key: 'performedBy',
+      header: 'Performed By',
+      render: (row) => row.performedBy,
+    },
     { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
   ]
 
   const timelineEntries = reopened
-    ? [...request.timeline, { id: `${request.id}-reopened`, activity: 'Reopened', dateTime: 'Moved back to Approval Requests for review' }]
+    ? [
+        ...request.timeline,
+        {
+          id: `${request.id}-reopened`,
+          activity: 'Reopened',
+          dateTime: 'Moved back to Approval Requests for review',
+        },
+      ]
     : request.timeline
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -124,13 +179,29 @@ export function RejectedRequestDetailsPage() {
           >
             {reopened ? 'Reopened' : 'Reopen Request'}
           </Button>
-          <Button variant="outlined" color="primary" startIcon={<CheckCircleOutlined size={20} />} disabled={reopened} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            color="primary"
+            startIcon={<CheckCircleOutlined size={20} />}
+            disabled={reopened}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Approve
           </Button>
-          <Button variant="outlined" color="error" startIcon={<DeleteOutlined size={20} />} onClick={() => setDeleteOpen(true)} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteOutlined size={20} />}
+            onClick={() => setDeleteOpen(true)}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Delete
           </Button>
-          <Button variant="outlined" startIcon={<DownloadOutlined size={20} />} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadOutlined size={20} />}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Download Documents
           </Button>
         </Stack>
@@ -145,12 +216,22 @@ export function RejectedRequestDetailsPage() {
               { label: 'User Type', value: request.requestType },
               { label: 'Shop Name', value: request.storeName },
               { label: 'Owner Name', value: request.ownerName },
-              { label: 'Contact Details', value: `${request.mobileNumber} · ${request.email}` },
+              {
+                label: 'Contact Details',
+                value: `${request.mobileNumber} · ${request.email}`,
+              },
               { label: 'Region', value: request.region },
               { label: 'Submitted Date', value: request.submittedDate },
               {
                 label: 'Current Status',
-                value: <Chip label={reopened ? 'Reopened (Pending)' : 'Rejected'} size="small" color={reopened ? 'warning' : 'error'} variant="filled" />,
+                value: (
+                  <Chip
+                    label={reopened ? 'Reopened (Pending)' : 'Rejected'}
+                    size="small"
+                    color={reopened ? 'warning' : 'error'}
+                    variant="filled"
+                  />
+                ),
               },
             ]}
           />
@@ -161,8 +242,14 @@ export function RejectedRequestDetailsPage() {
             fields={[
               { label: 'Rejected By', value: request.reviewedBy ?? '—' },
               { label: 'Rejection Date', value: request.decisionDate ?? '—' },
-              { label: 'Rejection Reason', value: request.rejectionReason ?? '—' },
-              { label: 'Admin Remarks', value: request.remarks ?? request.rejectionReason ?? '—' },
+              {
+                label: 'Rejection Reason',
+                value: request.rejectionReason ?? '—',
+              },
+              {
+                label: 'Admin Remarks',
+                value: request.remarks ?? request.rejectionReason ?? '—',
+              },
             ]}
           />
         </SectionCard>
@@ -182,7 +269,10 @@ export function RejectedRequestDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Timeline">
-          <ActivityTimeline entries={timelineEntries} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={timelineEntries}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
 
         <SectionCard title="Verification Notes">
@@ -193,7 +283,9 @@ export function RejectedRequestDetailsPage() {
             loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search verification notes…"
-            searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}
+            searchKeys={(row) =>
+              `${row.action} ${row.performedBy} ${row.remarks}`
+            }
             defaultSortBy="date"
             emptyTitle="No verification notes yet"
           />

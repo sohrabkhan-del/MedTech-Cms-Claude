@@ -159,6 +159,20 @@ export function FactoryUploadListPage() {
       minWidth: 110,
       render: (row) => row.endSerialNumber,
     },
+    {
+      key: 'masterStartNumber',
+      header: 'Master Start Serial No',
+      align: 'center',
+      minWidth: 150,
+      render: (row) => row.masterStartNumber,
+    },
+    {
+      key: 'masterEndNumber',
+      header: 'Master End Serial No',
+      align: 'center',
+      minWidth: 150,
+      render: (row) => row.masterEndNumber,
+    },
   ]
 
   return (

@@ -1,17 +1,34 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import {
+  Chip,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Redo2, Clock3, CheckCheck, Coins } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useRedemptions } from '@/features/rewardsWallet/hooks/useRedemptions'
 import { useRedemptionFormOptions } from '@/features/rewardsWallet/hooks/useRedemptionFormOptions'
-import type { RedemptionRequest, RedemptionStatus, RedemptionUserType } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import type {
+  RedemptionRequest,
+  RedemptionStatus,
+  RedemptionUserType,
+} from '@/features/rewardsWallet/types/rewardsWallet.types'
 
-const statusConfig: Record<RedemptionStatus, { label: string; color: 'warning' | 'info' | 'error' | 'success' }> = {
+const statusConfig: Record<
+  RedemptionStatus,
+  { label: string; color: 'warning' | 'info' | 'error' | 'success' }
+> = {
   pending: { label: 'Pending', color: 'warning' },
   approved: { label: 'Approved', color: 'info' },
   rejected: { label: 'Rejected', color: 'error' },
@@ -31,7 +48,8 @@ export function RedemptionListPage() {
   useRegionTopbarHeader({
     icon: <Redo2 size={20} />,
     title: 'Redemption Requests',
-    subtitle: 'Review, approve, and track fulfillment of reward redemption requests.',
+    subtitle:
+      'Review, approve, and track fulfillment of reward redemption requests.',
   })
   const { redemptions, kpis, isLoading } = useRedemptions()
   const { rewardCategoryOptions } = useRedemptionFormOptions()
@@ -47,9 +65,15 @@ export function RedemptionListPage() {
   const filteredRequests = useMemo(
     () =>
       redemptions.filter((request) => {
-        const statusMatch = appliedFilters.status === 'all' || request.redemptionStatus === appliedFilters.status
-        const userTypeMatch = appliedFilters.userType === 'all' || request.userType === appliedFilters.userType
-        const categoryMatch = appliedFilters.rewardCategory === 'all' || request.rewardCategory === appliedFilters.rewardCategory
+        const statusMatch =
+          appliedFilters.status === 'all' ||
+          request.redemptionStatus === appliedFilters.status
+        const userTypeMatch =
+          appliedFilters.userType === 'all' ||
+          request.userType === appliedFilters.userType
+        const categoryMatch =
+          appliedFilters.rewardCategory === 'all' ||
+          request.rewardCategory === appliedFilters.rewardCategory
         return statusMatch && userTypeMatch && categoryMatch
       }),
     [redemptions, appliedFilters],
@@ -65,41 +89,125 @@ export function RedemptionListPage() {
       sortValue: (row) => row.userName,
       render: (row) => (
         <Typography
-          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-          onClick={() => navigate(`/rewards-wallet/reward-redemptions/${row.id}`)}
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() =>
+            navigate(`/rewards-wallet/reward-redemptions/${row.id}`)
+          }
         >
           {row.userName}
         </Typography>
       ),
     },
-    { key: 'userType', header: 'User Type', minWidth: 100, render: (row) => row.userType },
-    { key: 'rewardItem', header: 'Reward Item', minWidth: 180, render: (row) => row.rewardItem },
-    { key: 'coinsUsed', header: 'Coins Used', align: 'right', sortable: true, sortValue: (row) => row.coinsUsed, render: (row) => row.coinsUsed.toLocaleString('en-IN') },
-    { key: 'requestDate', header: 'Request Date', minWidth: 130, sortable: true, render: (row) => row.requestDate },
+    {
+      key: 'userType',
+      header: 'User Type',
+      minWidth: 100,
+      render: (row) => row.userType,
+    },
+    {
+      key: 'rewardItem',
+      header: 'Reward Item',
+      minWidth: 180,
+      render: (row) => row.rewardItem,
+    },
+    {
+      key: 'coinsUsed',
+      header: 'Coins Used',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.coinsUsed,
+      render: (row) => row.coinsUsed.toLocaleString('en-IN'),
+    },
+    {
+      key: 'requestDate',
+      header: 'Request Date',
+      minWidth: 130,
+      sortable: true,
+      render: (row) => row.requestDate,
+    },
     {
       key: 'redemptionStatus',
       header: 'Redemption Status',
       minWidth: 140,
-      render: (row) => <Chip size="small" label={statusConfig[row.redemptionStatus].label} color={statusConfig[row.redemptionStatus].color} />,
+      render: (row) => (
+        <Chip
+          size="small"
+          label={statusConfig[row.redemptionStatus].label}
+          color={statusConfig[row.redemptionStatus].color}
+        />
+      ),
     },
-    { key: 'approvedBy', header: 'Approved By', minWidth: 130, render: (row) => row.approvedBy ?? '—' },
-    { key: 'deliveryStatus', header: 'Delivery Status', minWidth: 130, render: (row) => row.deliveryStatus.charAt(0).toUpperCase() + row.deliveryStatus.slice(1) },
+    {
+      key: 'approvedBy',
+      header: 'Approved By',
+      minWidth: 130,
+      render: (row) => row.approvedBy ?? '—',
+    },
+    {
+      key: 'deliveryStatus',
+      header: 'Delivery Status',
+      minWidth: 130,
+      render: (row) =>
+        row.deliveryStatus.charAt(0).toUpperCase() +
+        row.deliveryStatus.slice(1),
+    },
   ]
 
   return (
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Total Redemption Requests" value={kpis?.totalRequests ?? 0} icon={<Redo2 size={20} />} iconColor="primary" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Total Redemption Requests"
+              value={kpis?.totalRequests ?? 0}
+              icon={<Redo2 size={20} />}
+              iconColor="primary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Pending Approvals" value={kpis?.pendingApprovals ?? 0} icon={<Clock3 size={20} />} iconColor="warning" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Pending Approvals"
+              value={kpis?.pendingApprovals ?? 0}
+              icon={<Clock3 size={20} />}
+              iconColor="warning"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Completed Redemptions" value={kpis?.completedRedemptions ?? 0} icon={<CheckCheck size={20} />} iconColor="success" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Completed Redemptions"
+              value={kpis?.completedRedemptions ?? 0}
+              icon={<CheckCheck size={20} />}
+              iconColor="success"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Coins Redeemed" value={(kpis?.coinsRedeemed ?? 0).toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="secondary" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Coins Redeemed"
+              value={(kpis?.coinsRedeemed ?? 0).toLocaleString('en-IN')}
+              icon={<Coins size={20} />}
+              iconColor="secondary"
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -122,8 +230,16 @@ export function RedemptionListPage() {
         defaultSortBy="requestDate"
         defaultSortDir="desc"
         actions={[
-          { label: 'View', onClick: (row) => navigate(`/rewards-wallet/reward-redemptions/${row.id}`) },
-          { label: 'Edit', onClick: (row) => navigate(`/rewards-wallet/reward-redemptions/${row.id}`) },
+          {
+            label: 'View',
+            onClick: (row) =>
+              navigate(`/rewards-wallet/reward-redemptions/${row.id}`),
+          },
+          {
+            label: 'Edit',
+            onClick: (row) =>
+              navigate(`/rewards-wallet/reward-redemptions/${row.id}`),
+          },
         ]}
         emptyTitle="No redemption requests found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -143,7 +259,12 @@ export function RedemptionListPage() {
               label="Status"
               size="small"
               value={draft.status}
-              onChange={(e) => setDraft((prev) => ({ ...prev, status: e.target.value as RedemptionFilters['status'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: e.target.value as RedemptionFilters['status'],
+                }))
+              }
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
@@ -156,7 +277,12 @@ export function RedemptionListPage() {
               label="User Type"
               size="small"
               value={draft.userType}
-              onChange={(e) => setDraft((prev) => ({ ...prev, userType: e.target.value as RedemptionFilters['userType'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  userType: e.target.value as RedemptionFilters['userType'],
+                }))
+              }
             >
               <MenuItem value="all">All Types</MenuItem>
               <MenuItem value="Dealer">Dealer</MenuItem>
@@ -167,7 +293,12 @@ export function RedemptionListPage() {
               label="Reward Category"
               size="small"
               value={draft.rewardCategory}
-              onChange={(e) => setDraft((prev) => ({ ...prev, rewardCategory: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  rewardCategory: e.target.value,
+                }))
+              }
             >
               <MenuItem value="all">All Categories</MenuItem>
               {rewardCategoryOptions.map((category) => (
@@ -182,7 +313,9 @@ export function RedemptionListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.fromDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, fromDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
+              }
             />
             <TextField
               type="date"
@@ -190,7 +323,9 @@ export function RedemptionListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.toDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, toDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
+              }
             />
           </Stack>
         )}

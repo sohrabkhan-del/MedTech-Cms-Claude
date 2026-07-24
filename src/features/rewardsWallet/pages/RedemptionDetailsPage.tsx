@@ -1,6 +1,16 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Grid, IconButton, Menu, MenuItem, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Chip,
+  Grid,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  Typography,
+} from '@mui/material'
 import {
   Redo2,
   ArrowLeft as ArrowBackOutlined,
@@ -20,20 +30,33 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useRedemptionDetail } from '@/features/rewardsWallet/hooks/useRedemptionDetail'
-import type { RedemptionDeliveryStatus, RedemptionHistoryEntry, RedemptionStatus } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import type {
+  RedemptionDeliveryStatus,
+  RedemptionHistoryEntry,
+  RedemptionStatus,
+} from '@/features/rewardsWallet/types/rewardsWallet.types'
 
-const statusConfig: Record<RedemptionStatus, { label: string; color: 'warning' | 'info' | 'error' | 'success' }> = {
+const statusConfig: Record<
+  RedemptionStatus,
+  { label: string; color: 'warning' | 'info' | 'error' | 'success' }
+> = {
   pending: { label: 'Pending', color: 'warning' },
   approved: { label: 'Approved', color: 'info' },
   rejected: { label: 'Rejected', color: 'error' },
   completed: { label: 'Completed', color: 'success' },
 }
 
-const deliveryStatusConfig: Record<RedemptionDeliveryStatus, { label: string; color: 'default' | 'info' | 'warning' | 'success' | 'error' }> = {
+const deliveryStatusConfig: Record<
+  RedemptionDeliveryStatus,
+  { label: string; color: 'default' | 'info' | 'warning' | 'success' | 'error' }
+> = {
   pending: { label: 'Pending', color: 'default' },
   packed: { label: 'Packed', color: 'info' },
   shipped: { label: 'Shipped', color: 'info' },
@@ -43,20 +66,64 @@ const deliveryStatusConfig: Record<RedemptionDeliveryStatus, { label: string; co
 
 const historyColumns: CommonTableColumn<RedemptionHistoryEntry>[] = [
   { key: 'id', header: 'Request ID', minWidth: 140, render: (row) => row.id },
-  { key: 'rewardItem', header: 'Reward Item', minWidth: 170, render: (row) => row.rewardItem },
-  { key: 'coinsUsed', header: 'Coins Used', align: 'right', render: (row) => row.coinsUsed.toLocaleString('en-IN') },
-  { key: 'requestDate', header: 'Request Date', minWidth: 130, sortable: true, render: (row) => row.requestDate },
-  { key: 'approvalDate', header: 'Approval Date', minWidth: 130, render: (row) => row.approvalDate ?? '—' },
-  { key: 'deliveryDate', header: 'Delivery Date', minWidth: 130, render: (row) => row.deliveryDate ?? '—' },
-  { key: 'status', header: 'Status', minWidth: 110, render: (row) => <Chip size="small" label={statusConfig[row.status].label} color={statusConfig[row.status].color} /> },
-  { key: 'approvedBy', header: 'Approved By', minWidth: 130, render: (row) => row.approvedBy ?? '—' },
+  {
+    key: 'rewardItem',
+    header: 'Reward Item',
+    minWidth: 170,
+    render: (row) => row.rewardItem,
+  },
+  {
+    key: 'coinsUsed',
+    header: 'Coins Used',
+    align: 'center',
+    render: (row) => row.coinsUsed.toLocaleString('en-IN'),
+  },
+  {
+    key: 'requestDate',
+    header: 'Request Date',
+    minWidth: 130,
+    sortable: true,
+    render: (row) => row.requestDate,
+  },
+  {
+    key: 'approvalDate',
+    header: 'Approval Date',
+    minWidth: 130,
+    render: (row) => row.approvalDate ?? '—',
+  },
+  {
+    key: 'deliveryDate',
+    header: 'Delivery Date',
+    minWidth: 130,
+    render: (row) => row.deliveryDate ?? '—',
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    minWidth: 110,
+    render: (row) => (
+      <Chip
+        size="small"
+        label={statusConfig[row.status].label}
+        color={statusConfig[row.status].color}
+      />
+    ),
+  },
+  {
+    key: 'approvedBy',
+    header: 'Approved By',
+    minWidth: 130,
+    render: (row) => row.approvedBy ?? '—',
+  },
 ]
 
 export function RedemptionDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
-  const { request, setStatus, setDeliveryStatus, isLoading } = useRedemptionDetail(requestId)
-  const [deliveryMenuAnchor, setDeliveryMenuAnchor] = useState<HTMLElement | null>(null)
+  const { request, setStatus, setDeliveryStatus, isLoading } =
+    useRedemptionDetail(requestId)
+  const [deliveryMenuAnchor, setDeliveryMenuAnchor] =
+    useState<HTMLElement | null>(null)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
 
   if (isLoading) {
@@ -79,7 +146,16 @@ export function RedemptionDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -98,7 +174,11 @@ export function RedemptionDetailsPage() {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{request.rewardItem}</Typography>
-              <Chip size="small" label={statusConfig[currentStatus].label} color={statusConfig[currentStatus].color} />
+              <Chip
+                size="small"
+                label={statusConfig[currentStatus].label}
+                color={statusConfig[currentStatus].color}
+              />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {request.id} · {request.userName}
@@ -108,10 +188,22 @@ export function RedemptionDetailsPage() {
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
           {currentStatus === 'pending' && (
             <>
-              <Button variant="contained" color="success" startIcon={<CircleCheck size={18} />} onClick={() => void setStatus('approved')} sx={{ fontSize: '0.8125rem' }}>
+              <Button
+                variant="contained"
+                color="success"
+                startIcon={<CircleCheck size={18} />}
+                onClick={() => void setStatus('approved')}
+                sx={{ fontSize: '0.8125rem' }}
+              >
                 Approve
               </Button>
-              <Button variant="contained" color="error" startIcon={<XCircle size={18} />} onClick={() => void setStatus('rejected')} sx={{ fontSize: '0.8125rem' }}>
+              <Button
+                variant="contained"
+                color="error"
+                startIcon={<XCircle size={18} />}
+                onClick={() => void setStatus('rejected')}
+                sx={{ fontSize: '0.8125rem' }}
+              >
                 Reject
               </Button>
             </>
@@ -124,7 +216,11 @@ export function RedemptionDetailsPage() {
           >
             Delivery Status
           </Button>
-          <Menu anchorEl={deliveryMenuAnchor} open={!!deliveryMenuAnchor} onClose={() => setDeliveryMenuAnchor(null)}>
+          <Menu
+            anchorEl={deliveryMenuAnchor}
+            open={!!deliveryMenuAnchor}
+            onClose={() => setDeliveryMenuAnchor(null)}
+          >
             <MenuItem
               onClick={() => {
                 void setDeliveryStatus('packed')
@@ -163,13 +259,26 @@ export function RedemptionDetailsPage() {
               Cancel
             </MenuItem>
           </Menu>
-          <Button variant="outlined" startIcon={<ArrowBackOutlined size={18} />} onClick={() => navigate('/rewards-wallet/reward-redemptions')} sx={{ fontSize: '0.8125rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackOutlined size={18} />}
+            onClick={() => navigate('/rewards-wallet/reward-redemptions')}
+            sx={{ fontSize: '0.8125rem' }}
+          >
             Back
           </Button>
-          <IconButton onClick={(e) => setMoreMenuAnchor(e.currentTarget)} sx={{ border: '1px solid', borderColor: 'divider' }} aria-label="More actions">
+          <IconButton
+            onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+            sx={{ border: '1px solid', borderColor: 'divider' }}
+            aria-label="More actions"
+          >
             <MoreVertical size={18} />
           </IconButton>
-          <Menu anchorEl={moreMenuAnchor} open={!!moreMenuAnchor} onClose={() => setMoreMenuAnchor(null)}>
+          <Menu
+            anchorEl={moreMenuAnchor}
+            open={!!moreMenuAnchor}
+            onClose={() => setMoreMenuAnchor(null)}
+          >
             <MenuItem
               onClick={() => {
                 setMoreMenuAnchor(null)
@@ -182,7 +291,11 @@ export function RedemptionDetailsPage() {
             <MenuItem
               onClick={() => {
                 setMoreMenuAnchor(null)
-                navigate(request.userType === 'Dealer' ? `/partners/dealers/${request.userId}` : `/partners/chemists/${request.userId}`)
+                navigate(
+                  request.userType === 'Dealer'
+                    ? `/partners/dealers/${request.userId}`
+                    : `/partners/chemists/${request.userId}`,
+                )
               }}
             >
               <ExternalLink size={18} style={{ marginRight: 12 }} />
@@ -202,26 +315,79 @@ export function RedemptionDetailsPage() {
               { label: 'Mobile Number', value: request.mobileNumber },
               { label: 'Reward Item', value: request.rewardItem },
               { label: 'Reward Category', value: request.rewardCategory },
-              { label: 'Coins Used', value: request.coinsUsed.toLocaleString('en-IN') },
-              { label: 'Current Wallet Balance', value: request.currentWalletBalance.toLocaleString('en-IN') },
+              {
+                label: 'Coins Used',
+                value: request.coinsUsed.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Current Wallet Balance',
+                value: request.currentWalletBalance.toLocaleString('en-IN'),
+              },
               { label: 'Request Date', value: request.requestDate },
-              { label: 'Redemption Status', value: <Chip size="small" label={statusConfig[currentStatus].label} color={statusConfig[currentStatus].color} /> },
+              {
+                label: 'Redemption Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={statusConfig[currentStatus].label}
+                    color={statusConfig[currentStatus].color}
+                  />
+                ),
+              },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Coins Redeemed" value={request.coinsUsed.toLocaleString('en-IN')} icon={<Redo2 size={20} />} iconColor="primary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Coins Redeemed"
+                value={request.coinsUsed.toLocaleString('en-IN')}
+                icon={<Redo2 size={20} />}
+                iconColor="primary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Wallet Balance After Redemption" value={request.walletBalanceAfterRedemption.toLocaleString('en-IN')} icon={<WalletIcon size={20} />} iconColor="secondary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Wallet Balance After Redemption"
+                value={request.walletBalanceAfterRedemption.toLocaleString(
+                  'en-IN',
+                )}
+                icon={<WalletIcon size={20} />}
+                iconColor="secondary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Approval Status" value={statusConfig[currentStatus].label} icon={<CircleCheck size={20} />} iconColor={currentStatus === 'rejected' ? 'error' : 'success'} />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Approval Status"
+                value={statusConfig[currentStatus].label}
+                icon={<CircleCheck size={20} />}
+                iconColor={currentStatus === 'rejected' ? 'error' : 'success'}
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Delivery Status" value={deliveryStatusConfig[currentDelivery].label} icon={<Truck size={20} />} iconColor="warning" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Delivery Status"
+                value={deliveryStatusConfig[currentDelivery].label}
+                icon={<Truck size={20} />}
+                iconColor="warning"
+              />
+            )}
           </Grid>
         </Grid>
 
@@ -231,11 +397,24 @@ export function RedemptionDetailsPage() {
               { label: 'Reward Item Name', value: request.rewardItem },
               { label: 'Reward Category', value: request.rewardCategory },
               { label: 'Quantity', value: request.quantity },
-              { label: 'Coins Redeemed', value: request.coinsUsed.toLocaleString('en-IN') },
-              { label: 'Current Wallet Balance', value: request.currentWalletBalance.toLocaleString('en-IN') },
-              { label: 'Wallet Balance After Redemption', value: request.walletBalanceAfterRedemption.toLocaleString('en-IN') },
+              {
+                label: 'Coins Redeemed',
+                value: request.coinsUsed.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Current Wallet Balance',
+                value: request.currentWalletBalance.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Wallet Balance After Redemption',
+                value:
+                  request.walletBalanceAfterRedemption.toLocaleString('en-IN'),
+              },
               { label: 'Redemption Date', value: request.requestDate },
-              { label: 'Expected Delivery Date', value: request.expectedDeliveryDate },
+              {
+                label: 'Expected Delivery Date',
+                value: request.expectedDeliveryDate,
+              },
             ]}
           />
         </SectionCard>
@@ -258,17 +437,35 @@ export function RedemptionDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Transaction ID', value: request.transactionId },
-              { label: 'Previous Wallet Balance', value: request.currentWalletBalance.toLocaleString('en-IN') },
-              { label: 'Coins Redeemed', value: request.coinsUsed.toLocaleString('en-IN') },
-              { label: 'Remaining Balance', value: request.walletBalanceAfterRedemption.toLocaleString('en-IN') },
+              {
+                label: 'Previous Wallet Balance',
+                value: request.currentWalletBalance.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Coins Redeemed',
+                value: request.coinsUsed.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Remaining Balance',
+                value:
+                  request.walletBalanceAfterRedemption.toLocaleString('en-IN'),
+              },
               { label: 'Transaction Date', value: request.transactionDate },
-              { label: 'Transaction Status', value: request.transactionStatus.charAt(0).toUpperCase() + request.transactionStatus.slice(1) },
+              {
+                label: 'Transaction Status',
+                value:
+                  request.transactionStatus.charAt(0).toUpperCase() +
+                  request.transactionStatus.slice(1),
+              },
             ]}
           />
         </SectionCard>
 
         <SectionCard title="Redemption Timeline">
-          <ActivityTimeline entries={request.timeline} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={request.timeline}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
 
         <SectionCard title="Redemption History">
@@ -287,7 +484,15 @@ export function RedemptionDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Internal Notes">
-          <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>{request.internalNotes}</Typography>
+          <Typography
+            sx={{
+              fontSize: '0.8125rem',
+              color: 'text.secondary',
+              lineHeight: 1.6,
+            }}
+          >
+            {request.internalNotes}
+          </Typography>
         </SectionCard>
       </Stack>
     </>

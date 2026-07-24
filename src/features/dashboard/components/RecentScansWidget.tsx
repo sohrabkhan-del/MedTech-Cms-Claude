@@ -22,25 +22,48 @@ export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
       onDateRangeChange={setDateRange}
       onCardClick={() => navigate('/reports/scan-reports')}
     >
-      <Box sx={{ height: 280, overflowY: 'auto', mr: -1.5, pr: 1.5 }}>
+      <Box
+        sx={{
+          height: 380,
+          minHeight: 280,
+          overflowY: 'auto',
+          mr: -1.5,
+          pr: 1.5,
+        }}
+      >
         <Stack spacing={2}>
           {recentScans.map((scan) => (
             <Stack
               key={scan.id}
               direction="row"
               spacing={1.5}
-              sx={{ alignItems: 'center', cursor: scan.linkTo ? 'pointer' : 'default' }}
+              sx={{
+                alignItems: 'center',
+                cursor: scan.linkTo ? 'pointer' : 'default',
+              }}
               onClick={(e) => {
                 if (!scan.linkTo) return
                 e.stopPropagation()
                 navigate(scan.linkTo)
               }}
             >
-              <Avatar sx={{ width: 36, height: 36, bgcolor: 'primary.light', color: 'primary.main', fontSize: '0.8rem', fontWeight: 700 }}>
+              <Avatar
+                sx={{
+                  width: 36,
+                  height: 36,
+                  bgcolor: 'primary.light',
+                  color: 'primary.main',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                }}
+              >
                 {scan.user.slice(0, 1)}
               </Avatar>
               <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }} noWrap>
+                <Typography
+                  sx={{ fontWeight: 600, fontSize: '0.875rem' }}
+                  noWrap
+                >
                   {scan.business}
                 </Typography>
                 <Typography variant="caption">

@@ -1,9 +1,18 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import { BarChart3, Package as Inventory2Icon, ScanLine, Trophy, CircleCheck } from 'lucide-react'
+import {
+  BarChart3,
+  Package as Inventory2Icon,
+  ScanLine,
+  Trophy,
+  CircleCheck,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
@@ -43,12 +52,23 @@ export function ProductReportListPage() {
   const filteredReports = useMemo(
     () =>
       mockProductReports.filter((report) => {
-        const categoryMatch = appliedFilters.category === 'all' || report.productCategory === appliedFilters.category
-        const batchMatch = appliedFilters.batch === 'all' || report.batch === appliedFilters.batch
-        const statusMatch = appliedFilters.status === 'all' || report.status === appliedFilters.status
-        const fromMatch = !appliedFilters.fromDate || report.uploadedDate >= appliedFilters.fromDate
-        const toMatch = !appliedFilters.toDate || report.uploadedDate <= appliedFilters.toDate
-        return categoryMatch && batchMatch && statusMatch && fromMatch && toMatch
+        const categoryMatch =
+          appliedFilters.category === 'all' ||
+          report.productCategory === appliedFilters.category
+        const batchMatch =
+          appliedFilters.batch === 'all' ||
+          report.batch === appliedFilters.batch
+        const statusMatch =
+          appliedFilters.status === 'all' ||
+          report.status === appliedFilters.status
+        const fromMatch =
+          !appliedFilters.fromDate ||
+          report.uploadedDate >= appliedFilters.fromDate
+        const toMatch =
+          !appliedFilters.toDate || report.uploadedDate <= appliedFilters.toDate
+        return (
+          categoryMatch && batchMatch && statusMatch && fromMatch && toMatch
+        )
       }),
     [appliedFilters],
   )
@@ -95,7 +115,7 @@ export function ProductReportListPage() {
     {
       key: 'totalScans',
       header: 'Total Scans',
-      align: 'right',
+      align: 'center',
       minWidth: 110,
       sortable: true,
       sortValue: (row) => row.totalScans,
@@ -104,7 +124,7 @@ export function ProductReportListPage() {
     {
       key: 'rewardPoints',
       header: 'Reward Points',
-      align: 'right',
+      align: 'center',
       minWidth: 120,
       sortable: true,
       sortValue: (row) => row.rewardPoints,
@@ -123,16 +143,36 @@ export function ProductReportListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Products" value={productReportKpis.totalProducts} icon={<Inventory2Icon size={20} />} iconColor="primary" />
+          <StatCard
+            label="Total Products"
+            value={productReportKpis.totalProducts}
+            icon={<Inventory2Icon size={20} />}
+            iconColor="primary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Scans" value={productReportKpis.totalScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />
+          <StatCard
+            label="Total Scans"
+            value={productReportKpis.totalScans.toLocaleString('en-IN')}
+            icon={<ScanLine size={20} />}
+            iconColor="secondary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Reward Points Issued" value={productReportKpis.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+          <StatCard
+            label="Reward Points Issued"
+            value={productReportKpis.rewardPointsIssued.toLocaleString('en-IN')}
+            icon={<Trophy size={20} />}
+            iconColor="warning"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Products" value={productReportKpis.activeProducts} icon={<CircleCheck size={20} />} iconColor="success" />
+          <StatCard
+            label="Active Products"
+            value={productReportKpis.activeProducts}
+            icon={<CircleCheck size={20} />}
+            iconColor="success"
+          />
         </Grid>
       </Grid>
 
@@ -142,7 +182,9 @@ export function ProductReportListPage() {
         rows={filteredReports}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by product name or code…"
-        searchKeys={(row) => `${row.productName} ${row.productCode} ${row.batch}`}
+        searchKeys={(row) =>
+          `${row.productName} ${row.productCode} ${row.batch}`
+        }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.category !== 'all' ? 1 : 0) +
@@ -152,7 +194,12 @@ export function ProductReportListPage() {
         }
         onExportClick={() => {}}
         defaultSortBy="productName"
-        actions={[{ label: 'View', onClick: (row) => navigate(`/reports/product-reports-1/${row.id}`) }]}
+        actions={[
+          {
+            label: 'View',
+            onClick: (row) => navigate(`/reports/product-reports-1/${row.id}`),
+          },
+        ]}
         emptyTitle="No product reports found"
         emptyDescription="Try adjusting your filters or search terms."
       />
@@ -171,7 +218,9 @@ export function ProductReportListPage() {
               label="Category"
               size="small"
               value={draft.category}
-              onChange={(e) => setDraft((prev) => ({ ...prev, category: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, category: e.target.value }))
+              }
             >
               <MenuItem value="all">All Categories</MenuItem>
               {productReportCategoryOptions.map((category) => (
@@ -185,7 +234,9 @@ export function ProductReportListPage() {
               label="Batch"
               size="small"
               value={draft.batch}
-              onChange={(e) => setDraft((prev) => ({ ...prev, batch: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, batch: e.target.value }))
+              }
             >
               <MenuItem value="all">All Batches</MenuItem>
               {productReportBatchOptions.map((batch) => (
@@ -199,7 +250,12 @@ export function ProductReportListPage() {
               label="Status"
               size="small"
               value={draft.status}
-              onChange={(e) => setDraft((prev) => ({ ...prev, status: e.target.value as ProductReportFilters['status'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: e.target.value as ProductReportFilters['status'],
+                }))
+              }
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="active">Active</MenuItem>
@@ -211,7 +267,9 @@ export function ProductReportListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.fromDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, fromDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
+              }
             />
             <TextField
               type="date"
@@ -219,7 +277,9 @@ export function ProductReportListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.toDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, toDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
+              }
             />
           </Stack>
         )}

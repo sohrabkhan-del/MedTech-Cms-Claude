@@ -10,6 +10,11 @@ function seededNumber(seed: number, min: number, max: number): number {
   return Math.floor(min + frac * (max - min))
 }
 
+/** Rounds to the nearest hundred, e.g. 245 -> 200, 260 -> 300. */
+function roundToHundred(value: number): number {
+  return Math.round(value / 100) * 100
+}
+
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`
 }
@@ -36,9 +41,9 @@ function buildRegionRows(seed: number, baseCoinValue: number): RegionMultiplierR
       region,
       previousMultiplier,
       currentMultiplier,
-      previousPoints: Math.round(baseCoinValue * previousMultiplier),
+      previousPoints: roundToHundred(baseCoinValue * previousMultiplier),
       previousEffectiveDate: dateFromSeed(localSeed, 'May'),
-      currentPoints: Math.round(baseCoinValue * currentMultiplier),
+      currentPoints: roundToHundred(baseCoinValue * currentMultiplier),
       currentEffectiveDate: dateFromSeed(localSeed + 10, 'Jul'),
     }
   })
@@ -63,7 +68,9 @@ function buildRegionalHistory(seed: number, ruleId: string, rows: RegionMultipli
 function buildCoinValueRule(seed: number, partnerType: CoinRulePartnerType): CoinValueRule {
   const product = mockProducts[seed % mockProducts.length]!
   const id = `coin-rule-${partnerType.toLowerCase()}-${seed}`
-  const baseCoinValue = seededNumber(partnerType === 'Dealer' ? seed : seed + 500, 10, 60)
+  const baseCoinValue = roundToHundred(
+    seededNumber(partnerType === 'Dealer' ? seed : seed + 500, 100, 1000),
+  )
   const regions = buildRegionRows(seed, baseCoinValue)
   const reviewer = mrs[seed % mrs.length]!
 

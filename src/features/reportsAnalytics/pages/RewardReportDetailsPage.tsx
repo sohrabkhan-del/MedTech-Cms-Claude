@@ -1,17 +1,29 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
-import { Gift, ArrowLeft as ArrowBackOutlined, Coins, Layers, Wallet as WalletIcon } from 'lucide-react'
+import {
+  Gift,
+  ArrowLeft as ArrowBackOutlined,
+  Coins,
+  Layers,
+  Wallet as WalletIcon,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useRewardReportDetail } from '@/features/reportsAnalytics/hooks/useRewardReportDetail'
 import type { RewardReportStatus } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
-const statusConfig: Record<RewardReportStatus, { label: string; color: 'success' | 'warning' | 'info' | 'error' }> = {
+const statusConfig: Record<
+  RewardReportStatus,
+  { label: string; color: 'success' | 'warning' | 'info' | 'error' }
+> = {
   credited: { label: 'Credited', color: 'success' },
   pending: { label: 'Pending', color: 'warning' },
   redeemed: { label: 'Redeemed', color: 'info' },
@@ -27,10 +39,30 @@ interface RedemptionRow {
 }
 
 const redemptionColumns: CommonTableColumn<RedemptionRow>[] = [
-  { key: 'redeemedItem', header: 'Redeemed Item', minWidth: 180, render: (row) => row.redeemedItem },
-  { key: 'coinsUsed', header: 'Coins Used', align: 'right', render: (row) => row.coinsUsed.toLocaleString('en-IN') },
-  { key: 'redemptionDate', header: 'Redemption Date', minWidth: 140, render: (row) => row.redemptionDate },
-  { key: 'deliveryStatus', header: 'Delivery Status', minWidth: 140, render: (row) => row.deliveryStatus },
+  {
+    key: 'redeemedItem',
+    header: 'Redeemed Item',
+    minWidth: 180,
+    render: (row) => row.redeemedItem,
+  },
+  {
+    key: 'coinsUsed',
+    header: 'Coins Used',
+    align: 'center',
+    render: (row) => row.coinsUsed.toLocaleString('en-IN'),
+  },
+  {
+    key: 'redemptionDate',
+    header: 'Redemption Date',
+    minWidth: 140,
+    render: (row) => row.redemptionDate,
+  },
+  {
+    key: 'deliveryStatus',
+    header: 'Delivery Status',
+    minWidth: 140,
+    render: (row) => row.deliveryStatus,
+  },
 ]
 
 export function RewardReportDetailsPage() {
@@ -54,7 +86,11 @@ export function RewardReportDetailsPage() {
   }
 
   const redemptionRows: RedemptionRow[] =
-    report.isRedeemed && report.redeemedItem && report.coinsUsed !== undefined && report.redemptionDate && report.deliveryStatus
+    report.isRedeemed &&
+    report.redeemedItem &&
+    report.coinsUsed !== undefined &&
+    report.redemptionDate &&
+    report.deliveryStatus
       ? [
           {
             id: `${report.id}-redemption`,
@@ -68,7 +104,16 @@ export function RewardReportDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -87,7 +132,11 @@ export function RewardReportDetailsPage() {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{report.userName}</Typography>
-              <Chip size="small" label={statusConfig[report.status].label} color={statusConfig[report.status].color} />
+              <Chip
+                size="small"
+                label={statusConfig[report.status].label}
+                color={statusConfig[report.status].color}
+              />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {report.id} · {report.rewardType}
@@ -95,7 +144,12 @@ export function RewardReportDetailsPage() {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <Button variant="outlined" startIcon={<ArrowBackOutlined size={18} />} onClick={() => navigate('/reports/reward-reports')} sx={{ fontSize: '0.8125rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackOutlined size={18} />}
+            onClick={() => navigate('/reports/reward-reports')}
+            sx={{ fontSize: '0.8125rem' }}
+          >
             Back
           </Button>
         </Stack>
@@ -109,25 +163,57 @@ export function RewardReportDetailsPage() {
               { label: 'User Name', value: report.userName },
               { label: 'User Type', value: report.userType },
               { label: 'Reward Type', value: report.rewardType },
-              { label: 'Reward Points', value: report.rewardPoints.toLocaleString('en-IN') },
+              {
+                label: 'Reward Points',
+                value: report.rewardPoints.toLocaleString('en-IN'),
+              },
               { label: 'Date', value: report.date },
-              { label: 'Status', value: <Chip size="small" label={statusConfig[report.status].label} color={statusConfig[report.status].color} /> },
+              {
+                label: 'Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={statusConfig[report.status].label}
+                    color={statusConfig[report.status].color}
+                  />
+                ),
+              },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Reward Points" value={report.totalRewardPoints.toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="primary" />
+            <StatCard
+              label="Total Reward Points"
+              value={report.totalRewardPoints.toLocaleString('en-IN')}
+              icon={<Coins size={20} />}
+              iconColor="primary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Applied Scheme" value={report.schemeName} icon={<Layers size={20} />} iconColor="secondary" />
+            <StatCard
+              label="Applied Scheme"
+              value={report.schemeName}
+              icon={<Layers size={20} />}
+              iconColor="secondary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Wallet Balance After" value={report.walletBalanceAfter.toLocaleString('en-IN')} icon={<WalletIcon size={20} />} iconColor="success" />
+            <StatCard
+              label="Wallet Balance After"
+              value={report.walletBalanceAfter.toLocaleString('en-IN')}
+              icon={<WalletIcon size={20} />}
+              iconColor="success"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Reward Status" value={statusConfig[report.status].label} icon={<Gift size={20} />} iconColor={report.status === 'reversed' ? 'error' : 'success'} />
+            <StatCard
+              label="Reward Status"
+              value={statusConfig[report.status].label}
+              icon={<Gift size={20} />}
+              iconColor={report.status === 'reversed' ? 'error' : 'success'}
+            />
           </Grid>
         </Grid>
 
@@ -157,12 +243,27 @@ export function RewardReportDetailsPage() {
         <SectionCard title="Reward Calculation">
           <DetailFieldGrid
             fields={[
-              { label: 'Base Reward Points', value: report.baseRewardPoints.toLocaleString('en-IN') },
+              {
+                label: 'Base Reward Points',
+                value: report.baseRewardPoints.toLocaleString('en-IN'),
+              },
               { label: 'Multiplier', value: `${report.multiplier}x` },
-              { label: 'Bonus Points', value: report.bonusPoints.toLocaleString('en-IN') },
-              { label: 'Total Reward Points', value: report.totalRewardPoints.toLocaleString('en-IN') },
-              { label: 'Wallet Balance Before', value: report.walletBalanceBefore.toLocaleString('en-IN') },
-              { label: 'Wallet Balance After', value: report.walletBalanceAfter.toLocaleString('en-IN') },
+              {
+                label: 'Bonus Points',
+                value: report.bonusPoints.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Total Reward Points',
+                value: report.totalRewardPoints.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Wallet Balance Before',
+                value: report.walletBalanceBefore.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Wallet Balance After',
+                value: report.walletBalanceAfter.toLocaleString('en-IN'),
+              },
             ]}
           />
         </SectionCard>
@@ -179,7 +280,10 @@ export function RewardReportDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Reward Timeline">
-          <ActivityTimeline entries={report.timeline} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={report.timeline}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
       </Stack>
     </>

@@ -88,14 +88,14 @@ const batchColumns: CommonTableColumn<BmrBatchRow>[] = [
   {
     key: 'qty',
     header: 'Qty',
-    align: 'right',
+    align: 'center',
     minWidth: 90,
     render: (row) => row.qty.toLocaleString('en-IN'),
   },
   {
     key: 'sampleQty',
     header: 'Sample Qty',
-    align: 'right',
+    align: 'center',
     minWidth: 100,
     render: (row) => row.sampleQty.toLocaleString('en-IN'),
   },
@@ -132,7 +132,7 @@ const batchColumns: CommonTableColumn<BmrBatchRow>[] = [
   {
     key: 'producedQty',
     header: 'Produced Qty',
-    align: 'right',
+    align: 'center',
     minWidth: 110,
     render: (row) => row.producedQty.toLocaleString('en-IN'),
   },
@@ -177,13 +177,13 @@ const mappedBatchColumns: ExpandableTableColumn<MappedBatch>[] = [
   {
     key: 'producedQty',
     header: 'Produced Qty',
-    align: 'right',
+    align: 'center',
     render: (row) => row.producedQty.toLocaleString('en-IN'),
   },
   {
     key: 'uidCount',
     header: 'UIDs Generated',
-    align: 'right',
+    align: 'center',
     render: (row) => row.uidCount.toLocaleString('en-IN'),
   },
 ]
@@ -729,7 +729,8 @@ export function BatchUidUploadTab({
                 justifyContent: 'center',
                 backgroundColor: 'success.light',
                 color: 'success.main',
-                animation: 'batch-import-success-pop 0.5s ease-out, batch-import-success-ring 1.2s ease-out',
+                animation:
+                  'batch-import-success-pop 0.5s ease-out, batch-import-success-ring 1.2s ease-out',
                 '@keyframes batch-import-success-pop': {
                   '0%': { transform: 'scale(0)' },
                   '60%': { transform: 'scale(1.15)' },

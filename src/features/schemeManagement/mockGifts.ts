@@ -64,6 +64,7 @@ function buildGift(seed: number): Gift {
     giftImage: `https://picsum.photos/seed/medtech-gift-${seed}/600/600`,
     description: `${name} is a redeemable reward available in the MedTech Rewards Marketplace for eligible Dealers and Chemists.`,
     sku: `SKU-GIFT-${100000 + seed * 7}`,
+    price: seededNumber(seed, 199, 4999),
     requiredCoins: seededNumber(seed, 200, 5000),
     availableQuantity,
     redeemedQuantity,

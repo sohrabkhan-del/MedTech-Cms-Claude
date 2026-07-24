@@ -52,6 +52,7 @@ export function GiftFormPage() {
       brand: gift.brand,
       giftImage: gift.giftImage,
       description: gift.description,
+      price: String(gift.price),
       requiredCoins: String(gift.requiredCoins),
       availableQuantity: String(gift.availableQuantity),
       status: gift.status,
@@ -78,8 +79,13 @@ export function GiftFormPage() {
 
   return (
     <>
-      <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h1">{isEdit ? 'Edit Gift' : 'Create Gift'}</Typography>
+      <Stack sx={{ mb: 3 }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: 700 }}>
+          Gift Catalogue
+        </Typography>
+        <Stack sx={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h1">{isEdit ? 'Edit Gift' : 'Create Gift'}</Typography>
+        </Stack>
       </Stack>
 
       <form onSubmit={onSubmit} noValidate>
@@ -113,6 +119,10 @@ export function GiftFormPage() {
                   </MenuItem>
                 ))}
               </FormField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Price (₹)</FieldLabel>
+              <FormField name="price" control={control} placeholder="e.g. 1999" {...fieldLabelProps} />
             </Grid>
           </Grid>
         </Card>

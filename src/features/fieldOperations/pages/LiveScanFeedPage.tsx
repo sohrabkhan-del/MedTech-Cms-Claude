@@ -26,7 +26,10 @@ import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { ScanResultChip } from '@/features/fieldOperations/components/ScanResultChip'
 import { SCAN_RESULT_CONFIG } from '@/features/fieldOperations/scanResultConfig'
 import { useLiveScanFeed } from '@/features/fieldOperations/hooks/useLiveScanFeed'
-import type { ScanResult, ScanUserRole } from '@/features/fieldOperations/types/fieldOperations.types'
+import type {
+  ScanResult,
+  ScanUserRole,
+} from '@/features/fieldOperations/types/fieldOperations.types'
 import type { PartnerZone } from '@/types/partner'
 
 const livePulseKeyframes = {
@@ -49,7 +52,8 @@ export function LiveScanFeedPage() {
   useRegionTopbarHeader({
     icon: <MyLocationIcon size={20} />,
     title: 'Live Scan Feed',
-    subtitle: 'Real-time barcode scanning activity across Dealers and Chemists.',
+    subtitle:
+      'Real-time barcode scanning activity across Dealers and Chemists.',
     live: true,
   })
 
@@ -59,7 +63,8 @@ export function LiveScanFeedPage() {
     result: 'all',
   })
 
-  const { liveScans, newRowIds, isLive, toggleLive, isLoading } = useLiveScanFeed()
+  const { liveScans, newRowIds, isLive, toggleLive, isLoading } =
+    useLiveScanFeed()
 
   const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 
@@ -69,8 +74,7 @@ export function LiveScanFeedPage() {
       appliedFilters.userRole === 'all' ||
       scan.userRole === appliedFilters.userRole
     const resultMatch =
-      appliedFilters.result === 'all' ||
-      scan.result === appliedFilters.result
+      appliedFilters.result === 'all' || scan.result === appliedFilters.result
     return regionMatch && roleMatch && resultMatch
   })
 
@@ -80,10 +84,9 @@ export function LiveScanFeedPage() {
 
   const columns: CommonTableColumn<(typeof liveScans)[number]>[] = [
     {
-      key: 'scanDateTime',
-      header: 'Scan Date & Time',
-      minWidth: 170,
-      sortable: true,
+      key: 'businessName',
+      header: 'Business Name',
+      minWidth: 250,
       render: (row) => (
         <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
           {newRowIds.has(row.id) && (
@@ -108,14 +111,15 @@ export function LiveScanFeedPage() {
             }}
             onClick={() => openScan(row.id)}
           >
-            {row.scanDateTime}
+            {row.businessName}
           </Typography>
         </Stack>
       ),
     },
+    { key: 'userRole', header: 'Type', render: (row) => row.userRole },
     {
       key: 'userName',
-      header: 'User Name',
+      header: 'Name',
       minWidth: 160,
       sortable: true,
       render: (row) => (
@@ -124,12 +128,16 @@ export function LiveScanFeedPage() {
         </Typography>
       ),
     },
-    { key: 'userRole', header: 'User Role', render: (row) => row.userRole },
     {
-      key: 'businessName',
-      header: 'Business Name',
-      minWidth: 180,
-      render: (row) => row.businessName,
+      key: 'scanDateTime',
+      header: 'Scan Date & Time',
+      minWidth: 170,
+      sortable: true,
+      render: (row) => (
+        <Typography sx={{ fontSize: '0.8125rem' }}>
+          {row.scanDateTime}
+        </Typography>
+      ),
     },
     {
       key: 'result',
@@ -141,11 +149,11 @@ export function LiveScanFeedPage() {
     {
       key: 'scanCode',
       header: 'Scan Code',
-      minWidth: 150,
+      minWidth: 220,
       render: (row) => (
         <Typography
           sx={{
-            fontWeight: 600,
+            fontWeight: 700,
             fontSize: '0.8125rem',
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
@@ -165,15 +173,26 @@ export function LiveScanFeedPage() {
     {
       key: 'productCode',
       header: 'Product Code',
-      minWidth: 140,
-      render: (row) => row.productCode,
+      minWidth: 130,
+      render: (row) => (
+        <Typography
+          onClick={(e) => e.stopPropagation()}
+          sx={{ fontWeight: 700, fontSize: '0.8125rem', cursor: 'default' }}
+        >
+          {row.productCode}
+        </Typography>
+      ),
     },
     { key: 'region', header: 'Region', render: (row) => row.region },
   ]
 
   return (
     <>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', justifyContent: 'flex-end', mb: 1.5 }}>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{ alignItems: 'center', justifyContent: 'flex-end', mb: 1.5 }}
+      >
         <Chip
           label={isLive ? 'Live · updating every second' : 'Paused'}
           size="small"

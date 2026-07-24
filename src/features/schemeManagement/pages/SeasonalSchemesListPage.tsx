@@ -1,17 +1,35 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import {
+  Chip,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Sparkle, CalendarClock, CheckCheck, Trophy } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useSeasonalSchemes } from '@/features/schemeManagement/hooks/useSeasonalSchemes'
 import { useSchemeFormOptions } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
-import type { ApplicableUserType, Scheme, SchemeStatus, SchemeType } from '@/features/schemeManagement/types/schemeManagement.types'
+import type {
+  ApplicableUserType,
+  Scheme,
+  SchemeStatus,
+  SchemeType,
+} from '@/features/schemeManagement/types/schemeManagement.types'
 
-const statusConfig: Record<SchemeStatus, { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }> = {
+const statusConfig: Record<
+  SchemeStatus,
+  { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }
+> = {
   active: { label: 'Active', color: 'success' },
   inactive: { label: 'Inactive', color: 'default' },
   expired: { label: 'Expired', color: 'error' },
@@ -31,11 +49,13 @@ interface SeasonalSchemeFilters extends Record<string, unknown> {
 export function SeasonalSchemesListPage() {
   const navigate = useNavigate()
   const { schemes, kpis, isLoading } = useSeasonalSchemes()
-  const { schemeTypeOptions, schemeApplicableUserOptions, festivalOptions } = useSchemeFormOptions()
+  const { schemeTypeOptions, schemeApplicableUserOptions, festivalOptions } =
+    useSchemeFormOptions()
   useRegionTopbarHeader({
     icon: <Sparkle size={20} />,
     title: 'Seasonal Schemes',
-    subtitle: 'Limited-time promotional campaigns for festivals and special events.',
+    subtitle:
+      'Limited-time promotional campaigns for festivals and special events.',
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<SeasonalSchemeFilters>({
@@ -47,13 +67,25 @@ export function SeasonalSchemesListPage() {
     toDate: '',
   })
 
-  const seasonalSchemeKpis = kpis ?? { activeSchemes: 0, upcomingCampaigns: 0, completedCampaigns: 0, rewardPointsIssued: 0 }
+  const seasonalSchemeKpis = kpis ?? {
+    activeSchemes: 0,
+    upcomingCampaigns: 0,
+    completedCampaigns: 0,
+    rewardPointsIssued: 0,
+  }
 
   const filteredSchemes = schemes.filter((scheme) => {
-    const festivalMatch = appliedFilters.festival === 'all' || scheme.festivalCampaign === appliedFilters.festival
-    const statusMatch = appliedFilters.status === 'all' || scheme.status === appliedFilters.status
-    const typeMatch = appliedFilters.schemeType === 'all' || scheme.schemeType === appliedFilters.schemeType
-    const applicableMatch = appliedFilters.applicableTo === 'all' || scheme.applicableUsers.includes(appliedFilters.applicableTo)
+    const festivalMatch =
+      appliedFilters.festival === 'all' ||
+      scheme.festivalCampaign === appliedFilters.festival
+    const statusMatch =
+      appliedFilters.status === 'all' || scheme.status === appliedFilters.status
+    const typeMatch =
+      appliedFilters.schemeType === 'all' ||
+      scheme.schemeType === appliedFilters.schemeType
+    const applicableMatch =
+      appliedFilters.applicableTo === 'all' ||
+      scheme.applicableUsers.includes(appliedFilters.applicableTo)
     return festivalMatch && statusMatch && typeMatch && applicableMatch
   })
 
@@ -67,24 +99,70 @@ export function SeasonalSchemesListPage() {
       sortValue: (row) => row.schemeName,
       render: (row) => (
         <Typography
-          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-          onClick={() => navigate(`/scheme-management/schemes/sessional/${row.id}`)}
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() =>
+            navigate(`/scheme-management/schemes/sessional/${row.id}`)
+          }
         >
           {row.schemeName}
         </Typography>
       ),
     },
-    { key: 'festivalCampaign', header: 'Festival / Campaign', minWidth: 190, render: (row) => row.festivalCampaign ?? '—' },
-    { key: 'schemeType', header: 'Scheme Type', minWidth: 150, render: (row) => row.schemeType },
-    { key: 'applicableUsers', header: 'Applicable To', minWidth: 160, render: (row) => row.applicableUsers.join(', ') },
-    { key: 'bonusValue', header: 'Bonus Value', align: 'right', sortable: true, sortValue: (row) => row.bonusValue, render: (row) => row.bonusValue },
-    { key: 'startDate', header: 'Start Date', minWidth: 120, sortable: true, render: (row) => row.startDate },
-    { key: 'endDate', header: 'End Date', minWidth: 120, render: (row) => row.endDate ?? '—' },
+    {
+      key: 'festivalCampaign',
+      header: 'Festival / Campaign',
+      minWidth: 190,
+      render: (row) => row.festivalCampaign ?? '—',
+    },
+    {
+      key: 'schemeType',
+      header: 'Scheme Type',
+      minWidth: 150,
+      render: (row) => row.schemeType,
+    },
+    {
+      key: 'applicableUsers',
+      header: 'Applicable To',
+      minWidth: 160,
+      render: (row) => row.applicableUsers.join(', '),
+    },
+    {
+      key: 'bonusValue',
+      header: 'Bonus Value',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.bonusValue,
+      render: (row) => row.bonusValue,
+    },
+    {
+      key: 'startDate',
+      header: 'Start Date',
+      minWidth: 120,
+      sortable: true,
+      render: (row) => row.startDate,
+    },
+    {
+      key: 'endDate',
+      header: 'End Date',
+      minWidth: 120,
+      render: (row) => row.endDate ?? '—',
+    },
     {
       key: 'status',
       header: 'Status',
       minWidth: 100,
-      render: (row) => <Chip size="small" label={statusConfig[row.status].label} color={statusConfig[row.status].color} />,
+      render: (row) => (
+        <Chip
+          size="small"
+          label={statusConfig[row.status].label}
+          color={statusConfig[row.status].color}
+        />
+      ),
     },
   ]
 
@@ -92,16 +170,54 @@ export function SeasonalSchemesListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Active Seasonal Schemes" value={seasonalSchemeKpis.activeSchemes} icon={<Sparkle size={20} />} iconColor="primary" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Active Seasonal Schemes"
+              value={seasonalSchemeKpis.activeSchemes}
+              icon={<Sparkle size={20} />}
+              iconColor="primary"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Upcoming Campaigns" value={seasonalSchemeKpis.upcomingCampaigns} icon={<CalendarClock size={20} />} iconColor="info" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Upcoming Campaigns"
+              value={seasonalSchemeKpis.upcomingCampaigns}
+              icon={<CalendarClock size={20} />}
+              iconColor="info"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Completed Campaigns" value={seasonalSchemeKpis.completedCampaigns} icon={<CheckCheck size={20} />} iconColor="success" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Completed Campaigns"
+              value={seasonalSchemeKpis.completedCampaigns}
+              icon={<CheckCheck size={20} />}
+              iconColor="success"
+            />
+          )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? <StatCardSkeleton /> : <StatCard label="Reward Points Issued" value={seasonalSchemeKpis.rewardPointsIssued.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />}
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Reward Points Issued"
+              value={seasonalSchemeKpis.rewardPointsIssued.toLocaleString(
+                'en-IN',
+              )}
+              icon={<Trophy size={20} />}
+              iconColor="warning"
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -112,7 +228,9 @@ export function SeasonalSchemesListPage() {
         getRowId={(row) => row.id}
         loading={isLoading}
         searchPlaceholder="Search by scheme name or festival…"
-        searchKeys={(row) => `${row.schemeName} ${row.id} ${row.festivalCampaign ?? ''}`}
+        searchKeys={(row) =>
+          `${row.schemeName} ${row.id} ${row.festivalCampaign ?? ''}`
+        }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.festival !== 'all' ? 1 : 0) +
@@ -122,12 +240,23 @@ export function SeasonalSchemesListPage() {
           (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
         }
         onExportClick={() => {}}
-        createAction={{ label: 'Add Seasonal Scheme', to: '/scheme-management/schemes/sessional/new' }}
+        createAction={{
+          label: 'Add Seasonal Scheme',
+          to: '/scheme-management/schemes/sessional/new',
+        }}
         defaultSortBy="startDate"
         defaultSortDir="desc"
         actions={[
-          { label: 'View', onClick: (row) => navigate(`/scheme-management/schemes/sessional/${row.id}`) },
-          { label: 'Edit', onClick: (row) => navigate(`/scheme-management/schemes/sessional/${row.id}/edit`) },
+          {
+            label: 'View',
+            onClick: (row) =>
+              navigate(`/scheme-management/schemes/sessional/${row.id}`),
+          },
+          {
+            label: 'Edit',
+            onClick: (row) =>
+              navigate(`/scheme-management/schemes/sessional/${row.id}/edit`),
+          },
           { label: 'Delete', onClick: () => {}, danger: true },
         ]}
         emptyTitle="No seasonal schemes found"
@@ -148,7 +277,9 @@ export function SeasonalSchemesListPage() {
               label="Festival / Campaign"
               size="small"
               value={draft.festival}
-              onChange={(e) => setDraft((prev) => ({ ...prev, festival: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, festival: e.target.value }))
+              }
             >
               <MenuItem value="all">All Campaigns</MenuItem>
               {festivalOptions.map((festival) => (
@@ -162,7 +293,12 @@ export function SeasonalSchemesListPage() {
               label="Scheme Status"
               size="small"
               value={draft.status}
-              onChange={(e) => setDraft((prev) => ({ ...prev, status: e.target.value as SeasonalSchemeFilters['status'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: e.target.value as SeasonalSchemeFilters['status'],
+                }))
+              }
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="upcoming">Upcoming</MenuItem>
@@ -174,7 +310,13 @@ export function SeasonalSchemesListPage() {
               label="Scheme Type"
               size="small"
               value={draft.schemeType}
-              onChange={(e) => setDraft((prev) => ({ ...prev, schemeType: e.target.value as SeasonalSchemeFilters['schemeType'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  schemeType: e.target
+                    .value as SeasonalSchemeFilters['schemeType'],
+                }))
+              }
             >
               <MenuItem value="all">All Types</MenuItem>
               {schemeTypeOptions.map((type) => (
@@ -188,7 +330,13 @@ export function SeasonalSchemesListPage() {
               label="Applicable To"
               size="small"
               value={draft.applicableTo}
-              onChange={(e) => setDraft((prev) => ({ ...prev, applicableTo: e.target.value as SeasonalSchemeFilters['applicableTo'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  applicableTo: e.target
+                    .value as SeasonalSchemeFilters['applicableTo'],
+                }))
+              }
             >
               <MenuItem value="all">All Users</MenuItem>
               {schemeApplicableUserOptions.map((type) => (
@@ -203,7 +351,9 @@ export function SeasonalSchemesListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.fromDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, fromDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
+              }
             />
             <TextField
               type="date"
@@ -211,7 +361,9 @@ export function SeasonalSchemesListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.toDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, toDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
+              }
             />
           </Stack>
         )}

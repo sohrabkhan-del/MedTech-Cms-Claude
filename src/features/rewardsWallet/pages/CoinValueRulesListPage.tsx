@@ -32,9 +32,14 @@ import {
 } from '@/components/common/TreeTable/TreeTable'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useCoinRules } from '@/features/rewardsWallet/hooks/useCoinRules'
-import type { CoinRulePartnerType, CoinRuleRegion, CoinValueRule } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import type {
+  CoinRulePartnerType,
+  CoinRuleRegion,
+  CoinValueRule,
+} from '@/features/rewardsWallet/types/rewardsWallet.types'
 
 const REGIONS: CoinRuleRegion[] = ['North', 'South', 'East', 'West']
+const BASE_COIN_VALUE_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 100)
 const PIE_COLORS = [
   '#1A3E8C',
   '#F7941D',
@@ -77,7 +82,8 @@ type RowEditState =
 export function CoinValueRulesListPage() {
   const navigate = useNavigate()
   const { partnerType: partnerTypeParam } = useParams<{ partnerType: string }>()
-  const partnerType: CoinRulePartnerType = partnerTypeParam === 'chemist' ? 'Chemist' : 'Dealer'
+  const partnerType: CoinRulePartnerType =
+    partnerTypeParam === 'chemist' ? 'Chemist' : 'Dealer'
 
   useRegionTopbarHeader({
     icon: <Coins size={20} />,
@@ -86,15 +92,32 @@ export function CoinValueRulesListPage() {
       'Configure base coin values, regional multipliers, and monitor reward distribution impact.',
   })
 
-  const { rules: allRules, regionMultipliers, baseValueOverrides, setRegionMultiplier, setBaseValueOverride, isLoading } = useCoinRules()
+  const {
+    rules: allRules,
+    regionMultipliers,
+    baseValueOverrides,
+    setRegionMultiplier,
+    setBaseValueOverride,
+    isLoading,
+  } = useCoinRules()
 
-  const rules = useMemo(() => allRules.filter((rule) => rule.partnerType === partnerType), [allRules, partnerType])
+  const rules = useMemo(
+    () => allRules.filter((rule) => rule.partnerType === partnerType),
+    [allRules, partnerType],
+  )
 
   const kpis = useMemo(
     () => ({
-      totalOutstandingCoinLiability: rules.reduce((sum, r) => sum + r.regions.reduce((s, x) => s + x.currentPoints, 0), 0),
+      totalOutstandingCoinLiability: rules.reduce(
+        (sum, r) => sum + r.regions.reduce((s, x) => s + x.currentPoints, 0),
+        0,
+      ),
       totalConfiguredRules: rules.length,
-      averageBaseCoinValue: rules.length ? Math.round(rules.reduce((sum, r) => sum + r.baseCoinValue, 0) / rules.length) : 0,
+      averageBaseCoinValue: rules.length
+        ? Math.round(
+            rules.reduce((sum, r) => sum + r.baseCoinValue, 0) / rules.length,
+          )
+        : 0,
     }),
     [rules],
   )
@@ -125,8 +148,12 @@ export function CoinValueRulesListPage() {
   const filteredRules = useMemo(
     () =>
       rules.filter((rule) => {
-        const categoryMatch = appliedFilters.productCategory === 'all' || rule.productCategory === appliedFilters.productCategory
-        const regionMatch = appliedFilters.region === 'all' || rule.regions.some((r) => r.region === appliedFilters.region)
+        const categoryMatch =
+          appliedFilters.productCategory === 'all' ||
+          rule.productCategory === appliedFilters.productCategory
+        const regionMatch =
+          appliedFilters.region === 'all' ||
+          rule.regions.some((r) => r.region === appliedFilters.region)
         return categoryMatch && regionMatch
       }),
     [rules, appliedFilters],
@@ -158,7 +185,10 @@ export function CoinValueRulesListPage() {
   const handleSaveRegionMultiplier = () => {
     if (!regionEditDialog) return
     const numeric = Math.max(0, Number(regionEditDialog.value) || 0)
-    void setRegionMultiplier(regionEditDialog.region, Number(numeric.toFixed(2)))
+    void setRegionMultiplier(
+      regionEditDialog.region,
+      Number(numeric.toFixed(2)),
+    )
     setRegionEditDialog(null)
   }
 
@@ -216,8 +246,7 @@ export function CoinValueRulesListPage() {
               resolvedBaseValue(rule) *
                 (regionMultipliers?.[r.region] ?? r.currentMultiplier),
             ),
-            currentEffectiveDate:
-              r.currentEffectiveDate,
+            currentEffectiveDate: r.currentEffectiveDate,
           },
         })),
       })),
@@ -285,7 +314,7 @@ export function CoinValueRulesListPage() {
     {
       key: 'previousMultiplier',
       header: 'Previous Multiplier',
-      align: 'right',
+      align: 'center',
       minWidth: 150,
       render: (row) =>
         row.rowType === 'region' ? (
@@ -303,7 +332,7 @@ export function CoinValueRulesListPage() {
     {
       key: 'currentMultiplier',
       header: 'Current Multiplier',
-      align: 'right',
+      align: 'center',
       minWidth: 150,
       render: (row) =>
         row.rowType === 'region' ? (
@@ -321,7 +350,7 @@ export function CoinValueRulesListPage() {
     {
       key: 'previousPoints',
       header: 'Previous Points',
-      align: 'right',
+      align: 'center',
       minWidth: 130,
       render: (row) =>
         row.rowType === 'region'
@@ -331,7 +360,7 @@ export function CoinValueRulesListPage() {
     {
       key: 'currentPoints',
       header: 'Current Points',
-      align: 'right',
+      align: 'center',
       minWidth: 130,
       render: (row) =>
         row.rowType === 'region'
@@ -506,8 +535,14 @@ export function CoinValueRulesListPage() {
           <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
             Dynamic Product-to-Coin Matrix
           </Typography>
-          <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-            <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', mr: 0.5 }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+          >
+            <Typography
+              sx={{ fontSize: '0.8125rem', color: 'text.secondary', mr: 0.5 }}
+            >
               Region Multipliers:
             </Typography>
             {REGIONS.map((region) => (
@@ -565,7 +600,12 @@ export function CoinValueRulesListPage() {
               label="Product Category"
               size="small"
               value={draft.productCategory}
-              onChange={(e) => setDraft((prev) => ({ ...prev, productCategory: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  productCategory: e.target.value,
+                }))
+              }
             >
               <MenuItem value="all">All Categories</MenuItem>
               {productCategoryOptions.map((category) => (
@@ -579,7 +619,12 @@ export function CoinValueRulesListPage() {
               label="Region"
               size="small"
               value={draft.region}
-              onChange={(e) => setDraft((prev) => ({ ...prev, region: e.target.value as CoinRuleFilters['region'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  region: e.target.value as CoinRuleFilters['region'],
+                }))
+              }
             >
               <MenuItem value="all">All Regions</MenuItem>
               {REGIONS.map((region) => (
@@ -638,22 +683,12 @@ export function CoinValueRulesListPage() {
         primaryActionLabel="Save"
         onPrimaryAction={handleSaveRowEdit}
       >
-        {rowEditDialog && (
+        {rowEditDialog?.rowType === 'product' ? (
           <TextField
             fullWidth
-            type="number"
-            label={
-              rowEditDialog.rowType === 'product'
-                ? 'New Base Coin Value'
-                : 'New Multiplier'
-            }
+            select
+            label="New Base Coin Value"
             size="small"
-            slotProps={{
-              htmlInput: {
-                step: rowEditDialog.rowType === 'product' ? 1 : 0.05,
-                min: 0,
-              },
-            }}
             value={rowEditDialog.value}
             onChange={(e) =>
               setRowEditDialog((prev) =>
@@ -661,7 +696,35 @@ export function CoinValueRulesListPage() {
               )
             }
             sx={{ mt: 1 }}
-          />
+          >
+            {(BASE_COIN_VALUE_OPTIONS.includes(Number(rowEditDialog.value))
+              ? BASE_COIN_VALUE_OPTIONS
+              : [Number(rowEditDialog.value), ...BASE_COIN_VALUE_OPTIONS].sort(
+                  (a, b) => a - b,
+                )
+            ).map((option) => (
+              <MenuItem key={option} value={option}>
+                {option}
+              </MenuItem>
+            ))}
+          </TextField>
+        ) : (
+          rowEditDialog && (
+            <TextField
+              fullWidth
+              type="number"
+              label="New Multiplier"
+              size="small"
+              slotProps={{ htmlInput: { step: 0.05, min: 0 } }}
+              value={rowEditDialog.value}
+              onChange={(e) =>
+                setRowEditDialog((prev) =>
+                  prev ? { ...prev, value: e.target.value } : prev,
+                )
+              }
+              sx={{ mt: 1 }}
+            />
+          )
         )}
       </Modal>
     </>

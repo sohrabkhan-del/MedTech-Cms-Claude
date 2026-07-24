@@ -1,14 +1,33 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Checkbox, FormControlLabel, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import { FileBarChart2, Store as StorefrontIcon, ScanLine, Coins } from 'lucide-react'
+import {
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import {
+  FileBarChart2,
+  Store as StorefrontIcon,
+  ScanLine,
+  Coins,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { mockDealerReports, dealerReportKpis } from '@/features/reportsAnalytics/mockDealerReports'
+import {
+  mockDealerReports,
+  dealerReportKpis,
+} from '@/features/reportsAnalytics/mockDealerReports'
 import type { DealerReportRow } from '@/types/dealerReport'
 import type { PartnerStatus, PartnerZone } from '@/types/partner'
 
@@ -29,7 +48,8 @@ export function DealerReportListPage() {
   useRegionTopbarHeader({
     icon: <FileBarChart2 size={20} />,
     title: 'Dealer Reports',
-    subtitle: 'Displays dealer onboarding, scan activity, and reward performance.',
+    subtitle:
+      'Displays dealer onboarding, scan activity, and reward performance.',
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<DealerReportFilters>({
@@ -46,9 +66,15 @@ export function DealerReportListPage() {
     () =>
       mockDealerReports.filter((row) => {
         const regionMatch = !regionZone || row.zone === regionZone
-        const zoneMatch = appliedFilters.zones.length === 0 || appliedFilters.zones.includes(row.zone)
-        const statusMatch = appliedFilters.statuses.length === 0 || appliedFilters.statuses.includes(row.status)
-        const cityMatch = !appliedFilters.city || row.city.toLowerCase().includes(appliedFilters.city.toLowerCase())
+        const zoneMatch =
+          appliedFilters.zones.length === 0 ||
+          appliedFilters.zones.includes(row.zone)
+        const statusMatch =
+          appliedFilters.statuses.length === 0 ||
+          appliedFilters.statuses.includes(row.status)
+        const cityMatch =
+          !appliedFilters.city ||
+          row.city.toLowerCase().includes(appliedFilters.city.toLowerCase())
         return regionMatch && zoneMatch && statusMatch && cityMatch
       }),
     [appliedFilters, regionZone],
@@ -63,19 +89,36 @@ export function DealerReportListPage() {
       sortValue: (row) => row.dealerName,
       render: (row) => (
         <Typography
-          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
           onClick={() => navigate(`/reports/dealer-reports/${row.id}`)}
         >
           {row.dealerName}
         </Typography>
       ),
     },
-    { key: 'city', header: 'City', minWidth: 120, sortable: true, render: (row) => row.city },
-    { key: 'zone', header: 'Zone', minWidth: 90, sortable: true, render: (row) => row.zone },
+    {
+      key: 'city',
+      header: 'City',
+      minWidth: 120,
+      sortable: true,
+      render: (row) => row.city,
+    },
+    {
+      key: 'zone',
+      header: 'Zone',
+      minWidth: 90,
+      sortable: true,
+      render: (row) => row.zone,
+    },
     {
       key: 'totalScans',
       header: 'Total Scans',
-      align: 'right',
+      align: 'center',
       sortable: true,
       sortValue: (row) => row.totalScans,
       render: (row) => row.totalScans.toLocaleString('en-IN'),
@@ -83,7 +126,7 @@ export function DealerReportListPage() {
     {
       key: 'walletPoints',
       header: 'Wallet Points',
-      align: 'right',
+      align: 'center',
       sortable: true,
       sortValue: (row) => row.walletPoints,
       render: (row) => row.walletPoints.toLocaleString('en-IN'),
@@ -91,7 +134,7 @@ export function DealerReportListPage() {
     {
       key: 'redemptions',
       header: 'Redemptions',
-      align: 'right',
+      align: 'center',
       sortable: true,
       sortValue: (row) => row.redemptions,
       render: (row) => row.redemptions.toLocaleString('en-IN'),
@@ -116,16 +159,36 @@ export function DealerReportListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Dealers" value={dealerReportKpis.totalDealers} icon={<StorefrontIcon size={20} />} iconColor="primary" />
+          <StatCard
+            label="Total Dealers"
+            value={dealerReportKpis.totalDealers}
+            icon={<StorefrontIcon size={20} />}
+            iconColor="primary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Dealers" value={dealerReportKpis.activeDealers} icon={<StorefrontIcon size={20} />} iconColor="success" />
+          <StatCard
+            label="Active Dealers"
+            value={dealerReportKpis.activeDealers}
+            icon={<StorefrontIcon size={20} />}
+            iconColor="success"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Scans" value={dealerReportKpis.totalScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="secondary" />
+          <StatCard
+            label="Total Scans"
+            value={dealerReportKpis.totalScans.toLocaleString('en-IN')}
+            icon={<ScanLine size={20} />}
+            iconColor="secondary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Reward Points" value={dealerReportKpis.totalRewardPoints.toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="warning" />
+          <StatCard
+            label="Total Reward Points"
+            value={dealerReportKpis.totalRewardPoints.toLocaleString('en-IN')}
+            icon={<Coins size={20} />}
+            iconColor="warning"
+          />
         </Grid>
       </Grid>
 
@@ -140,7 +203,12 @@ export function DealerReportListPage() {
         filterCount={filterCount}
         onExportClick={() => {}}
         defaultSortBy="dealerName"
-        actions={[{ label: 'View', onClick: (row) => navigate(`/reports/dealer-reports/${row.id}`) }]}
+        actions={[
+          {
+            label: 'View',
+            onClick: (row) => navigate(`/reports/dealer-reports/${row.id}`),
+          },
+        ]}
         emptyTitle="No dealer reports found"
         emptyDescription="Try adjusting your filters or search terms."
       />
@@ -155,7 +223,9 @@ export function DealerReportListPage() {
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Zone</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Zone
+              </Typography>
               {ALL_ZONES.map((zone) => (
                 <FormControlLabel
                   key={zone}
@@ -165,7 +235,9 @@ export function DealerReportListPage() {
                       onChange={(e) =>
                         setDraft((prev) => ({
                           ...prev,
-                          zones: e.target.checked ? [...prev.zones, zone] : prev.zones.filter((z) => z !== zone),
+                          zones: e.target.checked
+                            ? [...prev.zones, zone]
+                            : prev.zones.filter((z) => z !== zone),
                         }))
                       }
                     />
@@ -175,7 +247,9 @@ export function DealerReportListPage() {
               ))}
             </Stack>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Status</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Status
+              </Typography>
               {ALL_STATUSES.map((status) => (
                 <FormControlLabel
                   key={status}
@@ -185,7 +259,9 @@ export function DealerReportListPage() {
                       onChange={(e) =>
                         setDraft((prev) => ({
                           ...prev,
-                          statuses: e.target.checked ? [...prev.statuses, status] : prev.statuses.filter((s) => s !== status),
+                          statuses: e.target.checked
+                            ? [...prev.statuses, status]
+                            : prev.statuses.filter((s) => s !== status),
                         }))
                       }
                     />
@@ -198,14 +274,18 @@ export function DealerReportListPage() {
               label="City"
               size="small"
               value={draft.city}
-              onChange={(e) => setDraft((prev) => ({ ...prev, city: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, city: e.target.value }))
+              }
             />
             <TextField
               select
               label="City Quick Filter"
               size="small"
               value=""
-              onChange={(e) => setDraft((prev) => ({ ...prev, city: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, city: e.target.value }))
+              }
             >
               <MenuItem value="">None</MenuItem>
               <MenuItem value="Delhi">Delhi</MenuItem>
@@ -225,7 +305,9 @@ export function DealerReportListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.fromDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, fromDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
+              }
             />
             <TextField
               type="date"
@@ -233,7 +315,9 @@ export function DealerReportListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.toDate}
-              onChange={(e) => setDraft((prev) => ({ ...prev, toDate: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
+              }
             />
           </Stack>
         )}

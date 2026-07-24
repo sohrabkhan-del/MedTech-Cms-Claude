@@ -31,7 +31,10 @@ import {
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useGiftRules } from '@/features/schemeManagement/hooks/useGiftRules'
 import { useGiftRuleFormOptions } from '@/features/schemeManagement/hooks/useGiftRuleFormOptions'
-import type { RewardRule, RuleType } from '@/features/schemeManagement/types/schemeManagement.types'
+import type {
+  RewardRule,
+  RuleType,
+} from '@/features/schemeManagement/types/schemeManagement.types'
 
 export function GiftRulesListPage() {
   const navigate = useNavigate()
@@ -41,7 +44,8 @@ export function GiftRulesListPage() {
     subtitle:
       'Manage permanent catalog rewards and limited-time scheme rewards.',
   })
-  const { permanentCatalogRewards, schemeTrackRewards, dashboard, isLoading } = useGiftRules()
+  const { permanentCatalogRewards, schemeTrackRewards, dashboard, isLoading } =
+    useGiftRules()
   const { ruleTypeOptions } = useGiftRuleFormOptions()
   const [search, setSearch] = useState('')
   const [ruleType, setRuleType] = useState<RuleType | 'all'>('all')
@@ -55,7 +59,8 @@ export function GiftRulesListPage() {
   }
 
   const matchesFilters = (rule: RewardRule) => {
-    const searchMatch = !search || rule.rewardName.toLowerCase().includes(search.toLowerCase())
+    const searchMatch =
+      !search || rule.rewardName.toLowerCase().includes(search.toLowerCase())
     const typeMatch = ruleType === 'all' || rule.ruleType === ruleType
     return searchMatch && typeMatch
   }
@@ -129,7 +134,7 @@ export function GiftRulesListPage() {
     {
       key: 'coinsRequired',
       header: 'Coins Required',
-      align: 'right',
+      align: 'center',
       sortable: true,
       sortValue: (row) => row.coinsRequired,
       render: (row) => row.coinsRequired.toLocaleString('en-IN'),

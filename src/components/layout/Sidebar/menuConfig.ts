@@ -17,7 +17,6 @@ import {
   Ban,
   Package,
   Factory,
-  Box,
   Megaphone,
   Target,
   Gift,
@@ -164,7 +163,7 @@ export const menuConfig: MenuGroup[] = [
     icon: Megaphone,
     items: [
       {
-        label: 'Marketing catalogue',
+        label: 'Marketing Catalogue',
         path: '/marketing-products/products-catelog',
         icon: Megaphone,
         showRegionTopbar: true,

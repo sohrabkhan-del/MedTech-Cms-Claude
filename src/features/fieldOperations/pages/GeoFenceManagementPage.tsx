@@ -1,16 +1,36 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Grid, MenuItem, Stack, Tab, Tabs, TextField, Typography } from '@mui/material'
-import { Fence as FenceIcon, CircleCheck as CheckCircleOutlined, ClipboardClock as PendingActionsOutlined, Target as TrackChangesIcon, CalendarCheck as EventAvailableOutlined } from 'lucide-react'
+import {
+  Grid,
+  MenuItem,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Typography,
+} from '@mui/material'
+import {
+  Fence as FenceIcon,
+  CircleCheck as CheckCircleOutlined,
+  ClipboardClock as PendingActionsOutlined,
+  Target as TrackChangesIcon,
+  CalendarCheck as EventAvailableOutlined,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useGeoFences } from '@/features/fieldOperations/hooks/useGeoFences'
-import type { GeoFence, GeoFenceUserType } from '@/features/fieldOperations/types/fieldOperations.types'
+import type {
+  GeoFence,
+  GeoFenceUserType,
+} from '@/features/fieldOperations/types/fieldOperations.types'
 import type { PartnerZone } from '@/types/partner'
 
 interface GeoFenceFilters extends Record<string, unknown> {
@@ -28,46 +48,86 @@ export function GeoFenceManagementPage() {
   useRegionTopbarHeader({
     icon: <FenceIcon size={20} />,
     title: 'Geo Fence Management',
-    subtitle: 'Manage location-based scan validation for Dealers, Chemists, and MRs.',
+    subtitle:
+      'Manage location-based scan validation for Dealers, Chemists, and MRs.',
   })
   const [tab, setTab] = useState<RuleTab>('all')
   const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({ userType: 'all', region: 'all', status: 'all' })
+  const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({
+    userType: 'all',
+    region: 'all',
+    status: 'all',
+  })
 
   const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 
-  const geoFenceKpis = kpis ?? { activeFences: 0, pendingVerification: 0, averageRadius: 0, verifiedThisWeek: 0 }
+  const geoFenceKpis = kpis ?? {
+    activeFences: 0,
+    pendingVerification: 0,
+    averageRadius: 0,
+    verifiedThisWeek: 0,
+  }
 
   const filteredFences = geoFences.filter((fence) => {
-    const tabMatch = tab === 'all' ? true : fence.scope === 'user' && fence.userType === tab
+    const tabMatch =
+      tab === 'all' ? true : fence.scope === 'user' && fence.userType === tab
     const topbarRegionMatch = !topbarZone || fence.region === topbarZone
-    const userTypeMatch = appliedFilters.userType === 'all' || fence.userType === appliedFilters.userType
-    const regionMatch = appliedFilters.region === 'all' || fence.region === appliedFilters.region
-    const statusMatch = appliedFilters.status === 'all' || fence.status === appliedFilters.status
-    return tabMatch && topbarRegionMatch && userTypeMatch && regionMatch && statusMatch
+    const userTypeMatch =
+      appliedFilters.userType === 'all' ||
+      fence.userType === appliedFilters.userType
+    const regionMatch =
+      appliedFilters.region === 'all' || fence.region === appliedFilters.region
+    const statusMatch =
+      appliedFilters.status === 'all' || fence.status === appliedFilters.status
+    return (
+      tabMatch &&
+      topbarRegionMatch &&
+      userTypeMatch &&
+      regionMatch &&
+      statusMatch
+    )
   })
 
   const createAction =
     tab === 'all'
-      ? { label: 'Add Geo Fence Rule', to: '/field-operations/geo-fence-management/new?scope=global' }
-      : { label: 'Add Geo Fence', to: `/field-operations/geo-fence-management/new?scope=user&userType=${tab}` }
+      ? {
+          label: 'Add Geo Fence Rule',
+          to: '/field-operations/geo-fence-management/new?scope=global',
+        }
+      : {
+          label: 'Add Geo Fence',
+          to: `/field-operations/geo-fence-management/new?scope=user&userType=${tab}`,
+        }
 
   const columns: CommonTableColumn<GeoFence>[] = [
+    {
+      key: 'businessName',
+      header: 'Business Name',
+      minWidth: 170,
+      sortable: true,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() =>
+            navigate(`/field-operations/geo-fence-management/${row.id}`)
+          }
+        >
+          {row.businessName}
+        </Typography>
+      ),
+    },
     {
       key: 'userName',
       header: 'User Name',
       minWidth: 160,
       sortable: true,
-      render: (row) => (
-        <Typography
-          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-          onClick={() => navigate(`/field-operations/geo-fence-management/${row.id}`)}
-        >
-          {row.userName}
-        </Typography>
-      ),
+      render: (row) => row.userName,
     },
-    { key: 'businessName', header: 'Business Name', minWidth: 170, sortable: true, render: (row) => row.businessName },
     {
       key: 'businessAddress',
       header: 'Business Address',
@@ -75,18 +135,51 @@ export function GeoFenceManagementPage() {
       render: (row) => (
         <Typography
           noWrap
-          sx={{ fontSize: '0.8125rem', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis' }}
+          sx={{
+            fontSize: '0.8125rem',
+            maxWidth: 260,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
           title={row.businessAddress}
         >
           {row.businessAddress}
         </Typography>
       ),
     },
-    { key: 'userType', header: 'User Type', sortable: true, render: (row) => row.userType },
-    { key: 'zone', header: 'Location', sortable: true, render: (row) => row.zone },
-    { key: 'radiusMeters', header: 'Radius (mt)', align: 'right', sortable: true, sortValue: (row) => row.radiusMeters, render: (row) => row.radiusMeters },
-    { key: 'lastVerified', header: 'Last Verified', minWidth: 140, render: (row) => row.lastVerified },
-    { key: 'status', header: 'Status', sortable: true, sortValue: (row) => row.status, render: (row) => <StatusBadge status={row.status} /> },
+    {
+      key: 'userType',
+      header: 'User Type',
+      sortable: true,
+      render: (row) => row.userType,
+    },
+    {
+      key: 'zone',
+      header: 'Location',
+      sortable: true,
+      render: (row) => row.zone,
+    },
+    {
+      key: 'radiusMeters',
+      header: 'Radius (mt)',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.radiusMeters,
+      render: (row) => row.radiusMeters,
+    },
+    {
+      key: 'lastVerified',
+      header: 'Last Verified',
+      minWidth: 140,
+      render: (row) => row.lastVerified,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      sortValue: (row) => row.status,
+      render: (row) => <StatusBadge status={row.status} />,
+    },
   ]
 
   return (
@@ -101,7 +194,9 @@ export function GeoFenceManagementPage() {
               value={geoFenceKpis.activeFences}
               icon={<CheckCircleOutlined size={20} />}
               iconColor="success"
-              onClick={() => setAppliedFilters((prev) => ({ ...prev, status: 'active' }))}
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'active' }))
+              }
             />
           )}
         </Grid>
@@ -114,7 +209,9 @@ export function GeoFenceManagementPage() {
               value={geoFenceKpis.pendingVerification}
               icon={<PendingActionsOutlined size={20} />}
               iconColor="warning"
-              onClick={() => setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))}
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))
+              }
             />
           )}
         </Grid>
@@ -122,19 +219,33 @@ export function GeoFenceManagementPage() {
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Average Radius" value={`${geoFenceKpis.averageRadius} m`} icon={<TrackChangesIcon size={20} />} iconColor="primary" />
+            <StatCard
+              label="Average Radius"
+              value={`${geoFenceKpis.averageRadius} m`}
+              icon={<TrackChangesIcon size={20} />}
+              iconColor="primary"
+            />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Verified This Week" value={geoFenceKpis.verifiedThisWeek} icon={<EventAvailableOutlined size={20} />} iconColor="secondary" />
+            <StatCard
+              label="Verified This Week"
+              value={geoFenceKpis.verifiedThisWeek}
+              icon={<EventAvailableOutlined size={20} />}
+              iconColor="secondary"
+            />
           )}
         </Grid>
       </Grid>
 
-      <Tabs value={tab} onChange={(_, value: RuleTab) => setTab(value)} sx={{ mb: 2.5 }}>
+      <Tabs
+        value={tab}
+        onChange={(_, value: RuleTab) => setTab(value)}
+        sx={{ mb: 2.5 }}
+      >
         <Tab label="All" value="all" />
         <Tab label="Chemist" value="Chemist" />
         <Tab label="Dealer" value="Dealer" />
@@ -147,17 +258,29 @@ export function GeoFenceManagementPage() {
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search geo fences…"
-        searchKeys={(row) => `${row.userName} ${row.businessName} ${row.userType} ${row.zone}`}
+        searchKeys={(row) =>
+          `${row.userName} ${row.businessName} ${row.userType} ${row.zone}`
+        }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          (appliedFilters.userType !== 'all' ? 1 : 0) + (appliedFilters.region !== 'all' ? 1 : 0) + (appliedFilters.status !== 'all' ? 1 : 0)
+          (appliedFilters.userType !== 'all' ? 1 : 0) +
+          (appliedFilters.region !== 'all' ? 1 : 0) +
+          (appliedFilters.status !== 'all' ? 1 : 0)
         }
         onExportClick={() => {}}
         createAction={createAction}
-        defaultSortBy="userName"
+        defaultSortBy="businessName"
         actions={[
-          { label: 'View', onClick: (row) => navigate(`/field-operations/geo-fence-management/${row.id}`) },
-          { label: 'Edit', onClick: (row) => navigate(`/field-operations/geo-fence-management/${row.id}/edit`) },
+          {
+            label: 'View',
+            onClick: (row) =>
+              navigate(`/field-operations/geo-fence-management/${row.id}`),
+          },
+          {
+            label: 'Edit',
+            onClick: (row) =>
+              navigate(`/field-operations/geo-fence-management/${row.id}/edit`),
+          },
           { label: 'Activate', onClick: () => {} },
           { label: 'Deactivate', onClick: () => {}, danger: true },
         ]}
@@ -179,7 +302,12 @@ export function GeoFenceManagementPage() {
               label="User Type"
               size="small"
               value={draft.userType}
-              onChange={(e) => setDraft((prev) => ({ ...prev, userType: e.target.value as GeoFenceFilters['userType'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  userType: e.target.value as GeoFenceFilters['userType'],
+                }))
+              }
             >
               <MenuItem value="all">All Types</MenuItem>
               <MenuItem value="Dealer">Dealer</MenuItem>
@@ -191,7 +319,12 @@ export function GeoFenceManagementPage() {
               label="Region"
               size="small"
               value={draft.region}
-              onChange={(e) => setDraft((prev) => ({ ...prev, region: e.target.value as GeoFenceFilters['region'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  region: e.target.value as GeoFenceFilters['region'],
+                }))
+              }
             >
               <MenuItem value="all">All Regions</MenuItem>
               <MenuItem value="North">North</MenuItem>
@@ -204,7 +337,12 @@ export function GeoFenceManagementPage() {
               label="Status"
               size="small"
               value={draft.status}
-              onChange={(e) => setDraft((prev) => ({ ...prev, status: e.target.value as GeoFenceFilters['status'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: e.target.value as GeoFenceFilters['status'],
+                }))
+              }
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="active">Active</MenuItem>

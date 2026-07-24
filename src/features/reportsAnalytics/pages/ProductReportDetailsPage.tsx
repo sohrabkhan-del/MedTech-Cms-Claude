@@ -12,7 +12,10 @@ import {
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
@@ -20,21 +23,35 @@ import { useProductReportDetail } from '@/features/reportsAnalytics/hooks/usePro
 import type { ProductMovementEntry } from '@/types/product'
 
 const scanHistoryColumns: CommonTableColumn<ProductMovementEntry>[] = [
-  { key: 'factoryUploadBatch', header: 'Batch Number', sortable: true, render: (row) => row.factoryUploadBatch },
+  {
+    key: 'factoryUploadBatch',
+    header: 'Batch Number',
+    sortable: true,
+    render: (row) => row.factoryUploadBatch,
+  },
   {
     key: 'quantityUploaded',
     header: 'Quantity',
-    align: 'right',
+    align: 'center',
     sortable: true,
     sortValue: (row) => row.quantityUploaded,
     render: (row) => row.quantityUploaded.toLocaleString('en-IN'),
   },
-  { key: 'startSerialNo', header: 'Start Serial No', render: (row) => row.startSerialNo },
-  { key: 'endSerialNo', header: 'End Serial No', render: (row) => row.endSerialNo },
+  {
+    key: 'startSerialNo',
+    header: 'Start Serial No',
+    render: (row) => row.startSerialNo,
+  },
+  {
+    key: 'endSerialNo',
+    header: 'End Serial No',
+    render: (row) => row.endSerialNo,
+  },
   {
     key: 'scannedStatus',
     header: 'Scanned Status',
-    render: (row) => (row.scannedStatus === 'completed' ? 'Completed' : 'Pending'),
+    render: (row) =>
+      row.scannedStatus === 'completed' ? 'Completed' : 'Pending',
   },
 ]
 
@@ -58,12 +75,27 @@ export function ProductReportDetailsPage() {
     )
   }
 
-  const avgRewardPerScan = report.totalScans > 0 ? (report.rewardPoints / report.totalScans).toFixed(2) : '0'
-  const scanConversionRate = report.totalQrCodesGenerated > 0 ? ((report.totalScans / report.totalQrCodesGenerated) * 100).toFixed(1) : '0'
+  const avgRewardPerScan =
+    report.totalScans > 0
+      ? (report.rewardPoints / report.totalScans).toFixed(2)
+      : '0'
+  const scanConversionRate =
+    report.totalQrCodesGenerated > 0
+      ? ((report.totalScans / report.totalQrCodesGenerated) * 100).toFixed(1)
+      : '0'
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -87,7 +119,12 @@ export function ProductReportDetailsPage() {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-          <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={() => navigate('/reports/product-reports-1')} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackOutlined size={20} />}
+            onClick={() => navigate('/reports/product-reports-1')}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Back
           </Button>
         </Stack>
@@ -103,7 +140,10 @@ export function ProductReportDetailsPage() {
               { label: 'Brand', value: report.brand },
               { label: 'SKU', value: report.sku },
               { label: 'MRP', value: `₹${report.mrp.toLocaleString('en-IN')}` },
-              { label: 'Status', value: <StatusBadge status={report.status} /> },
+              {
+                label: 'Status',
+                value: <StatusBadge status={report.status} />,
+              },
               { label: 'Uploaded Date', value: report.uploadedDate },
             ]}
           />
@@ -113,9 +153,18 @@ export function ProductReportDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Representative Batch', value: report.batch },
-              { label: 'Total Factory Uploads', value: report.totalFactoryUploads },
-              { label: 'Total QR Codes Generated', value: report.totalQrCodesGenerated.toLocaleString('en-IN') },
-              { label: 'Total Batches in Movement History', value: report.movementHistory.length },
+              {
+                label: 'Total Factory Uploads',
+                value: report.totalFactoryUploads,
+              },
+              {
+                label: 'Total QR Codes Generated',
+                value: report.totalQrCodesGenerated.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Total Batches in Movement History',
+                value: report.movementHistory.length,
+              },
             ]}
           />
         </SectionCard>
@@ -127,7 +176,9 @@ export function ProductReportDetailsPage() {
             rows={report.movementHistory}
             getRowId={(row) => row.id}
             searchPlaceholder="Search scan history…"
-            searchKeys={(row) => `${row.factoryUploadBatch} ${row.startSerialNo} ${row.endSerialNo}`}
+            searchKeys={(row) =>
+              `${row.factoryUploadBatch} ${row.startSerialNo} ${row.endSerialNo}`
+            }
             defaultSortBy="quantityUploaded"
             defaultSortDir="desc"
             emptyTitle="No scan history yet"
@@ -137,9 +188,18 @@ export function ProductReportDetailsPage() {
         <SectionCard title="Reward Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Dealer Reward Points', value: report.dealerRewardPoints },
-              { label: 'Chemist Reward Points', value: report.chemistRewardPoints },
-              { label: 'Total Reward Points Issued', value: report.rewardPoints.toLocaleString('en-IN') },
+              {
+                label: 'Dealer Reward Points',
+                value: report.dealerRewardPoints,
+              },
+              {
+                label: 'Chemist Reward Points',
+                value: report.chemistRewardPoints,
+              },
+              {
+                label: 'Total Reward Points Issued',
+                value: report.rewardPoints.toLocaleString('en-IN'),
+              },
               { label: 'Average Reward per Scan', value: avgRewardPerScan },
             ]}
           />
@@ -148,10 +208,22 @@ export function ProductReportDetailsPage() {
         <SectionCard title="Distribution Journey">
           <DetailFieldGrid
             fields={[
-              { label: 'Total Factory Uploads', value: report.totalFactoryUploads },
-              { label: 'Total Dealer Allocations', value: report.totalDealerAllocations },
-              { label: 'Total Chemist Allocations', value: report.totalChemistAllocations },
-              { label: 'Total Successful Scans', value: report.totalScans.toLocaleString('en-IN') },
+              {
+                label: 'Total Factory Uploads',
+                value: report.totalFactoryUploads,
+              },
+              {
+                label: 'Total Dealer Allocations',
+                value: report.totalDealerAllocations,
+              },
+              {
+                label: 'Total Chemist Allocations',
+                value: report.totalChemistAllocations,
+              },
+              {
+                label: 'Total Successful Scans',
+                value: report.totalScans.toLocaleString('en-IN'),
+              },
             ]}
           />
         </SectionCard>
@@ -159,16 +231,36 @@ export function ProductReportDetailsPage() {
         <SectionCard title="Performance Analytics">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Scans" value={report.totalScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="primary" />
+              <StatCard
+                label="Total Scans"
+                value={report.totalScans.toLocaleString('en-IN')}
+                icon={<ScanLine size={20} />}
+                iconColor="primary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Reward Points Issued" value={report.rewardPoints.toLocaleString('en-IN')} icon={<Trophy size={20} />} iconColor="warning" />
+              <StatCard
+                label="Reward Points Issued"
+                value={report.rewardPoints.toLocaleString('en-IN')}
+                icon={<Trophy size={20} />}
+                iconColor="warning"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="QR Codes Generated" value={report.totalQrCodesGenerated.toLocaleString('en-IN')} icon={<QrCode2Outlined size={20} />} iconColor="secondary" />
+              <StatCard
+                label="QR Codes Generated"
+                value={report.totalQrCodesGenerated.toLocaleString('en-IN')}
+                icon={<QrCode2Outlined size={20} />}
+                iconColor="secondary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Scan Conversion Rate" value={`${scanConversionRate}%`} icon={<Gauge size={20} />} iconColor="success" />
+              <StatCard
+                label="Scan Conversion Rate"
+                value={`${scanConversionRate}%`}
+                icon={<Gauge size={20} />}
+                iconColor="success"
+              />
             </Grid>
           </Grid>
         </SectionCard>
@@ -176,13 +268,28 @@ export function ProductReportDetailsPage() {
         <SectionCard title="Factory & Allocation Overview">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Total Factory Uploads" value={report.totalFactoryUploads} icon={<FactoryOutlined size={20} />} iconColor="primary" />
+              <StatCard
+                label="Total Factory Uploads"
+                value={report.totalFactoryUploads}
+                icon={<FactoryOutlined size={20} />}
+                iconColor="primary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Dealer Allocations" value={report.totalDealerAllocations} icon={<ScanLine size={20} />} iconColor="secondary" />
+              <StatCard
+                label="Dealer Allocations"
+                value={report.totalDealerAllocations}
+                icon={<ScanLine size={20} />}
+                iconColor="secondary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              <StatCard label="Chemist Allocations" value={report.totalChemistAllocations} icon={<ScanLine size={20} />} iconColor="info" />
+              <StatCard
+                label="Chemist Allocations"
+                value={report.totalChemistAllocations}
+                icon={<ScanLine size={20} />}
+                iconColor="info"
+              />
             </Grid>
           </Grid>
         </SectionCard>

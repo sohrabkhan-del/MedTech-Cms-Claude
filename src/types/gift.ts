@@ -30,6 +30,7 @@ export interface Gift {
   giftImage: string
   description: string
   sku: string
+  price: number
   requiredCoins: number
   availableQuantity: number
   redeemedQuantity: number

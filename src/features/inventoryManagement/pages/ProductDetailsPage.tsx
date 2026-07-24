@@ -39,7 +39,7 @@ const movementColumns: CommonTableColumn<ProductMovementEntry>[] = [
   {
     key: 'quantityUploaded',
     header: 'Quantity',
-    align: 'right',
+    align: 'center',
     sortable: true,
     sortValue: (row) => row.quantityUploaded,
     render: (row) => row.quantityUploaded.toLocaleString('en-IN'),

@@ -1,11 +1,23 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Grid, Stack, Typography } from '@mui/material'
-import { Pencil as EditOutlined, CircleCheck as CheckCircleOutlined, Ban as BlockOutlined, Trash2 as DeleteOutlined, Fence as FenceIcon, ClipboardClock as PendingActionsOutlined, Target as TrackChangesIcon, CalendarCheck as EventAvailableOutlined } from 'lucide-react'
+import {
+  Pencil as EditOutlined,
+  CircleCheck as CheckCircleOutlined,
+  Ban as BlockOutlined,
+  Trash2 as DeleteOutlined,
+  Fence as FenceIcon,
+  ClipboardClock as PendingActionsOutlined,
+  Target as TrackChangesIcon,
+  CalendarCheck as EventAvailableOutlined,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
@@ -20,33 +32,76 @@ import type {
 const verificationColumns: CommonTableColumn<GeoFenceVerificationEntry>[] = [
   { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
   { key: 'verifiedBy', header: 'Verified By', render: (row) => row.verifiedBy },
-  { key: 'previousRadiusMeters', header: 'Previous Radius', render: (row) => `${row.previousRadiusMeters} m` },
-  { key: 'newRadiusMeters', header: 'New Radius', render: (row) => `${row.newRadiusMeters} m` },
+  {
+    key: 'previousRadiusMeters',
+    header: 'Previous Radius',
+    render: (row) => `${row.previousRadiusMeters} m`,
+  },
+  {
+    key: 'newRadiusMeters',
+    header: 'New Radius',
+    render: (row) => `${row.newRadiusMeters} m`,
+  },
   { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
 ]
 
 const scanColumns: CommonTableColumn<GeoFenceScanEntry>[] = [
-  { key: 'scanDate', header: 'Scan Date', sortable: true, render: (row) => row.scanDate },
+  {
+    key: 'scanDate',
+    header: 'Scan Date',
+    sortable: true,
+    render: (row) => row.scanDate,
+  },
   { key: 'user', header: 'User', render: (row) => row.user },
   { key: 'location', header: 'Location', render: (row) => row.location },
-  { key: 'distanceMeters', header: 'Distance', align: 'right', sortable: true, sortValue: (row) => row.distanceMeters, render: (row) => `${row.distanceMeters} m` },
-  { key: 'result', header: 'Result', render: (row) => (row.result === 'valid' ? 'Valid' : 'Invalid') },
-  { key: 'status', header: 'Status', render: (row) => (row.status === 'within_fence' ? 'Within Fence' : 'Outside Fence') },
+  {
+    key: 'distanceMeters',
+    header: 'Distance',
+    align: 'center',
+    sortable: true,
+    sortValue: (row) => row.distanceMeters,
+    render: (row) => `${row.distanceMeters} m`,
+  },
+  {
+    key: 'result',
+    header: 'Result',
+    render: (row) => (row.result === 'valid' ? 'Valid' : 'Invalid'),
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    render: (row) =>
+      row.status === 'within_fence' ? 'Within Fence' : 'Outside Fence',
+  },
 ]
 
 const auditColumns: CommonTableColumn<GeoFenceAuditEntry>[] = [
   { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
   { key: 'action', header: 'Action', render: (row) => row.action },
-  { key: 'performedBy', header: 'Performed By', render: (row) => row.performedBy },
+  {
+    key: 'performedBy',
+    header: 'Performed By',
+    render: (row) => row.performedBy,
+  },
   { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
 ]
 
 export function GeoFenceDetailsPage() {
   const navigate = useNavigate()
   const { fenceId } = useParams<{ fenceId: string }>()
-  const { geoFence: fence, isLoading, setStatus, remove } = useGeoFenceDetail(fenceId)
+  const {
+    geoFence: fence,
+    isLoading,
+    setStatus,
+    remove,
+  } = useGeoFenceDetail(fenceId)
   const { kpis } = useGeoFences()
-  const geoFenceKpis = kpis ?? { activeFences: 0, pendingVerification: 0, averageRadius: 0, verifiedThisWeek: 0 }
+  const geoFenceKpis = kpis ?? {
+    activeFences: 0,
+    pendingVerification: 0,
+    averageRadius: 0,
+    verifiedThisWeek: 0,
+  }
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={5} />
@@ -65,7 +120,16 @@ export function GeoFenceDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -92,21 +156,43 @@ export function GeoFenceDetailsPage() {
           <Button
             variant="outlined"
             startIcon={<EditOutlined size={20} />}
-            onClick={() => navigate(`/field-operations/geo-fence-management/${fence.id}/edit`)}
+            onClick={() =>
+              navigate(
+                `/field-operations/geo-fence-management/${fence.id}/edit`,
+              )
+            }
             sx={{ fontSize: '0.75rem' }}
           >
             Edit Geo Fence
           </Button>
           {fence.status === 'active' ? (
-            <Button variant="outlined" color="error" startIcon={<BlockOutlined size={20} />} onClick={() => setStatus('inactive')} sx={{ fontSize: '0.75rem' }}>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<BlockOutlined size={20} />}
+              onClick={() => setStatus('inactive')}
+              sx={{ fontSize: '0.75rem' }}
+            >
               Deactivate
             </Button>
           ) : (
-            <Button variant="outlined" color="success" startIcon={<CheckCircleOutlined size={20} />} onClick={() => setStatus('active')} sx={{ fontSize: '0.75rem' }}>
+            <Button
+              variant="outlined"
+              color="success"
+              startIcon={<CheckCircleOutlined size={20} />}
+              onClick={() => setStatus('active')}
+              sx={{ fontSize: '0.75rem' }}
+            >
               Activate
             </Button>
           )}
-          <Button variant="outlined" color="error" startIcon={<DeleteOutlined size={20} />} onClick={() => remove()} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteOutlined size={20} />}
+            onClick={() => remove()}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Delete
           </Button>
         </Stack>
@@ -129,16 +215,36 @@ export function GeoFenceDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Active Geo Fences" value={geoFenceKpis.activeFences} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+            <StatCard
+              label="Active Geo Fences"
+              value={geoFenceKpis.activeFences}
+              icon={<CheckCircleOutlined size={20} />}
+              iconColor="success"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Pending Verification" value={geoFenceKpis.pendingVerification} icon={<PendingActionsOutlined size={20} />} iconColor="warning" />
+            <StatCard
+              label="Pending Verification"
+              value={geoFenceKpis.pendingVerification}
+              icon={<PendingActionsOutlined size={20} />}
+              iconColor="warning"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Average Radius" value={`${geoFenceKpis.averageRadius} m`} icon={<TrackChangesIcon size={20} />} iconColor="primary" />
+            <StatCard
+              label="Average Radius"
+              value={`${geoFenceKpis.averageRadius} m`}
+              icon={<TrackChangesIcon size={20} />}
+              iconColor="primary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Verified This Week" value={geoFenceKpis.verifiedThisWeek} icon={<EventAvailableOutlined size={20} />} iconColor="secondary" />
+            <StatCard
+              label="Verified This Week"
+              value={geoFenceKpis.verifiedThisWeek}
+              icon={<EventAvailableOutlined size={20} />}
+              iconColor="secondary"
+            />
           </Grid>
         </Grid>
 
@@ -154,7 +260,10 @@ export function GeoFenceDetailsPage() {
               { label: 'Latitude', value: fence.latitude.toFixed(4) },
               { label: 'Longitude', value: fence.longitude.toFixed(4) },
               { label: 'Radius', value: `${fence.radiusMeters} m` },
-              { label: 'Buffer Distance', value: `${fence.bufferDistanceMeters} m` },
+              {
+                label: 'Buffer Distance',
+                value: `${fence.bufferDistanceMeters} m`,
+              },
               { label: 'Last Verified', value: fence.lastVerified },
               { label: 'Status', value: <StatusBadge status={fence.status} /> },
             ]}
@@ -190,7 +299,10 @@ export function GeoFenceDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Timeline">
-          <ActivityTimeline entries={fence.timeline} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={fence.timeline}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
 
         <SectionCard title="Audit History">
@@ -201,7 +313,9 @@ export function GeoFenceDetailsPage() {
             loading={isLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search audit history…"
-            searchKeys={(row) => `${row.action} ${row.performedBy} ${row.remarks}`}
+            searchKeys={(row) =>
+              `${row.action} ${row.performedBy} ${row.remarks}`
+            }
             defaultSortBy="date"
             emptyTitle="No audit records yet"
           />

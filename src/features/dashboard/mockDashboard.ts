@@ -137,6 +137,8 @@ export const schemePerformance: SchemeProgress[] = [
   { id: 's1', name: 'Monsoon Bonanza 2026', category: 'Seasonal', progress: 78, endsIn: '12 days' },
   { id: 's2', name: 'Loyalty Booster Q3', category: 'General', progress: 54, endsIn: '41 days' },
   { id: 's3', name: 'Festive Rewards Drive', category: 'Seasonal', progress: 22, endsIn: '68 days' },
+  { id: 's4', name: 'New Dealer Onboarding Bonus', category: 'General', progress: 65, endsIn: '30 days' },
+  { id: 's5', name: 'Winter Wellness Push', category: 'Seasonal', progress: 41, endsIn: '55 days' },
 ]
 
 export interface LeaderboardEntry {

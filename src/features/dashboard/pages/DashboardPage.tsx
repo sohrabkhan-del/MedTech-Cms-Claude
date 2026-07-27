@@ -49,7 +49,7 @@ export function DashboardPage() {
   return (
     <>
       <WelcomeBanner
-        userName="Suryakant"
+        userName="Irfan"
         statValue="1,284"
         statLabel="Scans today"
         onPrimaryAction={() => navigate('/reports/scan-reports')}

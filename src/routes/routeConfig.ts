@@ -9,6 +9,8 @@ export interface RouteEntry {
   pending?: boolean
   /** Opts this listing page into the global RegionTopbar rendered by DashboardLayout. */
   showRegionTopbar?: boolean
+  /** Hides the region (All India/North/South/East/West) selector within the RegionTopbar. */
+  hideRegionSelector?: boolean
 }
 
 /** Paths intentionally left with placeholder data models pending real requirements. */
@@ -29,6 +31,7 @@ function flattenItems(items: MenuItem[]): RouteEntry[] {
         breadcrumbLabel: item.label,
         pending: PENDING_PATHS.has(item.path),
         showRegionTopbar: item.showRegionTopbar,
+        hideRegionSelector: item.hideRegionSelector,
       })
     }
     if (item.children) {

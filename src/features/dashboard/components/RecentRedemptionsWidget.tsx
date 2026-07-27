@@ -27,7 +27,23 @@ export function RecentRedemptionsWidget({ recentRedemptions }: RecentRedemptions
           <Stack
             key={redemption.id}
             direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between', cursor: redemption.linkTo ? 'pointer' : 'default' }}
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              cursor: redemption.linkTo ? 'pointer' : 'default',
+              borderRadius: 1.5,
+              px: 1,
+              py: 0.5,
+              mx: -1,
+              border: '1px solid transparent',
+              transition: 'border-color 0.15s ease, background-color 0.15s ease',
+              ...(redemption.linkTo && {
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  backgroundColor: 'action.hover',
+                },
+              }),
+            }}
             onClick={(e) => {
               if (!redemption.linkTo) return
               e.stopPropagation()

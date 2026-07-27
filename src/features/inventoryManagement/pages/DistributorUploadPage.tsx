@@ -43,35 +43,12 @@ export function DistributorUploadPage() {
         direction="row"
         sx={{
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           flexWrap: 'wrap',
           gap: 2,
           mb: 2.5,
         }}
       >
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Stack
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: '10px',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'primary.light',
-              color: 'primary.main',
-            }}
-          >
-            <Truck size={20} />
-          </Stack>
-          <Stack>
-            <Typography variant="h1">Distributor Upload</Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Import dispatch loading reports via Excel and track shipments to
-              distributors.
-            </Typography>
-          </Stack>
-        </Stack>
-
         <Button
           variant="contained"
           startIcon={<UploadCloud size={18} />}

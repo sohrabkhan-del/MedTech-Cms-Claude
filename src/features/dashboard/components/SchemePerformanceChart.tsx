@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { ChartTooltip } from '@/components/common/ChartCard/ChartTooltip'
 import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
@@ -14,9 +22,14 @@ interface SchemePerformanceChartProps {
   schemePerformance: SchemeProgress[]
 }
 
-export function SchemePerformanceChart({ schemePerformance }: SchemePerformanceChartProps) {
+export function SchemePerformanceChart({
+  schemePerformance,
+}: SchemePerformanceChartProps) {
   const navigate = useNavigate()
-  const data = schemePerformance.map((s) => ({ name: s.name, Progress: s.progress }))
+  const data = schemePerformance.map((s) => ({
+    name: s.name.slice(0, 3),
+    Progress: s.progress,
+  }))
   const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
   return (
@@ -29,8 +42,15 @@ export function SchemePerformanceChart({ schemePerformance }: SchemePerformanceC
       onCardClick={() => navigate('/scheme-management/schemes/general')}
     >
       <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />
+        <BarChart
+          data={data}
+          margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+            stroke="#E5E5E5"
+          />
           <XAxis
             dataKey="name"
             tick={{ fontSize: 11, fill: '#4A4A4A' }}
@@ -39,9 +59,22 @@ export function SchemePerformanceChart({ schemePerformance }: SchemePerformanceC
             tickFormatter={(value: string) => truncateLabel(value)}
             interval={0}
           />
-          <YAxis tick={{ fontSize: 11, fill: '#4A4A4A' }} tickLine={false} axisLine={false} unit="%" />
-          <Tooltip content={<ChartTooltip />} cursor={{ fill: 'rgba(26,62,140,0.04)' }} />
-          <Bar dataKey="Progress" fill="#1A3E8C" radius={[6, 6, 0, 0]} maxBarSize={40} />
+          <YAxis
+            tick={{ fontSize: 11, fill: '#4A4A4A' }}
+            tickLine={false}
+            axisLine={false}
+            unit="%"
+          />
+          <Tooltip
+            content={<ChartTooltip />}
+            cursor={{ fill: 'rgba(26,62,140,0.04)' }}
+          />
+          <Bar
+            dataKey="Progress"
+            fill="#1A3E8C"
+            radius={[6, 6, 0, 0]}
+            maxBarSize={40}
+          />
         </BarChart>
       </ResponsiveContainer>
     </ChartCard>

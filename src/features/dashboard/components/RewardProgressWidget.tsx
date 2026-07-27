@@ -16,9 +16,23 @@ export function RewardProgressWidget({ schemePerformance }: RewardProgressWidget
       subtitle="Redemption completion across active schemes"
       onCardClick={() => navigate('/scheme-management/schemes/general')}
     >
-      <Stack spacing={2.5}>
+      <Stack spacing={0.5}>
         {schemePerformance.map((scheme) => (
-          <Box key={scheme.id}>
+          <Box
+            key={scheme.id}
+            sx={{
+              borderRadius: 1.5,
+              px: 1,
+              py: 1,
+              mx: -1,
+              border: '1px solid transparent',
+              transition: 'border-color 0.15s ease, background-color 0.15s ease',
+              '&:hover': {
+                borderColor: 'primary.main',
+                backgroundColor: 'action.hover',
+              },
+            }}
+          >
             <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 0.75 }}>
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                 <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>{scheme.name}</Typography>

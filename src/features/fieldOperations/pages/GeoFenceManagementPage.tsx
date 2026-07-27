@@ -23,6 +23,7 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useGeoFences } from '@/features/fieldOperations/hooks/useGeoFences'
@@ -31,7 +32,6 @@ import type {
   GeoFenceUserType,
 } from '@/features/fieldOperations/types/fieldOperations.types'
 import type { PartnerZone } from '@/types/partner'
-import { radius, transitions } from '@/theme/tokens'
 
 interface GeoFenceFilters extends Record<string, unknown> {
   userType: GeoFenceUserType | 'all'
@@ -248,51 +248,9 @@ export function GeoFenceManagementPage() {
         </Grid>
       </Grid>
 
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          mb: 2.5,
-          p: 0.5,
-          width: 'fit-content',
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: `${radius.lg}px`,
-          backgroundColor: 'background.paper',
-        }}
-      >
-        {RULE_TABS.map(({ label, value }) => {
-          const active = tab === value
-          return (
-            <Box
-              key={value}
-              component="button"
-              type="button"
-              onClick={() => setTab(value)}
-              sx={{
-                border: '1px solid',
-                borderColor: active ? 'primary.main' : 'transparent',
-                cursor: 'pointer',
-                px: 2,
-                py: 0.75,
-                borderRadius: `${radius.md}px`,
-                fontSize: '0.8125rem',
-                fontWeight: 700,
-                fontFamily: 'inherit',
-                backgroundColor: active ? 'primary.light' : 'transparent',
-                color: active ? 'primary.dark' : 'text.secondary',
-                whiteSpace: 'nowrap',
-                transition: `background-color ${transitions.base}, color ${transitions.base}, border-color ${transitions.base}`,
-                '&:hover': {
-                  backgroundColor: active ? 'primary.light' : 'background.default',
-                },
-              }}
-            >
-              {label}
-            </Box>
-          )
-        })}
-      </Stack>
+      <Box sx={{ mb: 2.5, mt: 10 }}>
+        <ModularTabs tabs={RULE_TABS} value={tab} onChange={setTab} />
+      </Box>
 
       <CommonTable
         tableKey="geo-fence-list"

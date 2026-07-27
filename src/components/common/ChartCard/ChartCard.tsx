@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
-import { Box, Card, MenuItem, Select, Stack, Typography } from '@mui/material'
-import type { SelectChangeEvent } from '@mui/material'
-import { DATE_RANGE_OPTIONS, type DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
+import { Box, Card, Stack, Typography } from '@mui/material'
+import { DateRangeDropdown } from '@/components/common/DateRangeDropdown/DateRangeDropdown'
+import {
+  DATE_RANGE_OPTIONS,
+  type DateRangeValue,
+} from '@/components/common/DateRangeSelect/DateRangeSelect'
 
 interface ChartCardProps {
   title: string
@@ -22,10 +25,6 @@ export function ChartCard({
   onDateRangeChange,
   onCardClick,
 }: ChartCardProps) {
-  const handleChange = (e: SelectChangeEvent) => {
-    onDateRangeChange?.(e.target.value as DateRangeValue)
-  }
-
   return (
     <Card
       onClick={onCardClick}
@@ -38,30 +37,35 @@ export function ChartCard({
         }),
       }}
     >
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', p: 3, pb: 1 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          p: 3,
+          pb: 1,
+        }}
+      >
         <Box>
-          <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>{title}</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
+            {title}
+          </Typography>
           {subtitle && (
-            <Typography variant="body1" sx={{ color: 'text.secondary', mt: 0.25 }}>
+            <Typography
+              variant="body1"
+              sx={{ color: 'text.secondary', mt: 0.25 }}
+            >
               {subtitle}
             </Typography>
           )}
         </Box>
         {dateRange && onDateRangeChange && (
-          <Select
-            size="small"
+          <DateRangeDropdown
             value={dateRange}
-            onChange={handleChange}
-            onClick={(e) => e.stopPropagation()}
+            onChange={onDateRangeChange}
+            options={DATE_RANGE_OPTIONS}
             aria-label={`${title} date range`}
-            sx={{ minWidth: 120 }}
-          >
-            {DATE_RANGE_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
+          />
         )}
       </Stack>
       <Box sx={{ px: 2, pb: 2, height }}>{children}</Box>

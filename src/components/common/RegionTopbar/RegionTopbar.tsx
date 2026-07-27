@@ -17,6 +17,8 @@ interface RegionTopbarProps {
   live?: boolean
   region: string
   onRegionChange: (region: string) => void
+  /** Hides the region (All India/North/South/East/West) selector for pages where it doesn't apply. */
+  hideRegionSelector?: boolean
   dateRange: DateRange
   onDateRangeChange: (range: DateRange) => void
 }
@@ -28,6 +30,7 @@ export function RegionTopbar({
   live = true,
   region,
   onRegionChange,
+  hideRegionSelector = false,
   dateRange,
   onDateRangeChange,
 }: RegionTopbarProps) {
@@ -156,7 +159,7 @@ export function RegionTopbar({
           rowGap: 1.5,
         }}
       >
-        {isMobile ? (
+        {hideRegionSelector ? null : isMobile ? (
           <Select
             value={region}
             onChange={(e) => onRegionChange(e.target.value)}

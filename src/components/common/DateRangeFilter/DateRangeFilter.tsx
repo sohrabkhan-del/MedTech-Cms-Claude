@@ -1,5 +1,17 @@
 import { useState } from 'react'
-import { Badge, Box, Button, Divider, IconButton, Menu, MenuItem, Stack, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Badge,
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  Menu,
+  MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import { Calendar } from 'lucide-react'
 import { radius } from '@/theme/tokens'
 
@@ -9,17 +21,32 @@ export interface DateRange {
   presetLabel: string
 }
 
-const PRESETS = ['Today', 'Last 7 Days', 'Last 30 Days', 'Last 90 Days', 'This Month', 'This Year', 'Financial Year'] as const
+const PRESETS = [
+  'Today',
+  'Last 7 Days',
+  'Last 30 Days',
+  'Last 90 Days',
+  'This Month',
+  'This Year',
+  'Financial Year',
+] as const
 const DEFAULT_PRESET_LABEL = 'Last 30 Days'
 
 interface DateRangeFilterProps {
   value: DateRange
   onChange: (range: DateRange) => void
   /** Custom trigger element instead of the default calendar icon button. Receives the click handler to open the menu. */
-  renderTrigger?: (props: { onClick: (e: React.MouseEvent<HTMLElement>) => void; isApplied: boolean }) => React.ReactNode
+  renderTrigger?: (props: {
+    onClick: (e: React.MouseEvent<HTMLElement>) => void
+    isApplied: boolean
+  }) => React.ReactNode
 }
 
-export function DateRangeFilter({ value, onChange, renderTrigger }: DateRangeFilterProps) {
+export function DateRangeFilter({
+  value,
+  onChange,
+  renderTrigger,
+}: DateRangeFilterProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [customFrom, setCustomFrom] = useState(value.from ?? '')
   const [customTo, setCustomTo] = useState(value.to ?? '')
@@ -56,18 +83,29 @@ export function DateRangeFilter({ value, onChange, renderTrigger }: DateRangeFil
               height: 36,
               width: 36,
               border: '1px solid',
-              borderColor: isApplied ? 'secondary.main' : 'transparent',
+              borderColor: 'secondary.main',
               backgroundColor: 'secondary.light',
               color: 'secondary.dark',
-              '&:hover': { borderColor: 'secondary.main', backgroundColor: 'secondary.light' },
+              '&:hover': {
+                borderColor: 'secondary.main',
+                backgroundColor: 'secondary.light',
+              },
             }}
             aria-label={`Date range: ${value.presetLabel}`}
           >
             <Badge
               variant="dot"
-              invisible={!isApplied}
               color="secondary"
-              sx={{ '& .MuiBadge-dot': { backgroundColor: 'secondary.dark' } }}
+              sx={{
+                '& .MuiBadge-dot': {
+                  backgroundColor: 'secondary.dark',
+                  width: 10,
+                  height: 10,
+                  borderRadius: '50%',
+                  right: -8,
+                  top: -2,
+                },
+              }}
             >
               <Calendar size={16} />
             </Badge>
@@ -81,7 +119,11 @@ export function DateRangeFilter({ value, onChange, renderTrigger }: DateRangeFil
         onClose={close}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{ paper: { sx: { borderRadius: `${radius.lg}px`, mt: 1, minWidth: 260 } } }}
+        slotProps={{
+          paper: {
+            sx: { borderRadius: `${radius.lg}px`, mt: 1, minWidth: 260 },
+          },
+        }}
       >
         {PRESETS.map((preset) => {
           const selected = value.presetLabel === preset
@@ -106,7 +148,10 @@ export function DateRangeFilter({ value, onChange, renderTrigger }: DateRangeFil
         })}
         <Divider />
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="caption" sx={{ display: 'block', mb: 1, fontWeight: 700 }}>
+          <Typography
+            variant="caption"
+            sx={{ display: 'block', mb: 1, fontWeight: 700 }}
+          >
             Custom Range
           </Typography>
           <Stack spacing={1.25}>
@@ -126,7 +171,12 @@ export function DateRangeFilter({ value, onChange, renderTrigger }: DateRangeFil
               onChange={(e) => setCustomTo(e.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
             />
-            <Button variant="contained" size="small" onClick={applyCustom} disabled={!customFrom || !customTo}>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={applyCustom}
+              disabled={!customFrom || !customTo}
+            >
               Apply
             </Button>
           </Stack>

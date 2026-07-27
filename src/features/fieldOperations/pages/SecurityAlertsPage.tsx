@@ -25,7 +25,10 @@ import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { SeverityChip } from '@/features/fieldOperations/components/SeverityChip'
 import { SEVERITY_CONFIG } from '@/features/fieldOperations/severityConfig'
 import { useSecurityAlerts } from '@/features/fieldOperations/hooks/useSecurityAlerts'
-import type { AlertSeverity, SecurityAlert } from '@/features/fieldOperations/types/fieldOperations.types'
+import type {
+  AlertSeverity,
+  SecurityAlert,
+} from '@/features/fieldOperations/types/fieldOperations.types'
 import type { ScanUserRole } from '@/types/scanFeed'
 import type { PartnerZone } from '@/types/partner'
 
@@ -42,7 +45,8 @@ export function SecurityAlertsPage() {
   useRegionTopbarHeader({
     icon: <GppMaybeIcon size={20} />,
     title: 'Security Alerts',
-    subtitle: 'Real-time monitoring of suspicious activity across the platform.',
+    subtitle:
+      'Real-time monitoring of suspicious activity across the platform.',
     isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
@@ -54,13 +58,24 @@ export function SecurityAlertsPage() {
 
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
 
-  const securityAlertKpis = kpis ?? { totalAlerts: 0, highSeverity: 0, mediumSeverity: 0, lowSeverity: 0 }
+  const securityAlertKpis = kpis ?? {
+    totalAlerts: 0,
+    highSeverity: 0,
+    mediumSeverity: 0,
+    lowSeverity: 0,
+  }
 
   const filteredAlerts = alerts.filter((alert) => {
     const regionMatch = !regionZone || alert.region === regionZone
-    const severityMatch = appliedFilters.severity === 'all' || alert.severity === appliedFilters.severity
-    const userTypeMatch = appliedFilters.userType === 'all' || alert.userType === appliedFilters.userType
-    const statusMatch = appliedFilters.userStatus === 'all' || alert.userStatus === appliedFilters.userStatus
+    const severityMatch =
+      appliedFilters.severity === 'all' ||
+      alert.severity === appliedFilters.severity
+    const userTypeMatch =
+      appliedFilters.userType === 'all' ||
+      alert.userType === appliedFilters.userType
+    const statusMatch =
+      appliedFilters.userStatus === 'all' ||
+      alert.userStatus === appliedFilters.userStatus
     return regionMatch && severityMatch && userTypeMatch && statusMatch
   })
 
@@ -108,12 +123,18 @@ export function SecurityAlertsPage() {
         </Typography>
       ),
     },
-    { key: 'affectedUserType', header: 'Affected User Type', render: (row) => row.affectedUserType },
+    {
+      key: 'affectedUserType',
+      header: 'Affected User Type',
+      render: (row) => row.affectedUserType,
+    },
     {
       key: 'region',
       header: 'Region',
       sortable: true,
-      render: (row) => <Chip size="small" label={row.region} variant="outlined" />,
+      render: (row) => (
+        <Chip size="small" label={row.region} variant="outlined" />
+      ),
     },
     {
       key: 'severity',
@@ -139,33 +160,6 @@ export function SecurityAlertsPage() {
 
   return (
     <>
-      <Stack
-        direction="row"
-        spacing={1.5}
-        sx={{ alignItems: 'center', mb: 2.5 }}
-      >
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'error.light',
-            color: 'error.main',
-          }}
-        >
-          <GppMaybeIcon size={20} />
-        </Box>
-        <Box>
-          <Typography variant="h1">Security Alerts</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Real-time monitoring of suspicious activity across the platform.
-          </Typography>
-        </Box>
-      </Stack>
-
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           {isLoading ? (
@@ -176,7 +170,9 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.totalAlerts}
               icon={<GppMaybeIcon size={20} />}
               iconColor="primary"
-              onClick={() => setAppliedFilters((prev) => ({ ...prev, severity: 'all' }))}
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, severity: 'all' }))
+              }
             />
           )}
         </Grid>
@@ -189,7 +185,9 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.highSeverity}
               icon={<ReportProblemOutlined size={20} />}
               iconColor="error"
-              onClick={() => setAppliedFilters((prev) => ({ ...prev, severity: 'high' }))}
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, severity: 'high' }))
+              }
             />
           )}
         </Grid>
@@ -202,7 +200,9 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.mediumSeverity}
               icon={<ReportProblemOutlined size={20} />}
               iconColor="warning"
-              onClick={() => setAppliedFilters((prev) => ({ ...prev, severity: 'medium' }))}
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, severity: 'medium' }))
+              }
             />
           )}
         </Grid>
@@ -215,7 +215,9 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.lowSeverity}
               icon={<ReportProblemOutlined size={20} />}
               iconColor="info"
-              onClick={() => setAppliedFilters((prev) => ({ ...prev, severity: 'low' }))}
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, severity: 'low' }))
+              }
             />
           )}
         </Grid>

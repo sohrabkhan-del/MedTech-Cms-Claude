@@ -18,8 +18,8 @@ function GlobalRegionTopbar() {
   const { region, setRegion, dateRange, setDateRange, header } =
     useRegionFilter()
 
-  const showTopbar =
-    findRouteEntry(location.pathname)?.showRegionTopbar === true
+  const routeEntry = findRouteEntry(location.pathname)
+  const showTopbar = routeEntry?.showRegionTopbar === true
   if (!showTopbar || !header) return null
 
   return (
@@ -30,6 +30,7 @@ function GlobalRegionTopbar() {
       live={header.live}
       region={region}
       onRegionChange={setRegion}
+      hideRegionSelector={routeEntry.hideRegionSelector}
       dateRange={dateRange}
       onDateRangeChange={setDateRange}
     />
@@ -37,14 +38,10 @@ function GlobalRegionTopbar() {
 }
 
 function GlobalLastUpdatedBadge() {
-  const { header, dateRange, setDateRange } = useRegionFilter()
+  const { header, dateRange } = useRegionFilter()
 
   return (
-    <LastUpdatedBadge
-      lastUpdated={header?.lastUpdated}
-      dateRange={dateRange}
-      onDateRangeChange={setDateRange}
-    />
+    <LastUpdatedBadge lastUpdated={header?.lastUpdated} dateRange={dateRange} />
   )
 }
 
@@ -99,6 +96,7 @@ export function DashboardLayout() {
                 mb: 1,
                 paddingX: { xs: 0, sm: 1 },
                 display: 'flex',
+                flexWrap: 'wrap',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 gap: 1,

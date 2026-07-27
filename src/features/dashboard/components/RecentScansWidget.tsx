@@ -1,10 +1,16 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Avatar, Box, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Button, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
-import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
+import { DateRangeDropdown } from '@/components/common/DateRangeDropdown/DateRangeDropdown'
+import {
+  SCAN_DATE_RANGE_OPTIONS,
+  type ScanDateRangeValue,
+} from '@/components/common/DateRangeSelect/DateRangeSelect'
 import type { RecentScan } from '@/features/dashboard/types/dashboard.types'
+
+const MAX_VISIBLE_SCANS = 10
 
 interface RecentScansWidgetProps {
   recentScans: RecentScan[]
@@ -12,15 +18,41 @@ interface RecentScansWidgetProps {
 
 export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
   const navigate = useNavigate()
-  const [dateRange, setDateRange] = useState<DateRangeValue>('7')
+  const [dateRange, setDateRange] = useState<ScanDateRangeValue>('7')
+
+  const visibleScans = useMemo(
+    () => recentScans.slice(0, MAX_VISIBLE_SCANS),
+    [recentScans],
+  )
 
   return (
     <WidgetCard
       title="Recent Scans"
       subtitle="Live scan feed across regions"
-      dateRange={dateRange}
-      onDateRangeChange={setDateRange}
       onCardClick={() => navigate('/reports/scan-reports')}
+      headerAction={
+        <DateRangeDropdown
+          value={dateRange}
+          onChange={setDateRange}
+          options={SCAN_DATE_RANGE_OPTIONS}
+          aria-label="Recent Scans date range"
+          minWidth={84}
+        />
+      }
+      footer={
+        <Button
+          fullWidth
+          variant="outlined"
+          color="primary"
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            navigate('/field-operations/live-scan-feed')
+          }}
+        >
+          View All
+        </Button>
+      }
     >
       <Box
         sx={{
@@ -32,7 +64,7 @@ export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
         }}
       >
         <Stack spacing={2}>
-          {recentScans.map((scan) => (
+          {visibleScans.map((scan) => (
             <Stack
               key={scan.id}
               direction="row"
@@ -40,6 +72,17 @@ export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
               sx={{
                 alignItems: 'center',
                 cursor: scan.linkTo ? 'pointer' : 'default',
+                p: 1,
+                m: -1,
+                borderRadius: 1.5,
+                border: '1px solid transparent',
+                transition: 'border-color 0.15s ease, background-color 0.15s ease',
+                ...(scan.linkTo && {
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    backgroundColor: 'action.hover',
+                  },
+                }),
               }}
               onClick={(e) => {
                 if (!scan.linkTo) return
@@ -66,13 +109,22 @@ export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
                 >
                   {scan.business}
                 </Typography>
-                <Typography variant="caption">
+                <Typography variant="caption" noWrap>
                   {scan.user} · {scan.role} · {scan.region}
                 </Typography>
               </Stack>
-              <Stack sx={{ alignItems: 'flex-end' }} spacing={0.5}>
+              <Stack
+                sx={{ alignItems: 'flex-end', flexShrink: 0, maxWidth: 140 }}
+                spacing={0.5}
+              >
                 <StatusBadge status={scan.result} />
-                <Typography variant="caption">{scan.time}</Typography>
+                <Typography
+                  variant="caption"
+                  noWrap
+                  sx={{ maxWidth: '100%' }}
+                >
+                  {scan.time}
+                </Typography>
               </Stack>
             </Stack>
           ))}

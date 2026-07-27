@@ -35,6 +35,8 @@ export interface MenuItem {
   children?: MenuItem[]
   /** Opts this listing page into the global RegionTopbar rendered by DashboardLayout. */
   showRegionTopbar?: boolean
+  /** Hides the region (All India/North/South/East/West) selector within the RegionTopbar. */
+  hideRegionSelector?: boolean
   /** Opens the notifications preview popover on click instead of navigating directly to `path`. */
   notificationsPopover?: boolean
 }
@@ -99,21 +101,28 @@ export const menuConfig: MenuGroup[] = [
         path: '/inventory/product-master',
         icon: Package,
         showRegionTopbar: true,
+        hideRegionSelector: true,
       },
       {
         label: 'Factory Inventory Upload',
         path: '/inventory/factory-inventory-upload',
         icon: Factory,
+        showRegionTopbar: true,
+        hideRegionSelector: true,
       },
       {
         label: 'Distributor Upload',
         path: '/distributor-upload',
         icon: UploadCloud,
+        showRegionTopbar: true,
+        hideRegionSelector: true,
       },
       {
         label: 'Product Categories',
         path: '/masters/product-categories',
         icon: SlidersHorizontal,
+        showRegionTopbar: true,
+        hideRegionSelector: true,
       },
     ],
   },
@@ -165,6 +174,7 @@ export const menuConfig: MenuGroup[] = [
         path: '/marketing-products/products-catelog',
         icon: Megaphone,
         showRegionTopbar: true,
+        hideRegionSelector: true,
       },
       {
         label: 'Interested Users',
@@ -189,6 +199,7 @@ export const menuConfig: MenuGroup[] = [
         label: 'Gift Catalogue',
         path: '/scheme-management/gift-catalogue',
         icon: Gift,
+        showRegionTopbar: true,
       },
     ],
   },
@@ -203,10 +214,12 @@ export const menuConfig: MenuGroup[] = [
           {
             label: 'Dealer',
             path: '/rewards-wallet/coin-value-rules/dealer',
+            showRegionTopbar: true,
           },
           {
             label: 'Chemist',
             path: '/rewards-wallet/coin-value-rules/chemist',
+            showRegionTopbar: true,
           },
         ],
       },
@@ -236,47 +249,53 @@ export const menuConfig: MenuGroup[] = [
             label: 'Scan Reports',
             path: '/reports/scan-reports',
             icon: BarChart3,
+            showRegionTopbar: true,
           },
           {
             label: 'Reward Reports',
             path: '/reports/reward-reports',
             icon: BarChart3,
+            showRegionTopbar: true,
           },
           {
             label: 'Wallet Reports',
             path: '/reports/wallet-reports',
             icon: BarChart3,
+            showRegionTopbar: true,
           },
           {
             label: 'Dealer Reports',
             path: '/reports/dealer-reports',
             icon: BarChart3,
+            showRegionTopbar: true,
           },
           {
             label: 'Chemist Reports',
             path: '/reports/chemist-reports',
             icon: BarChart3,
+            showRegionTopbar: true,
           },
           {
             label: 'MR Performance',
             path: '/reports/mr-performance',
             icon: BarChart3,
+            showRegionTopbar: true,
           },
-          {
-            label: 'Product Reports (Dealer)',
-            path: '/reports/product-reports-1',
-            icon: BarChart3,
-          },
-          {
-            label: 'Product Reports (Chemist)',
-            path: '/reports/product-reports-2',
-            icon: BarChart3,
-          },
-          {
-            label: 'Scheme Reports',
-            path: '/reports/scheme-reports',
-            icon: BarChart3,
-          },
+          // {
+          //   label: 'Product Reports (Dealer)',
+          //   path: '/reports/product-reports-1',
+          //   icon: BarChart3,
+          // },
+          // {
+          //   label: 'Product Reports (Chemist)',
+          //   path: '/reports/product-reports-2',
+          //   icon: BarChart3,
+          // },
+          // {
+          //   label: 'Scheme Reports',
+          //   path: '/reports/scheme-reports',
+          //   icon: BarChart3,
+          // },
         ],
       },
     ],
@@ -293,8 +312,13 @@ export const menuConfig: MenuGroup[] = [
           {
             label: 'Medical Representatives (MR)',
             path: '/system-users/medical-representatives',
+            showRegionTopbar: true,
           },
-          { label: 'Admin', path: '/system-users/admin' },
+          {
+            label: 'Admin',
+            path: '/system-users/admin',
+            showRegionTopbar: true,
+          },
         ],
       },
     ],

@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Box, Stack, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import { Trophy } from 'lucide-react'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import type { LeaderboardEntry } from '@/features/dashboard/types/dashboard.types'
@@ -22,14 +22,55 @@ export function LeaderboardWidget({
   const navigate = useNavigate()
 
   return (
-    <WidgetCard title={title} subtitle={subtitle} onCardClick={() => navigate(linkTo)}>
+    <WidgetCard
+      title={title}
+      subtitle={subtitle}
+      onCardClick={() => navigate(linkTo)}
+      headerAction={
+        <Typography
+          sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'primary.main' }}
+        >
+          Points
+        </Typography>
+      }
+      footer={
+        <Button
+          fullWidth
+          variant="outlined"
+          color="primary"
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            navigate(linkTo)
+          }}
+        >
+          View All
+        </Button>
+      }
+    >
       <Stack spacing={2}>
         {leaderboard.map((entry) => (
           <Stack
             key={entry.id}
             direction="row"
             spacing={1.5}
-            sx={{ alignItems: 'center', cursor: entry.linkTo ? 'pointer' : 'default' }}
+            sx={{
+              alignItems: 'center',
+              cursor: entry.linkTo ? 'pointer' : 'default',
+              borderRadius: 1.5,
+              px: 1,
+              py: 0.5,
+              mx: -1,
+              border: '1px solid transparent',
+              transition:
+                'border-color 0.15s ease, background-color 0.15s ease',
+              ...(entry.linkTo && {
+                '&:hover': {
+                  borderColor: 'primary.main',
+                  backgroundColor: 'action.hover',
+                },
+              }),
+            }}
             onClick={(e) => {
               if (!entry.linkTo) return
               e.stopPropagation()
@@ -44,7 +85,10 @@ export function LeaderboardWidget({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: entry.rank <= 3 ? rankColors[entry.rank - 1] : 'background.default',
+                backgroundColor:
+                  entry.rank <= 3
+                    ? rankColors[entry.rank - 1]
+                    : 'background.default',
                 color: entry.rank <= 3 ? '#FFFFFF' : 'text.secondary',
                 fontSize: '0.75rem',
                 fontWeight: 700,
@@ -53,14 +97,21 @@ export function LeaderboardWidget({
             >
               {entry.rank <= 3 ? <Trophy size={14} /> : entry.rank}
             </Box>
-            <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }} noWrap>
-                {entry.name}
-              </Typography>
-              <Typography variant="caption">{entry.region}</Typography>
-            </Stack>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'primary.main' }}>
-              {entry.points.toLocaleString('en-IN')}
+            <Typography
+              sx={{ fontWeight: 600, fontSize: '0.875rem', flexGrow: 1 }}
+              noWrap
+            >
+              {entry.name}
+            </Typography>
+            <Typography
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.875rem',
+                color: 'primary.main',
+                flexShrink: 0,
+              }}
+            >
+              {`${entry.points.toLocaleString('en-IN')} pts`}
             </Typography>
           </Stack>
         ))}

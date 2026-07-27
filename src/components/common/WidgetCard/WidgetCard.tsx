@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
-import { Box, Card, Divider, MenuItem, Select, Stack, Typography } from '@mui/material'
-import type { SelectChangeEvent } from '@mui/material'
+import { Box, Card, Divider, Stack, Typography } from '@mui/material'
+import { DateRangeDropdown } from '@/components/common/DateRangeDropdown/DateRangeDropdown'
 import { DATE_RANGE_OPTIONS, type DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
 
 interface WidgetCardProps {
@@ -10,6 +10,8 @@ interface WidgetCardProps {
   footer?: ReactNode
   dateRange?: DateRangeValue
   onDateRangeChange?: (value: DateRangeValue) => void
+  /** Custom header action, rendered instead of the built-in date-range select. */
+  headerAction?: ReactNode
   onCardClick?: () => void
 }
 
@@ -20,12 +22,9 @@ export function WidgetCard({
   footer,
   dateRange,
   onDateRangeChange,
+  headerAction,
   onCardClick,
 }: WidgetCardProps) {
-  const handleChange = (e: SelectChangeEvent) => {
-    onDateRangeChange?.(e.target.value as DateRangeValue)
-  }
-
   return (
     <Card
       onClick={onCardClick}
@@ -49,21 +48,14 @@ export function WidgetCard({
             </Typography>
           )}
         </Box>
-        {dateRange && onDateRangeChange && (
-          <Select
-            size="small"
+        {headerAction}
+        {!headerAction && dateRange && onDateRangeChange && (
+          <DateRangeDropdown
             value={dateRange}
-            onChange={handleChange}
-            onClick={(e) => e.stopPropagation()}
+            onChange={onDateRangeChange}
+            options={DATE_RANGE_OPTIONS}
             aria-label={`${title} date range`}
-            sx={{ minWidth: 120 }}
-          >
-            {DATE_RANGE_OPTIONS.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Select>
+          />
         )}
       </Stack>
 

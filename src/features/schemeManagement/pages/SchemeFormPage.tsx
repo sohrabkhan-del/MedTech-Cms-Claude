@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, type ReactNode } from 'react'
 import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -44,7 +44,7 @@ const fieldLabelProps = {
   slotProps: { inputLabel: { shrink: false, sx: { display: 'none' } } },
 } as const
 
-function FieldLabel({ children, required }: { children: string; required?: boolean }) {
+function FieldLabel({ children, required }: { children: ReactNode; required?: boolean }) {
   return (
     <Typography sx={{ fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'primary.main', mb: 0.75 }}>
       {children}

@@ -102,9 +102,9 @@ function buildRewardReport(index: number): RewardReportEntry {
     status,
 
     schemeId: scheme.id,
-    schemeName: scheme.schemeName,
-    schemeType: scheme.schemeType,
-    bonusValue: scheme.bonusValue,
+    schemeName: scheme.name,
+    schemeType: scheme.type,
+    bonusValue: bonusPoints,
 
     baseRewardPoints,
     multiplier,

@@ -12,7 +12,7 @@ type Action = { type: 'loading' } | { type: 'succeeded'; scheme: Scheme | undefi
 
 const initialState: State = { scheme: undefined, isLoading: false, error: null }
 
-function reducer(state: State, action: Action): State {
+function reducer(_state: State, action: Action): State {
   switch (action.type) {
     case 'loading':
       return { scheme: undefined, isLoading: true, error: null }

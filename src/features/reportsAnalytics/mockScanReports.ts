@@ -87,15 +87,15 @@ function buildScanReport(index: number): ScanReportEntry {
 
   const scanResult = resolveScanResult(seed)
   const walletStatus = resolveWalletStatus(scanResult, seed)
-  const baseRewardPoints = scanResult === 'valid' ? seededNumber(seed, 10, 40) : 0
-  const bonusPoints = scanResult === 'valid' && seed % 4 === 0 ? seededNumber(seed + 1, 5, 20) : 0
+  const baseRewardPoints = scanResult === 'valid' ? seededNumber(seed, 1, 5) * 100 : 0
+  const bonusPoints = scanResult === 'valid' && seed % 4 === 0 ? seededNumber(seed + 1, 1, 3) * 100 : 0
   const rewardPoints = baseRewardPoints + bonusPoints
   const location = locations[seed % locations.length]!
 
   return {
     id,
     scanDateTime: dateTimeFromSeed(seed + 10),
-    barcodeNumber: `BC-${400000 + seed * 13}`,
+    barcodeNumber: `SCN${String(seed * 13).padStart(6, '0')}`,
 
     productId: product.id,
     productName: product.productName,

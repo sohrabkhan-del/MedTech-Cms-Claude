@@ -312,7 +312,7 @@ export function DealerReportDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Dealer ID', value: report.dealerId },
-              { label: 'Dealer Name', value: report.dealerName },
+              { label: 'Business Name', value: report.dealerName },
               { label: 'Owner Name', value: report.ownerName },
               { label: 'Email', value: report.email },
               { label: 'Phone', value: report.phone },

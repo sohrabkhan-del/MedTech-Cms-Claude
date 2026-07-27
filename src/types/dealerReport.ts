@@ -7,6 +7,7 @@ export interface DealerReportRow {
   id: string
   dealerId: string
   dealerName: string
+  businessName: string
   city: string
   zone: PartnerZone
   totalScans: number

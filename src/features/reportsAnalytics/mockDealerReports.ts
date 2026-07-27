@@ -26,6 +26,7 @@ function toReportRow(dealer: (typeof mockDealers)[number]): DealerReportRow {
     id: dealer.id,
     dealerId: dealer.id,
     dealerName: dealer.shopName,
+    businessName: dealer.shopName,
     city: dealer.city,
     zone: dealer.zone,
     totalScans: dealer.totalScans,

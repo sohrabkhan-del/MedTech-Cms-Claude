@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Avatar, Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 import {
   ChartColumnBig as ChartColumnBigIcon,
   ArrowLeft as ArrowLeftIcon,
@@ -10,7 +9,6 @@ import {
   Clock,
   Store as StoreIcon,
   Pill as PillIcon,
-  ScanLine as ScanLineIcon,
   Coins as CoinsIcon,
   TrendingUp as TrendingUpIcon,
   Gauge as GaugeIcon,
@@ -20,7 +18,6 @@ import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
-import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useMrPerformanceReportDetail } from '@/features/reportsAnalytics/hooks/useMrPerformanceReportDetail'
@@ -53,12 +50,6 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
       </Box>
     </Stack>
   )
-}
-
-function performanceColor(score: number): 'success' | 'warning' | 'error' {
-  if (score >= 70) return 'success'
-  if (score >= 40) return 'warning'
-  return 'error'
 }
 
 export function MrPerformanceDetailsPage() {
@@ -100,22 +91,6 @@ export function MrPerformanceDetailsPage() {
 
   const monthlyColumns: CommonTableColumn<MrMonthlyActivity>[] = [
     { key: 'month', header: 'Month', sortable: true, render: (row) => row.month },
-    {
-      key: 'scans',
-      header: 'Scans',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.scans,
-      render: (row) => row.scans.toLocaleString('en-IN'),
-    },
-    {
-      key: 'rewardsIssued',
-      header: 'Rewards Issued',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.rewardsIssued,
-      render: (row) => row.rewardsIssued.toLocaleString('en-IN'),
-    },
     {
       key: 'onboardings',
       header: 'Onboardings',
@@ -207,19 +182,12 @@ export function MrPerformanceDetailsPage() {
               { label: 'Dealers Onboarded', value: report.dealersOnboarded },
               { label: 'Chemists Onboarded', value: report.chemistsOnboarded },
               { label: 'Total Partners Managed', value: mr.totalPartnersManaged },
-              {
-                label: 'Performance Score',
-                value: <Chip size="small" label={`${report.performanceScore} / 100`} color={performanceColor(report.performanceScore)} variant="filled" />,
-              },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Scans" value={scanContribution.totalScans.toLocaleString('en-IN')} icon={<ScanLineIcon size={20} />} iconColor="primary" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard
               label="Reward Points Generated"
               value={scanContribution.totalRewardPointsGenerated.toLocaleString('en-IN')}
@@ -227,24 +195,13 @@ export function MrPerformanceDetailsPage() {
               iconColor="secondary"
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard label="Onboarding Rate" value={`${analytics.onboardingRate}%`} icon={<TrendingUpIcon size={20} />} iconColor="success" />
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard label="Engagement Score" value={`${analytics.engagementScore} / 100`} icon={<GaugeIcon size={20} />} iconColor="warning" />
           </Grid>
         </Grid>
-
-        <SectionCard title="Scan Contribution">
-          <DetailFieldGrid
-            fields={[
-              { label: 'Total Scans', value: scanContribution.totalScans.toLocaleString('en-IN') },
-              { label: 'Total Reward Points Generated', value: scanContribution.totalRewardPointsGenerated.toLocaleString('en-IN') },
-              { label: 'Average Scans / Month', value: scanContribution.averageScansPerMonth.toLocaleString('en-IN') },
-              { label: 'Average Rewards / Month', value: scanContribution.averageRewardsPerMonth.toLocaleString('en-IN') },
-            ]}
-          />
-        </SectionCard>
 
         <SectionCard title="Performance Analytics">
           <DetailFieldGrid
@@ -256,18 +213,6 @@ export function MrPerformanceDetailsPage() {
             ]}
           />
         </SectionCard>
-
-        <ChartCard title="Monthly Activity" subtitle="Scan volume trend over the last 6 months" height={280}>
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={monthlyActivity} margin={{ top: 8, right: 8, left: -16, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E5E5" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#4A4A4A' }} tickLine={false} axisLine={{ stroke: '#E5E5E5' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#4A4A4A' }} tickLine={false} axisLine={false} />
-              <Tooltip formatter={(value) => [`${value} Scans`, 'Scans']} cursor={{ fill: 'rgba(26,62,140,0.04)' }} />
-              <Bar dataKey="scans" name="Scans" fill="#1A3E8C" radius={[6, 6, 0, 0]} maxBarSize={40} />
-            </BarChart>
-          </ResponsiveContainer>
-        </ChartCard>
 
         <SectionCard title="Monthly Activity Breakdown">
           <CommonTable

@@ -83,7 +83,7 @@ export function DealerReportListPage() {
   const columns: CommonTableColumn<DealerReportRow>[] = [
     {
       key: 'dealerName',
-      header: 'Dealer Name',
+      header: 'Business Name',
       minWidth: 200,
       sortable: true,
       sortValue: (row) => row.dealerName,
@@ -133,7 +133,7 @@ export function DealerReportListPage() {
     },
     {
       key: 'redemptions',
-      header: 'Redemptions',
+      header: 'Total Redemptions',
       align: 'center',
       sortable: true,
       sortValue: (row) => row.redemptions,

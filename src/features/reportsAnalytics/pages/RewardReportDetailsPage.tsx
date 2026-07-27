@@ -193,7 +193,7 @@ export function RewardReportDetailsPage() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             <StatCard
-              label="Applied Scheme"
+              label="Description"
               value={report.schemeName}
               icon={<Layers size={20} />}
               iconColor="secondary"
@@ -221,6 +221,7 @@ export function RewardReportDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'User Name', value: report.userName },
+              { label: 'Business Name', value: report.businessName },
               { label: 'User Type', value: report.userType },
               { label: 'Mobile Number', value: report.mobileNumber },
               { label: 'Email Address', value: report.email },
@@ -229,10 +230,10 @@ export function RewardReportDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Applied Scheme">
+        <SectionCard title="Description">
           <DetailFieldGrid
             fields={[
-              { label: 'Scheme Name', value: report.schemeName },
+              { label: 'Description', value: report.schemeName },
               { label: 'Scheme Type', value: report.schemeType },
               { label: 'Bonus Value', value: report.bonusValue },
               { label: 'Scheme ID', value: report.schemeId },

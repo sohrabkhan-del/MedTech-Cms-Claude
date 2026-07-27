@@ -44,7 +44,7 @@ export function RewardReportListPage() {
     icon: <Gift size={20} />,
     title: 'Reward Reports',
     subtitle:
-      'Reward earning and redemption analytics across Dealers, Chemists, and MRs.',
+      'Reward earning and redemption analytics across Dealers and Chemists.',
     isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
@@ -99,6 +99,14 @@ export function RewardReportListPage() {
       ),
     },
     {
+      key: 'businessName',
+      header: 'Business Name',
+      minWidth: 190,
+      sortable: true,
+      sortValue: (row) => row.businessName,
+      render: (row) => row.businessName,
+    },
+    {
       key: 'userType',
       header: 'User Type',
       minWidth: 100,
@@ -120,7 +128,7 @@ export function RewardReportListPage() {
     },
     {
       key: 'schemeName',
-      header: 'Scheme',
+      header: 'Description',
       minWidth: 190,
       render: (row) => row.schemeName,
     },
@@ -187,8 +195,8 @@ export function RewardReportListPage() {
         rows={filteredReports}
         getRowId={(row) => row.id}
         loading={isLoading}
-        searchPlaceholder="Search by user name or scheme…"
-        searchKeys={(row) => `${row.userName} ${row.schemeName} ${row.id}`}
+        searchPlaceholder="Search by user name, business name, or description…"
+        searchKeys={(row) => `${row.userName} ${row.businessName} ${row.schemeName} ${row.id}`}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.userType !== 'all' ? 1 : 0) +

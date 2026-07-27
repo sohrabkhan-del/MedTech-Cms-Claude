@@ -1,4 +1,7 @@
 import { mockWallets } from '@/features/rewardsWallet/mockWallets'
+import { mockDealers } from '@/features/userManagement/mockDealers'
+import { mockChemists } from '@/features/userManagement/mockChemists'
+import type { TransactionType } from '@/types/wallet'
 import type { WalletReportDetails, WalletReportManualAdjustment, WalletReportRow } from '@/types/walletReport'
 
 function sumByType(wallet: (typeof mockWallets)[number], type: 'credit' | 'debit'): number {
@@ -7,6 +10,17 @@ function sumByType(wallet: (typeof mockWallets)[number], type: 'credit' | 'debit
 
 function latestTransactionDate(wallet: (typeof mockWallets)[number]): string {
   return wallet.transactions[0]?.transactionDate ?? wallet.lastUpdated
+}
+
+function latestTransactionType(wallet: (typeof mockWallets)[number]): TransactionType {
+  return wallet.transactions[0]?.transactionType ?? 'credit'
+}
+
+function resolveBusinessName(wallet: (typeof mockWallets)[number]): string {
+  if (wallet.userType === 'Dealer') {
+    return mockDealers.find((dealer) => dealer.id === wallet.userId)?.shopName ?? wallet.userName
+  }
+  return mockChemists.find((chemist) => chemist.id === wallet.userId)?.shopName ?? wallet.userName
 }
 
 function buildManualAdjustments(wallet: (typeof mockWallets)[number]): WalletReportManualAdjustment[] {
@@ -28,6 +42,7 @@ function toReportRow(wallet: (typeof mockWallets)[number]): WalletReportRow {
     walletId: wallet.id,
     userId: wallet.userId,
     userName: wallet.userName,
+    businessName: resolveBusinessName(wallet),
     userType: wallet.userType,
     region: wallet.region,
     mobileNumber: wallet.mobileNumber,
@@ -35,6 +50,7 @@ function toReportRow(wallet: (typeof mockWallets)[number]): WalletReportRow {
     credits: sumByType(wallet, 'credit'),
     debits: sumByType(wallet, 'debit'),
     lastTransaction: latestTransactionDate(wallet),
+    lastTransactionType: latestTransactionType(wallet),
     status: wallet.status,
   }
 }

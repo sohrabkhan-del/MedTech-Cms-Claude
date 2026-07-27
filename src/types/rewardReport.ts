@@ -1,4 +1,4 @@
-export type RewardReportUserType = 'Dealer' | 'Chemist' | 'MR'
+export type RewardReportUserType = 'Dealer' | 'Chemist'
 export type RewardReportType = 'Scan Reward' | 'Scheme Bonus' | 'Redemption' | 'Loyalty Multiplier'
 export type RewardReportStatus = 'credited' | 'pending' | 'redeemed' | 'reversed'
 
@@ -22,6 +22,7 @@ export interface RewardReportEntry {
   userId: string
   userName: string
   userType: RewardReportUserType
+  businessName: string
   mobileNumber: string
   email: string
   region: string

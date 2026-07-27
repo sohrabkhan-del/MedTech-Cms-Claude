@@ -114,7 +114,4 @@ export const mrPerformanceKpis = {
   totalMrs: mockMrPerformanceReports.length,
   totalDealersOnboarded: mockMrPerformanceReports.reduce((sum, r) => sum + r.dealersOnboarded, 0),
   totalChemistsOnboarded: mockMrPerformanceReports.reduce((sum, r) => sum + r.chemistsOnboarded, 0),
-  averagePerformanceScore: Math.round(
-    mockMrPerformanceReports.reduce((sum, r) => sum + r.performanceScore, 0) / Math.max(mockMrPerformanceReports.length, 1),
-  ),
 }

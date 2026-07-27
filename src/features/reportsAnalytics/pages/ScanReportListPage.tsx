@@ -97,7 +97,7 @@ export function ScanReportListPage() {
     },
     {
       key: 'barcodeNumber',
-      header: 'Barcode Number',
+      header: 'Scan Code',
       minWidth: 140,
       render: (row) => row.barcodeNumber,
     },
@@ -185,7 +185,7 @@ export function ScanReportListPage() {
         rows={filteredReports}
         getRowId={(row) => row.id}
         loading={isLoading}
-        searchPlaceholder="Search by barcode, product, dealer, or chemist…"
+        searchPlaceholder="Search by scan code, product, dealer, or chemist…"
         searchKeys={(row) =>
           `${row.barcodeNumber} ${row.productName} ${row.dealerName ?? ''} ${row.chemistName ?? ''}`
         }

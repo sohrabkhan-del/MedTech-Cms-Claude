@@ -1,5 +1,6 @@
 import type {
   FraudAdjustmentEntry,
+  TransactionType,
   WalletRedemptionEntry,
   WalletStatus,
   WalletTimelineEntry,
@@ -14,6 +15,7 @@ export interface WalletReportRow {
   walletId: string
   userId: string
   userName: string
+  businessName: string
   userType: WalletUserType
   region: string
   mobileNumber: string
@@ -21,6 +23,7 @@ export interface WalletReportRow {
   credits: number
   debits: number
   lastTransaction: string
+  lastTransactionType: TransactionType
   status: WalletStatus
 }
 

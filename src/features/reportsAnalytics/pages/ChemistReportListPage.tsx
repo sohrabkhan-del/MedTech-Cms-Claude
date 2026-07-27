@@ -98,7 +98,7 @@ export function ChemistReportListPage() {
     },
     {
       key: 'redemptions',
-      header: 'Redemptions',
+      header: 'Total Redemptions',
       align: 'center',
       sortable: true,
       sortValue: (row) => row.redemptions,

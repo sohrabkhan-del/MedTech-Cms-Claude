@@ -304,6 +304,7 @@ export function WalletReportDetailsPage() {
             fields={[
               { label: 'Wallet ID', value: report.walletId },
               { label: 'User Name', value: report.userName },
+              { label: 'Business Name', value: report.businessName },
               { label: 'User Type', value: report.userType },
               { label: 'Mobile Number', value: report.mobileNumber },
               { label: 'Email Address', value: report.email },
@@ -320,6 +321,16 @@ export function WalletReportDetailsPage() {
                 ),
               },
               { label: 'Last Transaction', value: report.lastTransaction },
+              {
+                label: 'Last Transaction Type',
+                value: (
+                  <Chip
+                    size="small"
+                    label={report.lastTransactionType === 'credit' ? 'Credit' : 'Debit'}
+                    color={report.lastTransactionType === 'credit' ? 'success' : 'error'}
+                  />
+                ),
+              },
             ]}
           />
         </SectionCard>

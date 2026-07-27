@@ -1,7 +1,6 @@
 import type { RewardReportEntry, RewardReportStatus, RewardReportTimelineEntry, RewardReportType, RewardReportUserType } from '@/types/rewardReport'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
-import { mockMedicalReps } from '@/features/systemUsers/mockMedicalReps'
 import { mockSchemes } from '@/features/schemeManagement/mockSchemes'
 import { mockGifts } from '@/features/schemeManagement/mockGifts'
 
@@ -31,18 +30,14 @@ function resolveStatus(seed: number): RewardReportStatus {
   return 'reversed'
 }
 
-function resolveUser(seed: number): { id: string; name: string; type: RewardReportUserType; mobile: string; email: string; region: string } {
-  const roll = seed % 3
+function resolveUser(seed: number): { id: string; name: string; type: RewardReportUserType; businessName: string; mobile: string; email: string; region: string } {
+  const roll = seed % 2
   if (roll === 0) {
     const dealer = mockDealers[seed % mockDealers.length]!
-    return { id: dealer.id, name: dealer.shopName, type: 'Dealer', mobile: dealer.phone, email: dealer.email, region: dealer.zone }
+    return { id: dealer.id, name: dealer.ownerName, type: 'Dealer', businessName: dealer.shopName, mobile: dealer.phone, email: dealer.email, region: dealer.zone }
   }
-  if (roll === 1) {
-    const chemist = mockChemists[seed % mockChemists.length]!
-    return { id: chemist.id, name: chemist.shopName, type: 'Chemist', mobile: chemist.phone, email: chemist.email, region: chemist.zone }
-  }
-  const mr = mockMedicalReps[seed % mockMedicalReps.length]!
-  return { id: mr.id, name: mr.name, type: 'MR', mobile: mr.phone, email: mr.email, region: mr.region }
+  const chemist = mockChemists[seed % mockChemists.length]!
+  return { id: chemist.id, name: chemist.ownerName, type: 'Chemist', businessName: chemist.shopName, mobile: chemist.phone, email: chemist.email, region: chemist.zone }
 }
 
 function buildTimeline(seed: number, entryId: string, status: RewardReportStatus, isRedeemed: boolean): RewardReportTimelineEntry[] {
@@ -78,10 +73,10 @@ function buildRewardReport(index: number): RewardReportEntry {
   const isRedeemed = status === 'redeemed'
   const gift = mockGifts[seed % mockGifts.length]!
 
-  const baseRewardPoints = seededNumber(seed, 10, 60)
+  const baseRewardPoints = seededNumber(seed, 1, 6) * 100
   const multiplier = Number((1 + (seed % 4) * 0.25).toFixed(2))
-  const bonusPoints = seededNumber(seed + 1, 0, 30)
-  const totalRewardPoints = Math.round(baseRewardPoints * multiplier) + bonusPoints
+  const bonusPoints = seededNumber(seed + 1, 0, 3) * 100
+  const totalRewardPoints = Math.round((baseRewardPoints * multiplier) / 100) * 100 + bonusPoints
 
   const walletBalanceBefore = seededNumber(seed, 500, 15000)
   const walletBalanceAfter = status === 'reversed' ? walletBalanceBefore : walletBalanceBefore + totalRewardPoints - (isRedeemed ? gift.requiredCoins : 0)
@@ -92,6 +87,7 @@ function buildRewardReport(index: number): RewardReportEntry {
     userId: user.id,
     userName: user.name,
     userType: user.type,
+    businessName: user.businessName,
     mobileNumber: user.mobile,
     email: user.email,
     region: user.region,
@@ -137,7 +133,7 @@ export const rewardReportKpis = {
   redemptionRate: Math.round((mockRewardReports.filter((r) => r.isRedeemed).length / mockRewardReports.length) * 100),
 }
 
-export const rewardReportUserTypeOptions: RewardReportUserType[] = ['Dealer', 'Chemist', 'MR']
+export const rewardReportUserTypeOptions: RewardReportUserType[] = ['Dealer', 'Chemist']
 export const rewardReportTypeOptions = rewardTypes
 export const rewardReportSchemeOptions = Array.from(new Set(mockRewardReports.map((r) => r.schemeName))).sort()
 export const rewardReportStatusOptions: RewardReportStatus[] = ['credited', 'pending', 'redeemed', 'reversed']

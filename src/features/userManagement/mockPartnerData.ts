@@ -89,7 +89,7 @@ function buildDocuments(seed: number, shopName: string): LicenseDocument[] {
 export function generatePartnerBase(index: number, prefix: string, shopSuffix: string): PartnerBase {
   const seed = index + 1
   const shopName = `${['Om', 'Sunrise', 'Care Plus', 'Wellness', 'City', 'Apollo', 'Sri Sai', 'National', 'Metro', 'United'][index % 10]} ${shopSuffix}`
-  const availableCoins = seededNumber(seed, 500, 5000)
+  const availableCoins = seededNumber(seed, 10, 56) * 100
 
   return {
     id: `${prefix}-${index + 1}`,

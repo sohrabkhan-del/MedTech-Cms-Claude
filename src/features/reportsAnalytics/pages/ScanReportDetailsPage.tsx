@@ -98,7 +98,7 @@ export function ScanReportDetailsPage() {
             fields={[
               { label: 'Scan ID', value: report.id },
               { label: 'Scan Date & Time', value: report.scanDateTime },
-              { label: 'Barcode Number', value: report.barcodeNumber },
+              { label: 'Scan Code', value: report.barcodeNumber },
               { label: 'Scan Result', value: <Chip size="small" label={resultConfig[report.scanResult].label} color={resultConfig[report.scanResult].color} /> },
               { label: 'Device', value: report.device },
               { label: 'IP Address', value: report.ipAddress },

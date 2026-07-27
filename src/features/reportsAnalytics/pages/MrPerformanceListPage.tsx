@@ -1,12 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Avatar, Checkbox, Chip, FormControlLabel, Grid, Stack, TextField, Typography } from '@mui/material'
+import { Avatar, Checkbox, FormControlLabel, Grid, Stack, TextField, Typography } from '@mui/material'
 import {
   ChartColumnBig as ChartColumnBigIcon,
   UserRound as UserRoundIcon,
   Store as StoreIcon,
   Pill as PillIcon,
-  Gauge as GaugeIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
@@ -25,12 +24,6 @@ interface MrPerformanceFilters extends Record<string, unknown> {
 
 const ALL_REGIONS: PartnerZone[] = ['North', 'South', 'East', 'West']
 const ALL_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
-
-function performanceColor(score: number): 'success' | 'warning' | 'error' {
-  if (score >= 70) return 'success'
-  if (score >= 40) return 'warning'
-  return 'error'
-}
 
 export function MrPerformanceListPage() {
   const navigate = useNavigate()
@@ -94,22 +87,6 @@ export function MrPerformanceListPage() {
       sortValue: (row) => row.chemistsOnboarded,
       render: (row) => row.chemistsOnboarded,
     },
-    {
-      key: 'totalScans',
-      header: 'Total Scans',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.totalScans,
-      render: (row) => row.totalScans.toLocaleString('en-IN'),
-    },
-    {
-      key: 'performanceScore',
-      header: 'Performance Score',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.performanceScore,
-      render: (row) => <Chip label={`${row.performanceScore}`} size="small" color={performanceColor(row.performanceScore)} variant="filled" />,
-    },
   ]
 
   return (
@@ -123,9 +100,6 @@ export function MrPerformanceListPage() {
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard label="Total Chemists Onboarded" value={mrPerformanceKpis.totalChemistsOnboarded} icon={<PillIcon size={20} />} iconColor="info" />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Average Performance Score" value={mrPerformanceKpis.averagePerformanceScore} icon={<GaugeIcon size={20} />} iconColor="success" />
         </Grid>
       </Grid>
 

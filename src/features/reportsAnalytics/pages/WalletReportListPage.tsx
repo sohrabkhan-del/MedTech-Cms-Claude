@@ -85,8 +85,8 @@ export function WalletReportListPage() {
 
   const columns: CommonTableColumn<WalletReportRow>[] = [
     {
-      key: 'userName',
-      header: 'User Name',
+      key: 'businessName',
+      header: 'Business Name',
       minWidth: 180,
       sortable: true,
       sortValue: (row) => row.userName,
@@ -104,6 +104,7 @@ export function WalletReportListPage() {
         </Typography>
       ),
     },
+
     {
       key: 'userType',
       header: 'User Type',
@@ -141,6 +142,18 @@ export function WalletReportListPage() {
       minWidth: 150,
       sortable: true,
       render: (row) => row.lastTransaction,
+    },
+    {
+      key: 'lastTransactionType',
+      header: 'Last Transaction Type',
+      minWidth: 130,
+      render: (row) => (
+        <Chip
+          size="small"
+          label={row.lastTransactionType === 'credit' ? 'Credit' : 'Debit'}
+          color={row.lastTransactionType === 'credit' ? 'success' : 'error'}
+        />
+      ),
     },
     {
       key: 'status',
@@ -203,9 +216,9 @@ export function WalletReportListPage() {
         rows={filteredRows}
         getRowId={(row) => row.id}
         loading={isLoading}
-        searchPlaceholder="Search by user name or mobile number…"
+        searchPlaceholder="Search by user name, business name, or mobile number…"
         searchKeys={(row) =>
-          `${row.userName} ${row.mobileNumber} ${row.userId}`
+          `${row.userName} ${row.businessName} ${row.mobileNumber} ${row.userId}`
         }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={filterCount}

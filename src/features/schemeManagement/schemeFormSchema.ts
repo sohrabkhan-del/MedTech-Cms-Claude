@@ -1,10 +1,23 @@
 import { z } from 'zod'
 
-const schemeProductFormSchema = z.object({
+const REGION_VALUES = ['East', 'West', 'North', 'South'] as const
+
+const schemeApplicableProductFormSchema = z.object({
   productId: z.string().min(1),
-  attached: z.boolean(),
-  dealerPoints: z.string(),
-  chemistPoints: z.string(),
+  baseCoinValue: z.string(),
+  regionMultipliers: z.record(z.enum(REGION_VALUES), z.string()),
+})
+
+const schemeGiftPartnerRuleFormSchema = z.object({
+  price: z.string(),
+  points: z.string(),
+  discountPrice: z.string(),
+})
+
+const schemeGiftRuleFormSchema = z.object({
+  giftId: z.string().min(1),
+  dealerRule: schemeGiftPartnerRuleFormSchema.nullable(),
+  chemistRule: schemeGiftPartnerRuleFormSchema.nullable(),
 })
 
 export const schemeFormSchema = z
@@ -13,9 +26,11 @@ export const schemeFormSchema = z
     name: z.string().min(2, 'Scheme name is required'),
     startDate: z.string().min(1, 'Start date is required'),
     endDate: z.string().optional(),
-    regions: z.array(z.enum(['East', 'West', 'North', 'South'])).min(1, 'Select at least one region'),
     partnerTypes: z.array(z.enum(['Dealer', 'Chemist'])).min(1, 'Select at least one partner type'),
-    products: z.array(schemeProductFormSchema),
+    dealerRegions: z.array(z.enum(REGION_VALUES)),
+    chemistRegions: z.array(z.enum(REGION_VALUES)),
+    applicableProducts: z.array(schemeApplicableProductFormSchema),
+    giftRules: z.array(schemeGiftRuleFormSchema),
     description: z.string().optional(),
     disclaimer: z.string().optional(),
     image: z.string().optional(),
@@ -29,34 +44,46 @@ export const schemeFormSchema = z
     message: 'End date must be on or after the start date',
     path: ['endDate'],
   })
-  .refine((data) => data.products.some((p) => p.attached), {
+  .refine((data) => !data.partnerTypes.includes('Dealer') || data.dealerRegions.length > 0, {
+    message: 'Select at least one region for Dealer',
+    path: ['dealerRegions'],
+  })
+  .refine((data) => !data.partnerTypes.includes('Chemist') || data.chemistRegions.length > 0, {
+    message: 'Select at least one region for Chemist',
+    path: ['chemistRegions'],
+  })
+  .refine((data) => data.applicableProducts.length > 0, {
+    message: 'Attach at least one applicable product',
+    path: ['applicableProducts'],
+  })
+  .refine((data) => data.giftRules.length > 0, {
     message: 'Attach at least one gift product',
-    path: ['products'],
+    path: ['giftRules'],
   })
   .refine(
-    (data) =>
-      !data.partnerTypes.includes('Dealer') ||
-      data.products.reduce((sum, p) => sum + (p.attached ? Number(p.dealerPoints || 0) : 0), 0) > 0,
-    { message: 'Dealer points allocated across products must be greater than 0', path: ['products'] },
+    (data) => !data.partnerTypes.includes('Dealer') || data.giftRules.some((rule) => rule.dealerRule),
+    { message: 'Configure a Dealer rule for at least one gift', path: ['giftRules'] },
   )
   .refine(
-    (data) =>
-      !data.partnerTypes.includes('Chemist') ||
-      data.products.reduce((sum, p) => sum + (p.attached ? Number(p.chemistPoints || 0) : 0), 0) > 0,
-    { message: 'Chemist points allocated across products must be greater than 0', path: ['products'] },
+    (data) => !data.partnerTypes.includes('Chemist') || data.giftRules.some((rule) => rule.chemistRule),
+    { message: 'Configure a Chemist rule for at least one gift', path: ['giftRules'] },
   )
 
 export type SchemeFormValues = z.infer<typeof schemeFormSchema>
-export type SchemeProductFormValues = z.infer<typeof schemeProductFormSchema>
+export type SchemeApplicableProductFormValues = z.infer<typeof schemeApplicableProductFormSchema>
+export type SchemeGiftRuleFormValues = z.infer<typeof schemeGiftRuleFormSchema>
+export type SchemeGiftPartnerRuleFormValues = z.infer<typeof schemeGiftPartnerRuleFormSchema>
 
 export const schemeFormDefaults: SchemeFormValues = {
   type: 'general',
   name: '',
   startDate: '',
   endDate: '',
-  regions: [],
   partnerTypes: [],
-  products: [],
+  dealerRegions: [],
+  chemistRegions: [],
+  applicableProducts: [],
+  giftRules: [],
   description: '',
   disclaimer: '',
   image: '',

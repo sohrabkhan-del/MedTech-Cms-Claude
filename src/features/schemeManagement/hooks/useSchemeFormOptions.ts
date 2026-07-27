@@ -9,13 +9,21 @@ export interface SchemeGiftProductOption {
   image: string
 }
 
+export interface SchemeMasterProductOption {
+  id: string
+  name: string
+  code: string
+  category: string
+}
+
 interface FormOptions {
   regionOptions: PartnerZone[]
   partnerTypeOptions: SchemePartnerType[]
   giftProductOptions: SchemeGiftProductOption[]
+  masterProductOptions: SchemeMasterProductOption[]
 }
 
-const emptyOptions: FormOptions = { regionOptions: [], partnerTypeOptions: [], giftProductOptions: [] }
+const emptyOptions: FormOptions = { regionOptions: [], partnerTypeOptions: [], giftProductOptions: [], masterProductOptions: [] }
 
 /** Shared static option lists for scheme filters/forms (not just the form page). */
 export function useSchemeFormOptions() {

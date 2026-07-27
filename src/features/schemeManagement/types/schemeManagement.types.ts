@@ -3,7 +3,9 @@ export type {
   SchemeType,
   SchemePartnerType,
   SchemePartnerStatus,
-  SchemeProduct,
+  SchemeApplicableProduct,
+  SchemeGiftRule,
+  SchemeGiftPartnerRule,
   SchemePartnerEntry,
   SchemePartners,
 } from '@/types/scheme'
@@ -11,7 +13,9 @@ export {
   schemeFormSchema,
   schemeFormDefaults,
   type SchemeFormValues,
-  type SchemeProductFormValues,
+  type SchemeApplicableProductFormValues,
+  type SchemeGiftRuleFormValues,
+  type SchemeGiftPartnerRuleFormValues,
 } from '@/features/schemeManagement/schemeFormSchema'
 export type {
   Gift,

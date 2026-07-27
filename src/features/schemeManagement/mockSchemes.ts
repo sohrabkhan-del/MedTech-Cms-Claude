@@ -1,13 +1,15 @@
 import type {
   Scheme,
+  SchemeApplicableProduct,
+  SchemeGiftRule,
   SchemePartnerEntry,
   SchemePartnerStatus,
   SchemePartnerType,
-  SchemeProduct,
   SchemeType,
 } from '@/types/scheme'
 import type { PartnerZone } from '@/types/partner'
 import { mockGifts } from '@/features/schemeManagement/mockGifts'
+import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 
@@ -45,14 +47,43 @@ function resolveRegions(seed: number): PartnerZone[] {
   return REGIONS.filter((_, i) => (seed + i) % REGIONS.length < count)
 }
 
-function buildProducts(seed: number, partnerTypes: SchemePartnerType[]): SchemeProduct[] {
+function buildApplicableProducts(seed: number, regions: PartnerZone[]): SchemeApplicableProduct[] {
+  const count = seededNumber(seed, 2, 5)
+  return Array.from({ length: count }).map((_, i) => {
+    const product = mockProducts[(seed + i * 5) % mockProducts.length]!
+    const localSeed = seed * 13 + i
+    const regionMultipliers = Object.fromEntries(
+      regions.map((region, ri) => [region, Number((seededNumber(localSeed + ri, 10, 30) / 10).toFixed(1))]),
+    ) as SchemeApplicableProduct['regionMultipliers']
+    return {
+      productId: product.id,
+      baseCoinValue: seededNumber(localSeed, 10, 100),
+      regionMultipliers,
+    }
+  })
+}
+
+function buildGiftRules(seed: number, partnerTypes: SchemePartnerType[]): SchemeGiftRule[] {
   const count = seededNumber(seed, 2, 5)
   return Array.from({ length: count }).map((_, i) => {
     const gift = mockGifts[(seed + i * 3) % mockGifts.length]!
+    const localSeed = seed + i
     return {
-      productId: gift.id,
-      dealerPoints: partnerTypes.includes('Dealer') ? seededNumber(seed + i, 50, 400) : 0,
-      chemistPoints: partnerTypes.includes('Chemist') ? seededNumber(seed + i + 1, 50, 400) : 0,
+      giftId: gift.id,
+      dealerRule: partnerTypes.includes('Dealer')
+        ? {
+            price: seededNumber(localSeed, 199, 4999),
+            points: seededNumber(localSeed, 50, 400),
+            discountPrice: seededNumber(localSeed + 1, 99, 3999),
+          }
+        : null,
+      chemistRule: partnerTypes.includes('Chemist')
+        ? {
+            price: seededNumber(localSeed + 2, 199, 4999),
+            points: seededNumber(localSeed + 1, 50, 400),
+            discountPrice: seededNumber(localSeed + 3, 99, 3999),
+          }
+        : null,
     }
   })
 }
@@ -80,7 +111,9 @@ function buildScheme(seed: number, type: SchemeType, options?: { forceNoEndDate?
   const id = schemeIdFromSeed(seed + (type === 'seasonal' ? 500 : 0))
   const name = type === 'general' ? generalSchemeNames[seed % generalSchemeNames.length]! : seasonalSchemeNames[seed % seasonalSchemeNames.length]!
   const partnerTypes = resolvePartnerTypes(seed)
-  const regions = resolveRegions(seed)
+  const dealerRegions = partnerTypes.includes('Dealer') ? resolveRegions(seed) : []
+  const chemistRegions = partnerTypes.includes('Chemist') ? resolveRegions(seed + 2) : []
+  const regions = REGIONS.filter((region) => dealerRegions.includes(region) || chemistRegions.includes(region))
 
   // Cycle each scheme through ended / active / upcoming relative to today, so KPI counts reflect a realistic mix.
   const bucket = seed % 3
@@ -108,9 +141,12 @@ function buildScheme(seed: number, type: SchemeType, options?: { forceNoEndDate?
     name,
     startDate,
     endDate,
-    regions,
     partnerTypes,
-    products: buildProducts(seed, partnerTypes),
+    dealerRegions,
+    chemistRegions,
+    regions,
+    applicableProducts: buildApplicableProducts(seed, regions),
+    giftRules: buildGiftRules(seed, partnerTypes),
     description: `${name} lets eligible partners redeem gift products by earning points ${type === 'general' ? 'throughout the year' : 'during the campaign window'}.`,
     disclaimer: 'Points are non-transferable and subject to MedTech Rewards terms & conditions.',
     image: `https://picsum.photos/seed/medtech-scheme-${id}/400/400`,
@@ -134,16 +170,12 @@ export function getSchemeById(id: string): Scheme | undefined {
   return mockSchemes.find((scheme) => scheme.id === id)
 }
 
-function pointsTotal(scheme: Scheme, key: 'dealerPoints' | 'chemistPoints'): number {
-  return scheme.products.reduce((sum, p) => sum + p[key], 0)
-}
-
 export function schemeDealerTotal(scheme: Scheme): number {
-  return pointsTotal(scheme, 'dealerPoints')
+  return scheme.giftRules.reduce((sum, rule) => sum + (rule.dealerRule?.points ?? 0), 0)
 }
 
 export function schemeChemistTotal(scheme: Scheme): number {
-  return pointsTotal(scheme, 'chemistPoints')
+  return scheme.giftRules.reduce((sum, rule) => sum + (rule.chemistRule?.points ?? 0), 0)
 }
 
 function schemeKpis(schemes: Scheme[]) {

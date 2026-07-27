@@ -216,11 +216,11 @@ export function SchemesListPage() {
       ),
     },
     {
-      key: 'products',
-      header: 'Products',
+      key: 'giftRules',
+      header: 'Gifts',
       minWidth: 180,
       render: (row) =>
-        `${row.products.length} product${row.products.length === 1 ? '' : 's'}`,
+        `${row.giftRules.length} gift${row.giftRules.length === 1 ? '' : 's'}`,
     },
   ]
 

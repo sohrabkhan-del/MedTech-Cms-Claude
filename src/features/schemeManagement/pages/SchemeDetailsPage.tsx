@@ -22,8 +22,15 @@ import { Modal } from '@/components/common/Modal/Modal'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useSchemeDetail } from '@/features/schemeManagement/hooks/useSchemeDetail'
 import { getGiftById } from '@/features/schemeManagement/mockGifts'
+import { getProductById } from '@/features/inventoryManagement/mockProducts'
 import { schemeDealerTotal, schemeChemistTotal } from '@/features/schemeManagement/mockSchemes'
-import type { Scheme, SchemeProduct, SchemePartnerEntry, SchemePartnerStatus } from '@/features/schemeManagement/types/schemeManagement.types'
+import type {
+  Scheme,
+  SchemeApplicableProduct,
+  SchemeGiftRule,
+  SchemePartnerEntry,
+  SchemePartnerStatus,
+} from '@/features/schemeManagement/types/schemeManagement.types'
 
 const partnerStatusConfig: Record<SchemePartnerStatus, { label: string; color: 'success' | 'default' | 'info' }> = {
   interested: { label: 'Interested', color: 'info' },
@@ -33,11 +40,44 @@ const partnerStatusConfig: Record<SchemePartnerStatus, { label: string; color: '
 
 const LIST_PATH = '/scheme-management/schemes'
 
-function productColumns(scheme: Scheme, navigate: ReturnType<typeof useNavigate>): CommonTableColumn<SchemeProduct>[] {
-  const columns: CommonTableColumn<SchemeProduct>[] = [
+function applicableProductColumns(): CommonTableColumn<SchemeApplicableProduct>[] {
+  return [
     {
       key: 'productName',
       header: 'Product',
+      minWidth: 200,
+      render: (row) => (
+        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{getProductById(row.productId)?.productName ?? row.productId}</Typography>
+      ),
+    },
+    {
+      key: 'baseCoinValue',
+      header: 'Base Coin Value',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.baseCoinValue,
+      render: (row) => row.baseCoinValue.toLocaleString('en-IN'),
+    },
+    {
+      key: 'regionMultipliers',
+      header: 'Region Multipliers',
+      minWidth: 220,
+      render: (row) => (
+        <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+          {Object.entries(row.regionMultipliers).map(([region, multiplier]) => (
+            <Chip key={region} size="small" variant="outlined" label={`${region}: ${multiplier}x`} />
+          ))}
+        </Stack>
+      ),
+    },
+  ]
+}
+
+function giftRuleColumns(scheme: Scheme, navigate: ReturnType<typeof useNavigate>): CommonTableColumn<SchemeGiftRule>[] {
+  const columns: CommonTableColumn<SchemeGiftRule>[] = [
+    {
+      key: 'giftName',
+      header: 'Gift',
       minWidth: 200,
       render: (row) => (
         <Typography
@@ -47,32 +87,60 @@ function productColumns(scheme: Scheme, navigate: ReturnType<typeof useNavigate>
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() => navigate(`/scheme-management/gift-catalogue/${row.productId}`)}
+          onClick={() => navigate(`/scheme-management/gift-catalogue/${row.giftId}`)}
         >
-          {getGiftById(row.productId)?.giftName ?? row.productId}
+          {getGiftById(row.giftId)?.giftName ?? row.giftId}
         </Typography>
       ),
     },
   ]
   if (scheme.partnerTypes.includes('Dealer')) {
-    columns.push({
-      key: 'dealerPoints',
-      header: 'Dealer Pts',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.dealerPoints,
-      render: (row) => row.dealerPoints.toLocaleString('en-IN'),
-    })
+    columns.push(
+      {
+        key: 'dealerPrice',
+        header: 'Dealer Price',
+        align: 'center',
+        render: (row) => (row.dealerRule ? row.dealerRule.price.toLocaleString('en-IN') : '—'),
+      },
+      {
+        key: 'dealerPoints',
+        header: 'Dealer Pts',
+        align: 'center',
+        sortable: true,
+        sortValue: (row) => row.dealerRule?.points ?? 0,
+        render: (row) => (row.dealerRule ? row.dealerRule.points.toLocaleString('en-IN') : '—'),
+      },
+      {
+        key: 'dealerDiscountPrice',
+        header: 'Dealer Discount Price',
+        align: 'center',
+        render: (row) => (row.dealerRule ? row.dealerRule.discountPrice.toLocaleString('en-IN') : '—'),
+      },
+    )
   }
   if (scheme.partnerTypes.includes('Chemist')) {
-    columns.push({
-      key: 'chemistPoints',
-      header: 'Chemist Pts',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.chemistPoints,
-      render: (row) => row.chemistPoints.toLocaleString('en-IN'),
-    })
+    columns.push(
+      {
+        key: 'chemistPrice',
+        header: 'Chemist Price',
+        align: 'center',
+        render: (row) => (row.chemistRule ? row.chemistRule.price.toLocaleString('en-IN') : '—'),
+      },
+      {
+        key: 'chemistPoints',
+        header: 'Chemist Pts',
+        align: 'center',
+        sortable: true,
+        sortValue: (row) => row.chemistRule?.points ?? 0,
+        render: (row) => (row.chemistRule ? row.chemistRule.points.toLocaleString('en-IN') : '—'),
+      },
+      {
+        key: 'chemistDiscountPrice',
+        header: 'Chemist Discount Price',
+        align: 'center',
+        render: (row) => (row.chemistRule ? row.chemistRule.discountPrice.toLocaleString('en-IN') : '—'),
+      },
+    )
   }
   return columns
 }
@@ -215,8 +283,9 @@ export function SchemeDetailsPage() {
               { label: 'Type', value: scheme.type === 'general' ? 'General' : 'Seasonal' },
               { label: 'Start Date', value: scheme.startDate },
               { label: 'End Date', value: scheme.endDate ?? 'No end date' },
-              { label: 'Regions', value: scheme.regions.join(', ') },
               { label: 'Partner Types', value: scheme.partnerTypes.join(', ') },
+              ...(scheme.partnerTypes.includes('Dealer') ? [{ label: 'Dealer Regions', value: scheme.dealerRegions.join(', ') || '—' }] : []),
+              ...(scheme.partnerTypes.includes('Chemist') ? [{ label: 'Chemist Regions', value: scheme.chemistRegions.join(', ') || '—' }] : []),
               ...(scheme.partnerTypes.includes('Dealer') ? [{ label: 'Dealer Points to Claim', value: dealerTotal.toLocaleString('en-IN') }] : []),
               ...(scheme.partnerTypes.includes('Chemist') ? [{ label: 'Chemist Points to Claim', value: chemistTotal.toLocaleString('en-IN') }] : []),
             ]}
@@ -225,7 +294,7 @@ export function SchemeDetailsPage() {
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Attached Products" value={scheme.products.length} icon={<GiftIcon size={20} />} iconColor="primary" />}
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Attached Gifts" value={scheme.giftRules.length} icon={<GiftIcon size={20} />} iconColor="primary" />}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? <StatCardSkeleton /> : <StatCard label="Regions Covered" value={scheme.regions.length} icon={<MapPin size={20} />} iconColor="secondary" />}
@@ -256,16 +325,29 @@ export function SchemeDetailsPage() {
           </Grid>
         </Grid>
 
-        <SectionCard title="Attached Gift Products">
+        <SectionCard title="Applicable Products">
           <CommonTable
-            tableKey="scheme-products"
-            columns={productColumns(scheme, navigate)}
-            rows={scheme.products}
+            tableKey="scheme-applicable-products"
+            columns={applicableProductColumns()}
+            rows={scheme.applicableProducts}
             getRowId={(row) => row.productId}
             loading={isLoading}
             searchPlaceholder="Search products…"
-            searchKeys={(row) => getGiftById(row.productId)?.giftName ?? row.productId}
+            searchKeys={(row) => getProductById(row.productId)?.productName ?? row.productId}
             emptyTitle="No products attached yet"
+          />
+        </SectionCard>
+
+        <SectionCard title="Attached Gift Products">
+          <CommonTable
+            tableKey="scheme-gift-rules"
+            columns={giftRuleColumns(scheme, navigate)}
+            rows={scheme.giftRules}
+            getRowId={(row) => row.giftId}
+            loading={isLoading}
+            searchPlaceholder="Search gifts…"
+            searchKeys={(row) => getGiftById(row.giftId)?.giftName ?? row.giftId}
+            emptyTitle="No gifts attached yet"
           />
         </SectionCard>
 

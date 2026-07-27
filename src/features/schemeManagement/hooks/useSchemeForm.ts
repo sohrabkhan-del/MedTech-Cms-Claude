@@ -1,7 +1,7 @@
 import { useEffect, useReducer, useState } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
-import type { SchemeGiftProductOption } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
+import type { SchemeGiftProductOption, SchemeMasterProductOption } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
 import type { PartnerZone } from '@/types/partner'
 import type { Scheme, SchemeFormValues, SchemePartnerType } from '@/features/schemeManagement/types/schemeManagement.types'
 
@@ -9,6 +9,7 @@ interface FormOptions {
   regionOptions: PartnerZone[]
   partnerTypeOptions: SchemePartnerType[]
   giftProductOptions: SchemeGiftProductOption[]
+  masterProductOptions: SchemeMasterProductOption[]
 }
 
 interface LoadState {

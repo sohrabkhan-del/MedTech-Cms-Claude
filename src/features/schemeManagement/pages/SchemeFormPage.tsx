@@ -3,6 +3,7 @@ import { Controller, useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import {
+  Autocomplete,
   Avatar,
   Box,
   Card,
@@ -12,6 +13,7 @@ import {
   IconButton,
   MenuItem,
   Stack,
+  Switch,
   TextField,
   Tooltip,
   Typography,
@@ -23,6 +25,7 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { radius } from '@/theme/tokens'
 import { useSchemeForm } from '@/features/schemeManagement/hooks/useSchemeForm'
+import type { SchemeMasterProductOption } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
 import {
   schemeFormDefaults,
   schemeFormSchema,
@@ -79,17 +82,29 @@ export function SchemeFormPage() {
     defaultValues: schemeFormDefaults,
   })
 
-  const { fields: productFields, append: appendProduct, remove: removeProduct } = useFieldArray({ control, name: 'products' })
+  const { fields: applicableProductFields, append: appendApplicableProduct, remove: removeApplicableProduct } = useFieldArray({
+    control,
+    name: 'applicableProducts',
+  })
+  const { fields: giftRuleFields, append: appendGiftRule, remove: removeGiftRule } = useFieldArray({ control, name: 'giftRules' })
+
   const schemeType = watch('type')
   const watchedPartnerTypes = useWatch({ control, name: 'partnerTypes' })
-  const watchedProductRows = useWatch({ control, name: 'products' })
+  const watchedApplicableProducts = useWatch({ control, name: 'applicableProducts' })
+  const watchedGiftRules = useWatch({ control, name: 'giftRules' })
   const partnerTypes = useMemo(() => watchedPartnerTypes ?? [], [watchedPartnerTypes])
-  const watchedProducts = useMemo(() => watchedProductRows ?? [], [watchedProductRows])
+  const applicableProductRows = useMemo(() => watchedApplicableProducts ?? [], [watchedApplicableProducts])
+  const giftRuleRows = useMemo(() => watchedGiftRules ?? [], [watchedGiftRules])
   const imageUrl = watch('image')
   const bannerUrl = watch('banner')
 
+  const masterProductOptions = useMemo(() => options?.masterProductOptions ?? [], [options])
   const giftProductOptions = useMemo(() => options?.giftProductOptions ?? [], [options])
-  const attachedProductIds = useMemo(() => new Set(watchedProducts.map((p) => p.productId).filter(Boolean)), [watchedProducts])
+  const attachedProductIds = useMemo(
+    () => new Set(applicableProductRows.map((p) => p.productId).filter(Boolean)),
+    [applicableProductRows],
+  )
+  const attachedGiftIds = useMemo(() => new Set(giftRuleRows.map((r) => r.giftId).filter(Boolean)), [giftRuleRows])
 
   useEffect(() => {
     const prefillSource = scheme ?? cloneSource
@@ -99,13 +114,24 @@ export function SchemeFormPage() {
       name: prefillSource.name,
       startDate: prefillSource.startDate,
       endDate: prefillSource.endDate ?? '',
-      regions: prefillSource.regions,
       partnerTypes: prefillSource.partnerTypes,
-      products: prefillSource.products.map((p) => ({
+      dealerRegions: prefillSource.dealerRegions,
+      chemistRegions: prefillSource.chemistRegions,
+      applicableProducts: prefillSource.applicableProducts.map((p) => ({
         productId: p.productId,
-        attached: true,
-        dealerPoints: String(p.dealerPoints),
-        chemistPoints: String(p.chemistPoints),
+        baseCoinValue: String(p.baseCoinValue),
+        regionMultipliers: Object.fromEntries(
+          Object.entries(p.regionMultipliers).map(([region, multiplier]) => [region, String(multiplier)]),
+        ),
+      })),
+      giftRules: prefillSource.giftRules.map((rule) => ({
+        giftId: rule.giftId,
+        dealerRule: rule.dealerRule
+          ? { price: String(rule.dealerRule.price), points: String(rule.dealerRule.points), discountPrice: String(rule.dealerRule.discountPrice) }
+          : null,
+        chemistRule: rule.chemistRule
+          ? { price: String(rule.chemistRule.price), points: String(rule.chemistRule.points), discountPrice: String(rule.chemistRule.discountPrice) }
+          : null,
       })),
       description: prefillSource.description ?? '',
       disclaimer: prefillSource.disclaimer ?? '',
@@ -113,15 +139,6 @@ export function SchemeFormPage() {
       banner: prefillSource.banner ?? '',
     })
   }, [scheme, cloneSource, reset])
-
-  const dealerTotal = useMemo(
-    () => watchedProducts.reduce((sum, p) => sum + Number(p.dealerPoints || 0), 0),
-    [watchedProducts],
-  )
-  const chemistTotal = useMemo(
-    () => watchedProducts.reduce((sum, p) => sum + Number(p.chemistPoints || 0), 0),
-    [watchedProducts],
-  )
 
   if (isEdit && !isLoading && !scheme) {
     return (
@@ -148,59 +165,10 @@ export function SchemeFormPage() {
       </Stack>
 
       <form onSubmit={onSubmit} noValidate>
+        {/* Card 1 — Scheme Details */}
         <Card sx={{ p: 3, mb: 3 }}>
           <Typography sx={sectionTitleSx}>Scheme Details</Typography>
           <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel>Scheme ID</FieldLabel>
-              <TextField
-                value={isEdit ? scheme?.id ?? '' : 'Auto-generated on save'}
-                disabled
-                fullWidth
-                size="small"
-                {...fieldLabelProps}
-                slotProps={{ ...fieldLabelProps.slotProps, input: { readOnly: true } }}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Scheme Type</FieldLabel>
-              <Controller
-                name="type"
-                control={control}
-                render={({ field }) => (
-                  <Stack direction="row" spacing={1}>
-                    {(['general', 'seasonal'] as const).map((value) => {
-                      const active = field.value === value
-                      return (
-                        <Box
-                          key={value}
-                          component="button"
-                          type="button"
-                          disabled={isEdit}
-                          onClick={() => field.onChange(value)}
-                          sx={{
-                            flex: 1,
-                            border: '1px solid',
-                            borderColor: active ? 'primary.main' : 'divider',
-                            cursor: isEdit ? 'default' : 'pointer',
-                            opacity: isEdit && !active ? 0.5 : 1,
-                            py: 1,
-                            borderRadius: `${radius.md}px`,
-                            fontSize: '0.8125rem',
-                            fontWeight: 700,
-                            fontFamily: 'inherit',
-                            backgroundColor: active ? 'primary.light' : 'transparent',
-                            color: active ? 'primary.dark' : 'text.secondary',
-                          }}
-                        >
-                          {value === 'general' ? 'General' : 'Seasonal'}
-                        </Box>
-                      )
-                    })}
-                  </Stack>
-                )}
-              />
-            </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Name</FieldLabel>
               <FormField name="name" control={control} placeholder="e.g. Diwali Double Rewards" {...fieldLabelProps} />
@@ -210,7 +178,28 @@ export function SchemeFormPage() {
                 </Typography>
               )}
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }} />
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Scheme Type</FieldLabel>
+              <Controller
+                name="type"
+                control={control}
+                render={({ field }) => (
+                  <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: field.value === 'general' ? 'primary.dark' : 'text.secondary' }}>
+                      General
+                    </Typography>
+                    <Switch
+                      checked={field.value === 'seasonal'}
+                      disabled={isEdit}
+                      onChange={(e) => field.onChange(e.target.checked ? 'seasonal' : 'general')}
+                    />
+                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 700, color: field.value === 'seasonal' ? 'primary.dark' : 'text.secondary' }}>
+                      Seasonal
+                    </Typography>
+                  </Stack>
+                )}
+              />
+            </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Start Date</FieldLabel>
               <FormField name="startDate" control={control} type="date" slotProps={{ inputLabel: { shrink: true } }} />
@@ -226,9 +215,117 @@ export function SchemeFormPage() {
                   : 'Mandatory for seasonal schemes. Points earned under this scheme can only be redeemed within it.'}
               </Typography>
             </Grid>
+            <Grid size={12}>
+              <FieldLabel>Description</FieldLabel>
+              <FormField name="description" control={control} multiline minRows={3} {...fieldLabelProps} />
+            </Grid>
           </Grid>
         </Card>
 
+        {/* Card 2 — Applicable Products */}
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Typography sx={sectionTitleSx}>Applicable Products</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
+            Pick products from Product Master, then set a base coin value and a payout multiplier per region.
+          </Typography>
+
+          <Controller
+            name="applicableProducts"
+            control={control}
+            render={({ fieldState }) =>
+              fieldState.error ? (
+                <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mb: 1.5 }}>
+                  {fieldState.error.message}
+                </Typography>
+              ) : (
+                <></>
+              )
+            }
+          />
+
+          <Box sx={{ mb: 2.5 }}>
+            <FieldLabel>Search &amp; Add Products</FieldLabel>
+            <Autocomplete
+              multiple
+              size="small"
+              options={masterProductOptions}
+              value={masterProductOptions.filter((p) => attachedProductIds.has(p.id))}
+              getOptionLabel={(option) => `${option.name} (${option.code})`}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              onChange={(_, selected: SchemeMasterProductOption[]) => {
+                const selectedIds = new Set(selected.map((p) => p.id))
+                // Remove rows that were unselected.
+                applicableProductRows.forEach((row, index) => {
+                  if (!selectedIds.has(row.productId)) removeApplicableProduct(index)
+                })
+                // Append rows for newly selected products.
+                selected.forEach((product) => {
+                  if (!attachedProductIds.has(product.id)) {
+                    appendApplicableProduct({
+                      productId: product.id,
+                      baseCoinValue: '',
+                      regionMultipliers: Object.fromEntries(ALL_REGIONS.map((region) => [region, '1'])),
+                    })
+                  }
+                })
+              }}
+              renderInput={(params) => <TextField {...params} placeholder="Search Product Master by name or code…" />}
+            />
+          </Box>
+
+          {applicableProductFields.length === 0 ? (
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              No products selected yet.
+            </Typography>
+          ) : (
+            <Stack spacing={2}>
+              {applicableProductFields.map((field, index) => {
+                const productId = applicableProductRows[index]?.productId ?? ''
+                const product = masterProductOptions.find((p) => p.id === productId)
+                return (
+                  <Box key={field.id} sx={{ p: 2, borderRadius: `${radius.lg}px`, border: '1px solid', borderColor: 'divider' }}>
+                    <Stack direction="row" spacing={2} sx={{ alignItems: 'center', mb: 1.5 }}>
+                      <Avatar variant="rounded" sx={{ width: 40, height: 40 }}>
+                        {product?.name.charAt(0) ?? '?'}
+                      </Avatar>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>{product?.name ?? productId}</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {product?.code} · {product?.category}
+                        </Typography>
+                      </Box>
+                      <Tooltip title="Remove product">
+                        <IconButton size="small" onClick={() => removeApplicableProduct(index)} aria-label="Remove product">
+                          <Trash2 size={18} />
+                        </IconButton>
+                      </Tooltip>
+                    </Stack>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 3 }}>
+                        <FieldLabel required>Base Coin Value</FieldLabel>
+                        <FormField name={`applicableProducts.${index}.baseCoinValue`} control={control} placeholder="e.g. 50" size="small" fullWidth />
+                      </Grid>
+                      {ALL_REGIONS.map((region) => (
+                        <Grid key={region} size={{ xs: 6, sm: 2.25 }}>
+                          <FieldLabel>{region} Multiplier</FieldLabel>
+                          <FormField
+                            name={`applicableProducts.${index}.regionMultipliers.${region}`}
+                            control={control}
+                            placeholder="e.g. 1.5"
+                            size="small"
+                            fullWidth
+                          />
+                        </Grid>
+                      ))}
+                    </Grid>
+                  </Box>
+                )
+              })}
+            </Stack>
+          )}
+        </Card>
+
+        {/* Card 3 — Partner Type */}
         <Card sx={{ p: 3, mb: 3 }}>
           <Typography sx={sectionTitleSx}>Partner Type</Typography>
           <Controller
@@ -238,6 +335,7 @@ export function SchemeFormPage() {
               <Grid container spacing={2}>
                 {ALL_PARTNER_TYPES.map((partnerType) => {
                   const checked = field.value.includes(partnerType)
+                  const regionsFieldName = partnerType === 'Dealer' ? 'dealerRegions' : 'chemistRegions'
                   return (
                     <Grid key={partnerType} size={{ xs: 12, sm: 6 }}>
                       <Box
@@ -263,11 +361,50 @@ export function SchemeFormPage() {
                           label={<Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>{partnerType}</Typography>}
                           sx={{ m: 0 }}
                         />
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', pl: 4 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', pl: 4, mb: checked ? 1.5 : 0 }}>
                           {checked
-                            ? `Adding products for ${partnerType} redemption below.`
+                            ? `Adding gift rules for ${partnerType} redemption below.`
                             : `Enable to allow ${partnerType} partners to redeem via this scheme.`}
                         </Typography>
+                        {checked && (
+                          <Box sx={{ pl: 4 }}>
+                            <FieldLabel required>Regions for {partnerType}</FieldLabel>
+                            <Controller
+                              name={regionsFieldName}
+                              control={control}
+                              render={({ field: regionField, fieldState: regionFieldState }) => (
+                                <>
+                                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
+                                    {ALL_REGIONS.map((region) => (
+                                      <FormControlLabel
+                                        key={region}
+                                        control={
+                                          <Checkbox
+                                            size="small"
+                                            checked={regionField.value.includes(region)}
+                                            onChange={(e) => {
+                                              regionField.onChange(
+                                                e.target.checked
+                                                  ? [...regionField.value, region]
+                                                  : regionField.value.filter((r: PartnerZone) => r !== region),
+                                              )
+                                            }}
+                                          />
+                                        }
+                                        label={region}
+                                      />
+                                    ))}
+                                  </Stack>
+                                  {regionFieldState.error && (
+                                    <Typography variant="caption" sx={{ color: 'error.main', display: 'block' }}>
+                                      {regionFieldState.error.message}
+                                    </Typography>
+                                  )}
+                                </>
+                              )}
+                            />
+                          </Box>
+                        )}
                       </Box>
                     </Grid>
                   )
@@ -284,57 +421,15 @@ export function SchemeFormPage() {
           />
         </Card>
 
+        {/* Card 4 — Attach Gift Products */}
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Regions</Typography>
-          <Controller
-            name="regions"
-            control={control}
-            render={({ field, fieldState }) => (
-              <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }}>
-                {ALL_REGIONS.map((region) => (
-                  <FormControlLabel
-                    key={region}
-                    control={
-                      <Checkbox
-                        size="small"
-                        checked={field.value.includes(region)}
-                        onChange={(e) => {
-                          field.onChange(e.target.checked ? [...field.value, region] : field.value.filter((r) => r !== region))
-                        }}
-                      />
-                    }
-                    label={region}
-                  />
-                ))}
-                {fieldState.error && (
-                  <Typography variant="caption" sx={{ color: 'error.main', width: '100%' }}>
-                    {fieldState.error.message}
-                  </Typography>
-                )}
-              </Stack>
-            )}
-          />
-        </Card>
-
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1.5 }}>
-            <Typography sx={{ ...sectionTitleSx, mb: 0 }}>Attach Gift Products</Typography>
-            <Stack direction="row" spacing={1.5}>
-              {partnerTypes.includes('Dealer') && (
-                <Box sx={{ px: 1.5, py: 0.5, borderRadius: '999px', backgroundColor: 'primary.light', color: 'primary.dark' }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Dealer Total: {dealerTotal}</Typography>
-                </Box>
-              )}
-              {partnerTypes.includes('Chemist') && (
-                <Box sx={{ px: 1.5, py: 0.5, borderRadius: '999px', backgroundColor: 'secondary.light', color: 'secondary.dark' }}>
-                  <Typography sx={{ fontWeight: 700, fontSize: '0.75rem' }}>Chemist Total: {chemistTotal}</Typography>
-                </Box>
-              )}
-            </Stack>
-          </Stack>
+          <Typography sx={sectionTitleSx}>Attach Gift Products</Typography>
+          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 2 }}>
+            Select gifts from the Gift Catalogue, then define price, points, and discount pricing rules per partner type.
+          </Typography>
 
           <Controller
-            name="products"
+            name="giftRules"
             control={control}
             render={({ fieldState }) =>
               fieldState.error ? (
@@ -353,55 +448,94 @@ export function SchemeFormPage() {
             </Typography>
           ) : (
             <Stack spacing={2}>
-              {productFields.map((field, index) => {
-                const selectedProductId = watchedProducts[index]?.productId ?? ''
-                const selectedProduct = giftProductOptions.find((p) => p.id === selectedProductId)
-                const availableOptions = giftProductOptions.filter(
-                  (p) => p.id === selectedProductId || !attachedProductIds.has(p.id),
-                )
+              {giftRuleFields.map((field, index) => {
+                const selectedGiftId = giftRuleRows[index]?.giftId ?? ''
+                const selectedGift = giftProductOptions.find((g) => g.id === selectedGiftId)
+                const availableOptions = giftProductOptions.filter((g) => g.id === selectedGiftId || !attachedGiftIds.has(g.id))
                 return (
                   <Box key={field.id} sx={{ p: 2, borderRadius: `${radius.lg}px`, border: '1px solid', borderColor: 'divider' }}>
-                    <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', flexWrap: 'wrap' }}>
-                      <Avatar src={selectedProduct?.image} variant="rounded" sx={{ width: 44, height: 44, flexShrink: 0, mt: 0.25 }} />
+                    <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-start', mb: 2 }}>
+                      <Avatar src={selectedGift?.image} variant="rounded" sx={{ width: 44, height: 44, flexShrink: 0, mt: 0.25 }} />
                       <Box sx={{ flexGrow: 1, minWidth: 220 }}>
                         <FieldLabel required>Gift Product</FieldLabel>
                         <Controller
-                          name={`products.${index}.productId`}
+                          name={`giftRules.${index}.giftId`}
                           control={control}
-                          render={({ field: productField }) => (
+                          render={({ field: giftField }) => (
                             <TextField
                               select
                               size="small"
                               fullWidth
-                              value={productField.value}
-                              onChange={(e) => productField.onChange(e.target.value)}
+                              value={giftField.value}
+                              onChange={(e) => giftField.onChange(e.target.value)}
                             >
-                              {availableOptions.map((product) => (
-                                <MenuItem key={product.id} value={product.id}>
-                                  {product.name}
+                              {availableOptions.map((gift) => (
+                                <MenuItem key={gift.id} value={gift.id}>
+                                  {gift.name}
                                 </MenuItem>
                               ))}
                             </TextField>
                           )}
                         />
                       </Box>
-                      {partnerTypes.includes('Dealer') && (
-                        <Box sx={{ width: 140 }}>
-                          <FieldLabel required>Dealer Pts</FieldLabel>
-                          <FormField name={`products.${index}.dealerPoints`} control={control} placeholder="e.g. 200" size="small" fullWidth />
-                        </Box>
-                      )}
-                      {partnerTypes.includes('Chemist') && (
-                        <Box sx={{ width: 140 }}>
-                          <FieldLabel required>Chemist Pts</FieldLabel>
-                          <FormField name={`products.${index}.chemistPoints`} control={control} placeholder="e.g. 150" size="small" fullWidth />
-                        </Box>
-                      )}
-                      <Tooltip title="Remove product">
-                        <IconButton size="small" onClick={() => removeProduct(index)} sx={{ mt: 3 }} aria-label="Remove product">
+                      <Tooltip title="Remove gift">
+                        <IconButton size="small" onClick={() => removeGiftRule(index)} sx={{ mt: 3 }} aria-label="Remove gift">
                           <Trash2 size={18} />
                         </IconButton>
                       </Tooltip>
+                    </Stack>
+
+                    <Stack spacing={2}>
+                      {partnerTypes.includes('Dealer') && (
+                        <Box sx={{ p: 1.5, borderRadius: `${radius.md}px`, backgroundColor: 'primary.light' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: 'primary.dark', mb: 1 }}>Dealer Rule</Typography>
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
+                              <FieldLabel required>Price</FieldLabel>
+                              <FormField name={`giftRules.${index}.dealerRule.price`} control={control} placeholder="e.g. 999" size="small" fullWidth />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 4 }}>
+                              <FieldLabel required>Points</FieldLabel>
+                              <FormField name={`giftRules.${index}.dealerRule.points`} control={control} placeholder="e.g. 200" size="small" fullWidth />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 4 }}>
+                              <FieldLabel required>Discount Price</FieldLabel>
+                              <FormField
+                                name={`giftRules.${index}.dealerRule.discountPrice`}
+                                control={control}
+                                placeholder="e.g. 799"
+                                size="small"
+                                fullWidth
+                              />
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      )}
+                      {partnerTypes.includes('Chemist') && (
+                        <Box sx={{ p: 1.5, borderRadius: `${radius.md}px`, backgroundColor: 'secondary.light' }}>
+                          <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', color: 'secondary.dark', mb: 1 }}>Chemist Rule</Typography>
+                          <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
+                              <FieldLabel required>Price</FieldLabel>
+                              <FormField name={`giftRules.${index}.chemistRule.price`} control={control} placeholder="e.g. 999" size="small" fullWidth />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 4 }}>
+                              <FieldLabel required>Points</FieldLabel>
+                              <FormField name={`giftRules.${index}.chemistRule.points`} control={control} placeholder="e.g. 150" size="small" fullWidth />
+                            </Grid>
+                            <Grid size={{ xs: 12, sm: 4 }}>
+                              <FieldLabel required>Discount Price</FieldLabel>
+                              <FormField
+                                name={`giftRules.${index}.chemistRule.discountPrice`}
+                                control={control}
+                                placeholder="e.g. 699"
+                                size="small"
+                                fullWidth
+                              />
+                            </Grid>
+                          </Grid>
+                        </Box>
+                      )}
                     </Stack>
                   </Box>
                 )
@@ -410,11 +544,17 @@ export function SchemeFormPage() {
               <Button
                 variant="outlined"
                 startIcon={<Plus size={18} />}
-                onClick={() => appendProduct({ productId: '', attached: true, dealerPoints: '', chemistPoints: '' })}
-                disabled={giftProductOptions.length === 0 || attachedProductIds.size >= giftProductOptions.length}
+                onClick={() =>
+                  appendGiftRule({
+                    giftId: '',
+                    dealerRule: partnerTypes.includes('Dealer') ? { price: '', points: '', discountPrice: '' } : null,
+                    chemistRule: partnerTypes.includes('Chemist') ? { price: '', points: '', discountPrice: '' } : null,
+                  })
+                }
+                disabled={giftProductOptions.length === 0 || attachedGiftIds.size >= giftProductOptions.length}
                 sx={{ alignSelf: 'flex-start', fontSize: '0.75rem' }}
               >
-                Add Product
+                Add Gift Product
               </Button>
             </Stack>
           )}
@@ -423,10 +563,6 @@ export function SchemeFormPage() {
         <Card sx={{ p: 3, mb: 3 }}>
           <Typography sx={sectionTitleSx}>Additional Information</Typography>
           <Grid container spacing={2.5}>
-            <Grid size={12}>
-              <FieldLabel>Description</FieldLabel>
-              <FormField name="description" control={control} multiline minRows={3} {...fieldLabelProps} />
-            </Grid>
             <Grid size={12}>
               <FieldLabel>Disclaimer</FieldLabel>
               <FormField name="disclaimer" control={control} multiline minRows={2} {...fieldLabelProps} />

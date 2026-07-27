@@ -10,6 +10,7 @@ import {
   schemePartnerTypeOptions,
 } from '@/features/schemeManagement/mockSchemes'
 import { mockGifts } from '@/features/schemeManagement/mockGifts'
+import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 import type { Scheme, SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
 import { mockDelay } from '@/services/mockDelay'
 
@@ -51,6 +52,12 @@ async function getSchemeFormOptions() {
     regionOptions: schemeRegionOptions,
     partnerTypeOptions: schemePartnerTypeOptions,
     giftProductOptions: mockGifts.map((gift) => ({ id: gift.id, name: gift.giftName, image: gift.giftImage })),
+    masterProductOptions: mockProducts.map((product) => ({
+      id: product.id,
+      name: product.productName,
+      code: product.productCode,
+      category: product.productCategory,
+    })),
   })
 }
 

@@ -1,14 +1,16 @@
-import type { Scheme, SchemeCategory, SchemeStatus } from '@/types/scheme'
+import type { Scheme, SchemeType } from '@/types/scheme'
+import type { PartnerZone } from '@/types/partner'
 
 export interface SchemeReportEntry {
   id: string
   scheme: Scheme
   schemeName: string
-  schemeCategory: SchemeCategory
-  applicableTo: string
-  totalParticipants: number
-  rewardPointsIssued: number
+  schemeType: SchemeType
+  regions: PartnerZone[]
+  partnerTypes: string
+  dealerTotal: number
+  chemistTotal: number
+  enrolledPartners: number
   startDate: string
   endDate: string | null
-  status: SchemeStatus
 }

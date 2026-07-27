@@ -1,18 +1,19 @@
 import type { SchemeReportEntry } from '@/types/schemeReport'
-import { mockSchemes, schemeApplicableUserOptions, schemeTypeOptions } from '@/features/schemeManagement/mockSchemes'
+import { mockSchemes, schemeDealerTotal, schemeChemistTotal, schemeRegionOptions, schemePartnerTypeOptions } from '@/features/schemeManagement/mockSchemes'
 
 function buildSchemeReport(scheme: (typeof mockSchemes)[number]): SchemeReportEntry {
   return {
     id: `RPT-SCHEME-${scheme.id}`,
     scheme,
-    schemeName: scheme.schemeName,
-    schemeCategory: scheme.schemeCategory,
-    applicableTo: scheme.applicableUsers.join(', '),
-    totalParticipants: scheme.totalParticipants,
-    rewardPointsIssued: scheme.rewardPointsIssued,
+    schemeName: scheme.name,
+    schemeType: scheme.type,
+    regions: scheme.regions,
+    partnerTypes: scheme.partnerTypes.join(', '),
+    dealerTotal: schemeDealerTotal(scheme),
+    chemistTotal: schemeChemistTotal(scheme),
+    enrolledPartners: scheme.partners.dealer.length + scheme.partners.chemist.length,
     startDate: scheme.startDate,
     endDate: scheme.endDate,
-    status: scheme.status,
   }
 }
 
@@ -24,10 +25,10 @@ export function getSchemeReportById(id: string): SchemeReportEntry | undefined {
 
 export const schemeReportKpis = {
   totalSchemes: mockSchemeReports.length,
-  activeSchemes: mockSchemeReports.filter((r) => r.status === 'active').length,
-  totalParticipants: mockSchemeReports.reduce((sum, r) => sum + r.totalParticipants, 0),
-  rewardPointsIssued: mockSchemeReports.reduce((sum, r) => sum + r.rewardPointsIssued, 0),
+  totalEnrolledPartners: mockSchemeReports.reduce((sum, r) => sum + r.enrolledPartners, 0),
+  totalDealerPoints: mockSchemeReports.reduce((sum, r) => sum + r.dealerTotal, 0),
+  totalChemistPoints: mockSchemeReports.reduce((sum, r) => sum + r.chemistTotal, 0),
 }
 
-export const schemeReportTypeOptions = schemeTypeOptions
-export const schemeReportApplicableUserOptions = schemeApplicableUserOptions
+export const schemeReportRegionOptions = schemeRegionOptions
+export const schemeReportPartnerTypeOptions = schemePartnerTypeOptions

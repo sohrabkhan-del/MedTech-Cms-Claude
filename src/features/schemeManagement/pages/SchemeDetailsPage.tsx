@@ -1,130 +1,134 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Grid, Stack, Tab, Tabs, Typography } from '@mui/material'
 import {
   Target,
+  Sparkle,
   ArrowLeft as ArrowBackOutlined,
   Pencil,
-  CircleCheck,
-  Ban,
-  Clock3,
   Copy,
   Trash2,
   Users,
-  ScanLine,
-  Trophy,
-  Gauge,
+  Gift as GiftIcon,
+  MapPin,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
-import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import {
-  CommonTable,
-  type CommonTableColumn,
-} from '@/components/common/CommonTable/CommonTable'
+import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useSchemeDetail } from '@/features/schemeManagement/hooks/useSchemeDetail'
-import type {
-  Scheme,
-  SchemeAuditEntry,
-  SchemeEligibleProduct,
-  SchemeStatus,
-} from '@/features/schemeManagement/types/schemeManagement.types'
+import { getGiftById } from '@/features/schemeManagement/mockGifts'
+import { schemeDealerTotal, schemeChemistTotal } from '@/features/schemeManagement/mockSchemes'
+import type { Scheme, SchemeProduct, SchemePartnerEntry, SchemePartnerStatus } from '@/features/schemeManagement/types/schemeManagement.types'
 
-const statusConfig: Record<
-  SchemeStatus,
-  { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }
-> = {
-  active: { label: 'Active', color: 'success' },
-  inactive: { label: 'Inactive', color: 'default' },
-  expired: { label: 'Expired', color: 'error' },
-  upcoming: { label: 'Upcoming', color: 'info' },
-  draft: { label: 'Draft', color: 'warning' },
+const partnerStatusConfig: Record<SchemePartnerStatus, { label: string; color: 'success' | 'default' | 'info' }> = {
+  interested: { label: 'Interested', color: 'info' },
+  enrolled: { label: 'Enrolled', color: 'default' },
+  redeemed: { label: 'Redeemed', color: 'success' },
 }
 
-const eligibleProductColumns: CommonTableColumn<SchemeEligibleProduct>[] = [
-  {
-    key: 'productCode',
-    header: 'Product Code',
-    minWidth: 130,
-    render: (row) => row.productCode,
-  },
-  {
-    key: 'productName',
-    header: 'Product Name',
-    minWidth: 190,
-    sortable: true,
-    sortValue: (row) => row.productName,
-    render: (row) => row.productName,
-  },
-  {
-    key: 'productCategory',
-    header: 'Product Category',
-    minWidth: 150,
-    render: (row) => row.productCategory,
-  },
-  {
-    key: 'productBrand',
-    header: 'Product Brand',
-    minWidth: 150,
-    render: (row) => row.productBrand,
-  },
-  {
-    key: 'bonusPoints',
-    header: 'Bonus Points',
-    align: 'center',
-    sortable: true,
-    sortValue: (row) => row.bonusPoints,
-    render: (row) => row.bonusPoints,
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (row) => (
-      <Chip
-        size="small"
-        label={row.status === 'active' ? 'Active' : 'Inactive'}
-        color={row.status === 'active' ? 'success' : 'default'}
-      />
-    ),
-  },
-]
+const LIST_PATH = '/scheme-management/schemes'
 
-const auditColumns: CommonTableColumn<SchemeAuditEntry>[] = [
-  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
-  { key: 'action', header: 'Action', render: (row) => row.action },
-  {
-    key: 'performedBy',
-    header: 'Performed By',
-    render: (row) => row.performedBy,
-  },
-  {
-    key: 'previousValue',
-    header: 'Previous Value',
-    render: (row) => row.previousValue,
-  },
-  { key: 'newValue', header: 'New Value', render: (row) => row.newValue },
-  { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
-]
+function productColumns(scheme: Scheme, navigate: ReturnType<typeof useNavigate>): CommonTableColumn<SchemeProduct>[] {
+  const columns: CommonTableColumn<SchemeProduct>[] = [
+    {
+      key: 'productName',
+      header: 'Product',
+      minWidth: 200,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => navigate(`/scheme-management/gift-catalogue/${row.productId}`)}
+        >
+          {getGiftById(row.productId)?.giftName ?? row.productId}
+        </Typography>
+      ),
+    },
+  ]
+  if (scheme.partnerTypes.includes('Dealer')) {
+    columns.push({
+      key: 'dealerPoints',
+      header: 'Dealer Pts',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.dealerPoints,
+      render: (row) => row.dealerPoints.toLocaleString('en-IN'),
+    })
+  }
+  if (scheme.partnerTypes.includes('Chemist')) {
+    columns.push({
+      key: 'chemistPoints',
+      header: 'Chemist Pts',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.chemistPoints,
+      render: (row) => row.chemistPoints.toLocaleString('en-IN'),
+    })
+  }
+  return columns
+}
 
-function listPathFor(scheme: Scheme): string {
-  return scheme.schemeCategory === 'general'
-    ? '/scheme-management/schemes/general'
-    : '/scheme-management/schemes/sessional'
+function partnerColumns(
+  partnerType: 'Dealer' | 'Chemist',
+  navigate: ReturnType<typeof useNavigate>,
+): CommonTableColumn<SchemePartnerEntry>[] {
+  const basePath = partnerType === 'Dealer' ? '/partners/dealers' : '/partners/chemists'
+  return [
+    {
+      key: 'name',
+      header: 'Name',
+      minWidth: 180,
+      sortable: true,
+      sortValue: (row) => row.name,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => navigate(`${basePath}/${row.id}`)}
+        >
+          {row.name}
+        </Typography>
+      ),
+    },
+    { key: 'region', header: 'Region', minWidth: 120, render: (row) => row.region },
+    {
+      key: 'points',
+      header: 'Current Points',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.points,
+      render: (row) => row.points.toLocaleString('en-IN'),
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      render: (row) => <Chip size="small" label={partnerStatusConfig[row.status].label} color={partnerStatusConfig[row.status].color} />,
+    },
+  ]
 }
 
 export function SchemeDetailsPage() {
   const navigate = useNavigate()
   const { schemeId } = useParams<{ schemeId: string }>()
-  const { scheme, setStatus, remove, isLoading } = useSchemeDetail(schemeId)
+  const { scheme, remove, isLoading } = useSchemeDetail(schemeId)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [partnerTab, setPartnerTab] = useState<'Dealer' | 'Chemist'>('Dealer')
 
   if (isLoading) {
-    return <DetailsPageSkeleton sections={6} />
+    return <DetailsPageSkeleton sections={5} />
   }
 
   if (!scheme) {
@@ -133,31 +137,26 @@ export function SchemeDetailsPage() {
         title="Scheme not found"
         description="This scheme may have been removed."
         actionLabel="Back to Schemes"
-        onAction={() => navigate('/scheme-management/schemes/general')}
+        onAction={() => navigate(LIST_PATH)}
       />
     )
   }
 
-  const listPath = listPathFor(scheme)
+  const dealerTotal = schemeDealerTotal(scheme)
+  const chemistTotal = schemeChemistTotal(scheme)
 
   const confirmDelete = () => {
     remove()
     setDeleteOpen(false)
-    navigate(listPath)
+    navigate(LIST_PATH)
   }
+
+  const activePartnerTab = scheme.partnerTypes.includes(partnerTab) ? partnerTab : scheme.partnerTypes[0]
+  const partnerRows = activePartnerTab === 'Dealer' ? scheme.partners.dealer : scheme.partners.chemist
 
   return (
     <>
-      <Stack
-        direction="row"
-        sx={{
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 2,
-          mb: 3,
-        }}
-      >
+      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -171,374 +170,131 @@ export function SchemeDetailsPage() {
               color: 'primary.main',
             }}
           >
-            <Target size={18} />
+            {scheme.type === 'general' ? <Target size={18} /> : <Sparkle size={18} />}
           </Box>
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Typography variant="h1">{scheme.schemeName}</Typography>
-              <Chip
-                size="small"
-                label={statusConfig[scheme.status].label}
-                color={statusConfig[scheme.status].color}
-              />
+              <Typography variant="h1">{scheme.name}</Typography>
+              <Chip size="small" label={scheme.type === 'general' ? 'General' : 'Seasonal'} color={scheme.type === 'general' ? 'default' : 'info'} />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {scheme.id} ·{' '}
-              {scheme.schemeCategory === 'general'
-                ? 'General Scheme'
-                : 'Seasonal Scheme'}
+              {scheme.id}
             </Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
-          <Button
-            variant="outlined"
-            startIcon={<Pencil size={20} />}
-            onClick={() => navigate(`${listPath}/${scheme.id}/edit`)}
-            sx={{ fontSize: '0.75rem' }}
-          >
+          <Button variant="outlined" startIcon={<Pencil size={20} />} onClick={() => navigate(`${LIST_PATH}/${scheme.id}/edit`)} sx={{ fontSize: '0.75rem' }}>
             Edit Scheme
           </Button>
-          {scheme.status !== 'active' ? (
-            <Button
-              variant="outlined"
-              color="success"
-              startIcon={<CircleCheck size={20} />}
-              onClick={() => setStatus('active')}
-              sx={{ fontSize: '0.75rem' }}
-            >
-              Activate
-            </Button>
-          ) : (
-            <Button
-              variant="outlined"
-              color="warning"
-              startIcon={<Ban size={20} />}
-              onClick={() => setStatus('inactive')}
-              sx={{ fontSize: '0.75rem' }}
-            >
-              Deactivate
-            </Button>
-          )}
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Clock3 size={20} />}
-            disabled={scheme.status === 'expired'}
-            onClick={() => setStatus('expired')}
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Expire
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<Copy size={20} />}
-            onClick={() => navigate(`${listPath}/new?cloneFrom=${scheme.id}`)}
-            sx={{ fontSize: '0.75rem' }}
-          >
+          <Button variant="outlined" startIcon={<Copy size={20} />} onClick={() => navigate(`${LIST_PATH}/new?cloneFrom=${scheme.id}`)} sx={{ fontSize: '0.75rem' }}>
             Clone
           </Button>
-          <Button
-            variant="outlined"
-            color="error"
-            startIcon={<Trash2 size={20} />}
-            onClick={() => setDeleteOpen(true)}
-            sx={{ fontSize: '0.75rem' }}
-          >
+          <Button variant="outlined" color="error" startIcon={<Trash2 size={20} />} onClick={() => setDeleteOpen(true)} sx={{ fontSize: '0.75rem' }}>
             Delete
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackOutlined size={20} />}
-            onClick={() => navigate(listPath)}
-            sx={{ fontSize: '0.75rem' }}
-          >
+          <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={() => navigate(LIST_PATH)} sx={{ fontSize: '0.75rem' }}>
             Back
           </Button>
         </Stack>
       </Stack>
 
+      {scheme.banner && (
+        <Box
+          component="img"
+          src={scheme.banner}
+          alt={`${scheme.name} banner`}
+          sx={{ width: '100%', height: { xs: 140, sm: 200 }, objectFit: 'cover', borderRadius: '14px', mb: 3 }}
+        />
+      )}
+
       <Stack spacing={3}>
-        <SectionCard title="Summary">
+        <SectionCard title="Scheme Summary">
           <DetailFieldGrid
             fields={[
               { label: 'Scheme ID', value: scheme.id },
-              { label: 'Scheme Name', value: scheme.schemeName },
-              {
-                label: 'Scheme Category',
-                value:
-                  scheme.schemeCategory === 'general' ? 'General' : 'Seasonal',
-              },
-              { label: 'Scheme Type', value: scheme.schemeType },
-              {
-                label: 'Applicable Users',
-                value: scheme.applicableUsers.join(', '),
-              },
-              { label: 'Bonus Value', value: scheme.bonusValue },
+              { label: 'Type', value: scheme.type === 'general' ? 'General' : 'Seasonal' },
               { label: 'Start Date', value: scheme.startDate },
-              { label: 'End Date', value: scheme.endDate ?? 'Ongoing' },
-              {
-                label: 'Status',
-                value: (
-                  <Chip
-                    size="small"
-                    label={statusConfig[scheme.status].label}
-                    color={statusConfig[scheme.status].color}
-                  />
-                ),
-              },
+              { label: 'End Date', value: scheme.endDate ?? 'No end date' },
+              { label: 'Regions', value: scheme.regions.join(', ') },
+              { label: 'Partner Types', value: scheme.partnerTypes.join(', ') },
+              ...(scheme.partnerTypes.includes('Dealer') ? [{ label: 'Dealer Points to Claim', value: dealerTotal.toLocaleString('en-IN') }] : []),
+              ...(scheme.partnerTypes.includes('Chemist') ? [{ label: 'Chemist Points to Claim', value: chemistTotal.toLocaleString('en-IN') }] : []),
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Attached Products" value={scheme.products.length} icon={<GiftIcon size={20} />} iconColor="primary" />}
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            {isLoading ? <StatCardSkeleton /> : <StatCard label="Regions Covered" value={scheme.regions.length} icon={<MapPin size={20} />} iconColor="secondary" />}
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? (
               <StatCardSkeleton />
             ) : (
               <StatCard
-                label="Total Participants"
-                value={scheme.totalParticipants.toLocaleString('en-IN')}
+                label="Enrolled Dealers"
+                value={scheme.partners.dealer.filter((p) => p.status !== 'interested').length}
                 icon={<Users size={20} />}
-                iconColor="primary"
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Total Product Scans"
-                value={scheme.totalProductScans.toLocaleString('en-IN')}
-                icon={<ScanLine size={20} />}
-                iconColor="secondary"
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Reward Points Issued"
-                value={scheme.rewardPointsIssued.toLocaleString('en-IN')}
-                icon={<Trophy size={20} />}
-                iconColor="warning"
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Completion Rate"
-                value={`${scheme.completionRate}%`}
-                icon={<Gauge size={20} />}
                 iconColor="success"
+              />
+            )}
+          </Grid>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Enrolled Chemists"
+                value={scheme.partners.chemist.filter((p) => p.status !== 'interested').length}
+                icon={<Users size={20} />}
+                iconColor="warning"
               />
             )}
           </Grid>
         </Grid>
 
-        <SectionCard title="Scheme Configuration">
-          <DetailFieldGrid
-            fields={[
-              {
-                label: 'Scheme Category',
-                value:
-                  scheme.schemeCategory === 'general' ? 'General' : 'Seasonal',
-              },
-              { label: 'Scheme Type', value: scheme.schemeType },
-              {
-                label: 'Applicable To',
-                value: scheme.applicableUsers.join(', '),
-              },
-              {
-                label: 'Product List',
-                value: `${scheme.eligibleProducts.length} products`,
-              },
-              { label: 'Scan Target', value: scheme.scanTarget },
-              { label: 'Bonus Value', value: scheme.bonusValue },
-              { label: 'Description', value: scheme.description },
-              { label: 'Start Date', value: scheme.startDate },
-              { label: 'End Date', value: scheme.endDate ?? 'Ongoing' },
-              {
-                label: 'Status',
-                value: (
-                  <Chip
-                    size="small"
-                    label={statusConfig[scheme.status].label}
-                    color={statusConfig[scheme.status].color}
-                  />
-                ),
-              },
-            ]}
-          />
-        </SectionCard>
-
-        <SectionCard title="Reward Configuration">
-          <DetailFieldGrid
-            fields={[
-              { label: 'Reward Type', value: scheme.rewardType },
-              { label: 'Bonus Points', value: scheme.bonusPoints },
-              { label: 'Multiplier', value: `${scheme.multiplier}x` },
-              { label: 'Target Quantity', value: scheme.targetQuantity },
-              {
-                label: 'Maximum Reward',
-                value: scheme.maximumReward.toLocaleString('en-IN'),
-              },
-              { label: 'Reward Frequency', value: scheme.rewardFrequency },
-              { label: 'Stackable', value: scheme.stackable ? 'Yes' : 'No' },
-            ]}
-          />
-        </SectionCard>
-
-        <SectionCard title="Eligible Products">
+        <SectionCard title="Attached Gift Products">
           <CommonTable
-            tableKey="scheme-eligible-products"
-            columns={eligibleProductColumns}
-            rows={scheme.eligibleProducts}
-            getRowId={(row) => row.id}
+            tableKey="scheme-products"
+            columns={productColumns(scheme, navigate)}
+            rows={scheme.products}
+            getRowId={(row) => row.productId}
             loading={isLoading}
-            searchPlaceholder="Search eligible products…"
-            searchKeys={(row) =>
-              `${row.productCode} ${row.productName} ${row.productBrand}`
-            }
-            emptyTitle="No eligible products yet"
+            searchPlaceholder="Search products…"
+            searchKeys={(row) => getGiftById(row.productId)?.giftName ?? row.productId}
+            emptyTitle="No products attached yet"
           />
         </SectionCard>
 
-        <SectionCard title="Eligible Users">
-          <Grid container spacing={2}>
-            {(['Dealer', 'Chemist'] as const).map((userType) => (
-              <Grid key={userType} size={{ xs: 12, sm: 6 }}>
-                <Stack
-                  direction="row"
-                  spacing={1.5}
-                  sx={{
-                    alignItems: 'center',
-                    p: 2,
-                    borderRadius: '10px',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  {scheme.applicableUsers.includes(userType) ? (
-                    <CircleCheck
-                      size={20}
-                      color="var(--mui-palette-success-main, #1E9E5A)"
-                    />
-                  ) : (
-                    <Ban
-                      size={20}
-                      color="var(--mui-palette-text-disabled, #9CA3AF)"
-                    />
-                  )}
-                  <Box>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-                      {userType}
-                    </Typography>
-                    <Typography
-                      variant="caption"
-                      sx={{ color: 'text.secondary' }}
-                    >
-                      {scheme.applicableUsers.includes(userType)
-                        ? 'Eligible'
-                        : 'Not Eligible'}
-                    </Typography>
-                  </Box>
-                </Stack>
-              </Grid>
-            ))}
-          </Grid>
-        </SectionCard>
+        {scheme.description && (
+          <SectionCard title="Description">
+            <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>{scheme.description}</Typography>
+          </SectionCard>
+        )}
 
-        <SectionCard title="Performance Summary">
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Total Participants"
-                  value={scheme.totalParticipants.toLocaleString('en-IN')}
-                  icon={<Users size={20} />}
-                  iconColor="primary"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Total Product Scans"
-                  value={scheme.totalProductScans.toLocaleString('en-IN')}
-                  icon={<ScanLine size={20} />}
-                  iconColor="secondary"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Reward Points Issued"
-                  value={scheme.rewardPointsIssued.toLocaleString('en-IN')}
-                  icon={<Trophy size={20} />}
-                  iconColor="warning"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Completion Rate"
-                  value={`${scheme.completionRate}%`}
-                  icon={<Gauge size={20} />}
-                  iconColor="success"
-                />
-              )}
-            </Grid>
-          </Grid>
-        </SectionCard>
+        {scheme.disclaimer && (
+          <SectionCard title="Disclaimer">
+            <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>{scheme.disclaimer}</Typography>
+          </SectionCard>
+        )}
 
-        <SectionCard title="Scheme Timeline">
-          <ActivityTimeline
-            entries={scheme.timeline}
-            emptyTitle="No timeline activity yet"
-          />
-        </SectionCard>
-
-        <SectionCard title="Audit History">
+        <SectionCard title="Interested Partners">
+          <Tabs value={activePartnerTab} onChange={(_, value) => setPartnerTab(value)} sx={{ mb: 2, minHeight: 36 }}>
+            {scheme.partnerTypes.includes('Dealer') && <Tab value="Dealer" label={`Dealer (${scheme.partners.dealer.length})`} sx={{ minHeight: 36, fontSize: '0.8125rem' }} />}
+            {scheme.partnerTypes.includes('Chemist') && <Tab value="Chemist" label={`Chemist (${scheme.partners.chemist.length})`} sx={{ minHeight: 36, fontSize: '0.8125rem' }} />}
+          </Tabs>
           <CommonTable
-            tableKey="scheme-audit-history"
-            columns={auditColumns}
-            rows={scheme.auditHistory}
+            tableKey={`scheme-partners-${activePartnerTab}`}
+            columns={partnerColumns(activePartnerTab, navigate)}
+            rows={partnerRows}
             getRowId={(row) => row.id}
-            loading={isLoading}
-            searchPlaceholder="Search audit history…"
-            searchKeys={(row) => `${row.action} ${row.performedBy}`}
-            defaultSortBy="date"
-            emptyTitle="No audit records yet"
+            searchPlaceholder="Search partners…"
+            searchKeys={(row) => `${row.name} ${row.region}`}
+            emptyTitle="No partners yet"
           />
-        </SectionCard>
-
-        <SectionCard title="Internal Notes">
-          <Typography
-            sx={{
-              fontSize: '0.8125rem',
-              color: 'text.secondary',
-              lineHeight: 1.6,
-            }}
-          >
-            {scheme.internalNotes}
-          </Typography>
         </SectionCard>
       </Stack>
 
@@ -546,13 +302,13 @@ export function SchemeDetailsPage() {
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
         title="Delete Scheme"
-        description={`Are you sure you want to permanently delete "${scheme.schemeName}"? This action cannot be undone.`}
+        description={`Are you sure you want to permanently delete "${scheme.name}"? This action cannot be undone.`}
         primaryActionLabel="Delete"
         primaryActionColor="error"
         onPrimaryAction={confirmDelete}
       >
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-          {scheme.id} · {scheme.schemeName}
+          {scheme.id} · {scheme.name}
         </Typography>
       </Modal>
     </>

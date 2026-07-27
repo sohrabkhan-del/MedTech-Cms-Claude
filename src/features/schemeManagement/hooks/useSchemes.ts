@@ -1,20 +1,20 @@
 import { useEffect, useReducer } from 'react'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
 import type { Scheme } from '@/features/schemeManagement/types/schemeManagement.types'
-import type { generalSchemeKpis } from '@/features/schemeManagement/mockSchemes'
+import type { allSchemeKpis } from '@/features/schemeManagement/mockSchemes'
 
-type GeneralSchemeKpis = typeof generalSchemeKpis
+type AllSchemeKpis = typeof allSchemeKpis
 
 interface State {
   schemes: Scheme[]
-  kpis: GeneralSchemeKpis | null
+  kpis: AllSchemeKpis | null
   isLoading: boolean
   error: string | null
 }
 
 type Action =
   | { type: 'loading' }
-  | { type: 'succeeded'; schemes: Scheme[]; kpis: GeneralSchemeKpis }
+  | { type: 'succeeded'; schemes: Scheme[]; kpis: AllSchemeKpis }
   | { type: 'failed'; error: string }
 
 const initialState: State = { schemes: [], kpis: null, isLoading: false, error: null }
@@ -30,19 +30,19 @@ function reducer(state: State, action: Action): State {
   }
 }
 
-export function useGeneralSchemes() {
+export function useSchemes() {
   const [state, dispatch] = useReducer(reducer, initialState)
 
   useEffect(() => {
     let cancelled = false
     dispatch({ type: 'loading' })
 
-    Promise.all([schemesService.getGeneralSchemes(), schemesService.getGeneralSchemeKpis()])
+    Promise.all([schemesService.getAllSchemes(), schemesService.getAllSchemeKpis()])
       .then(([schemes, kpis]) => {
         if (!cancelled) dispatch({ type: 'succeeded', schemes, kpis })
       })
       .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load general schemes.' })
+        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load schemes.' })
       })
 
     return () => {

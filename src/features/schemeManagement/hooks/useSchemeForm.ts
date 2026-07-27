@@ -1,15 +1,14 @@
 import { useEffect, useReducer, useState } from 'react'
 import { useToast } from '@/contexts/ToastContext'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
-import type { Scheme, SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
+import type { SchemeGiftProductOption } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
+import type { PartnerZone } from '@/types/partner'
+import type { Scheme, SchemeFormValues, SchemePartnerType } from '@/features/schemeManagement/types/schemeManagement.types'
 
 interface FormOptions {
-  schemeTypeOptions: string[]
-  schemeApplicableUserOptions: string[]
-  rewardTypeOptions: string[]
-  rewardFrequencyOptions: string[]
-  festivalOptions: string[]
-  productCategoryOptions: string[]
+  regionOptions: PartnerZone[]
+  partnerTypeOptions: SchemePartnerType[]
+  giftProductOptions: SchemeGiftProductOption[]
 }
 
 interface LoadState {
@@ -70,6 +69,14 @@ export function useSchemeForm(schemeId: string | undefined, cloneFromId: string 
     setIsSubmitting(true)
     setSubmitError(null)
     try {
+      const nameAvailable = await schemesService.checkNameAvailable(values.name, schemeId)
+      if (!nameAvailable) {
+        const message = 'A scheme with this name already exists.'
+        setSubmitError(message)
+        toast.error(message)
+        return false
+      }
+
       if (isEdit && schemeId) {
         await schemesService.updateScheme(schemeId, values)
       } else {

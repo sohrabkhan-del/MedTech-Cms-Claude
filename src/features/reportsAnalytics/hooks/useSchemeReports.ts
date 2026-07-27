@@ -2,12 +2,14 @@ import { useEffect, useReducer } from 'react'
 import { schemeReportsService } from '@/features/reportsAnalytics/services/schemeReportsService'
 import type { SchemeReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 import type { schemeReportKpis } from '@/features/reportsAnalytics/mockSchemeReports'
+import type { PartnerZone } from '@/types/partner'
+import type { SchemePartnerType } from '@/features/schemeManagement/types/schemeManagement.types'
 
 type SchemeReportKpis = typeof schemeReportKpis
 
 interface FilterOptions {
-  typeOptions: string[]
-  applicableUserOptions: string[]
+  regionOptions: PartnerZone[]
+  partnerTypeOptions: SchemePartnerType[]
 }
 
 interface State {

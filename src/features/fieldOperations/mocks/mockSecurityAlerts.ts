@@ -67,6 +67,7 @@ function buildAlert(seed: number): SecurityAlert {
     alertDateTime: alertDateTime(seed),
     sourceIp: `103.${seed % 255}.${(seed * 3) % 255}.${(seed * 7) % 255}`,
     userStatus: user.partner.status === 'inactive' ? 'inactive' : 'active',
+    region: user.partner.zone,
   }
 }
 

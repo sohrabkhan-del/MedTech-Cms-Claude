@@ -54,8 +54,7 @@ import { ProductCatalogDetailsPage } from '@/features/marketingProducts/pages/Pr
 import { ProductCatalogFormPage } from '@/features/marketingProducts/pages/ProductCatalogFormPage'
 import { InterestedUsersPage } from '@/features/marketingProducts/pages/InterestedUsersPage'
 import { InterestedUserDetailsPage } from '@/features/marketingProducts/pages/InterestedUserDetailsPage'
-import { GeneralSchemesListPage } from '@/features/schemeManagement/pages/GeneralSchemesListPage'
-import { SeasonalSchemesListPage } from '@/features/schemeManagement/pages/SeasonalSchemesListPage'
+import { SchemesListPage } from '@/features/schemeManagement/pages/SchemesListPage'
 import { SchemeDetailsPage } from '@/features/schemeManagement/pages/SchemeDetailsPage'
 import { SchemeFormPage } from '@/features/schemeManagement/pages/SchemeFormPage'
 import { GiftCatalogueListPage } from '@/features/schemeManagement/pages/GiftCatalogueListPage'
@@ -148,8 +147,7 @@ const CUSTOM_PATHS = new Set([
   '/distributor-upload',
   '/marketing-products/products-catelog',
   '/marketing-products/interested-users',
-  '/scheme-management/schemes/general',
-  '/scheme-management/schemes/sessional',
+  '/scheme-management/schemes',
   '/scheme-management/gift-catalogue',
   '/rewards-wallet/wallet-management',
   '/rewards-wallet/reward-redemptions',
@@ -230,12 +228,8 @@ registerDetailRoute({
   resolveEntityName: (id) => getInterestedUserById(id)?.userName,
 })
 registerDetailRoute({
-  parentPath: '/scheme-management/schemes/general',
-  resolveEntityName: (id) => getSchemeById(id)?.schemeName,
-})
-registerDetailRoute({
-  parentPath: '/scheme-management/schemes/sessional',
-  resolveEntityName: (id) => getSchemeById(id)?.schemeName,
+  parentPath: '/scheme-management/schemes',
+  resolveEntityName: (id) => getSchemeById(id)?.name,
 })
 registerDetailRoute({
   parentPath: '/scheme-management/gift-catalogue',
@@ -496,23 +490,19 @@ export function AppRouter() {
             element={<InterestedUserDetailsPage />}
           />
           <Route
-            path="/scheme-management/schemes/general"
-            element={<GeneralSchemesListPage />}
+            path="/scheme-management/schemes"
+            element={<SchemesListPage />}
           />
           <Route
-            path="/scheme-management/schemes/sessional"
-            element={<SeasonalSchemesListPage />}
-          />
-          <Route
-            path="/scheme-management/schemes/:category/new"
+            path="/scheme-management/schemes/new"
             element={<SchemeFormPage />}
           />
           <Route
-            path="/scheme-management/schemes/:category/:schemeId"
+            path="/scheme-management/schemes/:schemeId"
             element={<SchemeDetailsPage />}
           />
           <Route
-            path="/scheme-management/schemes/:category/:schemeId/edit"
+            path="/scheme-management/schemes/:schemeId/edit"
             element={<SchemeFormPage />}
           />
           <Route

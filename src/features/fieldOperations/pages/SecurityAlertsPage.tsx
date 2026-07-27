@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
+  Chip,
   Grid,
   MenuItem,
   Stack,
@@ -19,12 +20,14 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { SeverityChip } from '@/features/fieldOperations/components/SeverityChip'
 import { SEVERITY_CONFIG } from '@/features/fieldOperations/severityConfig'
 import { useSecurityAlerts } from '@/features/fieldOperations/hooks/useSecurityAlerts'
 import type { AlertSeverity, SecurityAlert } from '@/features/fieldOperations/types/fieldOperations.types'
 import type { ScanUserRole } from '@/types/scanFeed'
+import type { PartnerZone } from '@/types/partner'
 
 interface AlertFilters extends Record<string, unknown> {
   severity: AlertSeverity | 'all'
@@ -34,6 +37,7 @@ interface AlertFilters extends Record<string, unknown> {
 
 export function SecurityAlertsPage() {
   const navigate = useNavigate()
+  const { region } = useRegionFilter()
   const { alerts, kpis, isLoading } = useSecurityAlerts()
   useRegionTopbarHeader({
     icon: <GppMaybeIcon size={20} />,
@@ -48,13 +52,16 @@ export function SecurityAlertsPage() {
     userStatus: 'all',
   })
 
+  const regionZone = region === 'All India' ? null : (region as PartnerZone)
+
   const securityAlertKpis = kpis ?? { totalAlerts: 0, highSeverity: 0, mediumSeverity: 0, lowSeverity: 0 }
 
   const filteredAlerts = alerts.filter((alert) => {
+    const regionMatch = !regionZone || alert.region === regionZone
     const severityMatch = appliedFilters.severity === 'all' || alert.severity === appliedFilters.severity
     const userTypeMatch = appliedFilters.userType === 'all' || alert.userType === appliedFilters.userType
     const statusMatch = appliedFilters.userStatus === 'all' || alert.userStatus === appliedFilters.userStatus
-    return severityMatch && userTypeMatch && statusMatch
+    return regionMatch && severityMatch && userTypeMatch && statusMatch
   })
 
   const openUser = (userId: string) => {
@@ -102,6 +109,12 @@ export function SecurityAlertsPage() {
       ),
     },
     { key: 'affectedUserType', header: 'Affected User Type', render: (row) => row.affectedUserType },
+    {
+      key: 'region',
+      header: 'Region',
+      sortable: true,
+      render: (row) => <Chip size="small" label={row.region} variant="outlined" />,
+    },
     {
       key: 'severity',
       header: 'Severity',

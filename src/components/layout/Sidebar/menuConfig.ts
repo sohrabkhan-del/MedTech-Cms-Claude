@@ -82,6 +82,7 @@ export const menuConfig: MenuGroup[] = [
         label: 'Security Alerts',
         path: '/field-operations/security-alerts',
         icon: ShieldAlert,
+        showRegionTopbar: true,
       },
       {
         label: 'Geo Fence Management',
@@ -182,17 +183,9 @@ export const menuConfig: MenuGroup[] = [
     items: [
       {
         label: 'Schemes',
+        path: '/scheme-management/schemes',
         icon: Target,
-        children: [
-          {
-            label: 'General Schemes',
-            path: '/scheme-management/schemes/general',
-          },
-          {
-            label: 'Sessional Schemes',
-            path: '/scheme-management/schemes/sessional',
-          },
-        ],
+        showRegionTopbar: true,
       },
       {
         label: 'Gift Catalogue',
@@ -309,16 +302,16 @@ export const menuConfig: MenuGroup[] = [
     ],
   },
 
-  {
-    groupLabel: 'Audit',
-    icon: ClipboardList,
-    items: [
-      { label: 'Audit Logs', path: '/audit/audit-logs', icon: ClipboardList },
-      {
-        label: 'Master Scan Table Logs',
-        path: '/audit/master-scan-table-logs',
-        icon: ListTree,
-      },
-    ],
-  },
+  // {
+  //   groupLabel: 'Audit',
+  //   icon: ClipboardList,
+  //   items: [
+  //     { label: 'Audit Logs', path: '/audit/audit-logs', icon: ClipboardList },
+  //     {
+  //       label: 'Master Scan Table Logs',
+  //       path: '/audit/master-scan-table-logs',
+  //       icon: ListTree,
+  //     },
+  //   ],
+  // },
 ]

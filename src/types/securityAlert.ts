@@ -34,6 +34,7 @@ export interface SecurityAlert {
   alertDateTime: string
   sourceIp: string
   userStatus: 'active' | 'inactive'
+  region: PartnerZone
 }
 
 export interface SecurityTimelineEntry {

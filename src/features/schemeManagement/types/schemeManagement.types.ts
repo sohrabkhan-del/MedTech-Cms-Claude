@@ -1,15 +1,18 @@
 export type {
   Scheme,
-  SchemeCategory,
-  SchemeStatus,
   SchemeType,
-  ApplicableUserType,
-  RewardType,
-  RewardFrequency,
-  SchemeEligibleProduct,
-  SchemeAuditEntry,
+  SchemePartnerType,
+  SchemePartnerStatus,
+  SchemeProduct,
+  SchemePartnerEntry,
+  SchemePartners,
 } from '@/types/scheme'
-export { schemeFormSchema, schemeFormDefaults, type SchemeFormValues } from '@/features/schemeManagement/schemeFormSchema'
+export {
+  schemeFormSchema,
+  schemeFormDefaults,
+  type SchemeFormValues,
+  type SchemeProductFormValues,
+} from '@/features/schemeManagement/schemeFormSchema'
 export type {
   Gift,
   GiftStatus,

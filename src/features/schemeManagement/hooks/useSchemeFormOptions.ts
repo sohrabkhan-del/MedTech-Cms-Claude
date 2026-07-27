@@ -1,23 +1,21 @@
 import { useEffect, useState } from 'react'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
+import type { PartnerZone } from '@/types/partner'
+import type { SchemePartnerType } from '@/features/schemeManagement/types/schemeManagement.types'
+
+export interface SchemeGiftProductOption {
+  id: string
+  name: string
+  image: string
+}
 
 interface FormOptions {
-  schemeTypeOptions: string[]
-  schemeApplicableUserOptions: string[]
-  rewardTypeOptions: string[]
-  rewardFrequencyOptions: string[]
-  festivalOptions: string[]
-  productCategoryOptions: string[]
+  regionOptions: PartnerZone[]
+  partnerTypeOptions: SchemePartnerType[]
+  giftProductOptions: SchemeGiftProductOption[]
 }
 
-const emptyOptions: FormOptions = {
-  schemeTypeOptions: [],
-  schemeApplicableUserOptions: [],
-  rewardTypeOptions: [],
-  rewardFrequencyOptions: [],
-  festivalOptions: [],
-  productCategoryOptions: [],
-}
+const emptyOptions: FormOptions = { regionOptions: [], partnerTypeOptions: [], giftProductOptions: [] }
 
 /** Shared static option lists for scheme filters/forms (not just the form page). */
 export function useSchemeFormOptions() {

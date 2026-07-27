@@ -1,5 +1,6 @@
 import { mockRedemptionRequests, getRedemptionRequestById, redemptionKpis } from '@/features/rewardsWallet/mockRedemptions'
 import { giftCategoryOptions } from '@/features/schemeManagement/mockGifts'
+import { getSchemeById } from '@/features/schemeManagement/mockSchemes'
 import type {
   RedemptionRequest,
   RedemptionStatus,
@@ -10,6 +11,32 @@ import { mockDelay } from '@/services/mockDelay'
 // TODO: replace mock-backed implementations with apiClient calls once the
 // redemptions API is available. setStatus/setDeliveryStatus are currently
 // no-ops resolving immediately so the UI/hook contract is stable ahead of time.
+
+/**
+ * TODO: wire into the real points ledger once it exists.
+ *
+ * Rule: a Seasonal scheme is a walled-off points bucket. Points a partner earns
+ * after enrolling in a seasonal scheme can only be redeemed against gift products
+ * attached to THAT SAME seasonal scheme — they never fall back to (or combine with)
+ * the partner's general points pool. A General scheme has no such restriction: its
+ * points behave like the partner's normal, unrestricted balance.
+ *
+ * When the ledger is implemented, every redemption must resolve which bucket it is
+ * drawing from — `schemeId: null` (general pool) or a specific seasonal `schemeId` —
+ * and this function is where that source-scheme check belongs:
+ *   1. If `sourceSchemeId` is a seasonal scheme, the target product must be one of
+ *      that scheme's attached products (`Scheme.products[].productId`), and the
+ *      points spent must come only from that scheme's earned balance.
+ *   2. If `sourceSchemeId` is null/general (or a general scheme), normal unrestricted
+ *      redemption applies.
+ */
+function canRedeemFromScheme(sourceSchemeId: string | null, productId: string): boolean {
+  if (!sourceSchemeId) return true
+  const scheme = getSchemeById(sourceSchemeId)
+  if (!scheme) return true
+  if (scheme.type !== 'seasonal') return true
+  return scheme.products.some((p) => p.productId === productId)
+}
 
 async function getRedemptions(): Promise<RedemptionRequest[]> {
   return mockDelay(mockRedemptionRequests)
@@ -44,4 +71,5 @@ export const redemptionsService = {
   getRedemptionFormOptions,
   setRedemptionStatus,
   setDeliveryStatus,
+  canRedeemFromScheme,
 }

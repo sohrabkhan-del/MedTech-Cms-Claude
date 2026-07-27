@@ -1,23 +1,20 @@
 import type {
-  ApplicableUserType,
-  RewardFrequency,
-  RewardType,
   Scheme,
-  SchemeAuditEntry,
-  SchemeCategory,
-  SchemeEligibleProduct,
-  SchemeStatus,
-  SchemeTimelineEntry,
+  SchemePartnerEntry,
+  SchemePartnerStatus,
+  SchemePartnerType,
+  SchemeProduct,
   SchemeType,
 } from '@/types/scheme'
-import { mockProducts, productCategoryOptions } from '@/features/inventoryManagement/mockProducts'
-import { mrs } from '@/features/userManagement/mockPartnerData'
+import type { PartnerZone } from '@/types/partner'
+import { mockGifts } from '@/features/schemeManagement/mockGifts'
+import { mockDealers } from '@/features/userManagement/mockDealers'
+import { mockChemists } from '@/features/userManagement/mockChemists'
 
-const schemeTypes: SchemeType[] = ['Scan Target', 'Volume Bonus', 'Loyalty Multiplier', 'Flat Bonus']
-const rewardTypes: RewardType[] = ['Fixed Points', 'Percentage Bonus', 'Multiplier', 'Tiered']
-const rewardFrequencies: RewardFrequency[] = ['One-time', 'Per Scan', 'Weekly', 'Monthly']
-const generalSchemeNames = ['Quarterly Scan Booster', 'Loyalty Growth Program', 'Volume Achiever Plan', 'Steady Rewards Circle', 'Annual Performance Bonus']
-const festivals = ['Diwali Double Rewards', 'New Year Bonus Campaign', 'Holi Festival Rewards', 'Eid Promotion', 'Christmas Campaign']
+const REGIONS: PartnerZone[] = ['East', 'West', 'North', 'South']
+
+const generalSchemeNames = ['Loyalty Growth Program', 'Volume Achiever Plan', 'Steady Rewards Circle', 'Annual Performance Bonus', 'Partner Growth Circle']
+const seasonalSchemeNames = ['Diwali Double Rewards', 'New Year Bonus Campaign', 'Holi Festival Rewards', 'Eid Promotion', 'Christmas Campaign']
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -25,161 +22,143 @@ function seededNumber(seed: number, min: number, max: number): number {
   return Math.floor(min + frac * (max - min))
 }
 
-function pad(n: number): string {
-  return n < 10 ? `0${n}` : `${n}`
+/** 8-digit numeric string, deterministic per seed — mirrors the seededNumber mock-data convention (no Math.random). */
+function schemeIdFromSeed(seed: number): string {
+  return String(10000000 + seededNumber(seed, 0, 89999999)).padStart(8, '0')
 }
 
-function dateFromSeed(seed: number, month = 'Jul', year = 2026): string {
-  const day = (seed % 27) + 1
-  return `${pad(day)} ${month} ${year}`
+/** Offsets a date from today by a seeded number of days in [min, max), so schemes span past/current/future relative to "now". */
+function dateOffsetFromToday(seed: number, minDays: number, maxDays: number): string {
+  const offset = seededNumber(seed, minDays, maxDays)
+  const date = new Date()
+  date.setDate(date.getDate() + offset)
+  return date.toISOString().slice(0, 10)
 }
 
-function resolveApplicableUsers(seed: number): ApplicableUserType[] {
-  const options: ApplicableUserType[][] = [
-    ['Dealer'],
-    ['Chemist'],
-    ['Dealer', 'Chemist'],
-  ]
+function resolvePartnerTypes(seed: number): SchemePartnerType[] {
+  const options: SchemePartnerType[][] = [['Dealer'], ['Chemist'], ['Dealer', 'Chemist']]
   return options[seed % options.length]!
 }
 
-function buildEligibleProducts(seed: number, schemeId: string): SchemeEligibleProduct[] {
-  const count = seededNumber(seed, 3, 7)
+function resolveRegions(seed: number): PartnerZone[] {
+  const count = seededNumber(seed, 1, REGIONS.length + 1)
+  return REGIONS.filter((_, i) => (seed + i) % REGIONS.length < count)
+}
+
+function buildProducts(seed: number, partnerTypes: SchemePartnerType[]): SchemeProduct[] {
+  const count = seededNumber(seed, 2, 5)
   return Array.from({ length: count }).map((_, i) => {
-    const product = mockProducts[(seed + i * 3) % mockProducts.length]!
+    const gift = mockGifts[(seed + i * 3) % mockGifts.length]!
     return {
-      id: `${schemeId}-product-${i}`,
-      productCode: product.productCode,
-      productName: product.productName,
-      productCategory: product.productCategory,
-      productBrand: product.brand,
-      bonusPoints: seededNumber(seed + i, 5, 50),
-      status: product.status,
+      productId: gift.id,
+      dealerPoints: partnerTypes.includes('Dealer') ? seededNumber(seed + i, 50, 400) : 0,
+      chemistPoints: partnerTypes.includes('Chemist') ? seededNumber(seed + i + 1, 50, 400) : 0,
     }
   })
 }
 
-function buildTimeline(seed: number, schemeId: string, status: SchemeStatus): SchemeTimelineEntry[] {
-  const timeline: SchemeTimelineEntry[] = [
-    { id: `${schemeId}-tl-0`, activity: 'Scheme Created', dateTime: dateFromSeed(seed, 'Jun') },
-    { id: `${schemeId}-tl-1`, activity: 'Products Assigned', dateTime: dateFromSeed(seed + 1, 'Jun') },
-  ]
-  if (status === 'active' || status === 'inactive' || status === 'expired') {
-    timeline.push({ id: `${schemeId}-tl-2`, activity: 'Activated', dateTime: dateFromSeed(seed + 2, 'Jun') })
-  }
-  if (seed % 4 === 0 && status !== 'draft') {
-    timeline.push({ id: `${schemeId}-tl-3`, activity: 'Modified', dateTime: dateFromSeed(seed + 4, 'Jul') })
-  }
-  if (status === 'expired') {
-    timeline.push({ id: `${schemeId}-tl-4`, activity: 'Expired', dateTime: dateFromSeed(seed + 6, 'Jul') })
-  }
-  return timeline
+function buildPartnerEntries(
+  seed: number,
+  source: readonly { id: string; shopName: string; zone: PartnerZone }[],
+): SchemePartnerEntry[] {
+  const statuses: SchemePartnerStatus[] = ['interested', 'enrolled', 'enrolled', 'redeemed']
+  const count = seededNumber(seed, 2, 6)
+  return Array.from({ length: count }).map((_, i) => {
+    const localSeed = seed * 7 + i
+    const partner = source[localSeed % source.length]!
+    return {
+      id: partner.id,
+      name: partner.shopName,
+      region: partner.zone,
+      points: seededNumber(localSeed, 100, 3000),
+      status: statuses[localSeed % statuses.length]!,
+    }
+  })
 }
 
-function buildAuditHistory(seed: number, schemeId: string): SchemeAuditEntry[] {
-  const reviewer = mrs[seed % mrs.length]!
-  return [
-    {
-      id: `${schemeId}-audit-0`,
-      date: dateFromSeed(seed, 'Jun'),
-      action: 'Scheme Created',
-      performedBy: reviewer,
-      previousValue: '—',
-      newValue: 'Scheme configured and saved as draft',
-      remarks: 'Initial setup',
-    },
-    {
-      id: `${schemeId}-audit-1`,
-      date: dateFromSeed(seed + 2, 'Jun'),
-      action: 'Bonus Value Updated',
-      performedBy: reviewer,
-      previousValue: `${seededNumber(seed, 10, 30)} pts`,
-      newValue: `${seededNumber(seed + 5, 30, 60)} pts`,
-      remarks: 'Adjusted per campaign budget review',
-    },
-  ]
-}
+function buildScheme(seed: number, type: SchemeType, options?: { forceNoEndDate?: boolean; forceEndDate?: boolean }): Scheme {
+  const id = schemeIdFromSeed(seed + (type === 'seasonal' ? 500 : 0))
+  const name = type === 'general' ? generalSchemeNames[seed % generalSchemeNames.length]! : seasonalSchemeNames[seed % seasonalSchemeNames.length]!
+  const partnerTypes = resolvePartnerTypes(seed)
+  const regions = resolveRegions(seed)
 
-function buildScheme(seed: number, category: SchemeCategory): Scheme {
-  const id = `scheme-${category}-${seed}`
-  const schemeName = category === 'general' ? generalSchemeNames[seed % generalSchemeNames.length]! : festivals[seed % festivals.length]!
-  const statusRoll = seed % 10
+  // Cycle each scheme through ended / active / upcoming relative to today, so KPI counts reflect a realistic mix.
+  const bucket = seed % 3
+  const noEndDate = type === 'general' && (options?.forceNoEndDate || (!options?.forceEndDate && bucket === 1 && seed % 5 === 0))
 
-  let status: SchemeStatus
-  if (category === 'general') {
-    status = statusRoll < 6 ? 'active' : statusRoll < 8 ? 'inactive' : 'expired'
+  let startDate: string
+  let endDate: string | null
+  if (bucket === 0) {
+    // Ended
+    startDate = dateOffsetFromToday(seed, -180, -60)
+    endDate = dateOffsetFromToday(seed + 20, -30, -1)
+  } else if (bucket === 1) {
+    // Active
+    startDate = dateOffsetFromToday(seed, -60, -1)
+    endDate = noEndDate ? null : dateOffsetFromToday(seed + 20, 30, 180)
   } else {
-    status = statusRoll < 4 ? 'upcoming' : statusRoll < 8 ? 'active' : 'expired'
+    // Upcoming
+    startDate = dateOffsetFromToday(seed, 5, 60)
+    endDate = dateOffsetFromToday(seed + 20, 90, 240)
   }
-
-  const bonusValue = seededNumber(seed, 10, 100)
-  const totalParticipants = seededNumber(seed, 20, 500)
-  const totalProductScans = seededNumber(seed + 1, 200, 8000)
-  const completionRate = seededNumber(seed + 2, 30, 98)
-
-  const startDate = dateFromSeed(seed, category === 'general' ? 'Jan' : 'Jul')
-  const endDate = category === 'general' && seed % 5 === 0 ? null : dateFromSeed(seed + 20, category === 'general' ? 'Dec' : 'Aug')
 
   return {
     id,
-    schemeName,
-    schemeCategory: category,
-    festivalCampaign: category === 'seasonal' ? schemeName : undefined,
-    schemeType: schemeTypes[seed % schemeTypes.length]!,
-    applicableUsers: resolveApplicableUsers(seed),
-    bonusValue,
-    scanTarget: seededNumber(seed, 50, 500),
+    type,
+    name,
     startDate,
     endDate,
-    status,
-    description: `${schemeName} rewards Dealers and Chemists for reaching configured scan and volume targets during the scheme period.`,
-
-    rewardType: rewardTypes[seed % rewardTypes.length]!,
-    bonusPoints: seededNumber(seed, 5, 40),
-    multiplier: Number((1 + (seed % 5) * 0.25).toFixed(2)),
-    targetQuantity: seededNumber(seed, 50, 300),
-    maximumReward: seededNumber(seed, 500, 5000),
-    rewardFrequency: rewardFrequencies[seed % rewardFrequencies.length]!,
-    stackable: seed % 3 === 0,
-
-    eligibleProducts: buildEligibleProducts(seed, id),
-
-    totalParticipants,
-    totalProductScans,
-    rewardPointsIssued: totalProductScans * seededNumber(seed, 2, 8),
-    completionRate,
-
-    timeline: buildTimeline(seed, id, status),
-    auditHistory: buildAuditHistory(seed, id),
-    internalNotes: 'Reviewed by marketing team; performance tracked monthly.',
+    regions,
+    partnerTypes,
+    products: buildProducts(seed, partnerTypes),
+    description: `${name} lets eligible partners redeem gift products by earning points ${type === 'general' ? 'throughout the year' : 'during the campaign window'}.`,
+    disclaimer: 'Points are non-transferable and subject to MedTech Rewards terms & conditions.',
+    image: `https://picsum.photos/seed/medtech-scheme-${id}/400/400`,
+    banner: `https://picsum.photos/seed/medtech-scheme-banner-${id}/1200/400`,
+    partners: {
+      dealer: partnerTypes.includes('Dealer') ? buildPartnerEntries(seed, mockDealers) : [],
+      chemist: partnerTypes.includes('Chemist') ? buildPartnerEntries(seed + 3, mockChemists) : [],
+    },
   }
 }
 
-export const mockGeneralSchemes: Scheme[] = Array.from({ length: 16 }).map((_, index) => buildScheme(index + 1, 'general'))
-export const mockSeasonalSchemes: Scheme[] = Array.from({ length: 14 }).map((_, index) => buildScheme(index + 1, 'seasonal'))
+export const mockGeneralSchemes: Scheme[] = [
+  buildScheme(1, 'general', { forceNoEndDate: true }),
+  buildScheme(2, 'general', { forceEndDate: true }),
+  ...Array.from({ length: 10 }).map((_, index) => buildScheme(index + 3, 'general')),
+]
+export const mockSeasonalSchemes: Scheme[] = Array.from({ length: 10 }).map((_, index) => buildScheme(index + 1, 'seasonal'))
 export const mockSchemes: Scheme[] = [...mockGeneralSchemes, ...mockSeasonalSchemes]
 
 export function getSchemeById(id: string): Scheme | undefined {
   return mockSchemes.find((scheme) => scheme.id === id)
 }
 
-export const generalSchemeKpis = {
-  activeSchemes: mockGeneralSchemes.filter((s) => s.status === 'active').length,
-  totalParticipants: mockGeneralSchemes.reduce((sum, s) => sum + s.totalParticipants, 0),
-  rewardPointsIssued: mockGeneralSchemes.reduce((sum, s) => sum + s.rewardPointsIssued, 0),
-  expiredSchemes: mockGeneralSchemes.filter((s) => s.status === 'expired').length,
+function pointsTotal(scheme: Scheme, key: 'dealerPoints' | 'chemistPoints'): number {
+  return scheme.products.reduce((sum, p) => sum + p[key], 0)
 }
 
-export const seasonalSchemeKpis = {
-  activeSchemes: mockSeasonalSchemes.filter((s) => s.status === 'active').length,
-  upcomingCampaigns: mockSeasonalSchemes.filter((s) => s.status === 'upcoming').length,
-  completedCampaigns: mockSeasonalSchemes.filter((s) => s.status === 'expired').length,
-  rewardPointsIssued: mockSeasonalSchemes.reduce((sum, s) => sum + s.rewardPointsIssued, 0),
+export function schemeDealerTotal(scheme: Scheme): number {
+  return pointsTotal(scheme, 'dealerPoints')
 }
 
-export const schemeApplicableUserOptions: ApplicableUserType[] = ['Dealer', 'Chemist']
-export const schemeTypeOptions = schemeTypes
-export const rewardTypeOptions = rewardTypes
-export const rewardFrequencyOptions = rewardFrequencies
-export const festivalOptions = festivals
-export { productCategoryOptions as schemeProductCategoryOptions }
+export function schemeChemistTotal(scheme: Scheme): number {
+  return pointsTotal(scheme, 'chemistPoints')
+}
+
+function schemeKpis(schemes: Scheme[]) {
+  const today = new Date().toISOString().slice(0, 10)
+  return {
+    totalSchemes: schemes.length,
+    activeSchemes: schemes.filter((s) => s.startDate <= today && (!s.endDate || s.endDate >= today)).length,
+    totalEnrolledPartners: schemes.reduce((sum, s) => sum + s.partners.dealer.length + s.partners.chemist.length, 0),
+    totalPointsAllocated: schemes.reduce((sum, s) => sum + schemeDealerTotal(s) + schemeChemistTotal(s), 0),
+  }
+}
+
+export const generalSchemeKpis = schemeKpis(mockGeneralSchemes)
+export const seasonalSchemeKpis = schemeKpis(mockSeasonalSchemes)
+export const allSchemeKpis = schemeKpis(mockSchemes)
+
+export const schemeRegionOptions: PartnerZone[] = REGIONS
+export const schemePartnerTypeOptions: SchemePartnerType[] = ['Dealer', 'Chemist']

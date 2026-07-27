@@ -1,60 +1,25 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Button,
-  Chip,
-  Grid,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
-import {
-  FileSpreadsheet,
-  FileText,
-  FileDown,
-  Target,
-  Users,
-  Trophy,
-  Gauge,
-} from 'lucide-react'
+import { Button, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { FileSpreadsheet, FileText, FileDown, Target, Users, Gift, MapPin } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import {
-  CommonTable,
-  type CommonTableColumn,
-} from '@/components/common/CommonTable/CommonTable'
+import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import {
   mockSchemeReports,
   schemeReportKpis,
-  schemeReportTypeOptions,
-  schemeReportApplicableUserOptions,
+  schemeReportRegionOptions,
+  schemeReportPartnerTypeOptions,
 } from '@/features/reportsAnalytics/mockSchemeReports'
 import type { SchemeReportEntry } from '@/types/schemeReport'
-import type {
-  ApplicableUserType,
-  SchemeCategory,
-  SchemeStatus,
-  SchemeType,
-} from '@/types/scheme'
-
-const statusConfig: Record<
-  SchemeStatus,
-  { label: string; color: 'success' | 'default' | 'error' | 'info' | 'warning' }
-> = {
-  active: { label: 'Active', color: 'success' },
-  inactive: { label: 'Inactive', color: 'default' },
-  expired: { label: 'Expired', color: 'error' },
-  upcoming: { label: 'Upcoming', color: 'info' },
-  draft: { label: 'Draft', color: 'warning' },
-}
+import type { PartnerZone } from '@/types/partner'
+import type { SchemeType, SchemePartnerType } from '@/types/scheme'
 
 interface SchemeReportFilters extends Record<string, unknown> {
   schemeType: SchemeType | 'all'
-  schemeCategory: SchemeCategory | 'all'
-  applicableTo: ApplicableUserType | 'all'
-  status: SchemeStatus | 'all'
+  region: PartnerZone | 'all'
+  partnerType: SchemePartnerType | 'all'
   fromDate: string
   toDate: string
 }
@@ -64,15 +29,13 @@ export function SchemeReportListPage() {
   useRegionTopbarHeader({
     icon: <Target size={20} />,
     title: 'Scheme Reports',
-    subtitle:
-      'Insights into the performance and effectiveness of reward schemes, including participant engagement, reward distribution, target achievements, and scheme completion across Dealers, Chemists, and MRs.',
+    subtitle: 'Insights into scheme enrollment, points allocated, and partner participation across Dealers and Chemists.',
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<SchemeReportFilters>({
     schemeType: 'all',
-    schemeCategory: 'all',
-    applicableTo: 'all',
-    status: 'all',
+    region: 'all',
+    partnerType: 'all',
     fromDate: '',
     toDate: '',
   })
@@ -80,33 +43,12 @@ export function SchemeReportListPage() {
   const filteredReports = useMemo(
     () =>
       mockSchemeReports.filter((report) => {
-        const typeMatch =
-          appliedFilters.schemeType === 'all' ||
-          report.scheme.schemeType === appliedFilters.schemeType
-        const categoryMatch =
-          appliedFilters.schemeCategory === 'all' ||
-          report.schemeCategory === appliedFilters.schemeCategory
-        const applicableMatch =
-          appliedFilters.applicableTo === 'all' ||
-          report.scheme.applicableUsers.includes(appliedFilters.applicableTo)
-        const statusMatch =
-          appliedFilters.status === 'all' ||
-          report.status === appliedFilters.status
-        const fromMatch =
-          !appliedFilters.fromDate ||
-          report.startDate >= appliedFilters.fromDate
-        const toMatch =
-          !appliedFilters.toDate ||
-          (report.endDate ?? '9999') <= appliedFilters.toDate ||
-          !appliedFilters.toDate
-        return (
-          typeMatch &&
-          categoryMatch &&
-          applicableMatch &&
-          statusMatch &&
-          fromMatch &&
-          toMatch
-        )
+        const typeMatch = appliedFilters.schemeType === 'all' || report.schemeType === appliedFilters.schemeType
+        const regionMatch = appliedFilters.region === 'all' || report.regions.includes(appliedFilters.region)
+        const partnerMatch = appliedFilters.partnerType === 'all' || report.partnerTypes.includes(appliedFilters.partnerType)
+        const fromMatch = !appliedFilters.fromDate || report.startDate >= appliedFilters.fromDate
+        const toMatch = !appliedFilters.toDate || (report.endDate ?? '9999-12-31') <= appliedFilters.toDate
+        return typeMatch && regionMatch && partnerMatch && fromMatch && toMatch
       }),
     [appliedFilters],
   )
@@ -120,145 +62,72 @@ export function SchemeReportListPage() {
       sortValue: (row) => row.schemeName,
       render: (row) => (
         <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: '0.8125rem',
-            cursor: 'pointer',
-            '&:hover': { textDecoration: 'underline' },
-          }}
+          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
           onClick={() => navigate(`/reports/scheme-reports/${row.id}`)}
         >
           {row.schemeName}
         </Typography>
       ),
     },
+    { key: 'schemeType', header: 'Type', minWidth: 110, render: (row) => (row.schemeType === 'general' ? 'General' : 'Seasonal') },
+    { key: 'regions', header: 'Regions', minWidth: 150, render: (row) => row.regions.join(', ') },
+    { key: 'partnerTypes', header: 'Partner Types', minWidth: 140, render: (row) => row.partnerTypes },
     {
-      key: 'schemeCategory',
-      header: 'Scheme Type',
-      minWidth: 120,
-      render: (row) =>
-        row.schemeCategory === 'general' ? 'General' : 'Seasonal',
+      key: 'dealerTotal',
+      header: 'Dealer Points',
+      align: 'center',
+      minWidth: 130,
+      sortable: true,
+      sortValue: (row) => row.dealerTotal,
+      render: (row) => row.dealerTotal.toLocaleString('en-IN'),
     },
     {
-      key: 'applicableTo',
-      header: 'Applicable To',
-      minWidth: 160,
-      render: (row) => row.applicableTo,
+      key: 'chemistTotal',
+      header: 'Chemist Points',
+      align: 'center',
+      minWidth: 130,
+      sortable: true,
+      sortValue: (row) => row.chemistTotal,
+      render: (row) => row.chemistTotal.toLocaleString('en-IN'),
     },
     {
-      key: 'totalParticipants',
-      header: 'Total Participants',
+      key: 'enrolledPartners',
+      header: 'Enrolled Partners',
       align: 'center',
       minWidth: 140,
       sortable: true,
-      sortValue: (row) => row.totalParticipants,
-      render: (row) => row.totalParticipants.toLocaleString('en-IN'),
+      sortValue: (row) => row.enrolledPartners,
+      render: (row) => row.enrolledPartners.toLocaleString('en-IN'),
     },
-    {
-      key: 'rewardPointsIssued',
-      header: 'Reward Points Issued',
-      align: 'center',
-      minWidth: 150,
-      sortable: true,
-      sortValue: (row) => row.rewardPointsIssued,
-      render: (row) => row.rewardPointsIssued.toLocaleString('en-IN'),
-    },
-    {
-      key: 'startDate',
-      header: 'Start Date',
-      minWidth: 120,
-      sortable: true,
-      sortValue: (row) => row.startDate,
-      render: (row) => row.startDate,
-    },
-    {
-      key: 'endDate',
-      header: 'End Date',
-      minWidth: 120,
-      render: (row) => row.endDate ?? 'Ongoing',
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      sortValue: (row) => row.status,
-      render: (row) => (
-        <Chip
-          size="small"
-          label={statusConfig[row.status].label}
-          color={statusConfig[row.status].color}
-        />
-      ),
-    },
+    { key: 'startDate', header: 'Start Date', minWidth: 120, sortable: true, sortValue: (row) => row.startDate, render: (row) => row.startDate },
+    { key: 'endDate', header: 'End Date', minWidth: 120, render: (row) => row.endDate ?? 'No end date' },
   ]
 
   return (
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Total Schemes"
-            value={schemeReportKpis.totalSchemes}
-            icon={<Target size={20} />}
-            iconColor="primary"
-          />
+          <StatCard label="Total Schemes" value={schemeReportKpis.totalSchemes} icon={<Target size={20} />} iconColor="primary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Active Schemes"
-            value={schemeReportKpis.activeSchemes}
-            icon={<Gauge size={20} />}
-            iconColor="success"
-          />
+          <StatCard label="Enrolled Partners" value={schemeReportKpis.totalEnrolledPartners.toLocaleString('en-IN')} icon={<Users size={20} />} iconColor="secondary" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Total Participants"
-            value={schemeReportKpis.totalParticipants.toLocaleString('en-IN')}
-            icon={<Users size={20} />}
-            iconColor="secondary"
-          />
+          <StatCard label="Dealer Points Allocated" value={schemeReportKpis.totalDealerPoints.toLocaleString('en-IN')} icon={<Gift size={20} />} iconColor="warning" />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard
-            label="Reward Points Issued"
-            value={schemeReportKpis.rewardPointsIssued.toLocaleString('en-IN')}
-            icon={<Trophy size={20} />}
-            iconColor="warning"
-          />
+          <StatCard label="Chemist Points Allocated" value={schemeReportKpis.totalChemistPoints.toLocaleString('en-IN')} icon={<MapPin size={20} />} iconColor="success" />
         </Grid>
       </Grid>
 
-      <Stack
-        direction="row"
-        spacing={1.5}
-        sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1 }}
-      >
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<FileSpreadsheet size={16} />}
-          onClick={() => {}}
-          sx={{ fontSize: '0.75rem' }}
-        >
+      <Stack direction="row" spacing={1.5} sx={{ mb: 2, flexWrap: 'wrap', rowGap: 1 }}>
+        <Button variant="outlined" size="small" startIcon={<FileSpreadsheet size={16} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
           Export Excel
         </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<FileText size={16} />}
-          onClick={() => {}}
-          sx={{ fontSize: '0.75rem' }}
-        >
+        <Button variant="outlined" size="small" startIcon={<FileText size={16} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
           Export CSV
         </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<FileDown size={16} />}
-          onClick={() => {}}
-          sx={{ fontSize: '0.75rem' }}
-        >
+        <Button variant="outlined" size="small" startIcon={<FileDown size={16} />} onClick={() => {}} sx={{ fontSize: '0.75rem' }}>
           Export PDF
         </Button>
       </Stack>
@@ -269,22 +138,16 @@ export function SchemeReportListPage() {
         rows={filteredReports}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by scheme name…"
-        searchKeys={(row) => `${row.schemeName} ${row.applicableTo}`}
+        searchKeys={(row) => `${row.schemeName} ${row.partnerTypes}`}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.schemeType !== 'all' ? 1 : 0) +
-          (appliedFilters.schemeCategory !== 'all' ? 1 : 0) +
-          (appliedFilters.applicableTo !== 'all' ? 1 : 0) +
-          (appliedFilters.status !== 'all' ? 1 : 0) +
+          (appliedFilters.region !== 'all' ? 1 : 0) +
+          (appliedFilters.partnerType !== 'all' ? 1 : 0) +
           (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
         }
         defaultSortBy="schemeName"
-        actions={[
-          {
-            label: 'View',
-            onClick: (row) => navigate(`/reports/scheme-reports/${row.id}`),
-          },
-        ]}
+        actions={[{ label: 'View', onClick: (row) => navigate(`/reports/scheme-reports/${row.id}`) }]}
         emptyTitle="No scheme reports found"
         emptyDescription="Try adjusting your filters or search terms."
       />
@@ -303,76 +166,39 @@ export function SchemeReportListPage() {
               label="Scheme Type"
               size="small"
               value={draft.schemeType}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  schemeType: e.target
-                    .value as SchemeReportFilters['schemeType'],
-                }))
-              }
+              onChange={(e) => setDraft((prev) => ({ ...prev, schemeType: e.target.value as SchemeReportFilters['schemeType'] }))}
             >
               <MenuItem value="all">All Types</MenuItem>
-              {schemeReportTypeOptions.map((type) => (
-                <MenuItem key={type} value={type}>
-                  {type}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Scheme Category"
-              size="small"
-              value={draft.schemeCategory}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  schemeCategory: e.target
-                    .value as SchemeReportFilters['schemeCategory'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Categories</MenuItem>
               <MenuItem value="general">General</MenuItem>
               <MenuItem value="seasonal">Seasonal</MenuItem>
             </TextField>
             <TextField
               select
-              label="Applicable To"
+              label="Region"
               size="small"
-              value={draft.applicableTo}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  applicableTo: e.target
-                    .value as SchemeReportFilters['applicableTo'],
-                }))
-              }
+              value={draft.region}
+              onChange={(e) => setDraft((prev) => ({ ...prev, region: e.target.value as SchemeReportFilters['region'] }))}
             >
-              <MenuItem value="all">All Users</MenuItem>
-              {schemeReportApplicableUserOptions.map((user) => (
-                <MenuItem key={user} value={user}>
-                  {user}
+              <MenuItem value="all">All Regions</MenuItem>
+              {schemeReportRegionOptions.map((region) => (
+                <MenuItem key={region} value={region}>
+                  {region}
                 </MenuItem>
               ))}
             </TextField>
             <TextField
               select
-              label="Status"
+              label="Partner Type"
               size="small"
-              value={draft.status}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  status: e.target.value as SchemeReportFilters['status'],
-                }))
-              }
+              value={draft.partnerType}
+              onChange={(e) => setDraft((prev) => ({ ...prev, partnerType: e.target.value as SchemeReportFilters['partnerType'] }))}
             >
-              <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
-              <MenuItem value="expired">Expired</MenuItem>
-              <MenuItem value="upcoming">Upcoming</MenuItem>
-              <MenuItem value="draft">Draft</MenuItem>
+              <MenuItem value="all">All Partner Types</MenuItem>
+              {schemeReportPartnerTypeOptions.map((type) => (
+                <MenuItem key={type} value={type}>
+                  {type}
+                </MenuItem>
+              ))}
             </TextField>
             <TextField
               type="date"
@@ -380,9 +206,7 @@ export function SchemeReportListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.fromDate}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
-              }
+              onChange={(e) => setDraft((prev) => ({ ...prev, fromDate: e.target.value }))}
             />
             <TextField
               type="date"
@@ -390,9 +214,7 @@ export function SchemeReportListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.toDate}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
-              }
+              onChange={(e) => setDraft((prev) => ({ ...prev, toDate: e.target.value }))}
             />
           </Stack>
         )}

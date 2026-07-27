@@ -2,8 +2,8 @@ import {
   mockSchemeReports,
   getSchemeReportById,
   schemeReportKpis,
-  schemeReportTypeOptions,
-  schemeReportApplicableUserOptions,
+  schemeReportRegionOptions,
+  schemeReportPartnerTypeOptions,
 } from '@/features/reportsAnalytics/mockSchemeReports'
 import type { SchemeReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 import { mockDelay } from '@/services/mockDelay'
@@ -22,8 +22,8 @@ async function getSchemeReportKpis() {
 
 async function getSchemeReportFilterOptions() {
   return mockDelay({
-    typeOptions: schemeReportTypeOptions,
-    applicableUserOptions: schemeReportApplicableUserOptions,
+    regionOptions: schemeReportRegionOptions,
+    partnerTypeOptions: schemeReportPartnerTypeOptions,
   })
 }
 

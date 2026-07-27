@@ -114,7 +114,7 @@ function buildRecentActivity(seed: number, walletId: string, userType: WalletUse
       dealer: userType === 'Dealer' ? dealerName : '—',
       chemist: userType === 'Chemist' ? chemistName : '—',
       coinsEarned: seededNumber(localSeed, 5, 60),
-      appliedScheme: scheme.schemeName,
+      appliedScheme: scheme.name,
       status: localSeed % 12 === 0 ? 'pending' : localSeed % 25 === 0 ? 'failed' : 'credited',
     }
   })

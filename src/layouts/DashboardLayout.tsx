@@ -1,21 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { Box, Stack, Tooltip, Typography } from '@mui/material'
-import { Calendar, RefreshCw } from 'lucide-react'
+import { Box } from '@mui/material'
 import { Sidebar } from '@/components/layout/Sidebar/Sidebar'
 import { Header } from '@/components/layout/Header/Header'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs/Breadcrumbs'
 import { RegionTopbar } from '@/components/common/RegionTopbar/RegionTopbar'
+import { LastUpdatedBadge } from '@/components/common/LastUpdatedBadge/LastUpdatedBadge'
 import { useIsMobile, useIsTablet } from '@/hooks/useMediaQueryBreakpoint'
 import { findRouteEntry } from '@/routes/routeConfig'
 import {
   RegionFilterProvider,
   useRegionFilter,
 } from '@/contexts/RegionFilterContext'
-import { formatLastUpdated, formatExactDateTime } from '@/utils/formatLastUpdated'
-import { radius } from '@/theme/tokens'
-
-const DEFAULT_DATE_RANGE_PRESET = 'Last 30 Days'
 
 function GlobalRegionTopbar() {
   const location = useLocation()
@@ -40,48 +36,15 @@ function GlobalRegionTopbar() {
   )
 }
 
-function LastUpdatedLabel() {
-  const { header, dateRange } = useRegionFilter()
-  const [, forceTick] = useState(0)
-  const lastUpdated = header?.lastUpdated
-  const isDateRangeApplied = dateRange.presetLabel !== DEFAULT_DATE_RANGE_PRESET
-
-  useEffect(() => {
-    if (!lastUpdated) return
-    const interval = setInterval(() => forceTick((n) => n + 1), 30_000)
-    return () => clearInterval(interval)
-  }, [lastUpdated])
-
-  if (!lastUpdated) return null
+function GlobalLastUpdatedBadge() {
+  const { header, dateRange, setDateRange } = useRegionFilter()
 
   return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-      {isDateRangeApplied && (
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'secondary.dark',
-            fontWeight: 700,
-            backgroundColor: 'secondary.light',
-            borderRadius: '999px',
-            px: 1,
-            py: 0.25,
-          }}
-        >
-          {dateRange.presetLabel === 'Custom Range' && dateRange.from && dateRange.to
-            ? `${dateRange.from} – ${dateRange.to}`
-            : dateRange.presetLabel}
-        </Typography>
-      )}
-      <Tooltip title={formatExactDateTime(lastUpdated)}>
-        <Typography
-          variant="caption"
-          sx={{ color: 'text.disabled', fontWeight: 600 }}
-        >
-          {formatLastUpdated(lastUpdated)}
-        </Typography>
-      </Tooltip>
-    </Stack>
+    <LastUpdatedBadge
+      lastUpdated={header?.lastUpdated}
+      dateRange={dateRange}
+      onDateRangeChange={setDateRange}
+    />
   )
 }
 
@@ -142,7 +105,7 @@ export function DashboardLayout() {
               }}
             >
               <Breadcrumbs />
-              <LastUpdatedLabel />
+              <GlobalLastUpdatedBadge />
             </Box>
             <GlobalRegionTopbar />
             <Outlet />

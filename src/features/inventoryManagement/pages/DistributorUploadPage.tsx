@@ -9,6 +9,7 @@ import {
 } from '@mui/material'
 import { Truck, UploadCloud, X } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { radius } from '@/theme/tokens'
 import { DistributorUploadTab } from '@/features/inventoryManagement/components/DistributorUploadTab'
 import { DistributorListingTab } from '@/features/inventoryManagement/components/DistributorListingTab'
@@ -20,6 +21,13 @@ export function DistributorUploadPage() {
   const isMobile = useIsMobile()
   const [uploadOpen, setUploadOpen] = useState(false)
   const { invoices, isLoading, importDispatch } = useDistributors()
+  useRegionTopbarHeader({
+    icon: <Truck size={20} />,
+    title: 'Distributor Upload',
+    subtitle:
+      'Import dispatch loading reports via Excel and track shipments to distributors.',
+    isLoading,
+  })
 
   async function handleImported(
     rows: DispatchUploadRow[],

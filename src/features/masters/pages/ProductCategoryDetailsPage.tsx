@@ -166,11 +166,8 @@ export function ProductCategoryDetailsPage() {
         <SectionCard title="Category Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Category Name', value: category.categoryName },
               { label: 'Category Code', value: category.categoryCode },
               { label: 'Parent Category', value: parentName ?? 'None (Top Level)' },
-              { label: 'Status', value: <StatusBadge status={category.status} /> },
-              { label: 'Total Products', value: category.totalProducts },
               { label: 'Created Date', value: category.createdDate },
             ]}
           />
@@ -180,17 +177,6 @@ export function ProductCategoryDetailsPage() {
           <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>
             {category.description}
           </Typography>
-        </SectionCard>
-
-        <SectionCard title="Product Performance Statistics">
-          <DetailFieldGrid
-            fields={[
-              { label: 'Total Products', value: category.totalProducts },
-              { label: 'Total Scans', value: category.totalScans.toLocaleString('en-IN') },
-              { label: 'Total Reward Points Issued', value: category.totalRewardPointsIssued.toLocaleString('en-IN') },
-              { label: 'Active Schemes', value: category.activeSchemesCount },
-            ]}
-          />
         </SectionCard>
 
         <SectionCard title="Products under Category">

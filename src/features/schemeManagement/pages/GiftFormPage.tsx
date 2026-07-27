@@ -56,6 +56,7 @@ export function GiftFormPage() {
       requiredCoins: String(gift.requiredCoins),
       availableQuantity: String(gift.availableQuantity),
       status: gift.status,
+      eligibleUserType: gift.eligibleUserType,
     })
   }, [gift, reset])
 
@@ -170,6 +171,14 @@ export function GiftFormPage() {
               <FormField name="status" control={control} select {...fieldLabelProps}>
                 <MenuItem value="active">Active</MenuItem>
                 <MenuItem value="inactive">Inactive</MenuItem>
+              </FormField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>Eligible User Type</FieldLabel>
+              <FormField name="eligibleUserType" control={control} select {...fieldLabelProps}>
+                <MenuItem value="All">All</MenuItem>
+                <MenuItem value="Dealer">Dealer</MenuItem>
+                <MenuItem value="Chemist">Chemist</MenuItem>
               </FormField>
             </Grid>
           </Grid>

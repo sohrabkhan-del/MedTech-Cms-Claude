@@ -19,6 +19,7 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { SeverityChip } from '@/features/fieldOperations/components/SeverityChip'
 import { SEVERITY_CONFIG } from '@/features/fieldOperations/severityConfig'
 import { useSecurityAlerts } from '@/features/fieldOperations/hooks/useSecurityAlerts'
@@ -34,6 +35,12 @@ interface AlertFilters extends Record<string, unknown> {
 export function SecurityAlertsPage() {
   const navigate = useNavigate()
   const { alerts, kpis, isLoading } = useSecurityAlerts()
+  useRegionTopbarHeader({
+    icon: <GppMaybeIcon size={20} />,
+    title: 'Security Alerts',
+    subtitle: 'Real-time monitoring of suspicious activity across the platform.',
+    isLoading,
+  })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<AlertFilters>({
     severity: 'all',

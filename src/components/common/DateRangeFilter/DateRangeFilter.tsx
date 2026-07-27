@@ -15,9 +15,11 @@ const DEFAULT_PRESET_LABEL = 'Last 30 Days'
 interface DateRangeFilterProps {
   value: DateRange
   onChange: (range: DateRange) => void
+  /** Custom trigger element instead of the default calendar icon button. Receives the click handler to open the menu. */
+  renderTrigger?: (props: { onClick: (e: React.MouseEvent<HTMLElement>) => void; isApplied: boolean }) => React.ReactNode
 }
 
-export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
+export function DateRangeFilter({ value, onChange, renderTrigger }: DateRangeFilterProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const [customFrom, setCustomFrom] = useState(value.from ?? '')
   const [customTo, setCustomTo] = useState(value.to ?? '')
@@ -44,30 +46,34 @@ export function DateRangeFilter({ value, onChange }: DateRangeFilterProps) {
 
   return (
     <>
-      <Tooltip title={value.presetLabel}>
-        <IconButton
-          onClick={open}
-          sx={{
-            height: 36,
-            width: 36,
-            border: '1px solid',
-            borderColor: isApplied ? 'secondary.main' : 'transparent',
-            backgroundColor: 'secondary.light',
-            color: 'secondary.dark',
-            '&:hover': { borderColor: 'secondary.main', backgroundColor: 'secondary.light' },
-          }}
-          aria-label={`Date range: ${value.presetLabel}`}
-        >
-          <Badge
-            variant="dot"
-            invisible={!isApplied}
-            color="secondary"
-            sx={{ '& .MuiBadge-dot': { backgroundColor: 'secondary.dark' } }}
+      {renderTrigger ? (
+        renderTrigger({ onClick: open, isApplied })
+      ) : (
+        <Tooltip title={value.presetLabel}>
+          <IconButton
+            onClick={open}
+            sx={{
+              height: 36,
+              width: 36,
+              border: '1px solid',
+              borderColor: isApplied ? 'secondary.main' : 'transparent',
+              backgroundColor: 'secondary.light',
+              color: 'secondary.dark',
+              '&:hover': { borderColor: 'secondary.main', backgroundColor: 'secondary.light' },
+            }}
+            aria-label={`Date range: ${value.presetLabel}`}
           >
-            <Calendar size={16} />
-          </Badge>
-        </IconButton>
-      </Tooltip>
+            <Badge
+              variant="dot"
+              invisible={!isApplied}
+              color="secondary"
+              sx={{ '& .MuiBadge-dot': { backgroundColor: 'secondary.dark' } }}
+            >
+              <Calendar size={16} />
+            </Badge>
+          </IconButton>
+        </Tooltip>
+      )}
 
       <Menu
         anchorEl={anchorEl}

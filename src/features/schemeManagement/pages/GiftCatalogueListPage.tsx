@@ -23,6 +23,7 @@ import { useGiftFormOptions } from '@/features/schemeManagement/hooks/useGiftFor
 import { giftsService } from '@/features/schemeManagement/services/giftsService'
 import type {
   Gift,
+  GiftEligibility,
   GiftStatus,
   StockStatus,
 } from '@/features/schemeManagement/types/schemeManagement.types'
@@ -41,6 +42,7 @@ interface GiftFilters extends Record<string, unknown> {
   brand: string | 'all'
   stockStatus: StockStatus | 'all'
   status: GiftStatus | 'all'
+  eligibleUserType: GiftEligibility | 'all'
   minCoins: string
   maxCoins: string
 }
@@ -65,6 +67,7 @@ export function GiftCatalogueListPage() {
     brand: 'all',
     stockStatus: 'all',
     status: 'all',
+    eligibleUserType: 'all',
     minCoins: '',
     maxCoins: '',
   })
@@ -87,6 +90,9 @@ export function GiftCatalogueListPage() {
       giftsService.getStockStatus(gift) === appliedFilters.stockStatus
     const statusMatch =
       appliedFilters.status === 'all' || gift.status === appliedFilters.status
+    const eligibilityMatch =
+      appliedFilters.eligibleUserType === 'all' ||
+      gift.eligibleUserType === appliedFilters.eligibleUserType
     const minMatch =
       !appliedFilters.minCoins ||
       gift.requiredCoins >= Number(appliedFilters.minCoins)
@@ -98,6 +104,7 @@ export function GiftCatalogueListPage() {
       brandMatch &&
       stockMatch &&
       statusMatch &&
+      eligibilityMatch &&
       minMatch &&
       maxMatch
     )
@@ -216,6 +223,16 @@ export function GiftCatalogueListPage() {
         />
       ),
     },
+    {
+      key: 'eligibleUserType',
+      header: 'Eligible User Type',
+      minWidth: 130,
+      sortable: true,
+      sortValue: (row) => row.eligibleUserType,
+      render: (row) => (
+        <Chip size="small" variant="outlined" label={row.eligibleUserType} />
+      ),
+    },
   ]
 
   return (
@@ -285,6 +302,7 @@ export function GiftCatalogueListPage() {
           (appliedFilters.brand !== 'all' ? 1 : 0) +
           (appliedFilters.stockStatus !== 'all' ? 1 : 0) +
           (appliedFilters.status !== 'all' ? 1 : 0) +
+          (appliedFilters.eligibleUserType !== 'all' ? 1 : 0) +
           (appliedFilters.minCoins || appliedFilters.maxCoins ? 1 : 0)
         }
         onExportClick={() => {}}
@@ -386,6 +404,23 @@ export function GiftCatalogueListPage() {
               <MenuItem value="all">All</MenuItem>
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
+            </TextField>
+            <TextField
+              select
+              label="Eligible User Type"
+              size="small"
+              value={draft.eligibleUserType}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  eligibleUserType: e.target.value as GiftFilters['eligibleUserType'],
+                }))
+              }
+            >
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="All">All (Dealer + Chemist)</MenuItem>
+              <MenuItem value="Dealer">Dealer</MenuItem>
+              <MenuItem value="Chemist">Chemist</MenuItem>
             </TextField>
             <TextField
               type="number"

@@ -15,6 +15,7 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useFactoryUploads } from '@/features/inventoryManagement/hooks/useFactoryUploads'
 import type { FactoryBatch } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
@@ -26,6 +27,13 @@ interface BatchFilters extends Record<string, unknown> {
 export function FactoryUploadListPage() {
   const navigate = useNavigate()
   const { batches, kpis, isLoading } = useFactoryUploads()
+  useRegionTopbarHeader({
+    icon: <FactoryOutlined size={20} />,
+    title: 'Active Product Registry Directory',
+    subtitle:
+      'Production batch imports from the manufacturing unit, with full traceability from factory to allocation.',
+    isLoading,
+  })
   const [filterOpen, setFilterOpen] = useState(false)
   const [statFilter, setStatFilter] = useState<'all' | 'containers' | 'rejected'>('all')
   const [appliedFilters, setAppliedFilters] = useState<BatchFilters>({

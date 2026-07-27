@@ -1,10 +1,11 @@
-import type { Gift, GiftDeliveryStatus, GiftInventoryEntry, GiftRedemptionEntry, GiftUserType, StockStatus } from '@/types/gift'
+import type { Gift, GiftDeliveryStatus, GiftEligibility, GiftInventoryEntry, GiftRedemptionEntry, GiftUserType, StockStatus } from '@/types/gift'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 import { mrs } from '@/features/userManagement/mockPartnerData'
 
 export const giftCategoryOptions = ['Electronics', 'Home Appliances', 'Kitchenware', 'Travel', 'Apparel', 'Vouchers']
 export const giftBrandOptions = ['Prestige', 'Philips', 'Samsung', 'Milton', 'Amazon', 'Bata']
+export const giftEligibilityOptions: GiftEligibility[] = ['All', 'Dealer', 'Chemist']
 
 const giftNames = ['Smart Watch', 'Electric Kettle', 'Bluetooth Speaker', 'Insulated Bottle', 'Travel Backpack', 'Gift Voucher ₹500', 'Non-Stick Cookware Set', 'Wireless Earbuds']
 
@@ -69,6 +70,7 @@ function buildGift(seed: number): Gift {
     availableQuantity,
     redeemedQuantity,
     status: seed % 9 === 0 ? 'inactive' : 'active',
+    eligibleUserType: giftEligibilityOptions[seed % giftEligibilityOptions.length]!,
 
     redemptionHistory: buildRedemptionHistory(seed, id),
     inventoryHistory: buildInventoryHistory(seed, id, availableQuantity),

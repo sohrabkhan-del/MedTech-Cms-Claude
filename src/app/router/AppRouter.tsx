@@ -61,9 +61,6 @@ import { SchemeFormPage } from '@/features/schemeManagement/pages/SchemeFormPage
 import { GiftCatalogueListPage } from '@/features/schemeManagement/pages/GiftCatalogueListPage'
 import { GiftDetailsPage } from '@/features/schemeManagement/pages/GiftDetailsPage'
 import { GiftFormPage } from '@/features/schemeManagement/pages/GiftFormPage'
-import { GiftRulesListPage } from '@/features/schemeManagement/pages/GiftRulesListPage'
-import { GiftRuleDetailsPage } from '@/features/schemeManagement/pages/GiftRuleDetailsPage'
-import { GiftRuleFormPage } from '@/features/schemeManagement/pages/GiftRuleFormPage'
 import { WalletListPage } from '@/features/rewardsWallet/pages/WalletListPage'
 import { WalletDetailsPage } from '@/features/rewardsWallet/pages/WalletDetailsPage'
 import { RedemptionListPage } from '@/features/rewardsWallet/pages/RedemptionListPage'
@@ -117,7 +114,6 @@ import { getShowcaseProductById } from '@/features/marketingProducts/mockShowcas
 import { getInterestedUserById } from '@/features/marketingProducts/mockInterestedUsers'
 import { getSchemeById } from '@/features/schemeManagement/mockSchemes'
 import { getGiftById } from '@/features/schemeManagement/mockGifts'
-import { getRewardRuleById } from '@/features/schemeManagement/mockGiftRules'
 import { getWalletById } from '@/features/rewardsWallet/mockWallets'
 import { getRedemptionRequestById } from '@/features/rewardsWallet/mockRedemptions'
 import { getCoinValueRuleById } from '@/features/rewardsWallet/mockCoinRules'
@@ -155,7 +151,6 @@ const CUSTOM_PATHS = new Set([
   '/scheme-management/schemes/general',
   '/scheme-management/schemes/sessional',
   '/scheme-management/gift-catalogue',
-  '/scheme-management/gift-rules',
   '/rewards-wallet/wallet-management',
   '/rewards-wallet/reward-redemptions',
   '/rewards-wallet/coin-value-rules/dealer',
@@ -245,10 +240,6 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/scheme-management/gift-catalogue',
   resolveEntityName: (id) => getGiftById(id)?.giftName,
-})
-registerDetailRoute({
-  parentPath: '/scheme-management/gift-rules',
-  resolveEntityName: (id) => getRewardRuleById(id)?.rewardName,
 })
 registerDetailRoute({
   parentPath: '/rewards-wallet/wallet-management',
@@ -539,22 +530,6 @@ export function AppRouter() {
           <Route
             path="/scheme-management/gift-catalogue/:giftId/edit"
             element={<GiftFormPage />}
-          />
-          <Route
-            path="/scheme-management/gift-rules"
-            element={<GiftRulesListPage />}
-          />
-          <Route
-            path="/scheme-management/gift-rules/new"
-            element={<GiftRuleFormPage />}
-          />
-          <Route
-            path="/scheme-management/gift-rules/:ruleId"
-            element={<GiftRuleDetailsPage />}
-          />
-          <Route
-            path="/scheme-management/gift-rules/:ruleId/edit"
-            element={<GiftRuleFormPage />}
           />
           <Route
             path="/rewards-wallet/wallet-management"

@@ -88,7 +88,7 @@ function buildHistory(seed: number, requestId: string, userSeed: number): Redemp
 }
 
 function buildRedemptionRequest(seed: number): RedemptionRequest {
-  const id = `redeem-req-${seed}`
+  const id = `RDM-${seed}`
   const userType: RedemptionUserType = seed % 2 === 0 ? 'Dealer' : 'Chemist'
   const partner = userType === 'Dealer' ? mockDealers[seed % mockDealers.length]! : mockChemists[seed % mockChemists.length]!
   const gift = mockGifts[seed % mockGifts.length]!

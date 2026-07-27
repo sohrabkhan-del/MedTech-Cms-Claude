@@ -40,7 +40,7 @@ export const activityTimeline: ActivityEvent[] = [
   { id: 'evt-1', actor: 'Rahul Mehta', action: 'approved dealer', target: 'Om Medical Store', timestamp: '8 min ago', linkTo: '/partners/dealers/dealer-1' },
   { id: 'evt-2', actor: 'System', action: 'flagged security alert for', target: 'Chemist #4021', timestamp: '24 min ago', linkTo: '/field-operations/security-alerts' },
   { id: 'evt-3', actor: 'Priya Nair', action: 'uploaded factory inventory batch', target: 'BTC-88291', timestamp: '1 hr ago', linkTo: '/inventory/factory-inventory-upload' },
-  { id: 'evt-4', actor: 'Amit Verma', action: 'redeemed reward for', target: 'Sunrise Pharma', timestamp: '2 hr ago', linkTo: '/rewards-wallet/reward-redemptions/redeem-req-1' },
+  { id: 'evt-4', actor: 'Amit Verma', action: 'redeemed reward for', target: 'Sunrise Pharma', timestamp: '2 hr ago', linkTo: '/rewards-wallet/reward-redemptions/RDM-1' },
   { id: 'evt-5', actor: 'System', action: 'closed scheme', target: 'Monsoon Bonanza 2026', timestamp: '5 hr ago', linkTo: '/scheme-management/schemes/sessional' },
 ]
 
@@ -119,10 +119,10 @@ export interface Redemption {
 }
 
 export const recentRedemptions: Redemption[] = [
-  { id: 'r1', requester: 'Om Medical Store', reward: 'Wireless Earbuds', points: 1200, status: 'approved', date: '13 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/redeem-req-1' },
-  { id: 'r2', requester: 'City Chemist', reward: 'Amazon Voucher ₹2000', points: 2000, status: 'pending', date: '12 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/redeem-req-2' },
-  { id: 'r3', requester: 'Sunrise Pharma', reward: 'Steel Cookware Set', points: 850, status: 'approved', date: '11 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/redeem-req-3' },
-  { id: 'r4', requester: 'Wellness Chemist', reward: 'Smart Watch', points: 3200, status: 'rejected', date: '10 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/redeem-req-4' },
+  { id: 'r1', requester: 'Om Medical Store', reward: 'Wireless Earbuds', points: 1200, status: 'approved', date: '13 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-1' },
+  { id: 'r2', requester: 'City Chemist', reward: 'Amazon Voucher ₹2000', points: 2000, status: 'pending', date: '12 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-2' },
+  { id: 'r3', requester: 'Sunrise Pharma', reward: 'Steel Cookware Set', points: 850, status: 'approved', date: '11 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-3' },
+  { id: 'r4', requester: 'Wellness Chemist', reward: 'Smart Watch', points: 3200, status: 'rejected', date: '10 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-4' },
 ]
 
 export interface SchemeProgress {

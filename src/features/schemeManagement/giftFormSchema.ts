@@ -11,6 +11,7 @@ export const giftFormSchema = z.object({
   requiredCoins: z.string().min(1, 'Required coins is required'),
   availableQuantity: z.string().min(1, 'Available quantity is required'),
   status: z.enum(['active', 'inactive']),
+  eligibleUserType: z.enum(['All', 'Dealer', 'Chemist']),
 })
 
 export type GiftFormValues = z.infer<typeof giftFormSchema>
@@ -26,4 +27,5 @@ export const giftFormDefaults: GiftFormValues = {
   requiredCoins: '',
   availableQuantity: '',
   status: 'active',
+  eligibleUserType: 'All',
 }

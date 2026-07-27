@@ -5,6 +5,7 @@ import { Bell, BellRing, CheckCheck, MailOpen } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
 import { useAppDispatch, useAppSelector } from '@/app/store/hooks'
+import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { markAllAsRead, markAsRead } from '@/features/notifications/slices/notificationsSlice'
 import { selectNotifications } from '@/features/notifications/slices/notificationsSelectors'
 import { categoryConfig, formatRelativeTime, priorityConfig } from '@/features/notifications/notificationDisplay'
@@ -14,6 +15,11 @@ export function NotificationsListPage() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const notifications = useAppSelector(selectNotifications)
+  useRegionTopbarHeader({
+    icon: <Bell size={20} />,
+    title: 'Notifications',
+    subtitle: 'Stay on top of approvals, alerts, and platform activity.',
+  })
   const [tab, setTab] = useState<'all' | 'unread'>('all')
 
   const unreadCount = notifications.filter((n) => !n.isRead).length

@@ -2,6 +2,7 @@ export type GiftStatus = 'active' | 'inactive'
 export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock'
 export type GiftUserType = 'Dealer' | 'Chemist' | 'MR'
 export type GiftDeliveryStatus = 'pending' | 'packed' | 'shipped' | 'delivered' | 'cancelled'
+export type GiftEligibility = 'All' | 'Dealer' | 'Chemist'
 
 export interface GiftRedemptionEntry {
   id: string
@@ -35,6 +36,7 @@ export interface Gift {
   availableQuantity: number
   redeemedQuantity: number
   status: GiftStatus
+  eligibleUserType: GiftEligibility
 
   redemptionHistory: GiftRedemptionEntry[]
   inventoryHistory: GiftInventoryEntry[]

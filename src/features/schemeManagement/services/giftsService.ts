@@ -4,6 +4,7 @@ import {
   giftCatalogueKpis,
   giftCategoryOptions,
   giftBrandOptions,
+  giftEligibilityOptions,
   resolveStockStatus,
 } from '@/features/schemeManagement/mockGifts'
 import type { Gift, GiftFormValues, StockStatus } from '@/features/schemeManagement/types/schemeManagement.types'
@@ -27,7 +28,7 @@ async function getGiftCatalogueKpis() {
 }
 
 async function getGiftFormOptions() {
-  return mockDelay({ giftCategoryOptions, giftBrandOptions })
+  return mockDelay({ giftCategoryOptions, giftBrandOptions, giftEligibilityOptions })
 }
 
 function getStockStatus(gift: Gift): StockStatus {

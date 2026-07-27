@@ -265,6 +265,7 @@ export function GiftDetailsPage() {
                 label: 'Required Coins',
                 value: gift.requiredCoins.toLocaleString('en-IN'),
               },
+              { label: 'Eligible User Type', value: gift.eligibleUserType },
               {
                 label: 'Current Status',
                 value: (

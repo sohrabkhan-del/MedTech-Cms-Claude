@@ -6,6 +6,7 @@ import type { Gift, GiftFormValues } from '@/features/schemeManagement/types/sch
 interface FormOptions {
   giftCategoryOptions: string[]
   giftBrandOptions: string[]
+  giftEligibilityOptions: string[]
 }
 
 interface LoadState {

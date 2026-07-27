@@ -1,11 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Box,
   Grid,
   MenuItem,
   Stack,
-  Tab,
-  Tabs,
   TextField,
   Typography,
 } from '@mui/material'
@@ -32,6 +31,7 @@ import type {
   GeoFenceUserType,
 } from '@/features/fieldOperations/types/fieldOperations.types'
 import type { PartnerZone } from '@/types/partner'
+import { radius, transitions } from '@/theme/tokens'
 
 interface GeoFenceFilters extends Record<string, unknown> {
   userType: GeoFenceUserType | 'all'
@@ -40,6 +40,12 @@ interface GeoFenceFilters extends Record<string, unknown> {
 }
 
 type RuleTab = 'all' | 'Chemist' | 'Dealer'
+
+const RULE_TABS: { label: string; value: RuleTab }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Chemist', value: 'Chemist' },
+  { label: 'Dealer', value: 'Dealer' },
+]
 
 export function GeoFenceManagementPage() {
   const navigate = useNavigate()
@@ -242,15 +248,51 @@ export function GeoFenceManagementPage() {
         </Grid>
       </Grid>
 
-      <Tabs
-        value={tab}
-        onChange={(_, value: RuleTab) => setTab(value)}
-        sx={{ mb: 2.5 }}
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{
+          mb: 2.5,
+          p: 0.5,
+          width: 'fit-content',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: `${radius.lg}px`,
+          backgroundColor: 'background.paper',
+        }}
       >
-        <Tab label="All" value="all" />
-        <Tab label="Chemist" value="Chemist" />
-        <Tab label="Dealer" value="Dealer" />
-      </Tabs>
+        {RULE_TABS.map(({ label, value }) => {
+          const active = tab === value
+          return (
+            <Box
+              key={value}
+              component="button"
+              type="button"
+              onClick={() => setTab(value)}
+              sx={{
+                border: '1px solid',
+                borderColor: active ? 'primary.main' : 'transparent',
+                cursor: 'pointer',
+                px: 2,
+                py: 0.75,
+                borderRadius: `${radius.md}px`,
+                fontSize: '0.8125rem',
+                fontWeight: 700,
+                fontFamily: 'inherit',
+                backgroundColor: active ? 'primary.light' : 'transparent',
+                color: active ? 'primary.dark' : 'text.secondary',
+                whiteSpace: 'nowrap',
+                transition: `background-color ${transitions.base}, color ${transitions.base}, border-color ${transitions.base}`,
+                '&:hover': {
+                  backgroundColor: active ? 'primary.light' : 'background.default',
+                },
+              }}
+            >
+              {label}
+            </Box>
+          )
+        })}
+      </Stack>
 
       <CommonTable
         tableKey="geo-fence-list"

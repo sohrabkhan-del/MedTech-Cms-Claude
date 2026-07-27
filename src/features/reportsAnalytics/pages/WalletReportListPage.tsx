@@ -43,12 +43,13 @@ interface WalletReportFilters extends Record<string, unknown> {
 export function WalletReportListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
+  const { reports, kpis, isLoading } = useWalletReports()
   useRegionTopbarHeader({
     icon: <FileBarChart2 size={20} />,
     title: 'Wallet Reports',
     subtitle: 'Displays wallet balances and transaction history.',
+    isLoading,
   })
-  const { reports, kpis, isLoading } = useWalletReports()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<WalletReportFilters>({
     userType: 'all',

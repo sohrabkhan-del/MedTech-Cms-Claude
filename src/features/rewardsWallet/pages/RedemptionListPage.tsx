@@ -45,13 +45,14 @@ interface RedemptionFilters extends Record<string, unknown> {
 
 export function RedemptionListPage() {
   const navigate = useNavigate()
+  const { redemptions, kpis, isLoading } = useRedemptions()
   useRegionTopbarHeader({
     icon: <Redo2 size={20} />,
     title: 'Redemption Requests',
     subtitle:
       'Review, approve, and track fulfillment of reward redemption requests.',
+    isLoading,
   })
-  const { redemptions, kpis, isLoading } = useRedemptions()
   const { rewardCategoryOptions } = useRedemptionFormOptions()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<RedemptionFilters>({

@@ -47,7 +47,7 @@ export function PartnerInviteLayout() {
         </Box>
 
         <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-          © {new Date().getFullYear()} MedTech. Caring for life.
+          © 2026. Medtech Life Pvt. Ltd
         </Typography>
       </Stack>
     </Box>

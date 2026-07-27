@@ -57,6 +57,7 @@ export function GiftCatalogueListPage() {
     title: 'Gift Catalogue',
     subtitle:
       'Manage all redeemable gifts available in the Rewards Marketplace.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<GiftFilters>({

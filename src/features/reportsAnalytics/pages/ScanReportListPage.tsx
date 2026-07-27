@@ -36,13 +36,14 @@ interface ScanReportFilters extends Record<string, unknown> {
 
 export function ScanReportListPage() {
   const navigate = useNavigate()
+  const { reports, kpis, filterOptions, isLoading } = useScanReports()
   useRegionTopbarHeader({
     icon: <ScanLine size={20} />,
     title: 'Scan Reports',
     subtitle:
       'Insights into barcode scanning activities performed by Dealers and Chemists.',
+    isLoading,
   })
-  const { reports, kpis, filterOptions, isLoading } = useScanReports()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ScanReportFilters>({
     scanResult: 'all',

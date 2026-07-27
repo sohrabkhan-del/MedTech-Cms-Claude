@@ -85,13 +85,6 @@ export function CoinValueRulesListPage() {
   const partnerType: CoinRulePartnerType =
     partnerTypeParam === 'chemist' ? 'Chemist' : 'Dealer'
 
-  useRegionTopbarHeader({
-    icon: <Coins size={20} />,
-    title: `Coin Value Rules — ${partnerType}`,
-    subtitle:
-      'Configure base coin values, regional multipliers, and monitor reward distribution impact.',
-  })
-
   const {
     rules: allRules,
     regionMultipliers,
@@ -100,6 +93,14 @@ export function CoinValueRulesListPage() {
     setBaseValueOverride,
     isLoading,
   } = useCoinRules()
+
+  useRegionTopbarHeader({
+    icon: <Coins size={20} />,
+    title: `Coin Value Rules — ${partnerType}`,
+    subtitle:
+      'Configure base coin values, regional multipliers, and monitor reward distribution impact.',
+    isLoading,
+  })
 
   const rules = useMemo(
     () => allRules.filter((rule) => rule.partnerType === partnerType),

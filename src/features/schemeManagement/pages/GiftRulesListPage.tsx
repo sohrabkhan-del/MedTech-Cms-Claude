@@ -38,14 +38,15 @@ import type {
 
 export function GiftRulesListPage() {
   const navigate = useNavigate()
+  const { permanentCatalogRewards, schemeTrackRewards, dashboard, isLoading } =
+    useGiftRules()
   useRegionTopbarHeader({
     icon: <Sparkles size={20} />,
     title: 'Gifting Rules Engine',
     subtitle:
       'Manage permanent catalog rewards and limited-time scheme rewards.',
+    isLoading,
   })
-  const { permanentCatalogRewards, schemeTrackRewards, dashboard, isLoading } =
-    useGiftRules()
   const { ruleTypeOptions } = useGiftRuleFormOptions()
   const [search, setSearch] = useState('')
   const [ruleType, setRuleType] = useState<RuleType | 'all'>('all')

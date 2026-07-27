@@ -31,6 +31,7 @@ export function AdminListPage() {
     icon: <BadgeCheckIcon size={20} />,
     title: 'Admin Management',
     subtitle: 'Manage administrator accounts, region access, and account status.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<AdminFilters>({

@@ -35,6 +35,7 @@ export function GeneralSchemesListPage() {
     icon: <Target size={20} />,
     title: 'General Schemes',
     subtitle: 'Permanent, long-running reward schemes available throughout the year.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<GeneralSchemeFilters>({

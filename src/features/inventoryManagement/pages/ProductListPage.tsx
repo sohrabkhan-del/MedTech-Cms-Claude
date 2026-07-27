@@ -41,6 +41,7 @@ export function ProductListPage() {
     title: 'Product Master',
     subtitle:
       'Centralized repository for all products and their reward point configuration.',
+    isLoading: isLoading || categoriesLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'products' | 'categories'>('products')

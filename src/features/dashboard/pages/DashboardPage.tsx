@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Grid } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -23,26 +22,18 @@ import { LeaderboardWidget } from '@/features/dashboard/components/LeaderboardWi
 import { NotificationsWidget } from '@/features/dashboard/components/NotificationsWidget'
 import { useDashboardOverview } from '@/features/dashboard/hooks/useDashboardOverview'
 import { useDashboardWidgetsData } from '@/features/dashboard/hooks/useDashboardWidgetsData'
+import { SchemePerformanceChart } from '@/features/dashboard/components/SchemePerformanceChart'
 
 export function DashboardPage() {
   const navigate = useNavigate()
   const { overview, isLoading: overviewLoading } = useDashboardOverview()
   const { data: widgets, isLoading: widgetsLoading } = useDashboardWidgetsData()
-  const isLoaded = !overviewLoading && !widgetsLoading
-
-  const [lastUpdated, setLastUpdated] = useState<Date | undefined>(undefined)
-  const [wasLoaded, setWasLoaded] = useState(false)
-  if (isLoaded && !wasLoaded) {
-    setWasLoaded(true)
-    setLastUpdated(new Date())
-  }
-
   useRegionTopbarHeader({
     icon: <LayoutDashboard size={20} />,
     title: 'Dashboard',
     subtitle:
       'Real-time overview of scans, rewards, and schemes across the network.',
-    lastUpdated,
+    isLoading: overviewLoading || widgetsLoading,
   })
 
   const dealerLeaderboard = overview?.dealerLeaderboard ?? []
@@ -139,12 +130,21 @@ export function DashboardPage() {
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, lg: 12 }}>
+        <Grid size={{ xs: 12, lg: 8 }}>
           {widgetsLoading ? (
             <WidgetCardSkeleton bodyHeight={320} />
           ) : (
             <ScanActivityChart
               scanActivityTrend={widgets?.scanActivityTrend ?? []}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, lg: 4 }}>
+          {widgetsLoading ? (
+            <WidgetCardSkeleton bodyHeight={320} />
+          ) : (
+            <SchemePerformanceChart
+              schemePerformance={widgets?.schemePerformance ?? []}
             />
           )}
         </Grid>
@@ -179,7 +179,7 @@ export function DashboardPage() {
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           {overviewLoading ? (
             <WidgetCardSkeleton />
           ) : (
@@ -191,7 +191,7 @@ export function DashboardPage() {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
           {overviewLoading ? (
             <WidgetCardSkeleton />
           ) : (
@@ -200,6 +200,18 @@ export function DashboardPage() {
               title="Top Chemists"
               subtitle="Ranked by redemptions"
               linkTo="/partners/chemists"
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, md: 6, lg: 4 }}>
+          {overviewLoading ? (
+            <WidgetCardSkeleton />
+          ) : (
+            <LeaderboardWidget
+              leaderboard={topProducts}
+              title="Top Products"
+              subtitle="Ranked by units scanned"
+              linkTo="/inventory/product-master"
             />
           )}
         </Grid>
@@ -223,23 +235,11 @@ export function DashboardPage() {
           )}
         </Grid>
 
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
+        <Grid size={{ xs: 12, md: 6, lg: 12 }}>
           {widgetsLoading ? (
             <WidgetCardSkeleton />
           ) : (
             <NotificationsWidget notifications={widgets?.notifications ?? []} />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, md: 6, lg: 6 }}>
-          {overviewLoading ? (
-            <WidgetCardSkeleton />
-          ) : (
-            <LeaderboardWidget
-              leaderboard={topProducts}
-              title="Top Products"
-              subtitle="Ranked by units scanned"
-              linkTo="/inventory/product-master"
-            />
           )}
         </Grid>
       </Grid>

@@ -77,13 +77,14 @@ interface ScanLogFilters extends Record<string, unknown> {
 
 export function MasterScanLogListPage() {
   const navigate = useNavigate()
+  const { logs, kpis, filterOptions, isLoading } = useMasterScanLogs()
   useRegionTopbarHeader({
     icon: <ListTreeIcon size={20} />,
     title: 'Master Scan Table Logs',
     subtitle:
       'End-to-end product traceability across the supply chain — read-only.',
+    isLoading,
   })
-  const { logs, kpis, filterOptions, isLoading } = useMasterScanLogs()
   const [view, setView] = useState<'table' | 'tree' | 'bubble'>('table')
   const [filterOpen, setFilterOpen] = useState(false)
   const [bubbleProducts, setBubbleProducts] = useState<string[]>([])

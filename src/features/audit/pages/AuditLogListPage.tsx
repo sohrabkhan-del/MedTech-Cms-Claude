@@ -34,12 +34,13 @@ interface AuditLogFilters extends Record<string, unknown> {
 
 export function AuditLogListPage() {
   const navigate = useNavigate()
+  const { logs, kpis, filterOptions, isLoading } = useAuditLogs()
   useRegionTopbarHeader({
     icon: <ClipboardListIcon size={20} />,
     title: 'Audit Logs',
     subtitle: 'Complete history of user and system activities across the platform.',
+    isLoading,
   })
-  const { logs, kpis, filterOptions, isLoading } = useAuditLogs()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<AuditLogFilters>({
     module: 'all',

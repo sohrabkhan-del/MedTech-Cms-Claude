@@ -39,13 +39,14 @@ interface RewardReportFilters extends Record<string, unknown> {
 
 export function RewardReportListPage() {
   const navigate = useNavigate()
+  const { reports, kpis, filterOptions, isLoading } = useRewardReports()
   useRegionTopbarHeader({
     icon: <Gift size={20} />,
     title: 'Reward Reports',
     subtitle:
       'Reward earning and redemption analytics across Dealers, Chemists, and MRs.',
+    isLoading,
   })
-  const { reports, kpis, filterOptions, isLoading } = useRewardReports()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<RewardReportFilters>({
     userType: 'all',

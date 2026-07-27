@@ -27,7 +27,7 @@ for (const product of mockProducts) {
 
 const topProducts: EntityLeaderboardEntry[] = [...topProductsByName.values()]
   .sort((a, b) => b.totalSuccessfulScans - a.totalSuccessfulScans)
-  .slice(0, 5)
+  .slice(0, 10)
   .map((product, index) => ({
     id: product.id,
     rank: index + 1,

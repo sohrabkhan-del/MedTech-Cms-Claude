@@ -40,6 +40,7 @@ export function DealerListPage() {
     icon: <StorefrontIcon size={20} />,
     title: 'Dealers',
     subtitle: 'Registered dealer partners across the network.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<DealerFilters>({

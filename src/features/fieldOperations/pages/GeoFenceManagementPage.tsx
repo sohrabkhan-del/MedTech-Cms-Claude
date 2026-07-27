@@ -50,6 +50,7 @@ export function GeoFenceManagementPage() {
     title: 'Geo Fence Management',
     subtitle:
       'Manage location-based scan validation for Dealers, Chemists, and MRs.',
+    isLoading,
   })
   const [tab, setTab] = useState<RuleTab>('all')
   const [filterOpen, setFilterOpen] = useState(false)

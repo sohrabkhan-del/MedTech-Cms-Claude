@@ -12,7 +12,8 @@ export function AuthLayout() {
         justifyContent: 'center',
         overflow: 'hidden',
         p: 3,
-        background: 'linear-gradient(160deg, #F5F7FC 0%, #EDF1FA 45%, #F5F7FC 100%)',
+        background:
+          'linear-gradient(160deg, #F5F7FC 0%, #EDF1FA 45%, #F5F7FC 100%)',
       }}
     >
       <Box
@@ -21,7 +22,8 @@ export function AuthLayout() {
           width: 560,
           height: 560,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(26,62,140,0.10) 0%, rgba(26,62,140,0) 70%)',
+          background:
+            'radial-gradient(circle, rgba(26,62,140,0.10) 0%, rgba(26,62,140,0) 70%)',
           top: -220,
           right: -180,
         }}
@@ -32,19 +34,28 @@ export function AuthLayout() {
           width: 480,
           height: 480,
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(247,148,29,0.10) 0%, rgba(247,148,29,0) 70%)',
+          background:
+            'radial-gradient(circle, rgba(247,148,29,0.10) 0%, rgba(247,148,29,0) 70%)',
           bottom: -200,
           left: -160,
         }}
       />
 
-      <Stack spacing={3} sx={{ position: 'relative', alignItems: 'center', width: '100%', maxWidth: 420 }}>
+      <Stack
+        spacing={3}
+        sx={{
+          position: 'relative',
+          alignItems: 'center',
+          width: '100%',
+          maxWidth: 480,
+        }}
+      >
         <Box sx={{ width: '100%' }}>
           <Outlet />
         </Box>
 
         <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-          © {new Date().getFullYear()} MedTech. Caring for life.
+          © 2026. Medtech Life Pvt. Ltd
         </Typography>
       </Stack>
     </Box>

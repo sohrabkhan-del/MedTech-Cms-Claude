@@ -8,3 +8,14 @@ export function formatLastUpdated(date: Date): string {
   const diffDays = Math.round(diffHours / 24)
   return `Updated ${diffDays}d ago`
 }
+
+export function formatExactDateTime(date: Date): string {
+  return date.toLocaleString('en-IN', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+}

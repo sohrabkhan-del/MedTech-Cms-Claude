@@ -30,12 +30,13 @@ interface CategoryFilters extends Record<string, unknown> {
 
 export function ProductCategoryListPage() {
   const navigate = useNavigate()
+  const { categories, kpis, isLoading } = useProductCategories()
   useRegionTopbarHeader({
     icon: <SlidersHorizontalIcon size={20} />,
     title: 'Product Categories',
     subtitle: 'Organize MedTech products into categories for reporting, schemes, and analytics.',
+    isLoading,
   })
-  const { categories, kpis, isLoading } = useProductCategories()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<CategoryFilters>({
     status: 'all',

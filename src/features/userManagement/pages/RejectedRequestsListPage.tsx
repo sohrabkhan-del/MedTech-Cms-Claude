@@ -39,6 +39,7 @@ export function RejectedRequestsListPage() {
     icon: <BlockIcon size={20} />,
     title: 'Rejected Requests',
     subtitle: 'Manage all Dealer and Chemist onboarding requests that have been rejected.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<RejectedFilters>({

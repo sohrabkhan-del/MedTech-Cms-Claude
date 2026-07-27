@@ -49,12 +49,16 @@ export function LiveScanFeedPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
 
+  const { liveScans, newRowIds, isLive, toggleLive, isLoading } =
+    useLiveScanFeed()
+
   useRegionTopbarHeader({
     icon: <MyLocationIcon size={20} />,
     title: 'Live Scan Feed',
     subtitle:
       'Real-time barcode scanning activity across Dealers and Chemists.',
     live: true,
+    isLoading,
   })
 
   const [filterOpen, setFilterOpen] = useState(false)
@@ -62,9 +66,6 @@ export function LiveScanFeedPage() {
     userRole: 'all',
     result: 'all',
   })
-
-  const { liveScans, newRowIds, isLive, toggleLive, isLoading } =
-    useLiveScanFeed()
 
   const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 

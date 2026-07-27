@@ -42,6 +42,7 @@ export function ChemistListPage() {
     icon: <LocalPharmacyIcon size={20} />,
     title: 'Chemists',
     subtitle: 'Registered chemist partners with geo-tagged shops.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ChemistFilters>({

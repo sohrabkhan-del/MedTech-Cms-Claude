@@ -36,6 +36,7 @@ export function ApprovalRequestsListPage() {
     icon: <RuleIcon size={20} />,
     title: 'Approval Requests',
     subtitle: 'Review and process Dealer and Chemist onboarding requests.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ApprovalFilters>({

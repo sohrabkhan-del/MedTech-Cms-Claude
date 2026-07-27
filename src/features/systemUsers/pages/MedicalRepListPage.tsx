@@ -31,6 +31,7 @@ export function MedicalRepListPage() {
     icon: <UserRoundIcon size={20} />,
     title: 'Medical Representatives',
     subtitle: 'Manage field representatives, region access, and partner onboarding.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<MrFilters>({

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
-import { Box, Typography } from '@mui/material'
+import { Box, Stack, Tooltip, Typography } from '@mui/material'
+import { Calendar, RefreshCw } from 'lucide-react'
 import { Sidebar } from '@/components/layout/Sidebar/Sidebar'
 import { Header } from '@/components/layout/Header/Header'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs/Breadcrumbs'
@@ -11,7 +12,10 @@ import {
   RegionFilterProvider,
   useRegionFilter,
 } from '@/contexts/RegionFilterContext'
-import { formatLastUpdated } from '@/utils/formatLastUpdated'
+import { formatLastUpdated, formatExactDateTime } from '@/utils/formatLastUpdated'
+import { radius } from '@/theme/tokens'
+
+const DEFAULT_DATE_RANGE_PRESET = 'Last 30 Days'
 
 function GlobalRegionTopbar() {
   const location = useLocation()
@@ -37,9 +41,10 @@ function GlobalRegionTopbar() {
 }
 
 function LastUpdatedLabel() {
-  const { header } = useRegionFilter()
+  const { header, dateRange } = useRegionFilter()
   const [, forceTick] = useState(0)
   const lastUpdated = header?.lastUpdated
+  const isDateRangeApplied = dateRange.presetLabel !== DEFAULT_DATE_RANGE_PRESET
 
   useEffect(() => {
     if (!lastUpdated) return
@@ -50,12 +55,33 @@ function LastUpdatedLabel() {
   if (!lastUpdated) return null
 
   return (
-    <Typography
-      variant="caption"
-      sx={{ color: 'text.disabled', fontWeight: 600 }}
-    >
-      {formatLastUpdated(lastUpdated)}
-    </Typography>
+    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+      {isDateRangeApplied && (
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'secondary.dark',
+            fontWeight: 700,
+            backgroundColor: 'secondary.light',
+            borderRadius: '999px',
+            px: 1,
+            py: 0.25,
+          }}
+        >
+          {dateRange.presetLabel === 'Custom Range' && dateRange.from && dateRange.to
+            ? `${dateRange.from} – ${dateRange.to}`
+            : dateRange.presetLabel}
+        </Typography>
+      )}
+      <Tooltip title={formatExactDateTime(lastUpdated)}>
+        <Typography
+          variant="caption"
+          sx={{ color: 'text.disabled', fontWeight: 600 }}
+        >
+          {formatLastUpdated(lastUpdated)}
+        </Typography>
+      </Tooltip>
+    </Stack>
   )
 }
 

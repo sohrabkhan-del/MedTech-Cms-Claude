@@ -56,6 +56,7 @@ export function SeasonalSchemesListPage() {
     title: 'Seasonal Schemes',
     subtitle:
       'Limited-time promotional campaigns for festivals and special events.',
+    isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<SeasonalSchemeFilters>({

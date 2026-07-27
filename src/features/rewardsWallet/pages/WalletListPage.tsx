@@ -45,13 +45,14 @@ interface WalletFilters extends Record<string, unknown> {
 export function WalletListPage() {
   const navigate = useNavigate()
   const { region } = useRegionFilter()
+  const { wallets, kpis, isLoading } = useWallets()
   useRegionTopbarHeader({
     icon: <WalletIcon size={20} />,
     title: 'Wallet Directory',
     subtitle:
       'Manage wallet balances, reward points, and transaction history for Dealers and Chemists.',
+    isLoading,
   })
-  const { wallets, kpis, isLoading } = useWallets()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<WalletFilters>({
     userType: 'all',

@@ -8,9 +8,9 @@ export const MuiTableCell: Components<Theme>['MuiTableCell'] = {
       fontSize: '0.75rem',
       fontWeight: 700,
       letterSpacing: '0.04em',
-      color: theme.palette.text.secondary,
-      backgroundColor: theme.palette.background.default,
-      borderBottom: `1px solid ${theme.palette.divider}`,
+      color: theme.palette.primary.dark,
+      backgroundColor: theme.palette.primary.light,
+
       paddingTop: 14,
       paddingBottom: 14,
     }),

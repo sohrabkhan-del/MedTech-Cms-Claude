@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Box,
   Chip,
   Grid,
   MenuItem,
@@ -16,6 +17,7 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useWallets } from '@/features/rewardsWallet/hooks/useWallets'
@@ -35,8 +37,15 @@ const statusConfig: Record<
   suspended: { label: 'Suspended', color: 'error' },
 }
 
+type UserTypeTab = 'all' | WalletUserType
+
+const USER_TYPE_TABS: { label: string; value: UserTypeTab }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Chemist', value: 'Chemist' },
+  { label: 'Dealer', value: 'Dealer' },
+]
+
 interface WalletFilters extends Record<string, unknown> {
-  userType: WalletUserType | 'all'
   status: WalletStatus | 'all'
   fromDate: string
   toDate: string
@@ -53,9 +62,9 @@ export function WalletListPage() {
       'Manage wallet balances, reward points, and transaction history for Dealers and Chemists.',
     isLoading,
   })
+  const [userTypeTab, setUserTypeTab] = useState<UserTypeTab>('all')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<WalletFilters>({
-    userType: 'all',
     status: 'all',
     fromDate: '',
     toDate: '',
@@ -68,14 +77,13 @@ export function WalletListPage() {
       wallets.filter((wallet) => {
         const regionMatch = !regionZone || wallet.region === regionZone
         const userTypeMatch =
-          appliedFilters.userType === 'all' ||
-          wallet.userType === appliedFilters.userType
+          userTypeTab === 'all' || wallet.userType === userTypeTab
         const statusMatch =
           appliedFilters.status === 'all' ||
           wallet.status === appliedFilters.status
         return regionMatch && userTypeMatch && statusMatch
       }),
-    [wallets, appliedFilters, regionZone],
+    [wallets, appliedFilters, regionZone, userTypeTab],
   )
 
   const columns: CommonTableColumn<Wallet>[] = [
@@ -228,6 +236,14 @@ export function WalletListPage() {
         </Grid>
       </Grid>
 
+      <Box sx={{ mb: 2.5, mt: 7 }}>
+        <ModularTabs
+          tabs={USER_TYPE_TABS}
+          value={userTypeTab}
+          onChange={setUserTypeTab}
+        />
+      </Box>
+
       <CommonTable
         tableKey="wallet-directory-list"
         columns={columns}
@@ -240,7 +256,6 @@ export function WalletListPage() {
         }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          (appliedFilters.userType !== 'all' ? 1 : 0) +
           (appliedFilters.status !== 'all' ? 1 : 0) +
           (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
         }
@@ -266,22 +281,6 @@ export function WalletListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
-            <TextField
-              select
-              label="User Type"
-              size="small"
-              value={draft.userType}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  userType: e.target.value as WalletFilters['userType'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Types</MenuItem>
-              <MenuItem value="Dealer">Dealer</MenuItem>
-              <MenuItem value="Chemist">Chemist</MenuItem>
-            </TextField>
             <TextField
               select
               label="Wallet Status"

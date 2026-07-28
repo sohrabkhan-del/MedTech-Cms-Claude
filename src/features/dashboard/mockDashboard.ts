@@ -42,6 +42,16 @@ export const activityTimeline: ActivityEvent[] = [
   { id: 'evt-3', actor: 'Priya Nair', action: 'uploaded factory inventory batch', target: 'BTC-88291', timestamp: '1 hr ago', linkTo: '/inventory/factory-inventory-upload' },
   { id: 'evt-4', actor: 'Amit Verma', action: 'redeemed reward for', target: 'Sunrise Pharma', timestamp: '2 hr ago', linkTo: '/rewards-wallet/reward-redemptions/RDM-1' },
   { id: 'evt-5', actor: 'System', action: 'closed scheme', target: 'Monsoon Bonanza 2026', timestamp: '5 hr ago', linkTo: '/scheme-management/schemes/sessional' },
+  { id: 'evt-6', actor: 'Neha Joshi', action: 'rejected onboarding request for', target: 'City Medical Godown', timestamp: '6 hr ago', linkTo: '/verification/rejected-requests' },
+  { id: 'evt-7', actor: 'Vikram Singh', action: 'updated geo-fence rule for', target: 'Wellness Medical Godown', timestamp: '7 hr ago', linkTo: '/field-operations/geo-fence-management' },
+  { id: 'evt-8', actor: 'System', action: 'issued reward points to', target: 'Apollo Chemist', timestamp: '9 hr ago', linkTo: '/rewards-wallet/wallet-management' },
+  { id: 'evt-9', actor: 'Sunita Rao', action: 'added gift product to', target: 'Diwali Double Rewards', timestamp: '11 hr ago', linkTo: '/scheme-management/schemes' },
+  { id: 'evt-10', actor: 'System', action: 'auto-verified live scan for', target: 'Care Plus Medical Godown', timestamp: '13 hr ago', linkTo: '/field-operations/live-scan-feed' },
+  { id: 'evt-11', actor: 'Kavita Reddy', action: 'updated coin value rule for', target: 'Nebulizers', timestamp: '15 hr ago', linkTo: '/rewards-wallet/coin-value-rules/dealer' },
+  { id: 'evt-12', actor: 'Rohan Gupta', action: 'approved chemist', target: 'Sunrise Chemist', timestamp: '18 hr ago', linkTo: '/partners/chemists' },
+  { id: 'evt-13', actor: 'System', action: 'generated audit log entry for', target: 'Product Master sync', timestamp: '20 hr ago', linkTo: '/audit/audit-logs' },
+  { id: 'evt-14', actor: 'Priya Nair', action: 'uploaded distributor inventory batch', target: 'BTC-88304', timestamp: '1 day ago', linkTo: '/inventory/distributor-upload' },
+  { id: 'evt-15', actor: 'Amit Verma', action: 'marked delivery completed for', target: 'RDM-22', timestamp: '1 day ago', linkTo: '/rewards-wallet/reward-redemptions' },
 ]
 
 export interface RecentScan {

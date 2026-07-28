@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Stack, Typography } from '@mui/material'
-import { Download as DownloadOutlined, Factory as FactoryOutlined } from 'lucide-react'
+import { Box, Button, Dialog, DialogContent, Stack, Typography } from '@mui/material'
+import { CircleCheck, Download as DownloadOutlined, Factory as FactoryOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
+import { radius } from '@/theme/tokens'
 import { useFactoryUpload } from '@/features/inventoryManagement/hooks/useFactoryUpload'
+import type { FactoryBatch } from '@/types/factoryUpload'
 
 export function FactoryUploadFormPage() {
   const navigate = useNavigate()
   const [manifestFile, setManifestFile] = useState<File | null>(null)
   const [supportingFile, setSupportingFile] = useState<File | null>(null)
+  const [uploadedBatch, setUploadedBatch] = useState<FactoryBatch | null>(null)
   const { uploadFiles, isUploading } = useFactoryUpload()
 
   const bothSelected = !!manifestFile && !!supportingFile
@@ -17,7 +20,17 @@ export function FactoryUploadFormPage() {
   const handleContinue = async () => {
     if (!manifestFile || !supportingFile) return
     const batch = await uploadFiles(manifestFile, supportingFile)
-    if (batch) navigate(`/inventory/factory-inventory-upload/${batch.id}`)
+    if (batch) setUploadedBatch(batch)
+  }
+
+  const handleViewBatch = () => {
+    if (uploadedBatch) navigate(`/inventory/factory-inventory-upload/${uploadedBatch.id}`)
+  }
+
+  const handleUploadAnother = () => {
+    setUploadedBatch(null)
+    setManifestFile(null)
+    setSupportingFile(null)
   }
 
   return (
@@ -89,6 +102,55 @@ export function FactoryUploadFormPage() {
           </Stack>
         </SectionCard>
       </Stack>
+
+      <Dialog
+        open={!!uploadedBatch}
+        onClose={handleUploadAnother}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: { sx: { borderRadius: `${radius.xl}px` } },
+        }}
+      >
+        <DialogContent sx={{ px: 3, pt: 4, pb: 3 }}>
+          <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center' }}>
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'success.light',
+                color: 'success.main',
+              }}
+            >
+              <CircleCheck size={30} />
+            </Box>
+            <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
+              Manifest Uploaded Successfully
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              {uploadedBatch && (
+                <>
+                  Batch <strong>{uploadedBatch.batchNumber}</strong> has been
+                  created with {uploadedBatch.totalProducts.toLocaleString('en-IN')}{' '}
+                  product(s).
+                </>
+              )}
+            </Typography>
+            <Stack direction="row" spacing={1.5} sx={{ width: '100%' }}>
+              <Button variant="outlined" fullWidth onClick={handleUploadAnother}>
+                Upload Another
+              </Button>
+              <Button variant="contained" fullWidth onClick={handleViewBatch}>
+                View Batch
+              </Button>
+            </Stack>
+          </Stack>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

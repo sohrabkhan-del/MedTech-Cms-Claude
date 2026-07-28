@@ -75,7 +75,11 @@ export function ProductFormPage() {
           removeImage={removeImage}
         />
 
-        <Stack direction="row" spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ width: '100%', justifyContent: 'flex-end' }}
+        >
           <Button type="submit" variant="contained" loading={isSubmitting}>
             {isEdit ? 'Save Changes' : 'Create Product'}
           </Button>

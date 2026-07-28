@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Box,
   Chip,
   Grid,
   MenuItem,
@@ -16,6 +17,7 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useRedemptions } from '@/features/rewardsWallet/hooks/useRedemptions'
 import { useRedemptionFormOptions } from '@/features/rewardsWallet/hooks/useRedemptionFormOptions'
@@ -35,9 +37,16 @@ const statusConfig: Record<
   completed: { label: 'Completed', color: 'success' },
 }
 
+type UserTypeTab = 'all' | RedemptionUserType
+
+const USER_TYPE_TABS: { label: string; value: UserTypeTab }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Chemist', value: 'Chemist' },
+  { label: 'Dealer', value: 'Dealer' },
+]
+
 interface RedemptionFilters extends Record<string, unknown> {
   status: RedemptionStatus | 'all'
-  userType: RedemptionUserType | 'all'
   rewardCategory: string | 'all'
   fromDate: string
   toDate: string
@@ -54,10 +63,10 @@ export function RedemptionListPage() {
     isLoading,
   })
   const { rewardCategoryOptions } = useRedemptionFormOptions()
+  const [userTypeTab, setUserTypeTab] = useState<UserTypeTab>('all')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<RedemptionFilters>({
     status: 'all',
-    userType: 'all',
     rewardCategory: 'all',
     fromDate: '',
     toDate: '',
@@ -70,14 +79,13 @@ export function RedemptionListPage() {
           appliedFilters.status === 'all' ||
           request.redemptionStatus === appliedFilters.status
         const userTypeMatch =
-          appliedFilters.userType === 'all' ||
-          request.userType === appliedFilters.userType
+          userTypeTab === 'all' || request.userType === userTypeTab
         const categoryMatch =
           appliedFilters.rewardCategory === 'all' ||
           request.rewardCategory === appliedFilters.rewardCategory
         return statusMatch && userTypeMatch && categoryMatch
       }),
-    [redemptions, appliedFilters],
+    [redemptions, appliedFilters, userTypeTab],
   )
 
   const columns: CommonTableColumn<RedemptionRequest>[] = [
@@ -212,6 +220,14 @@ export function RedemptionListPage() {
         </Grid>
       </Grid>
 
+      <Box sx={{ mb: 2.5, mt: 7 }}>
+        <ModularTabs
+          tabs={USER_TYPE_TABS}
+          value={userTypeTab}
+          onChange={setUserTypeTab}
+        />
+      </Box>
+
       <CommonTable
         tableKey="redemption-requests-list"
         columns={columns}
@@ -223,7 +239,6 @@ export function RedemptionListPage() {
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +
-          (appliedFilters.userType !== 'all' ? 1 : 0) +
           (appliedFilters.rewardCategory !== 'all' ? 1 : 0) +
           (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
         }
@@ -272,22 +287,6 @@ export function RedemptionListPage() {
               <MenuItem value="approved">Approved</MenuItem>
               <MenuItem value="rejected">Rejected</MenuItem>
               <MenuItem value="completed">Completed</MenuItem>
-            </TextField>
-            <TextField
-              select
-              label="User Type"
-              size="small"
-              value={draft.userType}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  userType: e.target.value as RedemptionFilters['userType'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Types</MenuItem>
-              <MenuItem value="Dealer">Dealer</MenuItem>
-              <MenuItem value="Chemist">Chemist</MenuItem>
             </TextField>
             <TextField
               select

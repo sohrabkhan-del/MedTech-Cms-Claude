@@ -43,6 +43,64 @@ const catalogEntries = Object.entries(productCatalog).flatMap(([category, names]
 )
 const brands = ['MedTech Labs', 'Apollo Pharma', 'National Remedies', 'Sunrise Biotech']
 
+/** Real stock photo per product category (Unsplash direct CDN — stable, hotlink-safe URLs), 3 angles each. */
+export const categoryImages: Record<string, string[]> = {
+  Nebulizers: [
+    'https://images.unsplash.com/photo-1584362917165-526a968579e8?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1583912267550-d44c9c3d7e6c?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+  'Blood Pressure Monitors': [
+    'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1666214280391-8ff5bd3c0bf0?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1579154204601-01588f351e67?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+  'Heating Pads': [
+    'https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+  Massagers: [
+    'https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1611072965169-e3a3a9c19e5f?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+  'Steam Inhalers': [
+    'https://images.unsplash.com/photo-1584362917165-526a968579e8?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1631815589968-fdb09a223b1e?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1583912267550-d44c9c3d7e6c?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+  'Digital Thermometers': [
+    'https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1583947581924-a640ca246e01?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1631815587646-b85a1bb027e1?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+  'Pulse Oximeters': [
+    'https://images.unsplash.com/photo-1585435557343-3b092031a831?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1583912267550-d44c9c3d7e6c?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+  'Oxygen Concentrators': [
+    'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1516549655169-df83a0774514?auto=format&fit=crop&w=600&h=600&q=80',
+    'https://images.unsplash.com/photo-1584362917165-526a968579e8?auto=format&fit=crop&w=600&h=600&q=80',
+  ],
+}
+const fallbackProductImages = [
+  'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?auto=format&fit=crop&w=600&h=600&q=80',
+  'https://images.unsplash.com/photo-1583324113626-70df0f4deaab?auto=format&fit=crop&w=600&h=600&q=80',
+  'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?auto=format&fit=crop&w=600&h=600&q=80',
+]
+
+function productImagesFor(category: string): string[] {
+  return categoryImages[category] ?? fallbackProductImages
+}
+
+/** Single representative thumbnail for a category (first angle from its image set). */
+export function categoryThumbnailFor(category: string): string {
+  return productImagesFor(category)[0]!
+}
+
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
   const frac = x - Math.floor(x)
@@ -139,11 +197,7 @@ function buildProduct(seed: number): Product {
     uploadedDate: dateFromSeed(seed),
 
     description: `${name} is a home healthcare device from the ${entry.category} range, designed for reliable everyday use.`,
-    productImages: [
-      `https://picsum.photos/seed/medtech-product-${seed}-a/600/600`,
-      `https://picsum.photos/seed/medtech-product-${seed}-b/600/600`,
-      `https://picsum.photos/seed/medtech-product-${seed}-c/600/600`,
-    ],
+    productImages: productImagesFor(entry.category),
     sku: `SKU-${100000 + seed * 13}`,
     brand: brands[seed % brands.length]!,
     mrp: seededNumber(seed, 50, 900),

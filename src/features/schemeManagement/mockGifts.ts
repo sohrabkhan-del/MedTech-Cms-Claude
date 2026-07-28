@@ -9,6 +9,18 @@ export const giftEligibilityOptions: GiftEligibility[] = ['All', 'Dealer', 'Chem
 
 const giftNames = ['Smart Watch', 'Electric Kettle', 'Bluetooth Speaker', 'Insulated Bottle', 'Travel Backpack', 'Gift Voucher ₹500', 'Non-Stick Cookware Set', 'Wireless Earbuds']
 
+/** Real stock photo per gift item (Unsplash direct CDN — stable, hotlink-safe URLs), matched 1:1 with giftNames. */
+const giftImagesByName: Record<string, string> = {
+  'Smart Watch': 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&h=600&q=80',
+  'Electric Kettle': 'https://images.unsplash.com/photo-1585237672814-8c0ba24b8b1d?auto=format&fit=crop&w=600&h=600&q=80',
+  'Bluetooth Speaker': 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=600&h=600&q=80',
+  'Insulated Bottle': 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=600&h=600&q=80',
+  'Travel Backpack': 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=600&h=600&q=80',
+  'Gift Voucher ₹500': 'https://images.unsplash.com/photo-1549465220-1a8b9238cd48?auto=format&fit=crop&w=600&h=600&q=80',
+  'Non-Stick Cookware Set': 'https://images.unsplash.com/photo-1584990347449-a5d9f800a783?auto=format&fit=crop&w=600&h=600&q=80',
+  'Wireless Earbuds': 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=600&h=600&q=80',
+}
+
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
   const frac = x - Math.floor(x)
@@ -62,7 +74,7 @@ function buildGift(seed: number): Gift {
     giftName: name,
     category: giftCategoryOptions[seed % giftCategoryOptions.length]!,
     brand: giftBrandOptions[seed % giftBrandOptions.length]!,
-    giftImage: `https://picsum.photos/seed/medtech-gift-${seed}/600/600`,
+    giftImage: giftImagesByName[name]!,
     description: `${name} is a redeemable reward available in the MedTech Rewards Marketplace for eligible Dealers and Chemists.`,
     sku: `SKU-GIFT-${100000 + seed * 7}`,
     price: seededNumber(seed, 199, 4999),

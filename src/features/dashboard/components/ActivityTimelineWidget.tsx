@@ -21,7 +21,7 @@ export function ActivityTimelineWidget({ activityTimeline }: ActivityTimelineWid
       onDateRangeChange={setDateRange}
       onCardClick={() => navigate('/audit/audit-logs')}
     >
-      <Stack spacing={0}>
+      <Stack spacing={0} sx={{ maxHeight: 360, overflowY: 'auto' }}>
         {activityTimeline.map((event, index) => (
           <Stack
             key={event.id}

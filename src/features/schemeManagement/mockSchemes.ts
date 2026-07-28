@@ -18,6 +18,18 @@ const REGIONS: PartnerZone[] = ['East', 'West', 'North', 'South']
 const generalSchemeNames = ['Loyalty Growth Program', 'Volume Achiever Plan', 'Steady Rewards Circle', 'Annual Performance Bonus', 'Partner Growth Circle']
 const seasonalSchemeNames = ['Diwali Double Rewards', 'New Year Bonus Campaign', 'Holi Festival Rewards', 'Eid Promotion', 'Christmas Campaign']
 
+/** Real stock photo per scheme type (Unsplash direct CDN — stable, hotlink-safe URLs): square thumbnail + wide banner. */
+const schemeImagesByType: Record<SchemeType, { image: string; banner: string }> = {
+  general: {
+    image: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=400&h=400&q=80',
+    banner: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=1200&h=400&q=80',
+  },
+  seasonal: {
+    image: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=400&h=400&q=80',
+    banner: 'https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=1200&h=400&q=80',
+  },
+}
+
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
   const frac = x - Math.floor(x)
@@ -47,18 +59,26 @@ function resolveRegions(seed: number): PartnerZone[] {
   return REGIONS.filter((_, i) => (seed + i) % REGIONS.length < count)
 }
 
-function buildApplicableProducts(seed: number, regions: PartnerZone[]): SchemeApplicableProduct[] {
+function buildApplicableProducts(
+  seed: number,
+  dealerRegions: PartnerZone[],
+  chemistRegions: PartnerZone[],
+  partnerTypes: SchemePartnerType[],
+): SchemeApplicableProduct[] {
   const count = seededNumber(seed, 2, 5)
   return Array.from({ length: count }).map((_, i) => {
     const product = mockProducts[(seed + i * 5) % mockProducts.length]!
     const localSeed = seed * 13 + i
-    const regionMultipliers = Object.fromEntries(
-      regions.map((region, ri) => [region, Number((seededNumber(localSeed + ri, 10, 30) / 10).toFixed(1))]),
-    ) as SchemeApplicableProduct['regionMultipliers']
+    const buildMultipliers = (regions: PartnerZone[], offset: number) =>
+      Object.fromEntries(
+        regions.map((region, ri) => [region, Number((seededNumber(localSeed + offset + ri, 10, 30) / 10).toFixed(1))]),
+      ) as SchemeApplicableProduct['dealerRegionMultipliers']
     return {
       productId: product.id,
-      baseCoinValue: seededNumber(localSeed, 10, 100),
-      regionMultipliers,
+      dealerBaseCoinValue: partnerTypes.includes('Dealer') ? product.dealerRewardPoints : null,
+      chemistBaseCoinValue: partnerTypes.includes('Chemist') ? product.chemistRewardPoints : null,
+      dealerRegionMultipliers: buildMultipliers(dealerRegions, 0),
+      chemistRegionMultipliers: buildMultipliers(chemistRegions, 100),
     }
   })
 }
@@ -145,12 +165,12 @@ function buildScheme(seed: number, type: SchemeType, options?: { forceNoEndDate?
     dealerRegions,
     chemistRegions,
     regions,
-    applicableProducts: buildApplicableProducts(seed, regions),
+    applicableProducts: buildApplicableProducts(seed, dealerRegions, chemistRegions, partnerTypes),
     giftRules: buildGiftRules(seed, partnerTypes),
     description: `${name} lets eligible partners redeem gift products by earning points ${type === 'general' ? 'throughout the year' : 'during the campaign window'}.`,
     disclaimer: 'Points are non-transferable and subject to MedTech Rewards terms & conditions.',
-    image: `https://picsum.photos/seed/medtech-scheme-${id}/400/400`,
-    banner: `https://picsum.photos/seed/medtech-scheme-banner-${id}/1200/400`,
+    image: schemeImagesByType[type].image,
+    banner: schemeImagesByType[type].banner,
     partners: {
       dealer: partnerTypes.includes('Dealer') ? buildPartnerEntries(seed, mockDealers) : [],
       chemist: partnerTypes.includes('Chemist') ? buildPartnerEntries(seed + 3, mockChemists) : [],

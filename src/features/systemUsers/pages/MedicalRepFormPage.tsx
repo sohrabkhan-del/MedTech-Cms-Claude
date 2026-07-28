@@ -134,7 +134,11 @@ export function MedicalRepFormPage() {
           </Grid>
         </Card>
 
-        <Stack direction="row" spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ width: '100%', justifyContent: 'flex-end' }}
+        >
           <Button type="submit" variant="contained" loading={isSubmitting}>
             {isEdit ? 'Save MR' : 'Save MR'}
           </Button>

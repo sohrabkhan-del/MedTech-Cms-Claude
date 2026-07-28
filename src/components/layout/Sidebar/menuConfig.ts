@@ -209,19 +209,9 @@ export const menuConfig: MenuGroup[] = [
     items: [
       {
         label: 'Coin Value Rules',
+        path: '/rewards-wallet/coin-value-rules/all',
         icon: Coins,
-        children: [
-          {
-            label: 'Dealer',
-            path: '/rewards-wallet/coin-value-rules/dealer',
-            showRegionTopbar: true,
-          },
-          {
-            label: 'Chemist',
-            path: '/rewards-wallet/coin-value-rules/chemist',
-            showRegionTopbar: true,
-          },
-        ],
+        showRegionTopbar: true,
       },
       {
         label: 'Wallet Management',

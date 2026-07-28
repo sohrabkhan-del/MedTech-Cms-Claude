@@ -216,7 +216,11 @@ export function ChemistFormPage() {
           </Grid>
         </Card>
 
-        <Stack direction="row" spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ width: '100%', justifyContent: 'flex-end' }}
+        >
           <Button type="submit" variant="contained">
             {isEdit ? 'Save Changes' : 'Create Chemist'}
           </Button>

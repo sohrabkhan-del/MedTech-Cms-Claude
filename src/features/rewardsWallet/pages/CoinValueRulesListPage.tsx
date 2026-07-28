@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
   Box,
   Chip,
@@ -9,22 +9,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
 import { Coins, Layers, Landmark, Package, Pencil } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { ChartCard } from '@/components/common/ChartCard/ChartCard'
 import { Modal } from '@/components/common/Modal/Modal'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import {
   TreeTable,
   type TreeTableColumn,
@@ -38,16 +28,19 @@ import type {
   CoinValueRule,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
-const REGIONS: CoinRuleRegion[] = ['North', 'South', 'East', 'West']
-const BASE_COIN_VALUE_OPTIONS = Array.from({ length: 10 }, (_, i) => (i + 1) * 100)
-const PIE_COLORS = [
-  '#1A3E8C',
-  '#F7941D',
-  '#1E9E5A',
-  '#E5484D',
-  '#8B5CF6',
-  '#0EA5E9',
+type PartnerTypeTab = 'all' | CoinRulePartnerType
+
+const PARTNER_TYPE_TABS: { label: string; value: PartnerTypeTab }[] = [
+  { label: 'All', value: 'all' },
+  { label: 'Chemist', value: 'Chemist' },
+  { label: 'Dealer', value: 'Dealer' },
 ]
+
+const REGIONS: CoinRuleRegion[] = ['North', 'South', 'East', 'West']
+const BASE_COIN_VALUE_OPTIONS = Array.from(
+  { length: 10 },
+  (_, i) => (i + 1) * 100,
+)
 
 type MatrixRow =
   | { rowType: 'product'; rule: CoinValueRule; baseValue: number }
@@ -81,9 +74,7 @@ type RowEditState =
 
 export function CoinValueRulesListPage() {
   const navigate = useNavigate()
-  const { partnerType: partnerTypeParam } = useParams<{ partnerType: string }>()
-  const partnerType: CoinRulePartnerType =
-    partnerTypeParam === 'chemist' ? 'Chemist' : 'Dealer'
+  const [partnerTypeTab, setPartnerTypeTab] = useState<PartnerTypeTab>('all')
 
   const {
     rules: allRules,
@@ -96,15 +87,21 @@ export function CoinValueRulesListPage() {
 
   useRegionTopbarHeader({
     icon: <Coins size={20} />,
-    title: `Coin Value Rules — ${partnerType}`,
+    title:
+      partnerTypeTab === 'all'
+        ? 'Coin Value Rules'
+        : `Coin Value Rules — ${partnerTypeTab}`,
     subtitle:
       'Configure base coin values, regional multipliers, and monitor reward distribution impact.',
     isLoading,
   })
 
   const rules = useMemo(
-    () => allRules.filter((rule) => rule.partnerType === partnerType),
-    [allRules, partnerType],
+    () =>
+      partnerTypeTab === 'all'
+        ? allRules
+        : allRules.filter((rule) => rule.partnerType === partnerTypeTab),
+    [allRules, partnerTypeTab],
   )
 
   const kpis = useMemo(
@@ -165,15 +162,6 @@ export function CoinValueRulesListPage() {
     value: string
   } | null>(null)
   const [rowEditDialog, setRowEditDialog] = useState<RowEditState>(null)
-
-  const scanActivityData = useMemo(
-    () =>
-      rules.slice(0, 8).map((rule) => ({
-        name: rule.modelCode,
-        Points: Math.max(...rule.regions.map((r) => r.currentPoints)),
-      })),
-    [rules],
-  )
 
   const resolvedBaseValue = (rule: CoinValueRule) =>
     baseValueOverrides[rule.id] ?? rule.baseCoinValue
@@ -425,102 +413,13 @@ export function CoinValueRulesListPage() {
         </Grid>
       </Grid>
 
-      <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, md: 5 }}>
-          <ChartCard
-            title="Live Coin Distribution Share"
-            subtitle="Coins allocated by top model codes"
-            height={260}
-          >
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={scanActivityData}
-                margin={{ top: 8, right: 8, left: -16, bottom: 0 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#E5E5E5"
-                />
-                <XAxis
-                  dataKey="name"
-                  tick={{ fontSize: 11, fill: '#4A4A4A' }}
-                  tickLine={false}
-                  axisLine={{ stroke: '#E5E5E5' }}
-                />
-                <YAxis
-                  tick={{ fontSize: 11, fill: '#4A4A4A' }}
-                  tickLine={false}
-                  axisLine={false}
-                />
-                <Tooltip
-                  formatter={(value) => [`${value} Coins`, 'Points']}
-                  cursor={{ fill: 'rgba(26,62,140,0.04)' }}
-                />
-                <Bar dataKey="Points" radius={[6, 6, 0, 0]} maxBarSize={40}>
-                  {scanActivityData.map((entry, index) => (
-                    <Cell
-                      key={entry.name}
-                      fill={PIE_COLORS[index % PIE_COLORS.length]}
-                    />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartCard>
-        </Grid>
-        <Grid size={{ xs: 12, md: 7 }}>
-          <ChartCard
-            title="Total Outstanding Coin Liability"
-            subtitle="Base coin allocation by product category"
-            height={260}
-          >
-            <Stack
-              spacing={1}
-              sx={{ height: '100%', justifyContent: 'center' }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '2rem',
-                  color: 'primary.main',
-                }}
-              >
-                {(kpis?.totalOutstandingCoinLiability ?? 0).toLocaleString(
-                  'en-IN',
-                )}{' '}
-                Coins
-              </Typography>
-              <Stack spacing={1} sx={{ mt: 2 }}>
-                {distributionByCategory.map((entry, index) => (
-                  <Stack
-                    key={entry.category}
-                    direction="row"
-                    spacing={1.5}
-                    sx={{ alignItems: 'center' }}
-                  >
-                    <Box
-                      sx={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        backgroundColor: PIE_COLORS[index % PIE_COLORS.length],
-                        flexShrink: 0,
-                      }}
-                    />
-                    <Typography sx={{ fontSize: '0.8125rem', flexGrow: 1 }}>
-                      {entry.category}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-                      {entry.value.toLocaleString('en-IN')} Coins
-                    </Typography>
-                  </Stack>
-                ))}
-              </Stack>
-            </Stack>
-          </ChartCard>
-        </Grid>
-      </Grid>
+      <Box sx={{ mb: 2.5, mt: 7 }}>
+        <ModularTabs
+          tabs={PARTNER_TYPE_TABS}
+          value={partnerTypeTab}
+          onChange={setPartnerTypeTab}
+        />
+      </Box>
 
       <Box>
         <Stack

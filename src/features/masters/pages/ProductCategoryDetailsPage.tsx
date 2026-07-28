@@ -1,7 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
 import {
-  FolderTree as FolderTreeIcon,
   Pencil,
   ArrowLeft as ArrowLeftIcon,
   Package as PackageIcon,
@@ -94,21 +93,7 @@ export function ProductCategoryDetailsPage() {
         sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}
       >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Box
-            sx={{
-              width: 36,
-              height: 36,
-              borderRadius: '10px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'primary.light',
-              color: 'primary.main',
-              flexShrink: 0,
-            }}
-          >
-            <FolderTreeIcon size={18} />
-          </Box>
+          <Avatar src={category.image} alt={category.categoryName} variant="rounded" sx={{ width: 48, height: 48, flexShrink: 0 }} />
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Typography variant="h1">{category.categoryName}</Typography>

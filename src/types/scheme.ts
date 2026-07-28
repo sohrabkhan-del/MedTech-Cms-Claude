@@ -4,11 +4,13 @@ export type SchemeType = 'general' | 'seasonal'
 export type SchemePartnerType = 'Dealer' | 'Chemist'
 export type SchemePartnerStatus = 'interested' | 'enrolled' | 'redeemed'
 
-/** Base coin value plus a per-region payout multiplier for one Product Master item attached to a scheme. */
+/** Per-partner-type base coin value plus its own per-region payout multipliers for one Product Master item attached to a scheme. */
 export interface SchemeApplicableProduct {
   productId: string
-  baseCoinValue: number
-  regionMultipliers: Partial<Record<PartnerZone, number>>
+  dealerBaseCoinValue: number | null
+  chemistBaseCoinValue: number | null
+  dealerRegionMultipliers: Partial<Record<PartnerZone, number>>
+  chemistRegionMultipliers: Partial<Record<PartnerZone, number>>
 }
 
 /** Per-partner-type redemption rule (price / points / discount price) for one gift attached to a scheme. */

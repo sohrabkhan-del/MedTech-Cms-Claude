@@ -129,7 +129,11 @@ export function ProductCategoryFormPage() {
           </Grid>
         </Card>
 
-        <Stack direction="row" spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ width: '100%', justifyContent: 'flex-end' }}
+        >
           <Button type="submit" variant="contained" loading={isSubmitting}>
             {isEdit ? 'Save Changes' : 'Create Category'}
           </Button>

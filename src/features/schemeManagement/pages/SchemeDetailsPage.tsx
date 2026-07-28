@@ -51,20 +51,40 @@ function applicableProductColumns(): CommonTableColumn<SchemeApplicableProduct>[
       ),
     },
     {
-      key: 'baseCoinValue',
-      header: 'Base Coin Value',
+      key: 'dealerBaseCoinValue',
+      header: 'Dealer Base Coin Value',
       align: 'center',
       sortable: true,
-      sortValue: (row) => row.baseCoinValue,
-      render: (row) => row.baseCoinValue.toLocaleString('en-IN'),
+      sortValue: (row) => row.dealerBaseCoinValue ?? 0,
+      render: (row) => row.dealerBaseCoinValue?.toLocaleString('en-IN') ?? '—',
     },
     {
-      key: 'regionMultipliers',
-      header: 'Region Multipliers',
+      key: 'chemistBaseCoinValue',
+      header: 'Chemist Base Coin Value',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.chemistBaseCoinValue ?? 0,
+      render: (row) => row.chemistBaseCoinValue?.toLocaleString('en-IN') ?? '—',
+    },
+    {
+      key: 'dealerRegionMultipliers',
+      header: 'Dealer Region Multipliers',
       minWidth: 220,
       render: (row) => (
         <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
-          {Object.entries(row.regionMultipliers).map(([region, multiplier]) => (
+          {Object.entries(row.dealerRegionMultipliers).map(([region, multiplier]) => (
+            <Chip key={region} size="small" variant="outlined" label={`${region}: ${multiplier}x`} />
+          ))}
+        </Stack>
+      ),
+    },
+    {
+      key: 'chemistRegionMultipliers',
+      header: 'Chemist Region Multipliers',
+      minWidth: 220,
+      render: (row) => (
+        <Stack direction="row" spacing={0.5} sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+          {Object.entries(row.chemistRegionMultipliers).map(([region, multiplier]) => (
             <Chip key={region} size="small" variant="outlined" label={`${region}: ${multiplier}x`} />
           ))}
         </Stack>
@@ -112,7 +132,7 @@ function giftRuleColumns(scheme: Scheme, navigate: ReturnType<typeof useNavigate
       },
       {
         key: 'dealerDiscountPrice',
-        header: 'Dealer Discount Price',
+        header: 'Dealer Discount Points',
         align: 'center',
         render: (row) => (row.dealerRule ? row.dealerRule.discountPrice.toLocaleString('en-IN') : '—'),
       },
@@ -136,7 +156,7 @@ function giftRuleColumns(scheme: Scheme, navigate: ReturnType<typeof useNavigate
       },
       {
         key: 'chemistDiscountPrice',
-        header: 'Chemist Discount Price',
+        header: 'Chemist Discount Points',
         align: 'center',
         render: (row) => (row.chemistRule ? row.chemistRule.discountPrice.toLocaleString('en-IN') : '—'),
       },

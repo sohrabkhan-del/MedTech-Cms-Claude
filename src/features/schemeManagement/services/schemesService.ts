@@ -57,6 +57,8 @@ async function getSchemeFormOptions() {
       name: product.productName,
       code: product.productCode,
       category: product.productCategory,
+      dealerRewardPoints: product.dealerRewardPoints,
+      chemistRewardPoints: product.chemistRewardPoints,
     })),
   })
 }

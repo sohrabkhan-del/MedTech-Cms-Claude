@@ -70,7 +70,11 @@ export function GeoFenceFormPage() {
       <form onSubmit={onSubmit} noValidate>
         <GeoFenceForm control={control} userOptions={userOptions} scope={isEdit ? 'user' : scope} />
 
-        <Stack direction="row" spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ width: '100%', justifyContent: 'flex-end' }}
+        >
           <Button type="submit" variant="contained" loading={isSubmitting}>
             Save
           </Button>

@@ -41,13 +41,14 @@ function flattenItems(items: MenuItem[]): RouteEntry[] {
   return entries
 }
 
-/** Reachable only via the Header (Settings gear, profile menu) — intentionally not in the sidebar. */
+/** Reachable only via the Header (Settings gear, profile menu) or in-page tabs — intentionally not in the sidebar. */
 export const headerOnlyRouteEntries: RouteEntry[] = [
   { path: '/settings/general', breadcrumbLabel: 'Appearance' },
   { path: '/settings/notifications', breadcrumbLabel: 'Notification Settings', pending: true },
   { path: '/settings/authentication', breadcrumbLabel: 'Authentication Settings', pending: true },
   { path: '/settings/profile', breadcrumbLabel: 'Profile' },
   { path: '/logout', breadcrumbLabel: 'Logout' },
+  { path: '/rewards-wallet/coin-value-rules/all', breadcrumbLabel: 'All', showRegionTopbar: true },
 ]
 
 export const routeEntries: RouteEntry[] = [

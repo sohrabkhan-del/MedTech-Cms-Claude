@@ -6,7 +6,6 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
-import { Toast } from '@/components/common/Toast/Toast'
 import { parseDispatchReportFile, type DispatchInvoiceMeta } from '@/features/inventoryManagement/dispatchReportParser'
 import type { DispatchUploadRow, DispatchUploadSummary } from '@/types/distributorUpload'
 
@@ -28,7 +27,7 @@ const columns: CommonTableColumn<DispatchUploadRow>[] = [
 
 interface DistributorUploadTabProps {
   onImported?: (rows: DispatchUploadRow[], uploadFileName: string, invoiceMeta: DispatchInvoiceMeta) => void
-  /** Called automatically a couple seconds after a successful import, to leave the wizard. */
+  /** Called immediately after a successful import, to leave the wizard. */
   onDone?: () => void
 }
 
@@ -38,9 +37,7 @@ export function DistributorUploadTab({ onImported, onDone }: DistributorUploadTa
   const [rows, setRows] = useState<DispatchUploadRow[]>([])
   const [summary, setSummary] = useState<DispatchUploadSummary | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [imported, setImported] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
-  const [toast, setToast] = useState<{ title: string; message: string } | null>(null)
 
   async function handleUpload() {
     if (!file) return
@@ -63,15 +60,8 @@ export function DistributorUploadTab({ onImported, onDone }: DistributorUploadTa
     setIsProcessing(true)
     await new Promise((r) => setTimeout(r, 700))
     setIsProcessing(false)
-    setImported(true)
     onImported?.(rows, file?.name ?? 'dispatch-loading-report.xlsx', meta)
-    setToast({
-      title: 'Import successful',
-      message: `${summary.validRows} carton line item(s) imported under invoice ${meta.invoiceNo}.`,
-    })
-    if (onDone) {
-      setTimeout(onDone, 2000)
-    }
+    onDone?.()
   }
 
   function resetUpload() {
@@ -79,52 +69,7 @@ export function DistributorUploadTab({ onImported, onDone }: DistributorUploadTa
     setMeta(null)
     setRows([])
     setSummary(null)
-    setImported(false)
     setParseError(null)
-  }
-
-  if (imported && summary && meta) {
-    return (
-      <>
-        <Stack spacing={2.5} sx={{ alignItems: 'center', textAlign: 'center', py: 6 }}>
-          <Box
-            sx={{
-              width: 64,
-              height: 64,
-              borderRadius: '50%',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: 'success.light',
-              color: 'success.main',
-              animation: 'distributor-import-success-pop 0.5s ease-out, distributor-import-success-ring 1.2s ease-out',
-              '@keyframes distributor-import-success-pop': {
-                '0%': { transform: 'scale(0)' },
-                '60%': { transform: 'scale(1.15)' },
-                '100%': { transform: 'scale(1)' },
-              },
-              '@keyframes distributor-import-success-ring': {
-                '0%': { boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.4)' },
-                '100%': { boxShadow: '0 0 0 18px rgba(46, 125, 50, 0)' },
-              },
-            }}
-          >
-            <CircleCheck size={34} />
-          </Box>
-          <Typography sx={{ fontWeight: 700, fontSize: '1.25rem' }}>Dispatch Data Imported Successfully</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary', maxWidth: 480 }}>
-            {summary.validRows} carton line item(s) have been imported under invoice {meta.invoiceNo} and are now available in Distributor Upload.
-          </Typography>
-        </Stack>
-        <Toast
-          open={!!toast}
-          title={toast?.title}
-          message={toast?.message ?? ''}
-          severity="success"
-          onClose={() => setToast(null)}
-        />
-      </>
-    )
   }
 
   return (

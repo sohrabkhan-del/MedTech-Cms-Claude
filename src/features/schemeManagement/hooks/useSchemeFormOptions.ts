@@ -14,6 +14,8 @@ export interface SchemeMasterProductOption {
   name: string
   code: string
   category: string
+  dealerRewardPoints: number
+  chemistRewardPoints: number
 }
 
 interface FormOptions {

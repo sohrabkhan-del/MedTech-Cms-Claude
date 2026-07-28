@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
-import { FileUp as UploadFileOutlined, FileText as DescriptionOutlined, X as CloseOutlined, CircleCheck as CheckCircleOutlined } from 'lucide-react'
+import { FileUp as UploadFileOutlined, FileText as DescriptionOutlined, Trash2, CircleCheck as CheckCircleOutlined } from 'lucide-react'
 import { radius } from '@/theme/tokens'
 
 function formatFileSize(bytes: number): string {
@@ -152,12 +152,13 @@ export function FileDropzone({ file, onSelect, onRemove, accept, helperText, exi
                   position: 'absolute',
                   top: 8,
                   right: 8,
+                  color: 'error.main',
                   backgroundColor: 'background.paper',
                   boxShadow: 1,
                   '&:hover': { backgroundColor: 'background.paper' },
                 }}
               >
-                <CloseOutlined size={16} />
+                <Trash2 size={16} />
               </IconButton>
             </Box>
           ) : null}
@@ -186,8 +187,9 @@ export function FileDropzone({ file, onSelect, onRemove, accept, helperText, exi
                   onRemove()
                 }}
                 aria-label="Remove file"
+                sx={{ color: 'error.main' }}
               >
-                <CloseOutlined size={20} />
+                <Trash2 size={20} />
               </IconButton>
             )}
           </Stack>

@@ -1,5 +1,5 @@
 import type { CategoryProductEntry, CategorySchemeEntry, ProductCategory, ProductCategoryStatus } from '@/types/productCategory'
-import { mockProducts } from '@/features/inventoryManagement/mockProducts'
+import { mockProducts, categoryThumbnailFor } from '@/features/inventoryManagement/mockProducts'
 
 const categoryDefs: { name: string; parent?: string }[] = [
   { name: 'Nebulizers' },
@@ -73,6 +73,7 @@ export const mockProductCategories: ProductCategory[] = categoryDefs.map((def, i
     id,
     categoryName: def.name,
     categoryCode: `CAT-${20260000 + index * 17}`,
+    image: categoryThumbnailFor(def.name),
     parentCategoryId: undefined,
     description: `${def.name} covers home healthcare devices in the ${def.name.toLowerCase()} range.`,
     status,

@@ -111,7 +111,7 @@ export function LeaderboardWidget({
                 flexShrink: 0,
               }}
             >
-              {`${entry.points.toLocaleString('en-IN')} pts`}
+              {`${entry.points.toLocaleString('en-IN')} `}
             </Typography>
           </Stack>
         ))}

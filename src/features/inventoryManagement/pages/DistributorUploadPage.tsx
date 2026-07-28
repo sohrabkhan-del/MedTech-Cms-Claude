@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import {
+  Box,
   Button,
   Dialog,
   DialogContent,
@@ -7,7 +8,7 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import { Truck, UploadCloud, X } from 'lucide-react'
+import { CircleCheck, Truck, UploadCloud, X } from 'lucide-react'
 import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { radius } from '@/theme/tokens'
@@ -20,6 +21,7 @@ import type { DispatchUploadRow } from '@/types/distributorUpload'
 export function DistributorUploadPage() {
   const isMobile = useIsMobile()
   const [uploadOpen, setUploadOpen] = useState(false)
+  const [importDone, setImportDone] = useState(false)
   const { invoices, isLoading, importDispatch } = useDistributors()
   useRegionTopbarHeader({
     icon: <Truck size={20} />,
@@ -97,8 +99,54 @@ export function DistributorUploadPage() {
         <DialogContent sx={{ px: 3, pb: 3 }}>
           <DistributorUploadTab
             onImported={handleImported}
-            onDone={() => setUploadOpen(false)}
+            onDone={() => {
+              setUploadOpen(false)
+              setImportDone(true)
+            }}
           />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={importDone}
+        onClose={() => setImportDone(false)}
+        maxWidth="xs"
+        fullWidth
+        slotProps={{
+          paper: { sx: { borderRadius: `${radius.xl}px` } },
+        }}
+      >
+        <DialogContent sx={{ px: 3, pt: 4, pb: 3 }}>
+          <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center' }}>
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: 'success.light',
+                color: 'success.main',
+              }}
+            >
+              <CircleCheck size={30} />
+            </Box>
+            <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
+              Dispatch Data Imported Successfully
+            </Typography>
+            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+              Your dispatch loading report has been imported and is now
+              available in Distributor Upload.
+            </Typography>
+            <Button
+              variant="contained"
+              fullWidth
+              onClick={() => setImportDone(false)}
+            >
+              Done
+            </Button>
+          </Stack>
         </DialogContent>
       </Dialog>
     </>

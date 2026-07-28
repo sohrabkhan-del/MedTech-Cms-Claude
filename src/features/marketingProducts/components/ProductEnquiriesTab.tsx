@@ -1,9 +1,25 @@
 import { useState } from 'react'
-import { Avatar, Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import { CircleCheck as CheckCircleOutlined, Hourglass as HourglassEmptyOutlined, PackageCheck, ClipboardCheck } from 'lucide-react'
+import {
+  Avatar,
+  Chip,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import {
+  CircleCheck as CheckCircleOutlined,
+  Hourglass as HourglassEmptyOutlined,
+  PackageCheck,
+  ClipboardCheck,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useShowcaseProducts } from '@/features/marketingProducts/hooks/useShowcaseProducts'
@@ -21,12 +37,18 @@ interface EnquiryRow extends ProductEnquiry {
   product: ShowcaseProduct
 }
 
-const enquiryStatusConfig: Record<EnquiryStatus, { label: string; color: 'warning' | 'success' }> = {
+const enquiryStatusConfig: Record<
+  EnquiryStatus,
+  { label: string; color: 'warning' | 'success' }
+> = {
   pending: { label: 'Pending', color: 'warning' },
   responded: { label: 'Responded', color: 'success' },
 }
 
-const deliveryStatusConfig: Record<DeliveryStatus, { label: string; color: 'default' | 'info' | 'warning' | 'success' | 'error' }> = {
+const deliveryStatusConfig: Record<
+  DeliveryStatus,
+  { label: string; color: 'default' | 'info' | 'warning' | 'success' | 'error' }
+> = {
   pending: { label: 'Pending', color: 'default' },
   packed: { label: 'Packed', color: 'info' },
   shipped: { label: 'Shipped', color: 'info' },
@@ -46,10 +68,13 @@ interface ProductEnquiriesTabProps {
   onViewProduct: (product: ShowcaseProduct) => void
 }
 
-export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps) {
+export function ProductEnquiriesTab({
+  onViewProduct,
+}: ProductEnquiriesTabProps) {
   const { region } = useRegionFilter()
   const regionZone = region === 'All India' ? null : (region as PartnerZone)
-  const { enquiries, kpis, isLoading, markEnquiryResponded } = useShowcaseProducts()
+  const { enquiries, kpis, isLoading, markEnquiryResponded } =
+    useShowcaseProducts()
   const showcaseCategoryOptions = useShowcaseCategoryOptions()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<EnquiryFilters>({
@@ -59,15 +84,34 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
     deliveryStatus: 'all',
   })
 
-  const showcaseProductKpis = kpis ?? { totalEnquiries: 0, pendingEnquiries: 0, respondedEnquiries: 0, productsDelivered: 0 }
+  const showcaseProductKpis = kpis ?? {
+    totalEnquiries: 0,
+    pendingEnquiries: 0,
+    respondedEnquiries: 0,
+    productsDelivered: 0,
+  }
 
   const filteredRows: EnquiryRow[] = enquiries.filter((row) => {
     const regionMatch = !regionZone || row.product.region === regionZone
-    const categoryMatch = appliedFilters.category === 'all' || row.product.category === appliedFilters.category
-    const userTypeMatch = appliedFilters.userType === 'all' || row.userType === appliedFilters.userType
-    const enquiryMatch = appliedFilters.enquiryStatus === 'all' || row.enquiryStatus === appliedFilters.enquiryStatus
-    const deliveryMatch = appliedFilters.deliveryStatus === 'all' || row.deliveryStatus === appliedFilters.deliveryStatus
-    return regionMatch && categoryMatch && userTypeMatch && enquiryMatch && deliveryMatch
+    const categoryMatch =
+      appliedFilters.category === 'all' ||
+      row.product.category === appliedFilters.category
+    const userTypeMatch =
+      appliedFilters.userType === 'all' ||
+      row.userType === appliedFilters.userType
+    const enquiryMatch =
+      appliedFilters.enquiryStatus === 'all' ||
+      row.enquiryStatus === appliedFilters.enquiryStatus
+    const deliveryMatch =
+      appliedFilters.deliveryStatus === 'all' ||
+      row.deliveryStatus === appliedFilters.deliveryStatus
+    return (
+      regionMatch &&
+      categoryMatch &&
+      userTypeMatch &&
+      enquiryMatch &&
+      deliveryMatch
+    )
   })
 
   const columns: CommonTableColumn<EnquiryRow>[] = [
@@ -75,14 +119,27 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
       key: 'product',
       header: 'Product',
       minWidth: 220,
-      align: 'center',
+
       sortable: true,
       sortValue: (row) => row.product.productName,
       render: (row) => (
-        <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center', justifyContent: 'center' }}>
-          <Avatar src={row.product.productImage} variant="rounded" sx={{ width: 32, height: 32 }} />
+        <Stack
+          direction="row"
+          spacing={1.25}
+          sx={{ alignItems: 'center', justifyContent: 'center' }}
+        >
+          <Avatar
+            src={row.product.productImage}
+            variant="rounded"
+            sx={{ width: 32, height: 32 }}
+          />
           <Typography
-            sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.8125rem',
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
+            }}
             onClick={() => onViewProduct(row.product)}
           >
             {row.product.productName}
@@ -90,25 +147,75 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
         </Stack>
       ),
     },
-    { key: 'sku', header: 'SKU', minWidth: 130, align: 'center', render: (row) => row.product.sku },
-    { key: 'category', header: 'Category', minWidth: 130, align: 'center', render: (row) => row.product.category },
-    { key: 'price', header: 'Price (₹)', align: 'center', sortable: true, sortValue: (row) => row.product.price, render: (row) => `₹${row.product.price.toLocaleString('en-IN')}` },
-    { key: 'userName', header: 'User Name', minWidth: 150, align: 'center', render: (row) => row.userName },
-    { key: 'userType', header: 'User Type', minWidth: 100, align: 'center', render: (row) => row.userType },
-    { key: 'interestedDate', header: 'Interested Date', minWidth: 140, align: 'center', sortable: true, render: (row) => row.interestedDate },
+    {
+      key: 'sku',
+      header: 'SKU',
+      minWidth: 130,
+      align: 'center',
+      render: (row) => row.product.sku,
+    },
+    {
+      key: 'category',
+      header: 'Category',
+      minWidth: 130,
+      align: 'center',
+      render: (row) => row.product.category,
+    },
+    {
+      key: 'price',
+      header: 'Price (₹)',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.product.price,
+      render: (row) => `₹${row.product.price.toLocaleString('en-IN')}`,
+    },
+    {
+      key: 'userName',
+      header: 'User Name',
+      minWidth: 150,
+
+      render: (row) => row.userName,
+    },
+    {
+      key: 'userType',
+      header: 'User Type',
+      minWidth: 100,
+      align: 'center',
+      render: (row) => row.userType,
+    },
+    {
+      key: 'interestedDate',
+      header: 'Interested Date',
+      minWidth: 140,
+      align: 'center',
+      sortable: true,
+      render: (row) => row.interestedDate,
+    },
     {
       key: 'enquiryStatus',
       header: 'Enquiry Status',
       minWidth: 130,
       align: 'center',
-      render: (row) => <Chip size="small" label={enquiryStatusConfig[row.enquiryStatus].label} color={enquiryStatusConfig[row.enquiryStatus].color} />,
+      render: (row) => (
+        <Chip
+          size="small"
+          label={enquiryStatusConfig[row.enquiryStatus].label}
+          color={enquiryStatusConfig[row.enquiryStatus].color}
+        />
+      ),
     },
     {
       key: 'deliveryStatus',
       header: 'Delivery Status',
       minWidth: 140,
       align: 'center',
-      render: (row) => <Chip size="small" label={deliveryStatusConfig[row.deliveryStatus].label} color={deliveryStatusConfig[row.deliveryStatus].color} />,
+      render: (row) => (
+        <Chip
+          size="small"
+          label={deliveryStatusConfig[row.deliveryStatus].label}
+          color={deliveryStatusConfig[row.deliveryStatus].color}
+        />
+      ),
     },
   ]
 
@@ -119,28 +226,48 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Total Enquiries" value={showcaseProductKpis.totalEnquiries} icon={<ClipboardCheck size={20} />} iconColor="primary" />
+            <StatCard
+              label="Total Enquiries"
+              value={showcaseProductKpis.totalEnquiries}
+              icon={<ClipboardCheck size={20} />}
+              iconColor="primary"
+            />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Pending Enquiries" value={showcaseProductKpis.pendingEnquiries} icon={<HourglassEmptyOutlined size={20} />} iconColor="warning" />
+            <StatCard
+              label="Pending Enquiries"
+              value={showcaseProductKpis.pendingEnquiries}
+              icon={<HourglassEmptyOutlined size={20} />}
+              iconColor="warning"
+            />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Responded Enquiries" value={showcaseProductKpis.respondedEnquiries} icon={<CheckCircleOutlined size={20} />} iconColor="success" />
+            <StatCard
+              label="Responded Enquiries"
+              value={showcaseProductKpis.respondedEnquiries}
+              icon={<CheckCircleOutlined size={20} />}
+              iconColor="success"
+            />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
-            <StatCard label="Products Delivered" value={showcaseProductKpis.productsDelivered} icon={<PackageCheck size={20} />} iconColor="secondary" />
+            <StatCard
+              label="Products Delivered"
+              value={showcaseProductKpis.productsDelivered}
+              icon={<PackageCheck size={20} />}
+              iconColor="secondary"
+            />
           )}
         </Grid>
       </Grid>
@@ -152,7 +279,9 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by product name or user name…"
-        searchKeys={(row) => `${row.product.productName} ${row.userName} ${row.product.sku}`}
+        searchKeys={(row) =>
+          `${row.product.productName} ${row.userName} ${row.product.sku}`
+        }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.category !== 'all' ? 1 : 0) +
@@ -161,12 +290,21 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
           (appliedFilters.deliveryStatus !== 'all' ? 1 : 0)
         }
         onExportClick={() => {}}
-        createAction={{ label: 'Create Product', to: '/marketing-products/products-catelog/new' }}
+        createAction={{
+          label: 'Create Product',
+          to: '/marketing-products/products-catelog/new',
+        }}
         defaultSortBy="interestedDate"
         defaultSortDir="desc"
         actions={[
-          { label: 'View Product Details', onClick: (row) => onViewProduct(row.product) },
-          { label: 'Mark as Responded', onClick: (row) => markEnquiryResponded(row.id) },
+          {
+            label: 'View Product Details',
+            onClick: (row) => onViewProduct(row.product),
+          },
+          {
+            label: 'Mark as Responded',
+            onClick: (row) => markEnquiryResponded(row.id),
+          },
         ]}
         emptyTitle="No enquiries found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -186,7 +324,9 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
               label="Category"
               size="small"
               value={draft.category}
-              onChange={(e) => setDraft((prev) => ({ ...prev, category: e.target.value }))}
+              onChange={(e) =>
+                setDraft((prev) => ({ ...prev, category: e.target.value }))
+              }
             >
               <MenuItem value="all">All Categories</MenuItem>
               {showcaseCategoryOptions.map((category) => (
@@ -200,7 +340,12 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
               label="User Type"
               size="small"
               value={draft.userType}
-              onChange={(e) => setDraft((prev) => ({ ...prev, userType: e.target.value as EnquiryFilters['userType'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  userType: e.target.value as EnquiryFilters['userType'],
+                }))
+              }
             >
               <MenuItem value="all">All Types</MenuItem>
               <MenuItem value="Dealer">Dealer</MenuItem>
@@ -211,7 +356,13 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
               label="Enquiry Status"
               size="small"
               value={draft.enquiryStatus}
-              onChange={(e) => setDraft((prev) => ({ ...prev, enquiryStatus: e.target.value as EnquiryFilters['enquiryStatus'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  enquiryStatus: e.target
+                    .value as EnquiryFilters['enquiryStatus'],
+                }))
+              }
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
@@ -222,7 +373,13 @@ export function ProductEnquiriesTab({ onViewProduct }: ProductEnquiriesTabProps)
               label="Delivery Status"
               size="small"
               value={draft.deliveryStatus}
-              onChange={(e) => setDraft((prev) => ({ ...prev, deliveryStatus: e.target.value as EnquiryFilters['deliveryStatus'] }))}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  deliveryStatus: e.target
+                    .value as EnquiryFilters['deliveryStatus'],
+                }))
+              }
             >
               <MenuItem value="all">All Delivery Statuses</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>

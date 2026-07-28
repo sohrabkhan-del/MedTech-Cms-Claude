@@ -248,8 +248,13 @@ export function GeoFenceManagementPage() {
         </Grid>
       </Grid>
 
-      <Box sx={{ mb: 2.5, mt: 10 }}>
-        <ModularTabs tabs={RULE_TABS} value={tab} onChange={setTab} />
+      <Box sx={{ mb: 2.5, mt: 7 }}>
+        <ModularTabs
+          variant="underline"
+          tabs={RULE_TABS}
+          value={tab}
+          onChange={setTab}
+        />
       </Box>
 
       <CommonTable

@@ -8,6 +8,10 @@ export const MuiOutlinedInput: Components<Theme>['MuiOutlinedInput'] = {
       height: 44,
       backgroundColor: theme.palette.background.paper,
       transition: `box-shadow ${transitions.base}, border-color ${transitions.base}`,
+      '&.MuiInputBase-multiline, &.MuiAutocomplete-inputRoot': {
+        height: 'auto',
+        minHeight: 44,
+      },
       '& .MuiOutlinedInput-notchedOutline': {
         borderColor: theme.palette.divider,
       },

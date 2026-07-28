@@ -6,6 +6,15 @@ export const showcaseCategoryOptions = ['Cardiac Care', 'Neuro Care', 'Immunity'
 const regions = ['North', 'South', 'East', 'West']
 const productNames = ['CardioCare Wellness Kit', 'NeuroPlus Care Combo', 'ImmunoBoost Family Pack', 'GlucoBalance Starter Kit', 'PainRelief Comfort Set']
 
+/** Real stock photo per showcase category (Unsplash direct CDN — stable, hotlink-safe URLs). */
+const showcaseCategoryImages: Record<string, string> = {
+  'Cardiac Care': 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&w=600&h=600&q=80',
+  'Neuro Care': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=600&h=600&q=80',
+  Immunity: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=600&h=600&q=80',
+  'Diabetes Care': 'https://images.unsplash.com/photo-1615461066841-6116e61058f4?auto=format&fit=crop&w=600&h=600&q=80',
+  'Pain Relief': 'https://images.unsplash.com/photo-1600334129128-685c5582fd35?auto=format&fit=crop&w=600&h=600&q=80',
+}
+
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
   const frac = x - Math.floor(x)
@@ -56,6 +65,7 @@ function buildEnquiries(seed: number, productId: string): ProductEnquiry[] {
 function buildShowcaseProduct(seed: number): ShowcaseProduct {
   const id = `showcase-${seed}`
   const name = productNames[seed % productNames.length]!
+  const category = showcaseCategoryOptions[seed % showcaseCategoryOptions.length]!
   const enquiries = buildEnquiries(seed, id)
   const responded = enquiries.filter((e) => e.enquiryStatus === 'responded').length
   const delivered = enquiries.filter((e) => e.deliveryStatus === 'delivered').length
@@ -64,11 +74,11 @@ function buildShowcaseProduct(seed: number): ShowcaseProduct {
     id,
     productName: name,
     sku: `SKU-SC-${100000 + seed * 17}`,
-    category: showcaseCategoryOptions[seed % showcaseCategoryOptions.length]!,
+    category,
     price: seededNumber(seed, 199, 2499),
 
     description: `${name} is a promotional showcase item highlighted to Dealers and Chemists as part of ongoing marketing campaigns.`,
-    productImage: `https://picsum.photos/seed/medtech-showcase-${seed}/600/600`,
+    productImage: showcaseCategoryImages[category]!,
     featuredProduct: seed % 5 === 0,
     region: regions[seed % regions.length]!,
 

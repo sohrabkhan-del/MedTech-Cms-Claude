@@ -19,6 +19,7 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { Modal } from '@/components/common/Modal/Modal'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useSchemes } from '@/features/schemeManagement/hooks/useSchemes'
 import { useSchemeFormOptions } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
@@ -28,7 +29,6 @@ import {
 } from '@/features/schemeManagement/mockSchemes'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
 import { useToast } from '@/contexts/ToastContext'
-import { radius, transitions } from '@/theme/tokens'
 import type { PartnerZone } from '@/types/partner'
 import type {
   Scheme,
@@ -36,12 +36,6 @@ import type {
 } from '@/features/schemeManagement/types/schemeManagement.types'
 
 type SchemeTab = 'all' | 'general' | 'seasonal'
-
-const SCHEME_TABS: { label: string; value: SchemeTab }[] = [
-  { label: 'All', value: 'all' },
-  { label: 'General', value: 'general' },
-  { label: 'Seasonal', value: 'seasonal' },
-]
 
 interface SchemeFilters extends Record<string, unknown> {
   region: PartnerZone | 'all'
@@ -97,6 +91,20 @@ export function SchemesListPage() {
     totalEnrolledPartners: 0,
     totalPointsAllocated: 0,
   }
+
+  const schemeTabs: { label: string; value: SchemeTab; count?: number }[] = [
+    { label: 'All', value: 'all' },
+    {
+      label: 'General',
+      value: 'general',
+      count: schemes.filter((s) => s.type === 'general').length,
+    },
+    {
+      label: 'Seasonal',
+      value: 'seasonal',
+      count: schemes.filter((s) => s.type === 'seasonal').length,
+    },
+  ]
 
   const today = new Date().toISOString().slice(0, 10)
   const isSchemeActive = (scheme: Scheme) =>
@@ -279,58 +287,14 @@ export function SchemesListPage() {
         </Grid>
       </Grid>
 
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{
-          mb: 2.5,
-          p: 0.5,
-          width: 'fit-content',
-          border: '1px solid',
-          borderColor: 'divider',
-          borderRadius: `${radius.lg}px`,
-          backgroundColor: 'background.paper',
-        }}
-      >
-        {SCHEME_TABS.map(({ label, value }) => {
-          const active = tab === value
-          return (
-            <Box
-              key={value}
-              component="button"
-              type="button"
-              onClick={() => setTab(value)}
-              sx={{
-                border: '1px solid',
-                borderColor: active ? 'primary.main' : 'transparent',
-                cursor: 'pointer',
-                px: 2,
-                py: 0.75,
-                borderRadius: `${radius.md}px`,
-                fontSize: '0.8125rem',
-                fontWeight: 700,
-                fontFamily: 'inherit',
-                backgroundColor: active ? 'primary.light' : 'transparent',
-                color: active ? 'primary.dark' : 'text.secondary',
-                whiteSpace: 'nowrap',
-                transition: `background-color ${transitions.base}, color ${transitions.base}, border-color ${transitions.base}`,
-                '&:hover': {
-                  backgroundColor: active
-                    ? 'primary.light'
-                    : 'background.default',
-                },
-              }}
-            >
-              {label}
-              {value !== 'all' && (
-                <Box component="span" sx={{ ml: 0.75, opacity: 0.7 }}>
-                  ({schemes.filter((s) => s.type === value).length})
-                </Box>
-              )}
-            </Box>
-          )
-        })}
-      </Stack>
+      <Box sx={{ mb: 2.5, mt: 7 }}>
+        <ModularTabs
+          tabs={schemeTabs}
+          value={tab}
+          onChange={setTab}
+          fontSize={'0.875rem'}
+        />
+      </Box>
 
       <CommonTable
         tableKey="schemes-list"

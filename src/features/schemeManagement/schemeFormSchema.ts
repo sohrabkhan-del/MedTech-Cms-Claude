@@ -4,8 +4,10 @@ const REGION_VALUES = ['East', 'West', 'North', 'South'] as const
 
 const schemeApplicableProductFormSchema = z.object({
   productId: z.string().min(1),
-  baseCoinValue: z.string(),
-  regionMultipliers: z.record(z.enum(REGION_VALUES), z.string()),
+  dealerBaseCoinValue: z.string(),
+  chemistBaseCoinValue: z.string(),
+  dealerRegionMultipliers: z.record(z.enum(REGION_VALUES), z.string()),
+  chemistRegionMultipliers: z.record(z.enum(REGION_VALUES), z.string()),
 })
 
 const schemeGiftPartnerRuleFormSchema = z.object({

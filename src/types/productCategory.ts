@@ -19,6 +19,7 @@ export interface ProductCategory {
   id: string
   categoryName: string
   categoryCode: string
+  image: string
   parentCategoryId?: string
   description: string
   status: ProductCategoryStatus

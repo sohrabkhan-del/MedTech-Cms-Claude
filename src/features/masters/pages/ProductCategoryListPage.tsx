@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { Avatar, Button, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import {
   SlidersHorizontal as SlidersHorizontalIcon,
   FolderTree as FolderTreeIcon,
@@ -63,12 +63,15 @@ export function ProductCategoryListPage() {
       sortable: true,
       sortValue: (row) => row.categoryName,
       render: (row) => (
-        <Typography
-          sx={{ fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-          onClick={() => navigate(`/masters/product-categories/${row.id}`)}
-        >
-          {row.categoryName}
-        </Typography>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Avatar src={row.image} alt={row.categoryName} variant="rounded" sx={{ width: 36, height: 36 }} />
+          <Typography
+            sx={{ fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            onClick={() => navigate(`/masters/product-categories/${row.id}`)}
+          >
+            {row.categoryName}
+          </Typography>
+        </Stack>
       ),
     },
     { key: 'categoryCode', header: 'Category Code', minWidth: 140, render: (row) => row.categoryCode },

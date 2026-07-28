@@ -1,4 +1,8 @@
-import { mockRedemptionRequests, getRedemptionRequestById, redemptionKpis } from '@/features/rewardsWallet/mockRedemptions'
+import {
+  mockRedemptionRequests,
+  getRedemptionRequestById,
+  redemptionKpis,
+} from '@/features/rewardsWallet/mockRedemptions'
 import { giftCategoryOptions } from '@/features/schemeManagement/mockGifts'
 import { getSchemeById } from '@/features/schemeManagement/mockSchemes'
 import type {
@@ -6,6 +10,7 @@ import type {
   RedemptionStatus,
   RedemptionDeliveryStatus,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import type { SchemeApplicableProduct } from '@/types/scheme'
 import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
@@ -30,19 +35,26 @@ import { mockDelay } from '@/services/mockDelay'
  *   2. If `sourceSchemeId` is null/general (or a general scheme), normal unrestricted
  *      redemption applies.
  */
-function canRedeemFromScheme(sourceSchemeId: string | null, productId: string): boolean {
+function canRedeemFromScheme(
+  sourceSchemeId: string | null,
+  productId: string,
+): boolean {
   if (!sourceSchemeId) return true
   const scheme = getSchemeById(sourceSchemeId)
   if (!scheme) return true
   if (scheme.type !== 'seasonal') return true
-  return scheme.products.some((p) => p.productId === productId)
+  return scheme.applicableProducts.some(
+    (p: SchemeApplicableProduct) => p.productId === productId,
+  )
 }
 
 async function getRedemptions(): Promise<RedemptionRequest[]> {
   return mockDelay(mockRedemptionRequests)
 }
 
-async function getRedemptionDetail(id: string): Promise<RedemptionRequest | undefined> {
+async function getRedemptionDetail(
+  id: string,
+): Promise<RedemptionRequest | undefined> {
   return mockDelay(getRedemptionRequestById(id))
 }
 
@@ -55,12 +67,18 @@ async function getRedemptionFormOptions() {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
-async function setRedemptionStatus(_id: string, _status: RedemptionStatus): Promise<void> {
+async function setRedemptionStatus(
+  _id: string,
+  _status: RedemptionStatus,
+): Promise<void> {
   return Promise.resolve()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
-async function setDeliveryStatus(_id: string, _status: RedemptionDeliveryStatus): Promise<void> {
+async function setDeliveryStatus(
+  _id: string,
+  _status: RedemptionDeliveryStatus,
+): Promise<void> {
   return Promise.resolve()
 }
 

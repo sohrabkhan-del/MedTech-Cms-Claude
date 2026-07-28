@@ -49,6 +49,7 @@ export const headerOnlyRouteEntries: RouteEntry[] = [
   { path: '/settings/profile', breadcrumbLabel: 'Profile' },
   { path: '/logout', breadcrumbLabel: 'Logout' },
   { path: '/rewards-wallet/coin-value-rules/all', breadcrumbLabel: 'All', showRegionTopbar: true },
+  { path: '/rewards-wallet/coin-value-rules/region-multipliers', breadcrumbLabel: 'Region Multiplier Rules' },
 ]
 
 export const routeEntries: RouteEntry[] = [
@@ -85,6 +86,13 @@ export function findParentRouteEntry(pathname: string): { parent: RouteEntry; en
     if (remainder.endsWith('/edit') && !remainder.slice(0, -'/edit'.length).includes('/')) {
       const id = remainder.slice(0, -'/edit'.length)
       return { parent, entityName: `Edit ${config.resolveEntityName(id) ?? ''}`.trim() }
+    }
+    if (
+      remainder.endsWith('/edit-base-value') &&
+      !remainder.slice(0, -'/edit-base-value'.length).includes('/')
+    ) {
+      const id = remainder.slice(0, -'/edit-base-value'.length)
+      return { parent, entityName: `Edit Base Value · ${config.resolveEntityName(id) ?? ''}`.trim() }
     }
     // Routes nested more than one level below the parent (e.g. container/box drill-down
     // pages) build their own complete breadcrumb trail locally — skip the global one here

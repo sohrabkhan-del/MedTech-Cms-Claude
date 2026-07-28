@@ -82,6 +82,7 @@ function buildCoinValueRule(seed: number, partnerType: CoinRulePartnerType): Coi
     productName: product.productName,
     defaultCoinValue: baseCoinValue,
     baseCoinValue,
+    status: 'active',
 
     regions,
     regionalHistory: buildRegionalHistory(seed, id, regions),
@@ -97,22 +98,66 @@ export const mockCoinValueRules: CoinValueRule[] = [
 ]
 
 export function getCoinValueRuleById(id: string): CoinValueRule | undefined {
-  return mockCoinValueRules.find((rule) => rule.id === id)
+  const rule = mockCoinValueRules.find((rule) => rule.id === id)
+  if (!rule) return undefined
+  const extraHistory = getStoredRegionHistory()[id]
+  if (!extraHistory?.length) return rule
+  return { ...rule, regionalHistory: [...extraHistory, ...rule.regionalHistory] }
 }
 
 export function getCoinValueRulesByPartnerType(partnerType: CoinRulePartnerType): CoinValueRule[] {
   return mockCoinValueRules.filter((rule) => rule.partnerType === partnerType)
 }
 
+/** One row per product, pairing its Dealer and Chemist coin value rules by product code. */
+export interface ProductCoinRuleGroup {
+  modelCode: string
+  productCategory: string
+  productName: string
+  dealerRule?: CoinValueRule
+  chemistRule?: CoinValueRule
+}
+
+export function groupCoinValueRulesByProduct(rules: CoinValueRule[]): ProductCoinRuleGroup[] {
+  const groups = new Map<string, ProductCoinRuleGroup>()
+  for (const rule of rules) {
+    const existing = groups.get(rule.modelCode)
+    const group: ProductCoinRuleGroup = existing ?? {
+      modelCode: rule.modelCode,
+      productCategory: rule.productCategory,
+      productName: rule.productName,
+    }
+    if (rule.partnerType === 'Dealer') group.dealerRule = rule
+    else group.chemistRule = rule
+    groups.set(rule.modelCode, group)
+  }
+  return Array.from(groups.values())
+}
+
 export function highestCurrentPoints(rule: CoinValueRule): number {
   return Math.max(...rule.regions.map((r) => r.currentPoints))
 }
 
-export const regionMultiplierDefaults: Record<CoinRuleRegion, number> = {
-  North: Number((mockCoinValueRules.reduce((sum, r) => sum + (r.regions.find((x) => x.region === 'North')?.currentMultiplier ?? 1), 0) / mockCoinValueRules.length).toFixed(2)),
-  South: Number((mockCoinValueRules.reduce((sum, r) => sum + (r.regions.find((x) => x.region === 'South')?.currentMultiplier ?? 1), 0) / mockCoinValueRules.length).toFixed(2)),
-  East: Number((mockCoinValueRules.reduce((sum, r) => sum + (r.regions.find((x) => x.region === 'East')?.currentMultiplier ?? 1), 0) / mockCoinValueRules.length).toFixed(2)),
-  West: Number((mockCoinValueRules.reduce((sum, r) => sum + (r.regions.find((x) => x.region === 'West')?.currentMultiplier ?? 1), 0) / mockCoinValueRules.length).toFixed(2)),
+function averageMultiplierFor(partnerType: CoinRulePartnerType, region: CoinRuleRegion): number {
+  const rules = mockCoinValueRules.filter((r) => r.partnerType === partnerType)
+  return Number(
+    (rules.reduce((sum, r) => sum + (r.regions.find((x) => x.region === region)?.currentMultiplier ?? 1), 0) / rules.length).toFixed(2),
+  )
+}
+
+export const regionMultiplierDefaults: Record<CoinRulePartnerType, Record<CoinRuleRegion, number>> = {
+  Dealer: {
+    North: averageMultiplierFor('Dealer', 'North'),
+    South: averageMultiplierFor('Dealer', 'South'),
+    East: averageMultiplierFor('Dealer', 'East'),
+    West: averageMultiplierFor('Dealer', 'West'),
+  },
+  Chemist: {
+    North: averageMultiplierFor('Chemist', 'North'),
+    South: averageMultiplierFor('Chemist', 'South'),
+    East: averageMultiplierFor('Chemist', 'East'),
+    West: averageMultiplierFor('Chemist', 'West'),
+  },
 }
 
 export const coinRuleKpis = {
@@ -131,16 +176,21 @@ export const coinDistributionByCategory = Object.entries(
 
 // --- localStorage persistence for region multiplier overrides (mock-only, session-local) ---
 
-const MULTIPLIERS_KEY = 'medtech-cms:coin-rules:region-multipliers'
-const MULTIPLIER_DATES_KEY = 'medtech-cms:coin-rules:region-multiplier-dates'
+const MULTIPLIERS_KEY = 'medtech-cms:coin-rules:region-multipliers-v2'
+const MULTIPLIER_DATES_KEY = 'medtech-cms:coin-rules:region-multiplier-dates-v2'
 
-export type RegionMultiplierMap = Record<CoinRuleRegion, number>
-export type RegionDateMap = Record<CoinRuleRegion, string>
+export type RegionMultiplierMap = Record<CoinRulePartnerType, Record<CoinRuleRegion, number>>
+export type RegionDateMap = Record<CoinRulePartnerType, Record<CoinRuleRegion, string>>
 
 export function formatRuleChangeDate(): string {
   const now = new Date()
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
   return `${pad(now.getDate())} ${months[now.getMonth()]} ${now.getFullYear()}`
+}
+
+export function formatRuleChangeTimestamp(): string {
+  const now = new Date()
+  return `${formatRuleChangeDate()} ${pad(now.getHours())}:${pad(now.getMinutes())}`
 }
 
 export function getStoredMultipliers(): RegionMultiplierMap {
@@ -169,12 +219,64 @@ export function getStoredMultiplierDates(): RegionDateMap {
     // localStorage unavailable — fall back to defaults
   }
   const today = formatRuleChangeDate()
-  return { North: today, South: today, East: today, West: today }
+  const defaultRegionDates: Record<CoinRuleRegion, string> = { North: today, South: today, East: today, West: today }
+  return { Dealer: { ...defaultRegionDates }, Chemist: { ...defaultRegionDates } }
 }
 
 export function storeMultiplierDates(value: RegionDateMap): void {
   try {
     localStorage.setItem(MULTIPLIER_DATES_KEY, JSON.stringify(value))
+  } catch {
+    // localStorage unavailable — change won't persist across reloads
+  }
+}
+
+const RULE_STATUS_KEY = 'medtech-cms:coin-rules:status-overrides'
+
+export type RuleStatusMap = Record<string, 'active' | 'inactive'>
+
+export function getStoredRuleStatuses(): RuleStatusMap {
+  try {
+    const raw = localStorage.getItem(RULE_STATUS_KEY)
+    if (raw) return JSON.parse(raw) as RuleStatusMap
+  } catch {
+    // localStorage unavailable — fall back to defaults
+  }
+  return {}
+}
+
+export function storeRuleStatuses(value: RuleStatusMap): void {
+  try {
+    localStorage.setItem(RULE_STATUS_KEY, JSON.stringify(value))
+  } catch {
+    // localStorage unavailable — change won't persist across reloads
+  }
+}
+
+// --- localStorage persistence for region-multiplier-driven history entries (mock-only, session-local) ---
+
+const REGION_HISTORY_KEY = 'medtech-cms:coin-rules:region-history'
+
+export type RegionHistoryMap = Record<string, RegionCoinHistoryEntry[]>
+
+export function getStoredRegionHistory(): RegionHistoryMap {
+  try {
+    const raw = localStorage.getItem(REGION_HISTORY_KEY)
+    if (raw) return JSON.parse(raw) as RegionHistoryMap
+  } catch {
+    // localStorage unavailable — fall back to none
+  }
+  return {}
+}
+
+export function appendRegionHistoryEntries(entries: Record<string, RegionCoinHistoryEntry[]>): void {
+  const current = getStoredRegionHistory()
+  const next: RegionHistoryMap = { ...current }
+  for (const [ruleId, newEntries] of Object.entries(entries)) {
+    next[ruleId] = [...newEntries, ...(current[ruleId] ?? [])]
+  }
+  try {
+    localStorage.setItem(REGION_HISTORY_KEY, JSON.stringify(next))
   } catch {
     // localStorage unavailable — change won't persist across reloads
   }

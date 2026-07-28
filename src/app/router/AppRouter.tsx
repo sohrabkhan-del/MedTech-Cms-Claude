@@ -67,6 +67,8 @@ import { RedemptionListPage } from '@/features/rewardsWallet/pages/RedemptionLis
 import { RedemptionDetailsPage } from '@/features/rewardsWallet/pages/RedemptionDetailsPage'
 import { CoinValueRulesListPage } from '@/features/rewardsWallet/pages/CoinValueRulesListPage'
 import { CoinValueRuleDetailsPage } from '@/features/rewardsWallet/pages/CoinValueRuleDetailsPage'
+import { EditBaseCoinValuePage } from '@/features/rewardsWallet/pages/EditBaseCoinValuePage'
+import { RegionMultiplierRulesPage } from '@/features/rewardsWallet/pages/RegionMultiplierRulesPage'
 import { AppearanceSettingsPage } from '@/features/settings/pages/AppearanceSettingsPage'
 import { ProfileSettingsPage } from '@/features/settings/pages/ProfileSettingsPage'
 import { AdminListPage } from '@/features/systemUsers/pages/AdminListPage'
@@ -556,8 +558,16 @@ export function AppRouter() {
             element={<CoinValueRulesListPage />}
           />
           <Route
+            path="/rewards-wallet/coin-value-rules/region-multipliers"
+            element={<RegionMultiplierRulesPage />}
+          />
+          <Route
             path="/rewards-wallet/coin-value-rules/:ruleId"
             element={<CoinValueRuleDetailsPage />}
+          />
+          <Route
+            path="/rewards-wallet/coin-value-rules/:ruleId/edit-base-value"
+            element={<EditBaseCoinValuePage />}
           />
           <Route
             path="/settings/general"

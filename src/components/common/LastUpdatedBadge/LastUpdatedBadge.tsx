@@ -59,7 +59,7 @@ export function LastUpdatedBadge({
           fontWeight: 700,
           whiteSpace: 'nowrap',
           color: 'secondary.dark',
-          px: 0.5,
+          pr: 0.5,
         }}
       >
         {dateRange.presetLabel === 'Custom Range' &&

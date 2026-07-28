@@ -26,6 +26,7 @@ export type {
 export type {
   CoinRuleRegion,
   CoinRulePartnerType,
+  CoinRuleStatus,
   RegionCoinHistoryEntry,
   RegionMultiplierRow,
   CoinValueRule,

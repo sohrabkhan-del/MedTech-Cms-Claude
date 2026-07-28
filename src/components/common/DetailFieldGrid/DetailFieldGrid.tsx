@@ -4,6 +4,8 @@ import { Box, Grid, Typography } from '@mui/material'
 export interface DetailField {
   label: string
   value: ReactNode
+  /** Overrides the label's default gray caption color, e.g. to tie a field to a themed card. */
+  labelColor?: string
 }
 
 interface DetailFieldGridProps {
@@ -15,7 +17,10 @@ export function DetailFieldGrid({ fields }: DetailFieldGridProps) {
     <Grid container spacing={2.5}>
       {fields.map((field) => (
         <Grid key={field.label} size={{ xs: 12, sm: 6, md: 3 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <Typography
+            variant="caption"
+            sx={{ color: field.labelColor ?? 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}
+          >
             {field.label}
           </Typography>
           <Box sx={{ mt: 0.5 }}>

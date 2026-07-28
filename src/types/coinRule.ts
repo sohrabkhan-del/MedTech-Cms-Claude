@@ -1,5 +1,6 @@
 export type CoinRuleRegion = 'North' | 'South' | 'East' | 'West'
 export type CoinRulePartnerType = 'Dealer' | 'Chemist'
+export type CoinRuleStatus = 'active' | 'inactive'
 
 export interface RegionCoinHistoryEntry {
   id: string
@@ -32,6 +33,7 @@ export interface CoinValueRule {
   productName: string
   defaultCoinValue: number
   baseCoinValue: number
+  status: CoinRuleStatus
 
   regions: RegionMultiplierRow[]
   regionalHistory: RegionCoinHistoryEntry[]

@@ -203,6 +203,22 @@ export function SchemeFormPage() {
     () => new Set(giftRuleRows.map((r) => r.giftId).filter(Boolean)),
     [giftRuleRows],
   )
+  const dealerDiscountPointsTotal = useMemo(
+    () =>
+      giftRuleRows.reduce(
+        (sum, row) => sum + (Number(row.dealerRule?.discountPrice) || 0),
+        0,
+      ),
+    [giftRuleRows],
+  )
+  const chemistDiscountPointsTotal = useMemo(
+    () =>
+      giftRuleRows.reduce(
+        (sum, row) => sum + (Number(row.chemistRule?.discountPrice) || 0),
+        0,
+      ),
+    [giftRuleRows],
+  )
 
   useEffect(() => {
     const prefillSource = scheme ?? cloneSource
@@ -210,6 +226,7 @@ export function SchemeFormPage() {
     reset({
       type: prefillSource.type,
       name: prefillSource.name,
+      status: scheme?.status ?? 'active',
       startDate: prefillSource.startDate,
       endDate: prefillSource.endDate ?? '',
       partnerTypes: prefillSource.partnerTypes,
@@ -360,6 +377,55 @@ export function SchemeFormPage() {
                 )}
               />
             </Grid>
+            {isEdit && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <FieldLabel required>Status</FieldLabel>
+                <Controller
+                  name="status"
+                  control={control}
+                  render={({ field }) => (
+                    <Stack
+                      direction="row"
+                      spacing={1.5}
+                      sx={{ alignItems: 'center' }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: '0.8125rem',
+                          fontWeight: 700,
+                          color:
+                            field.value === 'inactive'
+                              ? 'error.main'
+                              : 'text.secondary',
+                        }}
+                      >
+                        Inactive
+                      </Typography>
+                      <Switch
+                        checked={field.value === 'active'}
+                        onChange={(e) =>
+                          field.onChange(
+                            e.target.checked ? 'active' : 'inactive',
+                          )
+                        }
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: '0.8125rem',
+                          fontWeight: 700,
+                          color:
+                            field.value === 'active'
+                              ? 'success.main'
+                              : 'text.secondary',
+                        }}
+                      >
+                        Active
+                      </Typography>
+                    </Stack>
+                  )}
+                />
+              </Grid>
+            )}
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Start Date</FieldLabel>
               <FormField
@@ -524,6 +590,32 @@ export function SchemeFormPage() {
                                 </>
                               )}
                             />
+                            <Box
+                              sx={{
+                                mt: 1.5,
+                                pt: 1.5,
+                                borderTop: '1px solid',
+                                borderColor: 'divider',
+                              }}
+                            >
+                              <Typography
+                                variant="caption"
+                                sx={{
+                                  color: 'text.secondary',
+                                  display: 'block',
+                                }}
+                              >
+                                Total Discount Points
+                              </Typography>
+                              <Typography
+                                sx={{ fontWeight: 700, fontSize: '0.9375rem' }}
+                              >
+                                {(partnerType === 'Dealer'
+                                  ? dealerDiscountPointsTotal
+                                  : chemistDiscountPointsTotal
+                                ).toLocaleString('en-IN')}
+                              </Typography>
+                            </Box>
                           </Box>
                         )}
                       </Box>
@@ -678,6 +770,7 @@ export function SchemeFormPage() {
                           size="small"
                           onClick={() => removeApplicableProduct(index)}
                           aria-label="Remove product"
+                          color="error"
                         >
                           <Trash2 size={18} />
                         </IconButton>
@@ -845,10 +938,24 @@ export function SchemeFormPage() {
                         appendGiftRule({
                           giftId: gift.id,
                           dealerRule: partnerTypes.includes('Dealer')
-                            ? { price: '', points: '', discountPrice: '' }
+                            ? {
+                                price: String(gift.price),
+                                points:
+                                  gift.dealerBasePoints === null
+                                    ? ''
+                                    : String(gift.dealerBasePoints),
+                                discountPrice: '',
+                              }
                             : null,
                           chemistRule: partnerTypes.includes('Chemist')
-                            ? { price: '', points: '', discountPrice: '' }
+                            ? {
+                                price: String(gift.price),
+                                points:
+                                  gift.chemistBasePoints === null
+                                    ? ''
+                                    : String(gift.chemistBasePoints),
+                                discountPrice: '',
+                              }
                             : null,
                         })
                       }
@@ -902,6 +1009,7 @@ export function SchemeFormPage() {
                           size="small"
                           onClick={() => removeGiftRule(index)}
                           aria-label="Remove gift"
+                          color="error"
                         >
                           <Trash2 size={18} />
                         </IconButton>
@@ -933,13 +1041,16 @@ export function SchemeFormPage() {
                               <FormField
                                 name={`giftRules.${index}.dealerRule.price`}
                                 control={control}
+                                decimal
                                 placeholder="e.g. 999"
                                 size="small"
                                 fullWidth
                                 slotProps={{
                                   input: {
                                     startAdornment: (
-                                      <InputAdornment position="start">₹</InputAdornment>
+                                      <InputAdornment position="start">
+                                        ₹
+                                      </InputAdornment>
                                     ),
                                   },
                                 }}
@@ -950,6 +1061,8 @@ export function SchemeFormPage() {
                               <FormField
                                 name={`giftRules.${index}.dealerRule.points`}
                                 control={control}
+                                numeric
+                                disabled={selectedGift?.dealerBasePoints !== null && selectedGift?.dealerBasePoints !== undefined}
                                 placeholder="e.g. 200"
                                 size="small"
                                 fullWidth
@@ -960,6 +1073,7 @@ export function SchemeFormPage() {
                               <FormField
                                 name={`giftRules.${index}.dealerRule.discountPrice`}
                                 control={control}
+                                numeric
                                 placeholder="e.g. 799"
                                 size="small"
                                 fullWidth
@@ -992,13 +1106,16 @@ export function SchemeFormPage() {
                               <FormField
                                 name={`giftRules.${index}.chemistRule.price`}
                                 control={control}
+                                decimal
                                 placeholder="e.g. 999"
                                 size="small"
                                 fullWidth
                                 slotProps={{
                                   input: {
                                     startAdornment: (
-                                      <InputAdornment position="start">₹</InputAdornment>
+                                      <InputAdornment position="start">
+                                        ₹
+                                      </InputAdornment>
                                     ),
                                   },
                                 }}
@@ -1009,6 +1126,8 @@ export function SchemeFormPage() {
                               <FormField
                                 name={`giftRules.${index}.chemistRule.points`}
                                 control={control}
+                                numeric
+                                disabled={selectedGift?.chemistBasePoints !== null && selectedGift?.chemistBasePoints !== undefined}
                                 placeholder="e.g. 150"
                                 size="small"
                                 fullWidth
@@ -1019,6 +1138,7 @@ export function SchemeFormPage() {
                               <FormField
                                 name={`giftRules.${index}.chemistRule.discountPrice`}
                                 control={control}
+                                numeric
                                 placeholder="e.g. 699"
                                 size="small"
                                 fullWidth

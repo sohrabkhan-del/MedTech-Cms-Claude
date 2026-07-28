@@ -3,7 +3,6 @@ import {
   Alert,
   Box,
   Button,
-  Card,
   Chip,
   Grid,
   Stack,
@@ -22,6 +21,7 @@ import {
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { SuccessDialog } from '@/components/common/SuccessDialog/SuccessDialog'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -714,50 +714,14 @@ export function BatchUidUploadTab({
       )}
 
       {activeStep === 4 && summary && cartonSummary && (
-        <Card sx={{ p: 3 }}>
-          <Stack
-            spacing={2.5}
-            sx={{ alignItems: 'center', textAlign: 'center', py: 4 }}
-          >
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'success.light',
-                color: 'success.main',
-                animation:
-                  'batch-import-success-pop 0.5s ease-out, batch-import-success-ring 1.2s ease-out',
-                '@keyframes batch-import-success-pop': {
-                  '0%': { transform: 'scale(0)' },
-                  '60%': { transform: 'scale(1.15)' },
-                  '100%': { transform: 'scale(1)' },
-                },
-                '@keyframes batch-import-success-ring': {
-                  '0%': { boxShadow: '0 0 0 0 rgba(46, 125, 50, 0.4)' },
-                  '100%': { boxShadow: '0 0 0 18px rgba(46, 125, 50, 0)' },
-                },
-              }}
-            >
-              <CircleCheck size={34} />
-            </Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
-              Data Imported Successfully
-            </Typography>
-            <Typography
-              variant="body1"
-              sx={{ color: 'text.secondary', maxWidth: 480 }}
-            >
-              {mappedBatches.length} batches,{' '}
-              {summary.totalUidsGenerated.toLocaleString('en-IN')} UIDs, and{' '}
-              {cartonSummary.validRows} master carton link(s) have been imported
-              and are now available in Product Batches.
-            </Typography>
-          </Stack>
-        </Card>
+        <SuccessDialog
+          open={activeStep === 4}
+          onClose={() => {}}
+          title="Data Imported Successfully"
+          description={`${mappedBatches.length} batches, ${summary.totalUidsGenerated.toLocaleString('en-IN')} UIDs, and ${cartonSummary.validRows} master carton link(s) have been imported and are now available in Product Batches.`}
+          autoCloseMs={2500}
+          variant="success"
+        />
       )}
 
       <Toast

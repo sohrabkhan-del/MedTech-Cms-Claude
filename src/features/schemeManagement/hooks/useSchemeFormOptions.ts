@@ -7,6 +7,9 @@ export interface SchemeGiftProductOption {
   id: string
   name: string
   image: string
+  price: number
+  dealerBasePoints: number | null
+  chemistBasePoints: number | null
 }
 
 export interface SchemeMasterProductOption {

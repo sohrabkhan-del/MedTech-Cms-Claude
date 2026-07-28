@@ -3,6 +3,7 @@ import {
   mockGeneralSchemes,
   mockSeasonalSchemes,
   getSchemeById,
+  setSchemeStatus,
   allSchemeKpis,
   generalSchemeKpis,
   seasonalSchemeKpis,
@@ -11,7 +12,7 @@ import {
 } from '@/features/schemeManagement/mockSchemes'
 import { mockGifts } from '@/features/schemeManagement/mockGifts'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
-import type { Scheme, SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
+import type { Scheme, SchemeFormValues, SchemeStatus } from '@/features/schemeManagement/types/schemeManagement.types'
 import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
@@ -51,7 +52,14 @@ async function getSchemeFormOptions() {
   return mockDelay({
     regionOptions: schemeRegionOptions,
     partnerTypeOptions: schemePartnerTypeOptions,
-    giftProductOptions: mockGifts.map((gift) => ({ id: gift.id, name: gift.giftName, image: gift.giftImage })),
+    giftProductOptions: mockGifts.map((gift) => ({
+      id: gift.id,
+      name: gift.giftName,
+      image: gift.giftImage,
+      price: gift.price,
+      dealerBasePoints: gift.dealerBasePoints,
+      chemistBasePoints: gift.chemistBasePoints,
+    })),
     masterProductOptions: mockProducts.map((product) => ({
       id: product.id,
       name: product.productName,
@@ -79,14 +87,19 @@ async function createScheme(_values: SchemeFormValues): Promise<void> {
   return Promise.resolve()
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
-async function updateScheme(_id: string, _values: SchemeFormValues): Promise<void> {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- other fields document the future real contract
+async function updateScheme(id: string, values: SchemeFormValues): Promise<void> {
+  setSchemeStatus(id, values.status)
   return Promise.resolve()
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
 async function deleteScheme(_id: string): Promise<void> {
   return Promise.resolve()
+}
+
+async function updateSchemeStatus(id: string, status: SchemeStatus): Promise<Scheme | undefined> {
+  return mockDelay(setSchemeStatus(id, status), 300)
 }
 
 export const schemesService = {
@@ -101,5 +114,6 @@ export const schemesService = {
   checkNameAvailable,
   createScheme,
   updateScheme,
+  updateSchemeStatus,
   deleteScheme,
 }

@@ -1,6 +1,7 @@
 export type {
   Scheme,
   SchemeType,
+  SchemeStatus,
   SchemePartnerType,
   SchemePartnerStatus,
   SchemeApplicableProduct,

@@ -23,10 +23,6 @@ import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useSchemes } from '@/features/schemeManagement/hooks/useSchemes'
 import { useSchemeFormOptions } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
-import {
-  schemeDealerTotal,
-  schemeChemistTotal,
-} from '@/features/schemeManagement/mockSchemes'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
 import { useToast } from '@/contexts/ToastContext'
 import type { PartnerZone } from '@/types/partner'
@@ -65,7 +61,7 @@ function RegionsCell({ regions }: { regions: string[] }) {
 export function SchemesListPage() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { schemes, kpis, isLoading } = useSchemes()
+  const { schemes, kpis, isLoading, refetch } = useSchemes()
   const { regionOptions, partnerTypeOptions } = useSchemeFormOptions()
   useRegionTopbarHeader({
     icon: <Target size={20} />,
@@ -106,13 +102,9 @@ export function SchemesListPage() {
     },
   ]
 
-  const today = new Date().toISOString().slice(0, 10)
-  const isSchemeActive = (scheme: Scheme) =>
-    scheme.startDate <= today && (!scheme.endDate || scheme.endDate >= today)
-
   const filteredSchemes = schemes.filter((scheme) => {
     const tabMatch = tab === 'all' || scheme.type === tab
-    const statusMatch = statusFilter === 'all' || isSchemeActive(scheme)
+    const statusMatch = statusFilter === 'all' || scheme.status === 'active'
     const regionMatch =
       appliedFilters.region === 'all' ||
       scheme.regions.includes(appliedFilters.region)
@@ -138,6 +130,12 @@ export function SchemesListPage() {
     await schemesService.deleteScheme(deleteTarget.id)
     toast.success('Scheme deleted successfully.')
     setDeleteTarget(null)
+  }
+
+  const handleStatusChange = async (scheme: Scheme, status: 'active' | 'inactive') => {
+    await schemesService.updateSchemeStatus(scheme.id, status)
+    toast.success(`Scheme ${status === 'active' ? 'activated' : 'deactivated'} successfully.`)
+    refetch()
   }
 
   const columns: CommonTableColumn<Scheme>[] = [
@@ -173,7 +171,7 @@ export function SchemesListPage() {
       header: 'Status',
       minWidth: 110,
       render: (row) =>
-        isSchemeActive(row) ? (
+        row.status === 'active' ? (
           <Chip size="small" label="Active" color="success" />
         ) : (
           <Chip size="small" label="Inactive" color="default" />
@@ -203,25 +201,6 @@ export function SchemesListPage() {
       header: 'End Date',
       minWidth: 130,
       render: (row) => row.endDate ?? 'No end date',
-    },
-    {
-      key: 'points',
-      header: 'Points Required',
-      minWidth: 190,
-      render: (row) => (
-        <Stack spacing={0.25}>
-          {row.partnerTypes.includes('Dealer') && (
-            <Typography variant="caption" sx={{ display: 'block' }}>
-              Dealer: {schemeDealerTotal(row).toLocaleString('en-IN')}
-            </Typography>
-          )}
-          {row.partnerTypes.includes('Chemist') && (
-            <Typography variant="caption" sx={{ display: 'block' }}>
-              Chemist: {schemeChemistTotal(row).toLocaleString('en-IN')}
-            </Typography>
-          )}
-        </Stack>
-      ),
     },
     {
       key: 'giftRules',
@@ -326,6 +305,16 @@ export function SchemesListPage() {
             label: 'Edit',
             onClick: (row) =>
               navigate(`/scheme-management/schemes/${row.id}/edit`),
+          },
+          {
+            label: 'Activate',
+            onClick: (row) => handleStatusChange(row, 'active'),
+            hidden: (row) => row.status === 'active',
+          },
+          {
+            label: 'Deactivate',
+            onClick: (row) => handleStatusChange(row, 'inactive'),
+            hidden: (row) => row.status === 'inactive',
           },
           {
             label: 'Delete',

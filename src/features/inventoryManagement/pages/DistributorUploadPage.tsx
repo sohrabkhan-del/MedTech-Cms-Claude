@@ -1,28 +1,19 @@
 import { useState } from 'react'
-import {
-  Box,
-  Button,
-  Dialog,
-  DialogContent,
-  IconButton,
-  Stack,
-  Typography,
-} from '@mui/material'
-import { CircleCheck, Truck, UploadCloud, X } from 'lucide-react'
-import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Button, Stack } from '@mui/material'
+import { Truck, UploadCloud } from 'lucide-react'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { radius } from '@/theme/tokens'
-import { DistributorUploadTab } from '@/features/inventoryManagement/components/DistributorUploadTab'
+import { SuccessDialog } from '@/components/common/SuccessDialog/SuccessDialog'
 import { DistributorListingTab } from '@/features/inventoryManagement/components/DistributorListingTab'
 import { useDistributors } from '@/features/inventoryManagement/hooks/useDistributors'
-import type { DispatchInvoiceMeta } from '@/features/inventoryManagement/dispatchReportParser'
-import type { DispatchUploadRow } from '@/types/distributorUpload'
 
 export function DistributorUploadPage() {
-  const isMobile = useIsMobile()
-  const [uploadOpen, setUploadOpen] = useState(false)
-  const [importDone, setImportDone] = useState(false)
-  const { invoices, isLoading, importDispatch } = useDistributors()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { invoices, isLoading } = useDistributors()
+  const [importDone, setImportDone] = useState(
+    Boolean((location.state as { imported?: boolean } | null)?.imported),
+  )
   useRegionTopbarHeader({
     icon: <Truck size={20} />,
     title: 'Distributor Upload',
@@ -30,14 +21,6 @@ export function DistributorUploadPage() {
       'Import dispatch loading reports via Excel and track shipments to distributors.',
     isLoading,
   })
-
-  async function handleImported(
-    rows: DispatchUploadRow[],
-    uploadFileName: string,
-    invoiceMeta: DispatchInvoiceMeta,
-  ) {
-    await importDispatch(rows, uploadFileName, invoiceMeta)
-  }
 
   return (
     <>
@@ -54,7 +37,7 @@ export function DistributorUploadPage() {
         <Button
           variant="contained"
           startIcon={<UploadCloud size={18} />}
-          onClick={() => setUploadOpen(true)}
+          onClick={() => navigate('/distributor-upload/new')}
         >
           Upload Distributor Batches
         </Button>
@@ -65,90 +48,12 @@ export function DistributorUploadPage() {
         isLoading={isLoading}
       />
 
-      <Dialog
-        open={uploadOpen}
-        onClose={() => setUploadOpen(false)}
-        fullWidth
-        fullScreen={isMobile}
-        maxWidth="lg"
-        slotProps={{
-          paper: { sx: { borderRadius: isMobile ? 0 : `${radius.xl}px` } },
-        }}
-      >
-        <Stack
-          direction="row"
-          sx={{
-            alignItems: 'flex-start',
-            justifyContent: 'space-between',
-            px: 3,
-            pt: 3,
-            pb: 1,
-          }}
-        >
-          <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
-            Upload Distributor Data
-          </Typography>
-          <IconButton
-            onClick={() => setUploadOpen(false)}
-            size="small"
-            aria-label="Close"
-          >
-            <X size={20} />
-          </IconButton>
-        </Stack>
-        <DialogContent sx={{ px: 3, pb: 3 }}>
-          <DistributorUploadTab
-            onImported={handleImported}
-            onDone={() => {
-              setUploadOpen(false)
-              setImportDone(true)
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      <Dialog
+      <SuccessDialog
         open={importDone}
         onClose={() => setImportDone(false)}
-        maxWidth="xs"
-        fullWidth
-        slotProps={{
-          paper: { sx: { borderRadius: `${radius.xl}px` } },
-        }}
-      >
-        <DialogContent sx={{ px: 3, pt: 4, pb: 3 }}>
-          <Stack spacing={2} sx={{ alignItems: 'center', textAlign: 'center' }}>
-            <Box
-              sx={{
-                width: 56,
-                height: 56,
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: 'success.light',
-                color: 'success.main',
-              }}
-            >
-              <CircleCheck size={30} />
-            </Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
-              Dispatch Data Imported Successfully
-            </Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Your dispatch loading report has been imported and is now
-              available in Distributor Upload.
-            </Typography>
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={() => setImportDone(false)}
-            >
-              Done
-            </Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
+        title="Dispatch Data Imported Successfully"
+        description="Your dispatch loading report has been imported and is now available in Distributor Upload."
+      />
     </>
   )
 }

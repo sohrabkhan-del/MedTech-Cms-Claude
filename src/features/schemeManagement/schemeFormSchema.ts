@@ -26,6 +26,7 @@ export const schemeFormSchema = z
   .object({
     type: z.enum(['general', 'seasonal']),
     name: z.string().min(2, 'Scheme name is required'),
+    status: z.enum(['active', 'inactive']),
     startDate: z.string().min(1, 'Start date is required'),
     endDate: z.string().optional(),
     partnerTypes: z.array(z.enum(['Dealer', 'Chemist'])).min(1, 'Select at least one partner type'),
@@ -79,6 +80,7 @@ export type SchemeGiftPartnerRuleFormValues = z.infer<typeof schemeGiftPartnerRu
 export const schemeFormDefaults: SchemeFormValues = {
   type: 'general',
   name: '',
+  status: 'active',
   startDate: '',
   endDate: '',
   partnerTypes: [],

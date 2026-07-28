@@ -1,26 +1,39 @@
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
-  Avatar,
+  Autocomplete,
   Box,
   Button,
   Card,
+  Checkbox,
+  FormControlLabel,
   Grid,
+  IconButton,
   MenuItem,
   Stack,
+  TextField,
+  Tooltip,
   Typography,
 } from '@mui/material'
-import { Image as ImageOutlined } from 'lucide-react'
+import { Plus } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
+import { Modal } from '@/components/common/Modal/Modal'
+import { radius } from '@/theme/tokens'
 import { useGiftForm } from '@/features/schemeManagement/hooks/useGiftForm'
 import {
   giftFormDefaults,
   giftFormSchema,
   type GiftFormValues,
 } from '@/features/schemeManagement/types/schemeManagement.types'
+import type { PartnerZone } from '@/types/partner'
+import type { GiftPartnerType } from '@/types/gift'
+
+const ALL_PARTNER_TYPES: GiftPartnerType[] = ['Dealer', 'Chemist']
+const ALL_REGIONS: PartnerZone[] = ['East', 'West', 'North', 'South']
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -39,7 +52,7 @@ function FieldLabel({
   children,
   required,
 }: {
-  children: string
+  children: ReactNode
   required?: boolean
 }) {
   return (
@@ -59,24 +72,43 @@ function FieldLabel({
   )
 }
 
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () =>
+      typeof reader.result === 'string'
+        ? resolve(reader.result)
+        : reject(new Error('Failed to read file'))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
 export function GiftFormPage() {
   const navigate = useNavigate()
   const { giftId } = useParams<{ giftId: string }>()
   const { isEdit, gift, options, isLoading, isSubmitting, submit } =
     useGiftForm(giftId)
 
-  const { control, handleSubmit, watch, reset } = useForm<GiftFormValues>({
-    resolver: zodResolver(giftFormSchema),
-    defaultValues: giftFormDefaults,
-  })
+  const { control, handleSubmit, watch, reset, setValue } =
+    useForm<GiftFormValues>({
+      resolver: zodResolver(giftFormSchema),
+      defaultValues: giftFormDefaults,
+    })
 
   const imageUrl = watch('giftImage')
+  const [customCategories, setCustomCategories] = useState<string[]>([])
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
+  const [newCategoryName, setNewCategoryName] = useState('')
+  const categoryOptions = [
+    ...(options?.giftCategoryOptions ?? []),
+    ...customCategories,
+  ]
 
   useEffect(() => {
     if (!gift) return
     reset({
       giftName: gift.giftName,
-      giftCode: gift.giftCode,
       category: gift.category,
       brand: gift.brand,
       giftImage: gift.giftImage,
@@ -86,6 +118,13 @@ export function GiftFormPage() {
       availableQuantity: String(gift.availableQuantity),
       status: gift.status,
       eligibleUserType: gift.eligibleUserType,
+      partnerTypes: gift.partnerTypes,
+      dealerRegions: gift.dealerRegions,
+      chemistRegions: gift.chemistRegions,
+      dealerBasePoints:
+        gift.dealerBasePoints === null ? '' : String(gift.dealerBasePoints),
+      chemistBasePoints:
+        gift.chemistBasePoints === null ? '' : String(gift.chemistBasePoints),
     })
   }, [gift, reset])
 
@@ -108,6 +147,16 @@ export function GiftFormPage() {
     const success = await submit(values)
     if (success) navigate(backTo)
   })
+
+  const handleAddCategory = () => {
+    const name = newCategoryName.trim()
+    if (!name) return
+    setCustomCategories((prev) =>
+      prev.includes(name) ? prev : [...prev, name],
+    )
+    setValue('category', name, { shouldValidate: true })
+    setCategoryDialogOpen(false)
+  }
 
   return (
     <>
@@ -139,50 +188,91 @@ export function GiftFormPage() {
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Gift Code</FieldLabel>
-              <FormField
-                name="giftCode"
-                control={control}
-                placeholder="e.g. GC-20260017"
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Category</FieldLabel>
-              <FormField
+              <Controller
                 name="category"
                 control={control}
-                select
-                {...fieldLabelProps}
-              >
-                {(options?.giftCategoryOptions ?? []).map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </FormField>
+                render={({ field, fieldState }) => (
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: 'flex-center', width: '100%' }}
+                  >
+                    <Autocomplete
+                      fullWidth
+                      size="small"
+                      options={categoryOptions}
+                      value={field.value || null}
+                      onChange={(_, selected) => field.onChange(selected ?? '')}
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          placeholder="Search category…"
+                          error={!!fieldState.error}
+                          helperText={fieldState.error?.message}
+                        />
+                      )}
+                    />
+                    <Tooltip title="Add new category">
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          setNewCategoryName('')
+                          setCategoryDialogOpen(true)
+                        }}
+                        sx={{
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          borderRadius: `${radius.md}px`,
+                          mt: 0.25,
+                          width: 40,
+                        }}
+                      >
+                        <Plus size={18} />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                )}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Brand</FieldLabel>
               <FormField
                 name="brand"
                 control={control}
-                select
+                placeholder="e.g. Philips"
                 {...fieldLabelProps}
-              >
-                {(options?.giftBrandOptions ?? []).map((brand) => (
-                  <MenuItem key={brand} value={brand}>
-                    {brand}
-                  </MenuItem>
-                ))}
-              </FormField>
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Price (₹)</FieldLabel>
+              <FieldLabel required>Price</FieldLabel>
               <FormField
                 name="price"
                 control={control}
+                decimal
                 placeholder="e.g. 1999"
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <Box
+                        component="span"
+                        sx={{ mr: 0.5, color: 'text.secondary' }}
+                      >
+                        ₹
+                      </Box>
+                    ),
+                  },
+                  inputLabel: { shrink: false, sx: { display: 'none' } },
+                }}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Available Quantity</FieldLabel>
+              <FormField
+                name="availableQuantity"
+                control={control}
+                numeric
+                placeholder="e.g. 50"
                 {...fieldLabelProps}
               />
             </Grid>
@@ -190,33 +280,29 @@ export function GiftFormPage() {
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Product Images</Typography>
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-end' }}>
-            <Avatar
-              src={imageUrl || undefined}
-              variant="rounded"
-              sx={{
-                width: 56,
-                height: 56,
-                flexShrink: 0,
-                bgcolor: 'background.default',
-                border: '1px solid',
-                borderColor: 'divider',
-                color: 'text.disabled',
-              }}
-            >
-              <ImageOutlined size={20} />
-            </Avatar>
-            <Box sx={{ flexGrow: 1 }}>
-              <FieldLabel>Gift Image URL</FieldLabel>
-              <FormField
+          <Typography sx={sectionTitleSx}>Gift Image</Typography>
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 12 }}>
+              <Controller
                 name="giftImage"
                 control={control}
-                placeholder="https://example.com/gift-image.jpg"
-                {...fieldLabelProps}
+                render={({ field }) => (
+                  <FileDropzone
+                    file={null}
+                    accept="image/*"
+                    helperText="PNG or JPG, square thumbnail recommended"
+                    existingPreview={
+                      imageUrl ? { url: imageUrl, name: 'Gift image' } : null
+                    }
+                    onSelect={async (file) =>
+                      field.onChange(await readFileAsDataUrl(file))
+                    }
+                    onRemove={() => field.onChange('')}
+                  />
+                )}
               />
-            </Box>
-          </Stack>
+            </Grid>
+          </Grid>
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
@@ -236,52 +322,159 @@ export function GiftFormPage() {
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Redemption &amp; Stock</Typography>
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Required Coins</FieldLabel>
-              <FormField
-                name="requiredCoins"
-                control={control}
-                placeholder="e.g. 1500"
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Available Quantity</FieldLabel>
-              <FormField
-                name="availableQuantity"
-                control={control}
-                placeholder="e.g. 50"
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Status</FieldLabel>
-              <FormField
-                name="status"
-                control={control}
-                select
-                {...fieldLabelProps}
-              >
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
-              </FormField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Eligible User Type</FieldLabel>
-              <FormField
-                name="eligibleUserType"
-                control={control}
-                select
-                {...fieldLabelProps}
-              >
-                <MenuItem value="All">All</MenuItem>
-                <MenuItem value="Dealer">Dealer</MenuItem>
-                <MenuItem value="Chemist">Chemist</MenuItem>
-              </FormField>
-            </Grid>
-          </Grid>
+          <Typography sx={sectionTitleSx}>
+            Partner Type &amp; Base Points
+          </Typography>
+          <Controller
+            name="partnerTypes"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Grid container spacing={2}>
+                {ALL_PARTNER_TYPES.map((partnerType) => {
+                  const checked = field.value.includes(partnerType)
+                  const regionsFieldName =
+                    partnerType === 'Dealer'
+                      ? 'dealerRegions'
+                      : 'chemistRegions'
+                  const basePointsFieldName =
+                    partnerType === 'Dealer'
+                      ? 'dealerBasePoints'
+                      : 'chemistBasePoints'
+                  return (
+                    <Grid key={partnerType} size={{ xs: 12, sm: 6 }}>
+                      <Box
+                        sx={{
+                          p: 2,
+                          borderRadius: `${radius.lg}px`,
+                          border: '1px solid',
+                          borderColor: checked ? 'primary.main' : 'divider',
+                          backgroundColor: checked
+                            ? 'primary.light'
+                            : 'transparent',
+                        }}
+                      >
+                        <FormControlLabel
+                          control={
+                            <Checkbox
+                              checked={checked}
+                              onChange={(e) => {
+                                field.onChange(
+                                  e.target.checked
+                                    ? [...field.value, partnerType]
+                                    : field.value.filter(
+                                        (p) => p !== partnerType,
+                                      ),
+                                )
+                              }}
+                            />
+                          }
+                          label={
+                            <Typography
+                              sx={{ fontWeight: 700, fontSize: '0.875rem' }}
+                            >
+                              {partnerType}
+                            </Typography>
+                          }
+                          sx={{ m: 0 }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: 'text.secondary',
+                            display: 'block',
+                            pl: 4,
+                            mb: checked ? 1.5 : 0,
+                          }}
+                        >
+                          {checked
+                            ? `Configure regions and base points for ${partnerType}.`
+                            : `Enable to allow ${partnerType} partners to redeem this gift.`}
+                        </Typography>
+                        {checked && (
+                          <Box sx={{ pl: 4 }}>
+                            <FieldLabel required>
+                              Regions for {partnerType}
+                            </FieldLabel>
+                            <Controller
+                              name={regionsFieldName}
+                              control={control}
+                              render={({
+                                field: regionField,
+                                fieldState: regionFieldState,
+                              }) => (
+                                <>
+                                  <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    sx={{ flexWrap: 'wrap', mb: 1.5 }}
+                                  >
+                                    {ALL_REGIONS.map((region) => (
+                                      <FormControlLabel
+                                        key={region}
+                                        control={
+                                          <Checkbox
+                                            size="small"
+                                            checked={regionField.value.includes(
+                                              region,
+                                            )}
+                                            onChange={(e) => {
+                                              regionField.onChange(
+                                                e.target.checked
+                                                  ? [
+                                                      ...regionField.value,
+                                                      region,
+                                                    ]
+                                                  : regionField.value.filter(
+                                                      (r: PartnerZone) =>
+                                                        r !== region,
+                                                    ),
+                                              )
+                                            }}
+                                          />
+                                        }
+                                        label={region}
+                                      />
+                                    ))}
+                                  </Stack>
+                                  {regionFieldState.error && (
+                                    <Typography
+                                      variant="caption"
+                                      sx={{
+                                        color: 'error.main',
+                                        display: 'block',
+                                        mb: 1.5,
+                                      }}
+                                    >
+                                      {regionFieldState.error.message}
+                                    </Typography>
+                                  )}
+                                </>
+                              )}
+                            />
+                            <FieldLabel required>Base Points</FieldLabel>
+                            <FormField
+                              name={basePointsFieldName}
+                              control={control}
+                              numeric
+                              placeholder="e.g. 500"
+                              {...fieldLabelProps}
+                            />
+                          </Box>
+                        )}
+                      </Box>
+                    </Grid>
+                  )
+                })}
+                {fieldState.error && (
+                  <Grid size={12}>
+                    <Typography variant="caption" sx={{ color: 'error.main' }}>
+                      {fieldState.error.message}
+                    </Typography>
+                  </Grid>
+                )}
+              </Grid>
+            )}
+          />
         </Card>
 
         <Stack
@@ -301,6 +494,31 @@ export function GiftFormPage() {
           </Button>
         </Stack>
       </form>
+
+      <Modal
+        open={categoryDialogOpen}
+        onClose={() => setCategoryDialogOpen(false)}
+        title="Add Category"
+        description="Quickly add a new category name for this gift."
+        primaryActionLabel="Add Category"
+        onPrimaryAction={handleAddCategory}
+      >
+        <TextField
+          autoFocus
+          fullWidth
+          size="small"
+          label="Category Name"
+          placeholder="e.g. Home Appliances"
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              handleAddCategory()
+            }
+          }}
+        />
+      </Modal>
     </>
   )
 }

@@ -1,7 +1,10 @@
-import type { Gift, GiftDeliveryStatus, GiftEligibility, GiftInventoryEntry, GiftRedemptionEntry, GiftUserType, StockStatus } from '@/types/gift'
+import type { Gift, GiftDeliveryStatus, GiftEligibility, GiftInventoryEntry, GiftPartnerType, GiftRedemptionEntry, GiftUserType, StockStatus } from '@/types/gift'
+import type { PartnerZone } from '@/types/partner'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 import { mrs } from '@/features/userManagement/mockPartnerData'
+
+const ALL_REGIONS: PartnerZone[] = ['East', 'West', 'North', 'South']
 
 export const giftCategoryOptions = ['Electronics', 'Home Appliances', 'Kitchenware', 'Travel', 'Apparel', 'Vouchers']
 export const giftBrandOptions = ['Prestige', 'Philips', 'Samsung', 'Milton', 'Amazon', 'Bata']
@@ -67,6 +70,9 @@ function buildGift(seed: number): Gift {
   const name = giftNames[seed % giftNames.length]!
   const availableQuantity = seed % 8 === 0 ? 0 : seededNumber(seed, 5, 200)
   const redeemedQuantity = seededNumber(seed, 10, 300)
+  const eligibleUserType = giftEligibilityOptions[seed % giftEligibilityOptions.length]!
+  const partnerTypes: GiftPartnerType[] =
+    eligibleUserType === 'All' ? ['Dealer', 'Chemist'] : [eligibleUserType]
 
   return {
     id,
@@ -82,7 +88,13 @@ function buildGift(seed: number): Gift {
     availableQuantity,
     redeemedQuantity,
     status: seed % 9 === 0 ? 'inactive' : 'active',
-    eligibleUserType: giftEligibilityOptions[seed % giftEligibilityOptions.length]!,
+    eligibleUserType,
+
+    partnerTypes,
+    dealerRegions: partnerTypes.includes('Dealer') ? ALL_REGIONS : [],
+    chemistRegions: partnerTypes.includes('Chemist') ? ALL_REGIONS : [],
+    dealerBasePoints: partnerTypes.includes('Dealer') ? seededNumber(seed, 100, 3000) : null,
+    chemistBasePoints: partnerTypes.includes('Chemist') ? seededNumber(seed + 1, 100, 3000) : null,
 
     redemptionHistory: buildRedemptionHistory(seed, id),
     inventoryHistory: buildInventoryHistory(seed, id, availableQuantity),

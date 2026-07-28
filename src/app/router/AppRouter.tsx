@@ -46,6 +46,7 @@ import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/F
 import { FactoryContainerPage } from '@/features/inventoryManagement/pages/FactoryContainerPage'
 import { FactoryBoxPage } from '@/features/inventoryManagement/pages/FactoryBoxPage'
 import { DistributorUploadPage } from '@/features/inventoryManagement/pages/DistributorUploadPage'
+import { DistributorUploadFormPage } from '@/features/inventoryManagement/pages/DistributorUploadFormPage'
 import { DistributorDetailsPage } from '@/features/inventoryManagement/pages/DistributorDetailsPage'
 import { ProductBatchesPage } from '@/features/inventoryManagement/pages/ProductBatchesPage'
 import { ProductionBatchDetailsPage } from '@/features/inventoryManagement/pages/ProductionBatchDetailsPage'
@@ -453,6 +454,10 @@ export function AppRouter() {
           <Route
             path="/distributor-upload"
             element={<DistributorUploadPage />}
+          />
+          <Route
+            path="/distributor-upload/new"
+            element={<DistributorUploadFormPage />}
           />
           <Route
             path="/distributor-upload/:distributorId"

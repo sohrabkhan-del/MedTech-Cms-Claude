@@ -276,6 +276,34 @@ export function GiftDetailsPage() {
                   />
                 ),
               },
+              {
+                label: 'Partner Types',
+                value: gift.partnerTypes.join(', ') || '—',
+              },
+              ...(gift.partnerTypes.includes('Dealer')
+                ? [
+                    {
+                      label: 'Dealer Regions',
+                      value: gift.dealerRegions.join(', ') || '—',
+                    },
+                    {
+                      label: 'Dealer Base Points',
+                      value: (gift.dealerBasePoints ?? 0).toLocaleString('en-IN'),
+                    },
+                  ]
+                : []),
+              ...(gift.partnerTypes.includes('Chemist')
+                ? [
+                    {
+                      label: 'Chemist Regions',
+                      value: gift.chemistRegions.join(', ') || '—',
+                    },
+                    {
+                      label: 'Chemist Base Points',
+                      value: (gift.chemistBasePoints ?? 0).toLocaleString('en-IN'),
+                    },
+                  ]
+                : []),
             ]}
           />
         </SectionCard>

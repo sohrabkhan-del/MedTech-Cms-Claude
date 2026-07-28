@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
 import type { Scheme } from '@/features/schemeManagement/types/schemeManagement.types'
 import type { allSchemeKpis } from '@/features/schemeManagement/mockSchemes'
@@ -33,7 +33,7 @@ function reducer(state: State, action: Action): State {
 export function useSchemes() {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let cancelled = false
     dispatch({ type: 'loading' })
 
@@ -50,5 +50,7 @@ export function useSchemes() {
     }
   }, [])
 
-  return state
+  useEffect(() => load(), [load])
+
+  return { ...state, refetch: load }
 }

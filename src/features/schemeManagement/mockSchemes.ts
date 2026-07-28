@@ -5,6 +5,7 @@ import type {
   SchemePartnerEntry,
   SchemePartnerStatus,
   SchemePartnerType,
+  SchemeStatus,
   SchemeType,
 } from '@/types/scheme'
 import type { PartnerZone } from '@/types/partner'
@@ -155,10 +156,15 @@ function buildScheme(seed: number, type: SchemeType, options?: { forceNoEndDate?
     endDate = dateOffsetFromToday(seed + 20, 90, 240)
   }
 
+  // A handful of otherwise-active schemes are seeded as manually deactivated, so the list shows a realistic mix.
+  const manuallyDeactivated = bucket === 1 && seed % 7 === 0
+  const status: SchemeStatus = bucket === 0 || manuallyDeactivated ? 'inactive' : 'active'
+
   return {
     id,
     type,
     name,
+    status,
     startDate,
     endDate,
     partnerTypes,
@@ -190,6 +196,12 @@ export function getSchemeById(id: string): Scheme | undefined {
   return mockSchemes.find((scheme) => scheme.id === id)
 }
 
+export function setSchemeStatus(id: string, status: SchemeStatus): Scheme | undefined {
+  const scheme = getSchemeById(id)
+  if (scheme) scheme.status = status
+  return scheme
+}
+
 export function schemeDealerTotal(scheme: Scheme): number {
   return scheme.giftRules.reduce((sum, rule) => sum + (rule.dealerRule?.points ?? 0), 0)
 }
@@ -199,10 +211,9 @@ export function schemeChemistTotal(scheme: Scheme): number {
 }
 
 function schemeKpis(schemes: Scheme[]) {
-  const today = new Date().toISOString().slice(0, 10)
   return {
     totalSchemes: schemes.length,
-    activeSchemes: schemes.filter((s) => s.startDate <= today && (!s.endDate || s.endDate >= today)).length,
+    activeSchemes: schemes.filter((s) => s.status === 'active').length,
     totalEnrolledPartners: schemes.reduce((sum, s) => sum + s.partners.dealer.length + s.partners.chemist.length, 0),
     totalPointsAllocated: schemes.reduce((sum, s) => sum + schemeDealerTotal(s) + schemeChemistTotal(s), 0),
   }

@@ -11,6 +11,8 @@ import {
   Users,
   Gift as GiftIcon,
   MapPin,
+  Power,
+  PowerOff,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -24,6 +26,7 @@ import { useSchemeDetail } from '@/features/schemeManagement/hooks/useSchemeDeta
 import { getGiftById } from '@/features/schemeManagement/mockGifts'
 import { getProductById } from '@/features/inventoryManagement/mockProducts'
 import { schemeDealerTotal, schemeChemistTotal } from '@/features/schemeManagement/mockSchemes'
+import { useToast } from '@/contexts/ToastContext'
 import type {
   Scheme,
   SchemeApplicableProduct,
@@ -210,8 +213,9 @@ function partnerColumns(
 
 export function SchemeDetailsPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { schemeId } = useParams<{ schemeId: string }>()
-  const { scheme, remove, isLoading } = useSchemeDetail(schemeId)
+  const { scheme, remove, setStatus, isLoading } = useSchemeDetail(schemeId)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [partnerTab, setPartnerTab] = useState<'Dealer' | 'Chemist'>('Dealer')
 
@@ -239,6 +243,12 @@ export function SchemeDetailsPage() {
     navigate(LIST_PATH)
   }
 
+  const toggleStatus = async () => {
+    const nextStatus = scheme.status === 'active' ? 'inactive' : 'active'
+    await setStatus(nextStatus)
+    toast.success(`Scheme ${nextStatus === 'active' ? 'activated' : 'deactivated'} successfully.`)
+  }
+
   const activePartnerTab = scheme.partnerTypes.includes(partnerTab) ? partnerTab : scheme.partnerTypes[0]
   const partnerRows = activePartnerTab === 'Dealer' ? scheme.partners.dealer : scheme.partners.chemist
 
@@ -264,6 +274,11 @@ export function SchemeDetailsPage() {
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{scheme.name}</Typography>
               <Chip size="small" label={scheme.type === 'general' ? 'General' : 'Seasonal'} color={scheme.type === 'general' ? 'default' : 'info'} />
+              <Chip
+                size="small"
+                label={scheme.status === 'active' ? 'Active' : 'Inactive'}
+                color={scheme.status === 'active' ? 'success' : 'default'}
+              />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {scheme.id}
@@ -271,6 +286,15 @@ export function SchemeDetailsPage() {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
+          <Button
+            variant="outlined"
+            color={scheme.status === 'active' ? 'error' : 'success'}
+            startIcon={scheme.status === 'active' ? <PowerOff size={20} /> : <Power size={20} />}
+            onClick={toggleStatus}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            {scheme.status === 'active' ? 'Deactivate' : 'Activate'}
+          </Button>
           <Button variant="outlined" startIcon={<Pencil size={20} />} onClick={() => navigate(`${LIST_PATH}/${scheme.id}/edit`)} sx={{ fontSize: '0.75rem' }}>
             Edit Scheme
           </Button>
@@ -301,8 +325,19 @@ export function SchemeDetailsPage() {
             fields={[
               { label: 'Scheme ID', value: scheme.id },
               { label: 'Type', value: scheme.type === 'general' ? 'General' : 'Seasonal' },
+              {
+                label: 'Status',
+                value: <Chip size="small" label={scheme.status === 'active' ? 'Active' : 'Inactive'} color={scheme.status === 'active' ? 'success' : 'default'} />,
+              },
               { label: 'Start Date', value: scheme.startDate },
               { label: 'End Date', value: scheme.endDate ?? 'No end date' },
+            ]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Partner Coverage">
+          <DetailFieldGrid
+            fields={[
               { label: 'Partner Types', value: scheme.partnerTypes.join(', ') },
               ...(scheme.partnerTypes.includes('Dealer') ? [{ label: 'Dealer Regions', value: scheme.dealerRegions.join(', ') || '—' }] : []),
               ...(scheme.partnerTypes.includes('Chemist') ? [{ label: 'Chemist Regions', value: scheme.chemistRegions.join(', ') || '—' }] : []),

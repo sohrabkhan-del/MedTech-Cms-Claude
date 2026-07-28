@@ -62,6 +62,8 @@ export interface CommonTableAction<T> {
   label: string
   onClick: (row: T) => void
   danger?: boolean
+  /** When it returns true for the active row, this action is omitted from the menu. */
+  hidden?: (row: T) => boolean
 }
 
 type SortDirection = 'asc' | 'desc'
@@ -488,23 +490,25 @@ export function CommonTable<T>({
             open={!!actionMenuAnchor}
             onClose={closeActionMenu}
           >
-            {actions.map((action) => (
-              <MenuItem
-                key={action.label}
-                onClick={() => {
-                  if (activeRow) action.onClick(activeRow)
-                  closeActionMenu()
-                }}
-                sx={action.danger ? { color: 'error.main' } : undefined}
-              >
-                <Typography
-                  variant="body1"
-                  sx={{ color: 'inherit', fontSize: '0.8125rem' }}
+            {actions
+              .filter((action) => !activeRow || !action.hidden?.(activeRow))
+              .map((action) => (
+                <MenuItem
+                  key={action.label}
+                  onClick={() => {
+                    if (activeRow) action.onClick(activeRow)
+                    closeActionMenu()
+                  }}
+                  sx={action.danger ? { color: 'error.main' } : undefined}
                 >
-                  {action.label}
-                </Typography>
-              </MenuItem>
-            ))}
+                  <Typography
+                    variant="body1"
+                    sx={{ color: 'inherit', fontSize: '0.8125rem' }}
+                  >
+                    {action.label}
+                  </Typography>
+                </MenuItem>
+              ))}
           </Menu>
         )}
       </Card>

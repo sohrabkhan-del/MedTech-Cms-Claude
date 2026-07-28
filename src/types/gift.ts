@@ -1,8 +1,11 @@
+import type { PartnerZone } from '@/types/partner'
+
 export type GiftStatus = 'active' | 'inactive'
 export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock'
 export type GiftUserType = 'Dealer' | 'Chemist' | 'MR'
 export type GiftDeliveryStatus = 'pending' | 'packed' | 'shipped' | 'delivered' | 'cancelled'
 export type GiftEligibility = 'All' | 'Dealer' | 'Chemist'
+export type GiftPartnerType = 'Dealer' | 'Chemist'
 
 export interface GiftRedemptionEntry {
   id: string
@@ -37,6 +40,13 @@ export interface Gift {
   redeemedQuantity: number
   status: GiftStatus
   eligibleUserType: GiftEligibility
+
+  /** Partner types this gift is configured for via the Dealer/Chemist + region + base points section. */
+  partnerTypes: GiftPartnerType[]
+  dealerRegions: PartnerZone[]
+  chemistRegions: PartnerZone[]
+  dealerBasePoints: number | null
+  chemistBasePoints: number | null
 
   redemptionHistory: GiftRedemptionEntry[]
   inventoryHistory: GiftInventoryEntry[]

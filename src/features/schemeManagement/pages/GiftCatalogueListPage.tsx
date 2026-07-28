@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Avatar,
   Chip,
   Grid,
   MenuItem,
@@ -27,15 +26,6 @@ import type {
   GiftStatus,
   StockStatus,
 } from '@/features/schemeManagement/types/schemeManagement.types'
-
-const stockStatusConfig: Record<
-  StockStatus,
-  { label: string; color: 'success' | 'warning' | 'error' }
-> = {
-  in_stock: { label: 'In Stock', color: 'success' },
-  low_stock: { label: 'Low Stock', color: 'warning' },
-  out_of_stock: { label: 'Out of Stock', color: 'error' },
-}
 
 interface GiftFilters extends Record<string, unknown> {
   category: string | 'all'
@@ -112,25 +102,6 @@ export function GiftCatalogueListPage() {
 
   const columns: CommonTableColumn<Gift>[] = [
     {
-      key: 'giftImage',
-      header: 'Gift Image',
-      minWidth: 70,
-      hideable: false,
-      render: (row) => (
-        <Avatar
-          src={row.giftImage}
-          variant="rounded"
-          sx={{ width: 36, height: 36 }}
-        />
-      ),
-    },
-    {
-      key: 'giftCode',
-      header: 'Gift Code',
-      minWidth: 130,
-      render: (row) => row.giftCode,
-    },
-    {
       key: 'giftName',
       header: 'Gift Name',
       minWidth: 190,
@@ -153,6 +124,14 @@ export function GiftCatalogueListPage() {
       ),
     },
     {
+      key: 'price',
+      header: 'Price (₹)',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.price,
+      render: (row) => `₹${row.price.toLocaleString('en-IN')}`,
+    },
+    {
       key: 'category',
       header: 'Category',
       minWidth: 140,
@@ -165,51 +144,12 @@ export function GiftCatalogueListPage() {
       render: (row) => row.brand,
     },
     {
-      key: 'price',
-      header: 'Price (₹)',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.price,
-      render: (row) => `₹${row.price.toLocaleString('en-IN')}`,
-    },
-    {
-      key: 'requiredCoins',
-      header: 'Required Coins',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.requiredCoins,
-      render: (row) => row.requiredCoins.toLocaleString('en-IN'),
-    },
-    {
       key: 'availableQuantity',
-      header: 'Available Stock',
+      header: 'Qty',
       align: 'center',
       sortable: true,
       sortValue: (row) => row.availableQuantity,
-      render: (row) => (
-        <Stack
-          direction="row"
-          spacing={1}
-          sx={{ alignItems: 'center', justifyContent: 'flex-end' }}
-        >
-          <Typography sx={{ fontSize: '0.8125rem' }}>
-            {row.availableQuantity}
-          </Typography>
-          <Chip
-            size="small"
-            label={stockStatusConfig[giftsService.getStockStatus(row)].label}
-            color={stockStatusConfig[giftsService.getStockStatus(row)].color}
-          />
-        </Stack>
-      ),
-    },
-    {
-      key: 'redeemedQuantity',
-      header: 'Redeemed Count',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.redeemedQuantity,
-      render: (row) => row.redeemedQuantity.toLocaleString('en-IN'),
+      render: (row) => row.availableQuantity,
     },
     {
       key: 'status',
@@ -221,16 +161,6 @@ export function GiftCatalogueListPage() {
           label={row.status === 'active' ? 'Active' : 'Inactive'}
           color={row.status === 'active' ? 'success' : 'default'}
         />
-      ),
-    },
-    {
-      key: 'eligibleUserType',
-      header: 'Eligible User Type',
-      minWidth: 130,
-      sortable: true,
-      sortValue: (row) => row.eligibleUserType,
-      render: (row) => (
-        <Chip size="small" variant="outlined" label={row.eligibleUserType} />
       ),
     },
   ]

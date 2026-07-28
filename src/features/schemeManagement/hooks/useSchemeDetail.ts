@@ -1,6 +1,6 @@
-import { useEffect, useReducer } from 'react'
+import { useCallback, useEffect, useReducer } from 'react'
 import { schemesService } from '@/features/schemeManagement/services/schemesService'
-import type { Scheme } from '@/features/schemeManagement/types/schemeManagement.types'
+import type { Scheme, SchemeStatus } from '@/features/schemeManagement/types/schemeManagement.types'
 
 interface State {
   scheme: Scheme | undefined
@@ -26,8 +26,8 @@ function reducer(_state: State, action: Action): State {
 export function useSchemeDetail(schemeId: string | undefined) {
   const [state, dispatch] = useReducer(reducer, initialState)
 
-  useEffect(() => {
-    if (!schemeId) return
+  const load = useCallback(() => {
+    if (!schemeId) return () => {}
 
     let cancelled = false
     dispatch({ type: 'loading' })
@@ -46,10 +46,18 @@ export function useSchemeDetail(schemeId: string | undefined) {
     }
   }, [schemeId])
 
+  useEffect(() => load(), [load])
+
   async function remove() {
     if (!schemeId) return
     await schemesService.deleteScheme(schemeId)
   }
 
-  return { ...state, remove }
+  async function setStatus(status: SchemeStatus) {
+    if (!schemeId) return
+    const updated = await schemesService.updateSchemeStatus(schemeId, status)
+    if (updated) dispatch({ type: 'succeeded', scheme: updated })
+  }
+
+  return { ...state, remove, setStatus }
 }

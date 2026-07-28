@@ -1,6 +1,7 @@
 import type { PartnerZone } from '@/types/partner'
 
 export type SchemeType = 'general' | 'seasonal'
+export type SchemeStatus = 'active' | 'inactive'
 export type SchemePartnerType = 'Dealer' | 'Chemist'
 export type SchemePartnerStatus = 'interested' | 'enrolled' | 'redeemed'
 
@@ -43,6 +44,7 @@ export interface Scheme {
   id: string
   type: SchemeType
   name: string
+  status: SchemeStatus
   startDate: string
   endDate: string | null
   partnerTypes: SchemePartnerType[]

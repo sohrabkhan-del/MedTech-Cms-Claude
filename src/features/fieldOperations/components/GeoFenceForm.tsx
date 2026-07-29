@@ -1,4 +1,4 @@
-import { Controller, type Control } from 'react-hook-form'
+import { Controller, type Control, type UseFormSetValue } from 'react-hook-form'
 import { Autocomplete, Card, Grid, MenuItem, TextField, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import type { GeoFenceFormValues } from '@/features/fieldOperations/types/fieldOperations.types'
@@ -41,11 +41,14 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 
 interface GeoFenceFormProps {
   control: Control<GeoFenceFormValues>
-  userOptions: { id: string; name: string; userType: GeoFenceFormValues['userType'] }[]
+  setValue: UseFormSetValue<GeoFenceFormValues>
+  userOptions: { id: string; name: string; userType: GeoFenceFormValues['userType']; region: GeoFenceFormValues['region'] }[]
   scope?: 'global' | 'user'
+  /** Editing an existing geo fence locks every field except Basic Information. */
+  isEdit?: boolean
 }
 
-export function GeoFenceForm({ control, userOptions, scope = 'user' }: GeoFenceFormProps) {
+export function GeoFenceForm({ control, setValue, userOptions, scope = 'user', isEdit = false }: GeoFenceFormProps) {
   const selectableUsers = userOptions.filter((user) => user.userType === 'Dealer' || user.userType === 'Chemist')
 
   return (
@@ -65,7 +68,14 @@ export function GeoFenceForm({ control, userOptions, scope = 'user' }: GeoFenceF
                     getOptionLabel={(option) => option.name}
                     isOptionEqualToValue={(option, value) => option.id === value.id}
                     value={selectableUsers.find((user) => user.id === field.value) ?? null}
-                    onChange={(_, selected) => field.onChange(selected?.id ?? '')}
+                    onChange={(_, selected) => {
+                      field.onChange(selected?.id ?? '')
+                      if (selected) {
+                        setValue('userType', selected.userType)
+                        setValue('region', selected.region)
+                      }
+                    }}
+                    disabled={isEdit}
                     size="small"
                     renderInput={(params) => (
                       <TextField {...params} error={!!fieldState.error} helperText={fieldState.error?.message} />
@@ -76,7 +86,7 @@ export function GeoFenceForm({ control, userOptions, scope = 'user' }: GeoFenceF
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>User Type</FieldLabel>
-              <FormField name="userType" control={control} select {...fieldLabelProps}>
+              <FormField name="userType" control={control} select disabled {...fieldLabelProps}>
                 {userTypes.map((type) => (
                   <MenuItem key={type} value={type}>
                     {type}
@@ -86,7 +96,7 @@ export function GeoFenceForm({ control, userOptions, scope = 'user' }: GeoFenceF
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Region</FieldLabel>
-              <FormField name="region" control={control} select {...fieldLabelProps}>
+              <FormField name="region" control={control} select disabled {...fieldLabelProps}>
                 {zones.map((zone) => (
                   <MenuItem key={zone} value={zone}>
                     {zone}
@@ -103,11 +113,25 @@ export function GeoFenceForm({ control, userOptions, scope = 'user' }: GeoFenceF
         <Grid container spacing={2.5}>
           <Grid size={{ xs: 12, sm: 6 }}>
             <FieldLabel required>Radius (meters)</FieldLabel>
-            <FormField name="radiusMeters" control={control} type="number" placeholder="e.g. 150" {...fieldLabelProps} />
+            <FormField
+              name="radiusMeters"
+              control={control}
+              type="number"
+              placeholder="e.g. 150"
+              disabled={isEdit}
+              {...fieldLabelProps}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6 }}>
             <FieldLabel required>Buffer Distance (meters)</FieldLabel>
-            <FormField name="bufferDistanceMeters" control={control} type="number" placeholder="e.g. 50" {...fieldLabelProps} />
+            <FormField
+              name="bufferDistanceMeters"
+              control={control}
+              type="number"
+              placeholder="e.g. 50"
+              disabled={isEdit}
+              {...fieldLabelProps}
+            />
           </Grid>
         </Grid>
       </Card>

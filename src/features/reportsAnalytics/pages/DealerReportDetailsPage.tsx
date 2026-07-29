@@ -318,7 +318,7 @@ export function DealerReportDetailsPage() {
               { label: 'Phone', value: report.phone },
               { label: 'City', value: report.city },
               { label: 'Zone', value: report.zone },
-              { label: 'License Number', value: report.licenseNumber },
+              { label: 'GSTN Number', value: report.licenseNumber },
               { label: 'Assigned MR', value: report.assignedMr },
               { label: 'Registered Address', value: report.registeredAddress },
               {

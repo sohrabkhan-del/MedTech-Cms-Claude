@@ -2,8 +2,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Card, Chip, Grid, Stack, Typography, Button } from '@mui/material'
 import {
   ScanLine as QrCodeScannerIcon,
-  CircleCheck as CheckCircleOutlined,
-  XCircle as CancelOutlined,
   ArrowLeft as ArrowBackOutlined,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
@@ -12,29 +10,6 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { ScanResultChip } from '@/features/fieldOperations/components/ScanResultChip'
 import { useScanEventDetail } from '@/features/fieldOperations/hooks/useScanEventDetail'
-
-function ValidationRow({ label, passed }: { label: string; passed: boolean }) {
-  return (
-    <Stack direction="row" spacing={1} sx={{ alignItems: 'center', py: 0.75 }}>
-      {passed ? (
-        <Box
-          component="span"
-          sx={{ display: 'inline-flex', color: 'success.main' }}
-        >
-          <CheckCircleOutlined size={20} />
-        </Box>
-      ) : (
-        <Box
-          component="span"
-          sx={{ display: 'inline-flex', color: 'error.main' }}
-        >
-          <CancelOutlined size={20} />
-        </Box>
-      )}
-      <Typography variant="body1">{label}</Typography>
-    </Stack>
-  )
-}
 
 export function ScanDetailsPage() {
   const navigate = useNavigate()
@@ -112,7 +87,7 @@ export function ScanDetailsPage() {
               { label: 'Scan Date & Time', value: selectedScan.scanDateTime },
               {
                 label: 'Reward Points Earned',
-                value: selectedScan.rewardPoints.toString(),
+                value: selectedScan.rewardPoints.toLocaleString('en-IN'),
               },
               {
                 label: 'Scan Result',
@@ -157,43 +132,7 @@ export function ScanDetailsPage() {
         </SectionCard>
 
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 6 }}>
-            <Card sx={{ p: 3, height: '100%' }}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  color: 'primary.main',
-                  mb: 1,
-                }}
-              >
-                Scan Validation Details
-              </Typography>
-              <ValidationRow
-                label="Code Validation"
-                passed={selectedScan.validation.codeValidation === 'passed'}
-              />
-              <ValidationRow
-                label="Duplicate Scan Check"
-                passed={selectedScan.validation.duplicateScanCheck === 'passed'}
-              />
-              <ValidationRow
-                label="Geo-fence Validation"
-                passed={selectedScan.validation.geoFenceValidation === 'passed'}
-              />
-              <ValidationRow
-                label="Product Eligibility"
-                passed={selectedScan.validation.productEligibility === 'passed'}
-              />
-              <ValidationRow
-                label="Reward Eligibility"
-                passed={selectedScan.validation.rewardEligibility === 'passed'}
-              />
-            </Card>
-          </Grid>
-          <Grid size={{ xs: 12, md: 6 }}>
+          <Grid size={12}>
             <Card sx={{ p: 3, height: '100%' }}>
               <Typography
                 sx={{

@@ -5,8 +5,7 @@ import { Store as StorefrontIcon } from 'lucide-react'
 import { PartnerSummaryHeader } from '@/features/userManagement/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/userManagement/components/PartnerStatisticsCards'
-import { RegisteredAddressCard } from '@/features/userManagement/components/RegisteredAddressCard'
-import { GeoLockCard } from '@/features/userManagement/components/GeoLockCard'
+import { LocationCard } from '@/features/userManagement/components/LocationCard'
 import { PointsManagementCard } from '@/features/userManagement/components/PointsManagementCard'
 import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistoryCard'
 import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
@@ -77,16 +76,19 @@ export function DealerDetailsPage() {
 
       <PartnerStatisticsCards partner={dealer} />
 
+      <Typography sx={{ fontWeight: 700, fontSize: '1rem', mb: 2 }}>
+        Godowns ({dealer.godowns.length})
+      </Typography>
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <RegisteredAddressCard
-            address={dealer.registeredAddress}
-            geoLock={dealer.geoLock}
-          />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <GeoLockCard geoLock={dealer.geoLock} />
-        </Grid>
+        {dealer.godowns.map((godown) => (
+          <Grid key={godown.id} size={12}>
+            <LocationCard
+              title={godown.name}
+              address={godown.address}
+              geoLock={godown.geoLock}
+            />
+          </Grid>
+        ))}
       </Grid>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>

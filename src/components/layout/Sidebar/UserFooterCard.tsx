@@ -145,7 +145,7 @@ export function UserFooterCard({
           </Box>
           Profile
         </MenuItem>
-        <MenuItem onClick={() => goTo('/settings/general')}>
+        {/* <MenuItem onClick={() => goTo('/settings/general')}>
           <Box
             component="span"
             sx={{ display: 'inline-flex', mr: 1.5, color: 'text.secondary' }}
@@ -153,7 +153,7 @@ export function UserFooterCard({
             <SettingsOutlinedIcon size={20} />
           </Box>
           Settings
-        </MenuItem>
+        </MenuItem> */}
         <MenuItem onClick={() => goTo('/logout')} sx={{ color: 'error.main' }}>
           <Box component="span" sx={{ display: 'inline-flex', mr: 1.5 }}>
             <LogoutIcon size={20} />

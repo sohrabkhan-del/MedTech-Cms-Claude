@@ -47,10 +47,7 @@ function alertDateTime(seed: number): string {
 function buildAlert(seed: number): SecurityAlert {
   const user = alertUsers[seed % alertUsers.length]!
   const alertType = alertTypes[seed % alertTypes.length]!
-  const isDuplicateScan = alertType === 'Duplicate Barcode Scan'
-  const affectedUser = isDuplicateScan
-    ? alertUsers[(seed + 1) % alertUsers.length]!
-    : user
+  const affectedUser = alertUsers[(seed + 1) % alertUsers.length]!
 
   return {
     id: `alert-${seed}`,
@@ -96,6 +93,8 @@ export function getUserSecuritySummary(userId: string): UserSecuritySummary | un
     highSeverityAlerts,
     lastAlertDate: userAlerts[0]?.alertDateTime ?? '—',
     lastKnownLocation: user.partner.registeredAddress,
+    lastKnownLatitude: user.partner.geoLock.latitude,
+    lastKnownLongitude: user.partner.geoLock.longitude,
     sourceIp: userAlerts[0]?.sourceIp ?? '—',
     deviceInfo: devices[seededNumber(userId.length + user.id.length, 0, devices.length)]!,
     registeredDevice: devices[0]!,

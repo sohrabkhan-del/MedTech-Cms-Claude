@@ -69,6 +69,10 @@ function seededNumber(seed: number, min: number, max: number): number {
   return Math.floor(min + frac * (max - min))
 }
 
+function seededRewardPoints(seed: number): number {
+  return (seededNumber(seed, 1, 6) || 1) * 500
+}
+
 function pad(n: number): string {
   return n < 10 ? `0${n}` : `${n}`
 }
@@ -110,7 +114,7 @@ function buildScanEvent(seed: number): ScanEvent {
     batchNumber: `BATCH-${2026000 + seed * 3}`,
     region: user.partner.zone,
     result,
-    rewardPoints: success ? seededNumber(seed, 10, 60) : 0,
+    rewardPoints: success ? seededRewardPoints(seed) : 0,
     validation: {
       codeValidation: result === 'failed_invalid_code' ? 'failed' : 'passed',
       duplicateScanCheck:
@@ -172,7 +176,7 @@ export function generateLiveScanEvent(): ScanEvent {
     batchNumber: `BATCH-${2026000 + seed * 3}`,
     region: user.partner.zone,
     result,
-    rewardPoints: success ? seededNumber(seed, 10, 60) : 0,
+    rewardPoints: success ? seededRewardPoints(seed) : 0,
     validation: {
       codeValidation: result === 'failed_invalid_code' ? 'failed' : 'passed',
       duplicateScanCheck:

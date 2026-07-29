@@ -150,7 +150,7 @@ export function ChemistListPage() {
     },
     {
       key: 'licenseNumber',
-      header: 'License Number',
+      header: 'GSTN Number',
       render: (row) => row.licenseNumber,
     },
     {

@@ -20,7 +20,7 @@ export function GeoFenceFormPage() {
   const scope = searchParams.get('scope') === 'global' ? 'global' : 'user'
   const { isEdit, fence, userOptions, isLoading, isSubmitting, submit } = useGeoFenceForm(fenceId)
 
-  const { control, handleSubmit, reset } = useForm<GeoFenceFormValues>({
+  const { control, handleSubmit, reset, setValue } = useForm<GeoFenceFormValues>({
     resolver: zodResolver(scope === 'global' ? geoFenceFormSchema : geoFenceUserFormSchema),
     defaultValues: geoFenceFormDefaults,
   })
@@ -68,7 +68,7 @@ export function GeoFenceFormPage() {
       </Stack>
 
       <form onSubmit={onSubmit} noValidate>
-        <GeoFenceForm control={control} userOptions={userOptions} scope={isEdit ? 'user' : scope} />
+        <GeoFenceForm control={control} setValue={setValue} userOptions={userOptions} scope={isEdit ? 'user' : scope} isEdit={isEdit} />
 
         <Stack
           direction="row"

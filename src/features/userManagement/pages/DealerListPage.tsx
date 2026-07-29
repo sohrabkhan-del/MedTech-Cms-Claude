@@ -138,7 +138,7 @@ export function DealerListPage() {
     },
     {
       key: 'licenseNumber',
-      header: 'License Number',
+      header: 'GSTN Number',
       render: (row) => row.licenseNumber,
     },
     {

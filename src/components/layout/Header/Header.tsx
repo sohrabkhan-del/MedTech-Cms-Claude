@@ -1,13 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Badge, Box, IconButton, Menu, Stack } from '@mui/material'
-import {
-  Menu as MenuIcon,
-  Bell,
-  Maximize,
-  Minimize,
-  Settings as SettingsIcon,
-} from 'lucide-react'
+import { Menu as MenuIcon, Bell, Maximize, Minimize } from 'lucide-react'
 import { layout, radius, shadows } from '@/theme/tokens'
 import { useAppSelector } from '@/app/store/hooks'
 import { selectUnreadNotificationCount } from '@/features/notifications/slices/notificationsSelectors'
@@ -18,7 +11,6 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const navigate = useNavigate()
   const unreadCount = useAppSelector(selectUnreadNotificationCount)
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -114,14 +106,6 @@ export function Header({ onMenuClick }: HeaderProps) {
           >
             <NotificationsMenuContent onNavigate={() => setNotifAnchor(null)} />
           </Menu>
-
-          <IconButton
-            onClick={() => navigate('/settings/general')}
-            size="small"
-            aria-label="Settings"
-          >
-            <SettingsIcon size={20} />
-          </IconButton>
         </Stack>
       </Stack>
     </Box>

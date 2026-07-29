@@ -196,7 +196,7 @@ export function getGeoFenceById(id: string): GeoFence | undefined {
   return mockGeoFences.find((fence) => fence.id === id)
 }
 
-export const geoFenceUserOptions = fenceUsers.map((user) => ({ id: user.id, name: user.name, userType: user.userType }))
+export const geoFenceUserOptions = fenceUsers.map((user) => ({ id: user.id, name: user.name, userType: user.userType, region: user.zone }))
 
 export const geoFenceKpis = {
   activeFences: mockGeoFences.filter((fence) => fence.status === 'active').length,

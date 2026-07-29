@@ -1,101 +1,201 @@
-import { Chip, IconButton, Stack } from '@mui/material'
-import { Download, Upload } from 'lucide-react'
+import { useState } from 'react'
+import { Box, Chip, Grid, Stack, Typography } from '@mui/material'
+import { FileText, FileBadge, FileCheck2 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
-import {
-  CommonTable,
-  type CommonTableColumn,
-} from '@/components/common/CommonTable/CommonTable'
+import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { Modal } from '@/components/common/Modal/Modal'
+import { radius } from '@/theme/tokens'
 import type { LicenseDocument } from '@/types/partner'
 
-const statusConfig: Record<
-  LicenseDocument['verificationStatus'],
-  { label: string; color: 'success' | 'warning' | 'error' }
-> = {
-  verified: { label: 'Verified', color: 'success' },
-  pending: { label: 'Pending', color: 'warning' },
-  rejected: { label: 'Rejected', color: 'error' },
+function documentIcon(documentName: string) {
+  const name = documentName.toLowerCase()
+  if (name.includes('certificate')) return FileBadge
+  if (name.includes('license')) return FileCheck2
+  return FileText
 }
 
-function buildColumns(
-  onUpload: () => void,
-): CommonTableColumn<LicenseDocument>[] {
-  return [
-    {
-      key: 'documentName',
-      header: 'Document Name',
-      render: (row) => row.documentName,
-    },
-    {
-      key: 'uploadDate',
-      header: 'Upload Date',
-      sortable: true,
-      render: (row) => row.uploadDate,
-    },
-    {
-      key: 'verificationStatus',
-      header: 'Verification Status',
-      sortable: true,
-      sortValue: (row) => statusConfig[row.verificationStatus].label,
-      render: (row) => (
-        <Chip
-          label={statusConfig[row.verificationStatus].label}
-          color={statusConfig[row.verificationStatus].color}
-          size="small"
-        />
-      ),
-    },
-    {
-      key: 'expiryDate',
-      header: 'Expiry Date',
-      sortable: true,
-      render: (row) => row.expiryDate,
-    },
-    {
-      key: 'actions',
-      header: '',
-      align: 'center',
-      hideable: false,
-      render: () => (
-        <Stack
-          direction="row"
-          spacing={0.5}
-          sx={{ justifyContent: 'flex-end' }}
-        >
-          <IconButton size="small" aria-label="Download document">
-            <Download size={20} />
-          </IconButton>
-          <IconButton
-            size="small"
-            aria-label="Upload document"
-            onClick={onUpload}
-          >
-            <Upload size={20} />
-          </IconButton>
-        </Stack>
-      ),
-    },
-  ]
+const statusChipColor: Record<
+  LicenseDocument['verificationStatus'],
+  'success' | 'warning' | 'error'
+> = {
+  verified: 'success',
+  pending: 'warning',
+  rejected: 'error',
+}
+
+function downloadDocument(doc: LicenseDocument) {
+  const content = [
+    doc.documentName,
+    `Status: ${doc.verificationStatus}`,
+    `Uploaded: ${doc.uploadDate}`,
+    `Expires: ${doc.expiryDate}`,
+  ].join('\n')
+  const blob = new Blob([content], { type: 'text/plain' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `${doc.documentName.replace(/\s+/g, '-')}.txt`
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 export function LicenseDocumentsCard({
   documents,
-  onUpload,
 }: {
   documents: LicenseDocument[]
-  onUpload?: () => void
 }) {
+  const [previewDoc, setPreviewDoc] = useState<LicenseDocument | null>(null)
+
   return (
     <SectionCard title="License & Documents">
-      <CommonTable
-        tableKey="partner-license-documents"
-        columns={buildColumns(onUpload ?? (() => {}))}
-        rows={documents}
-        getRowId={(row) => row.id}
-        searchPlaceholder="Search documents…"
-        searchKeys={(row) => row.documentName}
-        defaultSortBy="uploadDate"
-        emptyTitle="No documents uploaded"
-      />
+      {documents.length === 0 ? (
+        <EmptyState title="No documents uploaded" description="Documents added for this partner will appear here." />
+      ) : (
+        <Grid container spacing={2}>
+          {documents.map((doc) => {
+            const Icon = documentIcon(doc.documentName)
+            return (
+              <Grid key={doc.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                <Stack
+                  direction="row"
+                  spacing={1.5}
+                  onClick={() => setPreviewDoc(doc)}
+                  sx={{
+                    p: 2,
+                    alignItems: 'center',
+                    borderRadius: `${radius.lg}px`,
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    cursor: 'pointer',
+                    transition: 'border-color 150ms, background-color 150ms',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                      backgroundColor: 'primary.light',
+                    },
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: 40,
+                      height: 40,
+                      borderRadius: `${radius.md}px`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'primary.light',
+                      color: 'primary.main',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Icon size={20} />
+                  </Box>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography
+                      sx={{
+                        fontWeight: 700,
+                        fontSize: '0.8125rem',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {doc.documentName}
+                    </Typography>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      Uploaded {doc.uploadDate}
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Grid>
+            )
+          })}
+        </Grid>
+      )}
+
+      {previewDoc && (
+        <Modal
+          open={!!previewDoc}
+          onClose={() => setPreviewDoc(null)}
+          title={previewDoc.documentName}
+          maxWidth="sm"
+          secondaryActionLabel="Close"
+          primaryActionLabel="Download"
+          onPrimaryAction={() => downloadDocument(previewDoc)}
+        >
+          <Stack spacing={2.5}>
+            <Box
+              sx={{
+                borderRadius: `${radius.lg}px`,
+                border: '1px dashed',
+                borderColor: 'divider',
+                backgroundColor: 'background.default',
+                py: 6,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 1.5,
+              }}
+            >
+              {(() => {
+                const Icon = documentIcon(previewDoc.documentName)
+                return (
+                  <Box
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      borderRadius: `${radius.md}px`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      backgroundColor: 'primary.light',
+                      color: 'primary.main',
+                    }}
+                  >
+                    <Icon size={28} />
+                  </Box>
+                )
+              })()}
+              <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                {previewDoc.documentName}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                Preview not available for this file type — use Download to save a copy.
+              </Typography>
+            </Box>
+
+            <Stack direction="row" spacing={3} sx={{ flexWrap: 'wrap', rowGap: 1.5 }}>
+              <Box>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                  Status
+                </Typography>
+                <Chip
+                  label={previewDoc.verificationStatus}
+                  color={statusChipColor[previewDoc.verificationStatus]}
+                  size="small"
+                  variant="filled"
+                  sx={{ textTransform: 'capitalize', mt: 0.5 }}
+                />
+              </Box>
+              <Box>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                  Uploaded
+                </Typography>
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+                  {previewDoc.uploadDate}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                  Expires
+                </Typography>
+                <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+                  {previewDoc.expiryDate}
+                </Typography>
+              </Box>
+            </Stack>
+          </Stack>
+        </Modal>
+      )}
     </SectionCard>
   )
 }

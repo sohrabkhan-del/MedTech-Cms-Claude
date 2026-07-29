@@ -49,7 +49,7 @@ export const spacing = {
 } as const
 
 export const typography = {
-  fontFamily: `'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif`,
+  fontFamily: `'Lato', 'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif`,
   baseFontSize: 14,
   pageTitle: { fontWeight: 700, fontSize: '1.5rem' },
   h1: { fontWeight: 700, fontSize: '1.5rem' },

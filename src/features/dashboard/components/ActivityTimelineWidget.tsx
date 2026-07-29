@@ -21,7 +21,6 @@ export function ActivityTimelineWidget({
       subtitle="Latest actions across the platform"
       dateRange={dateRange}
       onDateRangeChange={setDateRange}
-      onCardClick={() => navigate('/audit/audit-logs')}
     >
       <Stack spacing={0} sx={{ maxHeight: 360, overflowY: 'auto' }}>
         {activityTimeline.map((event, index) => (

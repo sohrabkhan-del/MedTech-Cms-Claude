@@ -13,7 +13,6 @@ import {
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
-import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -23,27 +22,7 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useGeoFenceDetail } from '@/features/fieldOperations/hooks/useGeoFenceDetail'
 import { useGeoFences } from '@/features/fieldOperations/hooks/useGeoFences'
-import type {
-  GeoFenceVerificationEntry,
-  GeoFenceScanEntry,
-  GeoFenceAuditEntry,
-} from '@/features/fieldOperations/types/fieldOperations.types'
-
-const verificationColumns: CommonTableColumn<GeoFenceVerificationEntry>[] = [
-  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
-  { key: 'verifiedBy', header: 'Verified By', render: (row) => row.verifiedBy },
-  {
-    key: 'previousRadiusMeters',
-    header: 'Previous Radius',
-    render: (row) => `${row.previousRadiusMeters} m`,
-  },
-  {
-    key: 'newRadiusMeters',
-    header: 'New Radius',
-    render: (row) => `${row.newRadiusMeters} m`,
-  },
-  { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
-]
+import type { GeoFenceScanEntry } from '@/features/fieldOperations/types/fieldOperations.types'
 
 const scanColumns: CommonTableColumn<GeoFenceScanEntry>[] = [
   {
@@ -73,17 +52,6 @@ const scanColumns: CommonTableColumn<GeoFenceScanEntry>[] = [
     render: (row) =>
       row.status === 'within_fence' ? 'Within Fence' : 'Outside Fence',
   },
-]
-
-const auditColumns: CommonTableColumn<GeoFenceAuditEntry>[] = [
-  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
-  { key: 'action', header: 'Action', render: (row) => row.action },
-  {
-    key: 'performedBy',
-    header: 'Performed By',
-    render: (row) => row.performedBy,
-  },
-  { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
 ]
 
 export function GeoFenceDetailsPage() {
@@ -202,10 +170,8 @@ export function GeoFenceDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'ID', value: fence.id },
               { label: 'User Name', value: fence.userName },
               { label: 'Business Name', value: fence.businessName },
-              { label: 'User Type', value: fence.userType },
               { label: 'Region', value: fence.region },
               { label: 'Radius', value: `${fence.radiusMeters} m` },
               { label: 'Status', value: <StatusBadge status={fence.status} /> },
@@ -251,12 +217,9 @@ export function GeoFenceDetailsPage() {
         <SectionCard title="Location Information">
           <DetailFieldGrid
             fields={[
-              { label: 'User Name', value: fence.userName },
-              { label: 'Business Name', value: fence.businessName },
               { label: 'Business Address', value: fence.businessAddress },
               { label: 'User Type', value: fence.userType },
               { label: 'Region', value: fence.region },
-              { label: 'Zone', value: fence.zone },
               { label: 'Latitude', value: fence.latitude.toFixed(4) },
               { label: 'Longitude', value: fence.longitude.toFixed(4) },
               { label: 'Radius', value: `${fence.radiusMeters} m` },
@@ -265,22 +228,7 @@ export function GeoFenceDetailsPage() {
                 value: `${fence.bufferDistanceMeters} m`,
               },
               { label: 'Last Verified', value: fence.lastVerified },
-              { label: 'Status', value: <StatusBadge status={fence.status} /> },
             ]}
-          />
-        </SectionCard>
-
-        <SectionCard title="Verification History">
-          <CommonTable
-            tableKey="geofence-verification-history"
-            columns={verificationColumns}
-            rows={fence.verificationHistory}
-            loading={isLoading}
-            getRowId={(row) => row.id}
-            searchPlaceholder="Search verification history…"
-            searchKeys={(row) => `${row.verifiedBy} ${row.remarks}`}
-            defaultSortBy="date"
-            emptyTitle="No verification records yet"
           />
         </SectionCard>
 
@@ -295,29 +243,6 @@ export function GeoFenceDetailsPage() {
             searchKeys={(row) => `${row.user} ${row.location}`}
             defaultSortBy="scanDate"
             emptyTitle="No scans recorded"
-          />
-        </SectionCard>
-
-        <SectionCard title="Timeline">
-          <ActivityTimeline
-            entries={fence.timeline}
-            emptyTitle="No timeline activity yet"
-          />
-        </SectionCard>
-
-        <SectionCard title="Audit History">
-          <CommonTable
-            tableKey="geofence-audit-history"
-            columns={auditColumns}
-            rows={fence.auditHistory}
-            loading={isLoading}
-            getRowId={(row) => row.id}
-            searchPlaceholder="Search audit history…"
-            searchKeys={(row) =>
-              `${row.action} ${row.performedBy} ${row.remarks}`
-            }
-            defaultSortBy="date"
-            emptyTitle="No audit records yet"
           />
         </SectionCard>
       </Stack>

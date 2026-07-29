@@ -112,19 +112,6 @@ export function ApprovalRequestDetailsPage() {
     setDialog({ open: false, action: 'approve' })
   }
 
-  const auditColumns: CommonTableColumn<
-    (typeof request.auditHistory)[number]
-  >[] = [
-    { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
-    { key: 'action', header: 'Action', render: (row) => row.action },
-    {
-      key: 'performedBy',
-      header: 'Performed By',
-      render: (row) => row.performedBy,
-    },
-    { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
-  ]
-
   return (
     <>
       <Stack
@@ -216,10 +203,6 @@ export function ApprovalRequestDetailsPage() {
         <SectionCard title="Business Information">
           <DetailFieldGrid
             fields={[
-              {
-                label: 'Drug License Number',
-                value: request.drugLicenseNumber,
-              },
               { label: 'GST Number', value: request.gstNumber ?? '—' },
               { label: 'Registration Source', value: request.registeredBy },
             ]}
@@ -293,22 +276,6 @@ export function ApprovalRequestDetailsPage() {
           <ActivityTimeline
             entries={request.timeline}
             emptyTitle="No timeline activity yet"
-          />
-        </SectionCard>
-
-        <SectionCard title="Audit History">
-          <CommonTable
-            tableKey="approval-request-audit"
-            columns={auditColumns}
-            rows={request.auditHistory}
-            loading={isLoading}
-            getRowId={(row) => row.id}
-            searchPlaceholder="Search audit history…"
-            searchKeys={(row) =>
-              `${row.action} ${row.performedBy} ${row.remarks}`
-            }
-            defaultSortBy="date"
-            emptyTitle="No audit records yet"
           />
         </SectionCard>
       </Stack>

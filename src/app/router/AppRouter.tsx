@@ -67,7 +67,7 @@ import { RedemptionListPage } from '@/features/rewardsWallet/pages/RedemptionLis
 import { RedemptionDetailsPage } from '@/features/rewardsWallet/pages/RedemptionDetailsPage'
 
 import { RegionMultiplierRulesPage } from '@/features/rewardsWallet/pages/RegionMultiplierRulesPage'
-import { AppearanceSettingsPage } from '@/features/settings/pages/AppearanceSettingsPage'
+// import { AppearanceSettingsPage } from '@/features/settings/pages/AppearanceSettingsPage'
 import { ProfileSettingsPage } from '@/features/settings/pages/ProfileSettingsPage'
 import { AdminListPage } from '@/features/systemUsers/pages/AdminListPage'
 import { AdminDetailsPage } from '@/features/systemUsers/pages/AdminDetailsPage'
@@ -571,10 +571,10 @@ export function AppRouter() {
             path="/rewards-wallet/point-value-rules/:ruleId/edit-base-value"
             element={<EditBasePointValuePage />}
           />
-          <Route
+          {/* <Route
             path="/settings/general"
             element={<AppearanceSettingsPage />}
-          />
+          /> */}
           <Route path="/settings/profile" element={<ProfileSettingsPage />} />
           <Route path="/system-users/admin" element={<AdminListPage />} />
           <Route path="/system-users/admin/new" element={<AdminFormPage />} />

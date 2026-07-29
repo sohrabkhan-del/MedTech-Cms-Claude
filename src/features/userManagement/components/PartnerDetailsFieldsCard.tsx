@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Box, Card, Chip, Grid, Typography } from '@mui/material'
+import { Box, Card, Grid, Typography } from '@mui/material'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import type { PartnerBase } from '@/types/partner'
 
@@ -35,13 +35,11 @@ function FieldRow({ label, value }: { label: string; value: ReactNode }) {
 interface PartnerDetailsFieldsCardProps {
   partner: PartnerBase
   shopLabel: string
-  showGeoLockStatus?: boolean
 }
 
 export function PartnerDetailsFieldsCard({
   partner,
   shopLabel,
-  showGeoLockStatus = false,
 }: PartnerDetailsFieldsCardProps) {
   return (
     <Card sx={{ p: 3, mb: 3 }}>
@@ -50,9 +48,8 @@ export function PartnerDetailsFieldsCard({
         <FieldRow label={shopLabel} value={partner.shopName} />
         <FieldRow label="Owner Name" value={partner.ownerName} />
         <FieldRow label="Email Address" value={partner.email} />
-        <FieldRow label="Phone Number" value={partner.phone} />
-        <FieldRow label="Location (City)" value={partner.city} />
-        <FieldRow label="Zone" value={partner.zone} />
+        <FieldRow label="GSTN Number" value={partner.licenseNumber} />
+        <FieldRow label="Onboarded By" value={partner.onboardedBy} />
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Typography
             variant="caption"
@@ -68,34 +65,6 @@ export function PartnerDetailsFieldsCard({
             <StatusBadge status={partner.status} />
           </Box>
         </Grid>
-        {showGeoLockStatus && (
-          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Typography
-              variant="caption"
-              sx={{
-                color: 'text.secondary',
-                textTransform: 'uppercase',
-                letterSpacing: '0.04em',
-              }}
-            >
-              Geo-lock Status
-            </Typography>
-            <Box sx={{ mt: 0.5 }}>
-              <Chip
-                label={partner.geoLock.active ? 'Locked' : 'Unlocked'}
-                size="small"
-                color={partner.geoLock.active ? 'success' : 'warning'}
-                variant="filled"
-              />
-            </Box>
-          </Grid>
-        )}
-        <FieldRow label="License Number" value={partner.licenseNumber} />
-        <FieldRow label="Onboarded By" value={partner.onboardedBy} />
-        <FieldRow
-          label="Points Earned"
-          value={partner.availablePoints.toLocaleString('en-IN')}
-        />
       </Grid>
     </Card>
   )

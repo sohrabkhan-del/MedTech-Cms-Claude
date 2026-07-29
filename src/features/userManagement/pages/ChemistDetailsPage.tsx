@@ -5,8 +5,7 @@ import { Pill as LocalPharmacyIcon } from 'lucide-react'
 import { PartnerSummaryHeader } from '@/features/userManagement/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/userManagement/components/PartnerStatisticsCards'
-import { RegisteredAddressCard } from '@/features/userManagement/components/RegisteredAddressCard'
-import { GeoLockCard } from '@/features/userManagement/components/GeoLockCard'
+import { LocationCard } from '@/features/userManagement/components/LocationCard'
 import { PointsManagementCard } from '@/features/userManagement/components/PointsManagementCard'
 import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistoryCard'
 import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
@@ -77,23 +76,16 @@ export function ChemistDetailsPage() {
         onDeactivate={() => forceRerender((n) => n + 1)}
       />
 
-      <PartnerDetailsFieldsCard
-        partner={chemist}
-        shopLabel="Chemist Shop Name"
-        showGeoLockStatus
-      />
+      <PartnerDetailsFieldsCard partner={chemist} shopLabel="Chemist Shop Name" />
 
       <PartnerStatisticsCards partner={chemist} />
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <RegisteredAddressCard
+        <Grid size={12}>
+          <LocationCard
             address={chemist.registeredAddress}
             geoLock={chemist.geoLock}
           />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <GeoLockCard geoLock={chemist.geoLock} />
         </Grid>
       </Grid>
 

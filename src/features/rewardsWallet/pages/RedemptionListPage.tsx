@@ -89,10 +89,29 @@ export function RedemptionListPage() {
   )
 
   const columns: CommonTableColumn<RedemptionRequest>[] = [
-    { key: 'id', header: 'Request ID', minWidth: 140, render: (row) => row.id },
+    {
+      key: 'id',
+      header: 'Request ID',
+      minWidth: 140,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() =>
+            navigate(`/rewards-wallet/reward-redemptions/${row.id}`)
+          }
+        >
+          {row.id}
+        </Typography>
+      ),
+    },
     {
       key: 'userName',
-      header: 'User Name',
+      header: 'Business Name',
       minWidth: 170,
       sortable: true,
       sortValue: (row) => row.userName,

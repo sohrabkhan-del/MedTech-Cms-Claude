@@ -15,6 +15,6 @@ import { ProfileSettingsPage } from '@/features/settings/pages/ProfileSettingsPa
 // as a public `/logout` route, outside this settings module) and triggered
 // from the sidebar's UserFooterCard menu item.
 export const settingsRoutes: RouteObject[] = [
-  { path: '/settings/general', element: <AppearanceSettingsPage /> },
+  // { path: '/settings/general', element: <AppearanceSettingsPage /> },
   { path: '/settings/profile', element: <ProfileSettingsPage /> },
 ]

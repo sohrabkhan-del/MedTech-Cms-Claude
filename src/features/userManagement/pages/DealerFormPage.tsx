@@ -20,6 +20,23 @@ export function DealerFormPage() {
 
   useEffect(() => {
     if (!dealer) return
+    const godownLocations = dealer.godowns.length > 0
+      ? dealer.godowns.map((godown) => ({
+          address: godown.address,
+          latitude: String(godown.geoLock.latitude),
+          longitude: String(godown.geoLock.longitude),
+          scanRadius: String(godown.geoLock.allowedRadiusMeters),
+          bufferRadius: String(godown.geoLock.bufferRadiusMeters),
+        }))
+      : [
+          {
+            address: dealer.registeredAddress,
+            latitude: String(dealer.geoLock.latitude),
+            longitude: String(dealer.geoLock.longitude),
+            scanRadius: String(dealer.geoLock.allowedRadiusMeters),
+            bufferRadius: String(dealer.geoLock.bufferRadiusMeters),
+          },
+        ]
     reset({
       shopName: dealer.shopName,
       ownerName: dealer.ownerName,
@@ -28,11 +45,7 @@ export function DealerFormPage() {
       licenseNumber: dealer.licenseNumber,
       city: dealer.city,
       zone: dealer.zone,
-      registeredAddress: dealer.registeredAddress,
-      latitude: String(dealer.geoLock.latitude),
-      longitude: String(dealer.geoLock.longitude),
-      scanRadius: String(dealer.geoLock.allowedRadiusMeters),
-      bufferRadius: String(dealer.geoLock.bufferRadiusMeters),
+      locations: godownLocations,
       assignedMr: dealer.assignedMr,
       notes: dealer.notes ?? '',
     })

@@ -88,14 +88,8 @@ export function WalletListPage() {
 
   const columns: CommonTableColumn<Wallet>[] = [
     {
-      key: 'userId',
-      header: 'User ID',
-      minWidth: 100,
-      render: (row) => row.userId,
-    },
-    {
       key: 'userName',
-      header: 'User Name',
+      header: 'Business Name',
       minWidth: 180,
       sortable: true,
       sortValue: (row) => row.userName,
@@ -140,22 +134,6 @@ export function WalletListPage() {
       sortable: true,
       sortValue: (row) => row.availableBalance,
       render: (row) => row.availableBalance.toLocaleString('en-IN'),
-    },
-    {
-      key: 'lifetimeEarned',
-      header: 'Lifetime Earned',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.lifetimeEarned,
-      render: (row) => row.lifetimeEarned.toLocaleString('en-IN'),
-    },
-    {
-      key: 'lifetimeRedeemed',
-      header: 'Lifetime Redeemed',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.lifetimeRedeemed,
-      render: (row) => row.lifetimeRedeemed.toLocaleString('en-IN'),
     },
     {
       key: 'pendingRedemptionPoints',

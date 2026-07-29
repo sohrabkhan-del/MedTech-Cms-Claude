@@ -395,7 +395,7 @@ export function ChemistReportDetailsPage() {
 
           <DetailFieldGrid
             fields={[
-              { label: 'License Number', value: chemist.licenseNumber },
+              { label: 'GSTN Number', value: chemist.licenseNumber },
               { label: 'Onboarded By', value: chemist.onboardedBy },
               { label: 'Assigned MR', value: chemist.assignedMr },
               {

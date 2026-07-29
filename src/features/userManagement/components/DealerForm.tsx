@@ -1,7 +1,8 @@
-import type { Control } from 'react-hook-form'
-import { Button, Card, Chip, Grid, MenuItem, Stack, Typography } from '@mui/material'
-import { MapPin as PlaceOutlinedIcon, Map as MapOutlinedIcon } from 'lucide-react'
+import { useFieldArray, type Control } from 'react-hook-form'
+import { Box, Button, Card, Grid, IconButton, MenuItem, Stack, Tooltip, Typography } from '@mui/material'
+import { MapPin as PlaceOutlinedIcon, Plus, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
+import { radius } from '@/theme/tokens'
 import type { DealerFormValues } from '@/features/userManagement/types/userManagement.types'
 
 const zones: DealerFormValues['zone'][] = ['North', 'South', 'East', 'West']
@@ -45,6 +46,8 @@ interface DealerFormProps {
 }
 
 export function DealerForm({ control, mrOptions }: DealerFormProps) {
+  const { fields, append, remove } = useFieldArray({ control, name: 'locations' })
+
   return (
     <>
       <Card sx={{ p: 3, mb: 3 }}>
@@ -81,56 +84,88 @@ export function DealerForm({ control, mrOptions }: DealerFormProps) {
             </FormField>
           </Grid>
           <Grid size={12}>
-            <FieldLabel required>License Number</FieldLabel>
-            <FormField name="licenseNumber" control={control} placeholder="e.g. DL-2026001" {...fieldLabelProps} />
+            <FieldLabel required>GSTN Number</FieldLabel>
+            <FormField name="licenseNumber" control={control} placeholder="e.g. 22AAAAA0000A1Z5" {...fieldLabelProps} />
           </Grid>
         </Grid>
       </Card>
 
       <Card sx={{ p: 3, mb: 3 }}>
-        <Typography sx={sectionTitleSx}>Geo-tagging — Godown Location</Typography>
-        <Grid container spacing={2.5}>
-          <Grid size={12}>
-            <FieldLabel>Godown Address</FieldLabel>
-            <FormField name="registeredAddress" control={control} placeholder="Full address including landmark" multiline minRows={2} {...fieldLabelProps} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 5 }}>
-            <FieldLabel>Latitude</FieldLabel>
-            <FormField name="latitude" control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 5 }}>
-            <FieldLabel>Longitude</FieldLabel>
-            <FormField name="longitude" control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', alignItems: 'flex-end' }}>
-            <Button fullWidth variant="outlined" startIcon={<PlaceOutlinedIcon size={20} />} sx={{ height: 40, fontSize: '0.75rem' }} onClick={() => {}}>
-              Open in Google Maps
-            </Button>
-          </Grid>
-        </Grid>
-      </Card>
-
-      <Card sx={{ p: 3, mb: 3 }}>
-        <Typography sx={sectionTitleSx}>Scanning Range</Typography>
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 1 }}>
-          <Button variant="contained" startIcon={<MapOutlinedIcon size={20} />} sx={{ fontSize: '0.75rem' }} onClick={() => {}}>
-            Mark Fence on Map
+        <Typography sx={sectionTitleSx}>Geo-tagging &amp; Scanning Range</Typography>
+        <Stack spacing={2.5}>
+          {fields.map((field, index) => (
+            <Box
+              key={field.id}
+              sx={{
+                p: 2,
+                borderRadius: `${radius.lg}px`,
+                border: '1px solid',
+                borderColor: 'divider',
+              }}
+            >
+              <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                  Godown Location {index + 1}
+                </Typography>
+                {fields.length > 1 && (
+                  <Tooltip title="Remove location">
+                    <IconButton size="small" color="error" onClick={() => remove(index)} aria-label="Remove location">
+                      <Trash2 size={18} />
+                    </IconButton>
+                  </Tooltip>
+                )}
+              </Stack>
+              <Grid container spacing={2.5}>
+                <Grid size={12}>
+                  <FieldLabel required>Godown Address</FieldLabel>
+                  <FormField
+                    name={`locations.${index}.address`}
+                    control={control}
+                    placeholder="Full address including landmark"
+                    multiline
+                    minRows={2}
+                    {...fieldLabelProps}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 5 }}>
+                  <FieldLabel>Latitude</FieldLabel>
+                  <FormField name={`locations.${index}.latitude`} control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 5 }}>
+                  <FieldLabel>Longitude</FieldLabel>
+                  <FormField name={`locations.${index}.longitude`} control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <Button
+                    fullWidth
+                    variant="outlined"
+                    startIcon={<PlaceOutlinedIcon size={20} />}
+                    sx={{ height: 40, fontSize: '0.75rem' }}
+                    onClick={() => {}}
+                  >
+                    Open in Maps
+                  </Button>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabel>Scan Radius</FieldLabel>
+                  <FormField name={`locations.${index}.scanRadius`} control={control} placeholder="e.g. 200" {...fieldLabelProps} />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FieldLabel>Buffer Radius (in meters)</FieldLabel>
+                  <FormField name={`locations.${index}.bufferRadius`} control={control} placeholder="e.g. 50" {...fieldLabelProps} />
+                </Grid>
+              </Grid>
+            </Box>
+          ))}
+          <Button
+            variant="outlined"
+            startIcon={<Plus size={18} />}
+            sx={{ alignSelf: 'flex-start', fontSize: '0.75rem' }}
+            onClick={() => append({ address: '', latitude: '', longitude: '', scanRadius: '', bufferRadius: '' })}
+          >
+            Add Another Location
           </Button>
-          <Chip label="No fence marked yet" size="small" variant="outlined" />
         </Stack>
-        <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2.5 }}>
-          Mark the godown boundary and set the buffer distance within which scans will be accepted.
-        </Typography>
-        <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FieldLabel required>Scan Radius</FieldLabel>
-            <FormField name="scanRadius" control={control} placeholder="e.g. 200" {...fieldLabelProps} />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FieldLabel required>Buffer Radius (in meters)</FieldLabel>
-            <FormField name="bufferRadius" control={control} placeholder="e.g. 50" {...fieldLabelProps} />
-          </Grid>
-        </Grid>
       </Card>
 
       <Card sx={{ p: 3, mb: 3 }}>

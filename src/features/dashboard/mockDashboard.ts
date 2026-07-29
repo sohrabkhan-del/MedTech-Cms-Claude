@@ -134,14 +134,6 @@ export const activityTimeline: ActivityEvent[] = [
     linkTo: '/partners/chemists',
   },
   {
-    id: 'evt-13',
-    actor: 'System',
-    action: 'generated audit log entry for',
-    target: 'Product Master sync',
-    timestamp: '20 hr ago',
-    linkTo: '/audit/audit-logs',
-  },
-  {
     id: 'evt-14',
     actor: 'Priya Nair',
     action: 'uploaded distributor inventory batch',

@@ -7,7 +7,6 @@ import {
   TrendingUp,
   TrendingDown,
   Clock3,
-  Wrench,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -366,14 +365,6 @@ export function WalletReportDetailsPage() {
               value={report.debits.toLocaleString('en-IN')}
               icon={<TrendingDown size={20} />}
               iconColor="error"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            <StatCard
-              label="Manual Adjustments"
-              value={report.manualAdjustments.length}
-              icon={<Wrench size={20} />}
-              iconColor="warning"
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>

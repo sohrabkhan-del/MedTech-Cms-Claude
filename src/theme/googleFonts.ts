@@ -7,7 +7,7 @@ export interface GoogleFontOption {
   googleFamilyParam?: string
 }
 
-export const DEFAULT_FONT = 'Inter'
+export const DEFAULT_FONT = 'Lato'
 
 const WEIGHTS = '400;500;600;700'
 
@@ -16,6 +16,7 @@ export const GOOGLE_FONTS: GoogleFontOption[] = [
     label: 'Inter',
     value: 'Inter',
     stack: `'Inter', 'Roboto', 'Helvetica Neue', Arial, sans-serif`,
+    googleFamilyParam: 'Inter',
   },
   {
     label: 'Roboto',
@@ -63,7 +64,6 @@ export const GOOGLE_FONTS: GoogleFontOption[] = [
     label: 'Lato',
     value: 'Lato',
     stack: `'Lato', 'Inter', Arial, sans-serif`,
-    googleFamilyParam: 'Lato',
   },
   {
     label: 'Sora',

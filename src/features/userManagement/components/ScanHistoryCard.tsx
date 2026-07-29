@@ -1,4 +1,4 @@
-import { Chip } from '@mui/material'
+import { Chip, Typography } from '@mui/material'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import {
   CommonTable,
@@ -24,7 +24,7 @@ const columns: CommonTableColumn<ScanHistoryEntry>[] = [
   },
   {
     key: 'barcodeNumber',
-    header: 'Barcode Number',
+    header: 'Scan Code',
     render: (row) => row.barcodeNumber,
   },
   {
@@ -38,7 +38,14 @@ const columns: CommonTableColumn<ScanHistoryEntry>[] = [
     align: 'center',
     sortable: true,
     sortValue: (row) => row.rewardPoints,
-    render: (row) => row.rewardPoints.toLocaleString('en-IN'),
+    render: (row) => (
+      <Typography
+        component="span"
+        sx={{ fontWeight: 700, fontSize: 'inherit', color: 'success.main' }}
+      >
+        +{row.rewardPoints.toLocaleString('en-IN')}
+      </Typography>
+    ),
   },
   {
     key: 'result',

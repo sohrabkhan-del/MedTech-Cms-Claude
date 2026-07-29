@@ -55,6 +55,8 @@ export interface UserSecuritySummary {
   highSeverityAlerts: number
   lastAlertDate: string
   lastKnownLocation: string
+  lastKnownLatitude: number
+  lastKnownLongitude: number
   sourceIp: string
   deviceInfo: string
   registeredDevice: string

@@ -1,5 +1,8 @@
 import type { Dealer } from '@/types/dealer'
-import { generatePartnerBase } from '@/features/userManagement/mockPartnerData'
+import {
+  buildGodowns,
+  generatePartnerBase,
+} from '@/features/userManagement/mockPartnerData'
 
 export const mockDealers: Dealer[] = Array.from({ length: 42 }).map((_, index) => {
   const base = generatePartnerBase(index, 'dealer', 'Medical Godown')
@@ -7,6 +10,7 @@ export const mockDealers: Dealer[] = Array.from({ length: 42 }).map((_, index) =
     ...base,
     activeOrders: (index * 3) % 12,
     liveDeliveries: index % 4 !== 0,
+    godowns: buildGodowns(index, base.shopName, base.city),
   }
 })
 

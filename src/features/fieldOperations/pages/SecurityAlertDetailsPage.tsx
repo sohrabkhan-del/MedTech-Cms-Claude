@@ -1,15 +1,15 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Grid, Stack, Typography, Button } from '@mui/material'
+import { Box, Grid, Stack, Typography, Button, IconButton, Tooltip } from '@mui/material'
 import {
   ShieldAlert as GppMaybeIcon,
   TriangleAlert as ReportProblemOutlined,
   Activity as TimelineIcon,
   ArrowLeft as ArrowBackOutlined,
+  MapPin,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
-import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { CommonTable } from '@/components/common/CommonTable/CommonTable'
@@ -20,7 +20,7 @@ import { useSecurityAlertUserProfile } from '@/features/fieldOperations/hooks/us
 export function SecurityAlertDetailsPage() {
   const navigate = useNavigate()
   const { userId } = useParams<{ userId: string }>()
-  const { summary: userSummary, alertHistory: userAlertHistory, timeline: userTimeline, isLoading } = useSecurityAlertUserProfile(userId)
+  const { summary: userSummary, alertHistory: userAlertHistory, isLoading } = useSecurityAlertUserProfile(userId)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={4} />
@@ -116,11 +116,34 @@ export function SecurityAlertDetailsPage() {
         <SectionCard title="User Information">
           <DetailFieldGrid
             fields={[
-              { label: 'Last Known Location', value: userSummary.lastKnownLocation },
+              {
+                label: 'Last Known Location',
+                value: (
+                  <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
+                      {userSummary.lastKnownLocation}
+                    </Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                      ({userSummary.lastKnownLatitude.toFixed(4)}, {userSummary.lastKnownLongitude.toFixed(4)})
+                    </Typography>
+                    <Tooltip title="Open in Google Maps">
+                      <IconButton
+                        size="small"
+                        component="a"
+                        href={`https://www.google.com/maps?q=${userSummary.lastKnownLatitude},${userSummary.lastKnownLongitude}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label="Open in Google Maps"
+                      >
+                        <MapPin size={16} />
+                      </IconButton>
+                    </Tooltip>
+                  </Stack>
+                ),
+              },
               { label: 'Source IP Address', value: userSummary.sourceIp },
               { label: 'Device Information', value: userSummary.deviceInfo },
               { label: 'Registered Device', value: userSummary.registeredDevice },
-              { label: 'Region', value: userSummary.region },
             ]}
           />
         </SectionCard>
@@ -131,6 +154,8 @@ export function SecurityAlertDetailsPage() {
             columns={[
               { key: 'alertType', header: 'Alert Type', render: (row) => row.alertType },
               { key: 'description', header: 'Description', render: (row) => row.description },
+              { key: 'userName', header: 'User', render: (row) => row.userName },
+              { key: 'affectedUserName', header: 'Affected User', render: (row) => row.affectedUserName },
               {
                 key: 'severity',
                 header: 'Severity',
@@ -150,10 +175,6 @@ export function SecurityAlertDetailsPage() {
             defaultSortBy="alertDateTime"
             emptyTitle="No alerts recorded"
           />
-        </SectionCard>
-
-        <SectionCard title="Security Timeline">
-          <ActivityTimeline entries={userTimeline} emptyTitle="No timeline activity yet" />
         </SectionCard>
       </Stack>
     </>

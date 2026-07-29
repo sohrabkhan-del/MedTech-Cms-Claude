@@ -8,6 +8,7 @@ import type {
   PointsHistoryEntry,
   ScanHistoryEntry,
 } from '@/types/partner'
+import type { Godown } from '@/types/dealer'
 
 const zones: PartnerZone[] = ['North', 'South', 'East', 'West']
 const statuses: PartnerStatus[] = ['active', 'pending', 'inactive']
@@ -54,6 +55,32 @@ function buildGeoLock(seed: number): GeoLockDetails {
     lastVerifiedDate: `${(seed % 27) + 1} Jul 2026`,
     bufferRadiusMeters: [50, 75, 100][seed % 3]!,
   }
+}
+
+const godownAreas = [
+  'Industrial Estate',
+  'Warehouse Complex',
+  'Logistics Park',
+  'Cold Storage Yard',
+  'Distribution Hub',
+]
+
+export function buildGodowns(
+  index: number,
+  shopName: string,
+  city: string,
+): Godown[] {
+  const seed = index + 1
+  const godownCount = (index % 3) + 1
+  return Array.from({ length: godownCount }).map((_, i) => {
+    const godownSeed = seed * 5 + i * 13
+    return {
+      id: `${shopName}-godown-${i + 1}`,
+      name: i === 0 ? 'Main Godown' : `Godown ${i + 1}`,
+      address: `${godownSeed * 3}, ${godownAreas[godownSeed % godownAreas.length]}, ${city}, India`,
+      geoLock: buildGeoLock(godownSeed),
+    }
+  })
 }
 
 function buildScanHistory(seed: number, shopName: string): ScanHistoryEntry[] {

@@ -21,21 +21,18 @@ import {
   Coins as Points,
   TrendingUp,
   TrendingDown,
-  Wrench,
   Clock3,
   ScanLine,
   Sparkles,
   Users2,
   Megaphone,
   UserPlus,
-  ShieldAlert,
   MoreVertical,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -50,8 +47,6 @@ import { useWalletDetail } from '@/features/rewardsWallet/hooks/useWalletDetail'
 import type {
   RecentRewardActivity,
   TransactionStatus,
-  WalletRedemptionEntry,
-  WalletRedemptionStatus,
   WalletStatus,
   WalletTransaction,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
@@ -72,17 +67,6 @@ const txnStatusConfig: Record<
   completed: { label: 'Completed', color: 'success' },
   pending: { label: 'Pending', color: 'warning' },
   reversed: { label: 'Reversed', color: 'error' },
-}
-
-const redemptionStatusConfig: Record<
-  WalletRedemptionStatus,
-  { label: string; color: 'default' | 'info' | 'warning' | 'success' | 'error' }
-> = {
-  pending: { label: 'Pending', color: 'warning' },
-  approved: { label: 'Approved', color: 'info' },
-  shipped: { label: 'Shipped', color: 'info' },
-  delivered: { label: 'Delivered', color: 'success' },
-  cancelled: { label: 'Cancelled', color: 'error' },
 }
 
 const activityStatusConfig: Record<
@@ -152,12 +136,6 @@ const transactionColumns: CommonTableColumn<WalletTransaction>[] = [
     render: (row) => row.reason,
   },
   {
-    key: 'referenceNumber',
-    header: 'Reference Number',
-    minWidth: 140,
-    render: (row) => row.referenceNumber,
-  },
-  {
     key: 'performedBy',
     header: 'Performed By',
     minWidth: 120,
@@ -174,80 +152,6 @@ const transactionColumns: CommonTableColumn<WalletTransaction>[] = [
         color={txnStatusConfig[row.status].color}
       />
     ),
-  },
-]
-
-const redemptionColumns: CommonTableColumn<WalletRedemptionEntry>[] = [
-  {
-    key: 'id',
-    header: 'Redemption ID',
-    minWidth: 140,
-    render: (row) => row.id,
-  },
-  {
-    key: 'giftName',
-    header: 'Gift Name',
-    minWidth: 170,
-    sortable: true,
-    sortValue: (row) => row.giftName,
-    render: (row) => row.giftName,
-  },
-  {
-    key: 'category',
-    header: 'Category',
-    minWidth: 130,
-    render: (row) => row.category,
-  },
-  {
-    key: 'PointsRedeemed',
-    header: 'Points Redeemed',
-    align: 'center',
-    sortable: true,
-    sortValue: (row) => row.PointsRedeemed,
-    render: (row) => row.PointsRedeemed.toLocaleString('en-IN'),
-  },
-  {
-    key: 'requestDate',
-    header: 'Request Date',
-    minWidth: 130,
-    sortable: true,
-    render: (row) => row.requestDate,
-  },
-  {
-    key: 'approvalDate',
-    header: 'Approval Date',
-    minWidth: 130,
-    render: (row) => row.approvalDate ?? '—',
-  },
-  {
-    key: 'deliveryDate',
-    header: 'Delivery Date',
-    minWidth: 130,
-    render: (row) => row.deliveryDate ?? '—',
-  },
-  {
-    key: 'redemptionStatus',
-    header: 'Redemption Status',
-    minWidth: 140,
-    render: (row) => (
-      <Chip
-        size="small"
-        label={redemptionStatusConfig[row.redemptionStatus].label}
-        color={redemptionStatusConfig[row.redemptionStatus].color}
-      />
-    ),
-  },
-  {
-    key: 'courierPartner',
-    header: 'Courier Partner',
-    minWidth: 130,
-    render: (row) => row.courierPartner ?? '—',
-  },
-  {
-    key: 'trackingNumber',
-    header: 'Tracking Number',
-    minWidth: 140,
-    render: (row) => row.trackingNumber ?? '—',
   },
 ]
 
@@ -313,7 +217,7 @@ export function WalletDetailsPage() {
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
 
   if (isLoading) {
-    return <DetailsPageSkeleton sections={6} />
+    return <DetailsPageSkeleton sections={4} />
   }
 
   if (!wallet) {
@@ -439,8 +343,7 @@ export function WalletDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Wallet ID', value: wallet.id },
-              { label: 'User Name', value: wallet.userName },
+              { label: 'Business Name', value: wallet.userName },
               { label: 'User Type', value: wallet.userType },
               { label: 'Mobile Number', value: wallet.mobileNumber },
               { label: 'Email Address', value: wallet.email },
@@ -460,12 +363,13 @@ export function WalletDetailsPage() {
                 label: 'Current Wallet Balance',
                 value: currentBalance.toLocaleString('en-IN'),
               },
+              { label: 'Last Updated Date & Time', value: wallet.lastUpdated },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? (
               <StatCardSkeleton />
             ) : (
@@ -477,7 +381,7 @@ export function WalletDetailsPage() {
               />
             )}
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? (
               <StatCardSkeleton />
             ) : (
@@ -489,7 +393,7 @@ export function WalletDetailsPage() {
               />
             )}
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? (
               <StatCardSkeleton />
             ) : (
@@ -501,19 +405,7 @@ export function WalletDetailsPage() {
               />
             )}
           </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Manual Adjustments"
-                value={wallet.manualAdjustments.toLocaleString('en-IN')}
-                icon={<Wrench size={20} />}
-                iconColor="warning"
-              />
-            )}
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
+          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? (
               <StatCardSkeleton />
             ) : (
@@ -526,30 +418,6 @@ export function WalletDetailsPage() {
             )}
           </Grid>
         </Grid>
-
-        <SectionCard title="Wallet Summary">
-          <DetailFieldGrid
-            fields={[
-              {
-                label: 'Current Balance',
-                value: currentBalance.toLocaleString('en-IN'),
-              },
-              {
-                label: 'Lifetime Earned',
-                value: wallet.lifetimeEarned.toLocaleString('en-IN'),
-              },
-              {
-                label: 'Lifetime Redeemed',
-                value: wallet.lifetimeRedeemed.toLocaleString('en-IN'),
-              },
-              {
-                label: 'Total Manual Adjustments',
-                value: wallet.manualAdjustments.toLocaleString('en-IN'),
-              },
-              { label: 'Last Updated Date & Time', value: wallet.lastUpdated },
-            ]}
-          />
-        </SectionCard>
 
         <SectionCard title="Wallet Transaction History">
           <CommonTable
@@ -565,21 +433,6 @@ export function WalletDetailsPage() {
             defaultSortBy="transactionDate"
             defaultSortDir="desc"
             emptyTitle="No transactions yet"
-          />
-        </SectionCard>
-
-        <SectionCard title="Reward Redemption History">
-          <CommonTable
-            tableKey="wallet-redemption-history"
-            columns={redemptionColumns}
-            rows={wallet.redemptionHistory}
-            getRowId={(row) => row.id}
-            loading={isLoading}
-            searchPlaceholder="Search redemptions…"
-            searchKeys={(row) => `${row.giftName} ${row.category}`}
-            defaultSortBy="requestDate"
-            defaultSortDir="desc"
-            emptyTitle="No redemptions yet"
           />
         </SectionCard>
 
@@ -673,77 +526,6 @@ export function WalletDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Wallet Activity Timeline">
-          <ActivityTimeline
-            entries={wallet.timeline}
-            emptyTitle="No timeline activity yet"
-          />
-        </SectionCard>
-
-        <SectionCard title="Fraud & Adjustment Log">
-          {wallet.fraudLog.length === 0 ? (
-            <EmptyState
-              title="No fraud or adjustment incidents"
-              description="This wallet has no flagged corrections."
-              icon={<ShieldAlert size={28} />}
-            />
-          ) : (
-            <Stack spacing={1.5}>
-              {wallet.fraudLog.map((entry) => (
-                <Stack
-                  key={entry.id}
-                  spacing={0.5}
-                  sx={{
-                    p: 2,
-                    borderRadius: '10px',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    sx={{ justifyContent: 'space-between' }}
-                  >
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-                      {entry.incidentId}
-                    </Typography>
-                    <Typography
-                      sx={{
-                        fontSize: '0.8125rem',
-                        color: 'error.main',
-                        fontWeight: 600,
-                      }}
-                    >
-                      {entry.PointsAdjusted.toLocaleString('en-IN')} Points
-                    </Typography>
-                  </Stack>
-                  <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                    {entry.adjustmentReason}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: 'text.secondary' }}
-                  >
-                    {entry.actionTaken} · By {entry.performedBy} ·{' '}
-                    {entry.dateTime}
-                  </Typography>
-                </Stack>
-              ))}
-            </Stack>
-          )}
-        </SectionCard>
-
-        <SectionCard title="Internal Notes">
-          <Typography
-            sx={{
-              fontSize: '0.8125rem',
-              color: 'text.secondary',
-              lineHeight: 1.6,
-            }}
-          >
-            {wallet.internalNotes}
-          </Typography>
-        </SectionCard>
       </Stack>
 
       <WalletAdjustmentModal

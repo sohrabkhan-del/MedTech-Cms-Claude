@@ -7,6 +7,7 @@ interface UserOption {
   id: string
   name: string
   userType: GeoFence['userType']
+  region: GeoFence['region']
 }
 
 interface LoadState {

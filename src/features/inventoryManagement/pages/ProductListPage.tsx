@@ -14,7 +14,6 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { useToast } from '@/contexts/ToastContext'
 import { useProducts } from '@/features/inventoryManagement/hooks/useProducts'
 import { useProductCategoryOptions } from '@/features/inventoryManagement/hooks/useProductCategoryOptions'
 import { useProductCategories } from '@/features/masters/hooks/useProductCategories'
@@ -33,8 +32,7 @@ interface ProductFilters extends Record<string, unknown> {
 
 export function ProductListPage() {
   const navigate = useNavigate()
-  const { products, kpis, isLoading, importProducts } = useProducts()
-  const toast = useToast()
+  const { products, kpis, isLoading } = useProducts()
   const productCategoryOptions = useProductCategoryOptions()
   const { categories, isLoading: categoriesLoading } = useProductCategories()
   useRegionTopbarHeader({
@@ -75,19 +73,6 @@ export function ProductListPage() {
       }),
     [products, appliedFilters],
   )
-
-  const handleImportConfirm = async (
-    parsed: Parameters<typeof importProducts>[0],
-  ) => {
-    try {
-      await importProducts(parsed)
-      toast.success(
-        `${parsed.rows.length} product${parsed.rows.length === 1 ? '' : 's'} imported successfully.`,
-      )
-    } catch {
-      toast.error('Could not import the file. Please try again.')
-    }
-  }
 
   const columns: CommonTableColumn<Product>[] = [
     {

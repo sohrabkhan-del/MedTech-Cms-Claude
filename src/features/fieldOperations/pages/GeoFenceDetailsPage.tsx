@@ -1,16 +1,12 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Grid, Stack, Typography } from '@mui/material'
+import { Box, Button, Stack, Typography } from '@mui/material'
 import {
   Pencil as EditOutlined,
   CircleCheck as CheckCircleOutlined,
   Ban as BlockOutlined,
   Trash2 as DeleteOutlined,
   Fence as FenceIcon,
-  ClipboardClock as PendingActionsOutlined,
-  Target as TrackChangesIcon,
-  CalendarCheck as EventAvailableOutlined,
 } from 'lucide-react'
-import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import {
@@ -21,7 +17,6 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useGeoFenceDetail } from '@/features/fieldOperations/hooks/useGeoFenceDetail'
-import { useGeoFences } from '@/features/fieldOperations/hooks/useGeoFences'
 import type { GeoFenceScanEntry } from '@/features/fieldOperations/types/fieldOperations.types'
 
 const scanColumns: CommonTableColumn<GeoFenceScanEntry>[] = [
@@ -63,13 +58,6 @@ export function GeoFenceDetailsPage() {
     setStatus,
     remove,
   } = useGeoFenceDetail(fenceId)
-  const { kpis } = useGeoFences()
-  const geoFenceKpis = kpis ?? {
-    activeFences: 0,
-    pendingVerification: 0,
-    averageRadius: 0,
-    verifiedThisWeek: 0,
-  }
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={5} />

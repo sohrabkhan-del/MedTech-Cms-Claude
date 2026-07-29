@@ -52,7 +52,7 @@ export interface RewardSummary {
 
 export type BatchLifecycleActivity =
   | 'Batch Created'
-  | 'QR Generated'
+  | 'Scan Code Generated'
   | 'Uploaded'
   | 'Distributor Assigned'
   | 'Dealer Assigned'

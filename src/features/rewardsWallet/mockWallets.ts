@@ -154,7 +154,7 @@ function buildRecentActivity(
       id: `${walletId}-activity-${i}`,
       date: dateFromSeed(localSeed, 'Jul'),
       productName: productNames[localSeed % productNames.length]!,
-      qrCode: `QR-${1000000 + localSeed}`,
+      scanCode: `SC-${1000000 + localSeed}`,
       dealer: userType === 'Dealer' ? dealerName : '—',
       chemist: userType === 'Chemist' ? chemistName : '—',
       PointsEarned: seededNumber(localSeed, 5, 60),

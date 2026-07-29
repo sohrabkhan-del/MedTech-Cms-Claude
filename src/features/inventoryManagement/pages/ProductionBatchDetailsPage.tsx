@@ -181,7 +181,7 @@ export function ProductionBatchDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="QR / Barcode Information">
+        <SectionCard title="Scan Code / Barcode Information">
           <DetailFieldGrid
             fields={[
               {
@@ -332,11 +332,11 @@ export function ProductionBatchDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="QR Code Statistics">
+        <SectionCard title="Scan Code Statistics">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
-                label="Total QR Generated"
+                label="Total Scan Codes Generated"
                 value={batch.qrCodeStatistics.totalGenerated.toLocaleString(
                   'en-IN',
                 )}
@@ -346,7 +346,7 @@ export function ProductionBatchDetailsPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
-                label="QR Activated"
+                label="Scan Codes Activated"
                 value={batch.qrCodeStatistics.activated.toLocaleString('en-IN')}
                 icon={<ToggleOnOutlined size={20} />}
                 iconColor="secondary"
@@ -354,7 +354,7 @@ export function ProductionBatchDetailsPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
-                label="QR Scanned"
+                label="Scan Codes Scanned"
                 value={batch.qrCodeStatistics.scanned.toLocaleString('en-IN')}
                 icon={<DoneAllOutlined size={20} />}
                 iconColor="success"
@@ -362,7 +362,7 @@ export function ProductionBatchDetailsPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
-                label="QR Remaining"
+                label="Scan Codes Remaining"
                 value={batch.qrCodeStatistics.remaining.toLocaleString('en-IN')}
                 icon={<HourglassEmptyOutlined size={20} />}
                 iconColor="warning"

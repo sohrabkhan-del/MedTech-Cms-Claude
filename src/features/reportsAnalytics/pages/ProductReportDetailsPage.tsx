@@ -158,7 +158,7 @@ export function ProductReportDetailsPage() {
                 value: report.totalFactoryUploads,
               },
               {
-                label: 'Total QR Codes Generated',
+                label: 'Total Scan Codes Generated',
                 value: report.totalQrCodesGenerated.toLocaleString('en-IN'),
               },
               {
@@ -248,7 +248,7 @@ export function ProductReportDetailsPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
-                label="QR Codes Generated"
+                label="Scan Codes Generated"
                 value={report.totalQrCodesGenerated.toLocaleString('en-IN')}
                 icon={<QrCode2Outlined size={20} />}
                 iconColor="secondary"

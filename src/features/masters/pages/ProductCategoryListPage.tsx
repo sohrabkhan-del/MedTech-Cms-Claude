@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Avatar, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { SlidersHorizontal as SlidersHorizontalIcon } from 'lucide-react'
 import {
   CommonTable,
@@ -57,22 +57,14 @@ export function ProductCategoryListPage() {
       sortable: true,
       sortValue: (row) => row.categoryName,
       render: (row) => (
-        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Avatar
-            src={row.image}
-            alt={row.categoryName}
-            variant="rounded"
-            sx={{ width: 36, height: 36 }}
-          />
-          <Typography
-            sx={{
-              fontWeight: 600,
-              fontSize: '0.875rem',
-            }}
-          >
-            {row.categoryName}
-          </Typography>
-        </Stack>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.875rem',
+          }}
+        >
+          {row.categoryName}
+        </Typography>
       ),
     },
     {

@@ -76,8 +76,8 @@ const BMR_TEMPLATE_HEADERS = [
 ]
 
 const BMR_TEMPLATE_SAMPLE_ROW = [
-  'PRD-1001',
-  'BATCH-0001',
+  'CU82-S0H6-5-2',
+  'CU82-S0H6-5-2-2511-06586',
   'PPN-2001',
   '01-Jan-2026',
   'Jane Doe',
@@ -90,8 +90,8 @@ const BMR_TEMPLATE_SAMPLE_ROW = [
   'LINE-1',
   '05-Jan-2026',
   990,
-  'SN-000001',
-  'SN-000990',
+  '294878',
+  '294878',
 ]
 
 /** Downloads a blank .xlsx with the exact column headers `parseBmrFile` expects, plus one sample row. */

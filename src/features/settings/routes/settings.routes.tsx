@@ -1,5 +1,5 @@
 import type { RouteObject } from 'react-router-dom'
-import { AppearanceSettingsPage } from '@/features/settings/pages/AppearanceSettingsPage'
+// import { AppearanceSettingsPage } from '@/features/settings/pages/AppearanceSettingsPage'
 import { ProfileSettingsPage } from '@/features/settings/pages/ProfileSettingsPage'
 
 // Register under <ProtectedRoute /> + <DashboardLayout />.

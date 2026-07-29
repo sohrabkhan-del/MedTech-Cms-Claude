@@ -269,7 +269,6 @@ export function ProductListPage() {
             (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
           }
           onExportClick={() => {}}
-          onImportClick={handleImportConfirm}
 
           defaultSortBy="productName"
           actions={[

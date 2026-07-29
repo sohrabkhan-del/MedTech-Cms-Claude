@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Badge, Box, Menu, MenuItem, Stack, Typography } from '@mui/material'
 import {
   ChevronRight as ChevronRightIcon,
-  Settings as SettingsOutlinedIcon,
+  // Settings as SettingsOutlinedIcon,
   User as PersonOutlineIcon,
   LogOut as LogoutIcon,
 } from 'lucide-react'

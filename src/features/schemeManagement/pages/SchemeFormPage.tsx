@@ -98,6 +98,28 @@ function ReadOnlyValue({
   )
 }
 
+function DisabledFieldValue({
+  name,
+  control,
+  suffix,
+}: {
+  name: FieldPath<SchemeFormValues>
+  control: Control<SchemeFormValues>
+  suffix?: string
+}) {
+  const value = useWatch({ control, name })
+  const display = value ? `${value as ReactNode}${suffix ?? ''}` : ''
+  return (
+    <TextField
+      value={display}
+      disabled
+      size="small"
+      fullWidth
+      placeholder="—"
+    />
+  )
+}
+
 const ALL_PARTNER_TYPES: SchemePartnerType[] = ['Dealer', 'Chemist']
 const ALL_REGIONS: PartnerZone[] = ['East', 'West', 'North', 'South']
 const MULTIPLIER_PRESETS = ['1', '1.5', '2', '2.5', '3']
@@ -1104,7 +1126,7 @@ export function SchemeFormPage() {
                               <FieldLabel required>Points</FieldLabel>
                               {selectedGift?.dealerBasePoints !== null &&
                               selectedGift?.dealerBasePoints !== undefined ? (
-                                <ReadOnlyValue
+                                <DisabledFieldValue
                                   name={`giftRules.${index}.dealerRule.Points`}
                                   control={control}
                                 />
@@ -1176,7 +1198,7 @@ export function SchemeFormPage() {
                               <FieldLabel required>Points</FieldLabel>
                               {selectedGift?.chemistBasePoints !== null &&
                               selectedGift?.chemistBasePoints !== undefined ? (
-                                <ReadOnlyValue
+                                <DisabledFieldValue
                                   name={`giftRules.${index}.chemistRule.Points`}
                                   control={control}
                                 />

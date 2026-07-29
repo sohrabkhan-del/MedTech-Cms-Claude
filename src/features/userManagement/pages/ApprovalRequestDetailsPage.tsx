@@ -6,76 +6,17 @@ import {
   CircleCheck as CheckCircleOutlined,
   XCircle as CancelOutlined,
   MapPin as PlaceOutlined,
-  Download as DownloadOutlined,
 } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import {
-  CommonTable,
-  type CommonTableColumn,
-} from '@/components/common/CommonTable/CommonTable'
+import { DocumentGridCard } from '@/components/common/DocumentGridCard/DocumentGridCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
-import type {
-  DocumentVerificationStatus,
-  RequestDocument,
-} from '@/features/userManagement/types/userManagement.types'
-
-const DOC_STATUS_CONFIG: Record<
-  DocumentVerificationStatus,
-  { label: string; color: 'success' | 'warning' | 'error' }
-> = {
-  verified: { label: 'Verified', color: 'success' },
-  pending: { label: 'Pending', color: 'warning' },
-  rejected: { label: 'Rejected', color: 'error' },
-}
-
-const documentColumns: CommonTableColumn<RequestDocument>[] = [
-  {
-    key: 'documentName',
-    header: 'Document Name',
-    render: (row) => row.documentName,
-  },
-  {
-    key: 'uploadDate',
-    header: 'Upload Date',
-    sortable: true,
-    render: (row) => row.uploadDate,
-  },
-  {
-    key: 'verificationStatus',
-    header: 'Status',
-    sortable: true,
-    sortValue: (row) => DOC_STATUS_CONFIG[row.verificationStatus].label,
-    render: (row) => (
-      <Chip
-        label={DOC_STATUS_CONFIG[row.verificationStatus].label}
-        size="small"
-        color={DOC_STATUS_CONFIG[row.verificationStatus].color}
-        variant="filled"
-      />
-    ),
-  },
-  {
-    key: 'actions',
-    header: '',
-    align: 'center',
-    hideable: false,
-    render: () => (
-      <Button
-        size="small"
-        startIcon={<DownloadOutlined size={20} />}
-        sx={{ fontSize: '0.75rem' }}
-      >
-        Preview
-      </Button>
-    ),
-  },
-]
+import { verificationService } from '@/features/userManagement/services/verificationService'
 
 export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
@@ -110,6 +51,13 @@ export function ApprovalRequestDetailsPage() {
   const confirmDecision = () => {
     decide(dialog.action, remarks)
     setDialog({ open: false, action: 'approve' })
+  }
+
+  const handleUpdateDocument = async (
+    doc: { id: string; documentName: string },
+    file: File,
+  ) => {
+    await verificationService.updateDocument(request.id, doc.id, file)
   }
 
   return (
@@ -258,19 +206,13 @@ export function ApprovalRequestDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Verification Documents">
-          <CommonTable
-            tableKey="approval-request-documents"
-            columns={documentColumns}
-            rows={request.documents}
-            loading={isLoading}
-            getRowId={(row) => row.id}
-            searchPlaceholder="Search documents…"
-            searchKeys={(row) => row.documentName}
-            defaultSortBy="uploadDate"
-            emptyTitle="No documents uploaded"
-          />
-        </SectionCard>
+        <DocumentGridCard
+          title="Verification Documents"
+          documents={request.documents}
+          emptyDescription="Documents added for this request will appear here."
+          showMetadata={false}
+          onUpdateDocument={handleUpdateDocument}
+        />
 
         <SectionCard title="Approval Timeline">
           <ActivityTimeline

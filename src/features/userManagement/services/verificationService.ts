@@ -49,11 +49,7 @@ async function getRejectedReviewers(): Promise<string[]> {
 // TODO: wire to real endPoints. Currently no-ops that resolve immediately so
 // hooks/UI can be built against a stable contract.
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
-async function decideApprovalRequest(
-  _id: string,
-  _decision: 'approve' | 'reject',
-  _remarks?: string,
-): Promise<void> {
+async function decideApprovalRequest(_id: string, _decision: 'approve' | 'reject', _remarks?: string): Promise<void> {
   return Promise.resolve()
 }
 
@@ -67,6 +63,11 @@ async function deleteRequest(_id: string): Promise<void> {
   return Promise.resolve()
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
+async function updateDocument(_requestId: string, _documentId: string, _file: File): Promise<void> {
+  return Promise.resolve()
+}
+
 export const verificationService = {
   getApprovalRequests,
   getApprovalRequestDetail,
@@ -76,4 +77,5 @@ export const verificationService = {
   decideApprovalRequest,
   reopenRequest,
   deleteRequest,
+  updateDocument,
 }

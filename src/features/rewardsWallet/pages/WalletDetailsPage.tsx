@@ -164,10 +164,10 @@ const activityColumns: CommonTableColumn<RecentRewardActivity>[] = [
     render: (row) => row.productName,
   },
   {
-    key: 'qrCode',
-    header: 'QR Code',
+    key: 'scanCode',
+    header: 'Scan Code',
     minWidth: 130,
-    render: (row) => row.qrCode,
+    render: (row) => row.scanCode,
   },
   {
     key: 'dealer',
@@ -519,13 +519,12 @@ export function WalletDetailsPage() {
             getRowId={(row) => row.id}
             loading={isLoading}
             searchPlaceholder="Search recent activity…"
-            searchKeys={(row) => `${row.productName} ${row.qrCode}`}
+            searchKeys={(row) => `${row.productName} ${row.scanCode}`}
             defaultSortBy="date"
             defaultSortDir="desc"
             emptyTitle="No recent activity"
           />
         </SectionCard>
-
       </Stack>
 
       <WalletAdjustmentModal

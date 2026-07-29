@@ -31,23 +31,16 @@ const seasonalSchemeNames = [
   'Christmas Campaign',
 ]
 
-/** Real stock photo per scheme type (Unsplash direct CDN — stable, hotlink-safe URLs): square thumbnail + wide banner. */
-const schemeImagesByType: Record<
-  SchemeType,
-  { image: string; banner: string }
-> = {
-  general: {
-    image:
-      'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=400&h=400&q=80',
-    banner:
-      'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&w=1200&h=400&q=80',
-  },
-  seasonal: {
-    image:
-      'https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=400&h=400&q=80',
-    banner:
-      'https://images.unsplash.com/photo-1512909006721-3d6018887383?auto=format&fit=crop&w=1200&h=400&q=80',
-  },
+/** Scheme banner set — cycled alternately across schemes (round-robin by seed). */
+const schemeBanners = [
+  '/images/scheme-banners/insurance-banner-1.jpg',
+  '/images/scheme-banners/insurance-banner-2.jpg',
+  '/images/scheme-banners/insurance-banner-3.jpg',
+  '/images/scheme-banners/insurance-banner-4.jpg',
+]
+
+function schemeBannerForSeed(seed: number): string {
+  return schemeBanners[seed % schemeBanners.length]!
 }
 
 function seededNumber(seed: number, min: number, max: number): number {
@@ -243,8 +236,8 @@ function buildScheme(
     description: `${name} lets eligible partners redeem gift products by earning Points ${type === 'general' ? 'throughout the year' : 'during the campaign window'}.`,
     disclaimer:
       'Points are non-transferable and subject to MedTech Rewards terms & conditions.',
-    image: schemeImagesByType[type].image,
-    banner: schemeImagesByType[type].banner,
+    image: schemeBannerForSeed(seed),
+    banner: schemeBannerForSeed(seed),
     partners: {
       dealer: partnerTypes.includes('Dealer')
         ? buildPartnerEntries(seed, mockDealers)

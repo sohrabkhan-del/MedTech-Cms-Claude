@@ -52,7 +52,7 @@ export interface RecentRewardActivity {
   id: string
   date: string
   productName: string
-  qrCode: string
+  scanCode: string
   dealer: string
   chemist: string
   PointsEarned: number

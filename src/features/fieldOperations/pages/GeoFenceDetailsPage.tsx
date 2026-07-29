@@ -179,41 +179,6 @@ export function GeoFenceDetailsPage() {
           />
         </SectionCard>
 
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Active Geo Fences"
-              value={geoFenceKpis.activeFences}
-              icon={<CheckCircleOutlined size={20} />}
-              iconColor="success"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Pending Verification"
-              value={geoFenceKpis.pendingVerification}
-              icon={<PendingActionsOutlined size={20} />}
-              iconColor="warning"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Average Radius"
-              value={`${geoFenceKpis.averageRadius} m`}
-              icon={<TrackChangesIcon size={20} />}
-              iconColor="primary"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Verified This Week"
-              value={geoFenceKpis.verifiedThisWeek}
-              icon={<EventAvailableOutlined size={20} />}
-              iconColor="secondary"
-            />
-          </Grid>
-        </Grid>
-
         <SectionCard title="Location Information">
           <DetailFieldGrid
             fields={[

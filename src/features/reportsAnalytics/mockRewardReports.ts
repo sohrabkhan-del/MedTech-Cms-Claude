@@ -1,10 +1,21 @@
-import type { RewardReportEntry, RewardReportStatus, RewardReportTimelineEntry, RewardReportType, RewardReportUserType } from '@/types/rewardReport'
+import type {
+  RewardReportEntry,
+  RewardReportStatus,
+  RewardReportTimelineEntry,
+  RewardReportType,
+  RewardReportUserType,
+} from '@/types/rewardReport'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 import { mockSchemes } from '@/features/schemeManagement/mockSchemes'
 import { mockGifts } from '@/features/schemeManagement/mockGifts'
 
-const rewardTypes: RewardReportType[] = ['Scan Reward', 'Scheme Bonus', 'Redemption', 'Loyalty Multiplier']
+const rewardTypes: RewardReportType[] = [
+  'Scan Reward',
+  'Scheme Bonus',
+  'Redemption',
+  'Loyalty Multiplier',
+]
 const deliveryStatuses = ['Pending', 'Packed', 'Shipped', 'Delivered']
 
 function seededNumber(seed: number, min: number, max: number): number {
@@ -30,34 +41,95 @@ function resolveStatus(seed: number): RewardReportStatus {
   return 'reversed'
 }
 
-function resolveUser(seed: number): { id: string; name: string; type: RewardReportUserType; businessName: string; mobile: string; email: string; region: string } {
+function resolveUser(seed: number): {
+  id: string
+  name: string
+  type: RewardReportUserType
+  businessName: string
+  mobile: string
+  email: string
+  region: string
+} {
   const roll = seed % 2
   if (roll === 0) {
     const dealer = mockDealers[seed % mockDealers.length]!
-    return { id: dealer.id, name: dealer.ownerName, type: 'Dealer', businessName: dealer.shopName, mobile: dealer.phone, email: dealer.email, region: dealer.zone }
+    return {
+      id: dealer.id,
+      name: dealer.ownerName,
+      type: 'Dealer',
+      businessName: dealer.shopName,
+      mobile: dealer.phone,
+      email: dealer.email,
+      region: dealer.zone,
+    }
   }
   const chemist = mockChemists[seed % mockChemists.length]!
-  return { id: chemist.id, name: chemist.ownerName, type: 'Chemist', businessName: chemist.shopName, mobile: chemist.phone, email: chemist.email, region: chemist.zone }
+  return {
+    id: chemist.id,
+    name: chemist.ownerName,
+    type: 'Chemist',
+    businessName: chemist.shopName,
+    mobile: chemist.phone,
+    email: chemist.email,
+    region: chemist.zone,
+  }
 }
 
-function buildTimeline(seed: number, entryId: string, status: RewardReportStatus, isRedeemed: boolean): RewardReportTimelineEntry[] {
+function buildTimeline(
+  seed: number,
+  entryId: string,
+  status: RewardReportStatus,
+  isRedeemed: boolean,
+): RewardReportTimelineEntry[] {
   const timeline: RewardReportTimelineEntry[] = [
-    { id: `${entryId}-tl-0`, activity: 'Reward Earned', dateTime: dateFromSeed(seed, 'Jun') },
-    { id: `${entryId}-tl-1`, activity: 'Scheme Applied', dateTime: dateFromSeed(seed + 1, 'Jun') },
-    { id: `${entryId}-tl-2`, activity: 'Bonus Calculated', dateTime: dateFromSeed(seed + 1, 'Jun') },
+    {
+      id: `${entryId}-tl-0`,
+      activity: 'Reward Earned',
+      dateTime: dateFromSeed(seed, 'Jun'),
+    },
+    {
+      id: `${entryId}-tl-1`,
+      activity: 'Scheme Applied',
+      dateTime: dateFromSeed(seed + 1, 'Jun'),
+    },
+    {
+      id: `${entryId}-tl-2`,
+      activity: 'Bonus Calculated',
+      dateTime: dateFromSeed(seed + 1, 'Jun'),
+    },
   ]
   if (status === 'reversed') {
-    timeline.push({ id: `${entryId}-tl-3`, activity: 'Reward Reversed', dateTime: dateFromSeed(seed + 2, 'Jun') })
+    timeline.push({
+      id: `${entryId}-tl-3`,
+      activity: 'Reward Reversed',
+      dateTime: dateFromSeed(seed + 2, 'Jun'),
+    })
     return timeline
   }
   if (status === 'pending') return timeline
 
-  timeline.push({ id: `${entryId}-tl-3`, activity: 'Wallet Credited', dateTime: dateFromSeed(seed + 2, 'Jun') })
+  timeline.push({
+    id: `${entryId}-tl-3`,
+    activity: 'Wallet Credited',
+    dateTime: dateFromSeed(seed + 2, 'Jun'),
+  })
   if (isRedeemed) {
-    timeline.push({ id: `${entryId}-tl-4`, activity: 'Redemption Requested', dateTime: dateFromSeed(seed + 4, 'Jul') })
-    timeline.push({ id: `${entryId}-tl-5`, activity: 'Redemption Approved', dateTime: dateFromSeed(seed + 5, 'Jul') })
+    timeline.push({
+      id: `${entryId}-tl-4`,
+      activity: 'Redemption Requested',
+      dateTime: dateFromSeed(seed + 4, 'Jul'),
+    })
+    timeline.push({
+      id: `${entryId}-tl-5`,
+      activity: 'Redemption Approved',
+      dateTime: dateFromSeed(seed + 5, 'Jul'),
+    })
     if (status === 'redeemed') {
-      timeline.push({ id: `${entryId}-tl-6`, activity: 'Redemption Completed', dateTime: dateFromSeed(seed + 6, 'Jul') })
+      timeline.push({
+        id: `${entryId}-tl-6`,
+        activity: 'Redemption Completed',
+        dateTime: dateFromSeed(seed + 6, 'Jul'),
+      })
     }
   }
   return timeline
@@ -76,10 +148,16 @@ function buildRewardReport(index: number): RewardReportEntry {
   const baseRewardPoints = seededNumber(seed, 1, 6) * 100
   const multiplier = Number((1 + (seed % 4) * 0.25).toFixed(2))
   const bonusPoints = seededNumber(seed + 1, 0, 3) * 100
-  const totalRewardPoints = Math.round((baseRewardPoints * multiplier) / 100) * 100 + bonusPoints
+  const totalRewardPoints =
+    Math.round((baseRewardPoints * multiplier) / 100) * 100 + bonusPoints
 
   const walletBalanceBefore = seededNumber(seed, 500, 15000)
-  const walletBalanceAfter = status === 'reversed' ? walletBalanceBefore : walletBalanceBefore + totalRewardPoints - (isRedeemed ? gift.requiredCoins : 0)
+  const walletBalanceAfter =
+    status === 'reversed'
+      ? walletBalanceBefore
+      : walletBalanceBefore +
+        totalRewardPoints -
+        (isRedeemed ? gift.requiredPoints : 0)
 
   return {
     id,
@@ -110,8 +188,10 @@ function buildRewardReport(index: number): RewardReportEntry {
     isRedeemed,
     redeemedItem: isRedeemed ? gift.giftName : undefined,
     redemptionDate: isRedeemed ? dateFromSeed(seed + 6, 'Jul') : undefined,
-    coinsUsed: isRedeemed ? gift.requiredCoins : undefined,
-    deliveryStatus: isRedeemed ? deliveryStatuses[seed % deliveryStatuses.length] : undefined,
+    PointsUsed: isRedeemed ? gift.requiredPoints : undefined,
+    deliveryStatus: isRedeemed
+      ? deliveryStatuses[seed % deliveryStatuses.length]
+      : undefined,
 
     walletBalanceBefore,
     walletBalanceAfter,
@@ -120,7 +200,9 @@ function buildRewardReport(index: number): RewardReportEntry {
   }
 }
 
-export const mockRewardReports: RewardReportEntry[] = Array.from({ length: 60 }).map((_, index) => buildRewardReport(index))
+export const mockRewardReports: RewardReportEntry[] = Array.from({
+  length: 60,
+}).map((_, index) => buildRewardReport(index))
 
 export function getRewardReportById(id: string): RewardReportEntry | undefined {
   return mockRewardReports.find((entry) => entry.id === id)
@@ -128,12 +210,29 @@ export function getRewardReportById(id: string): RewardReportEntry | undefined {
 
 export const rewardReportKpis = {
   totalRewardsIssued: mockRewardReports.length,
-  totalPointsDistributed: mockRewardReports.reduce((sum, r) => sum + r.rewardPoints, 0),
+  totalPointsDistributed: mockRewardReports.reduce(
+    (sum, r) => sum + r.rewardPoints,
+    0,
+  ),
   activeSchemesCount: new Set(mockRewardReports.map((r) => r.schemeId)).size,
-  redemptionRate: Math.round((mockRewardReports.filter((r) => r.isRedeemed).length / mockRewardReports.length) * 100),
+  redemptionRate: Math.round(
+    (mockRewardReports.filter((r) => r.isRedeemed).length /
+      mockRewardReports.length) *
+      100,
+  ),
 }
 
-export const rewardReportUserTypeOptions: RewardReportUserType[] = ['Dealer', 'Chemist']
+export const rewardReportUserTypeOptions: RewardReportUserType[] = [
+  'Dealer',
+  'Chemist',
+]
 export const rewardReportTypeOptions = rewardTypes
-export const rewardReportSchemeOptions = Array.from(new Set(mockRewardReports.map((r) => r.schemeName))).sort()
-export const rewardReportStatusOptions: RewardReportStatus[] = ['credited', 'pending', 'redeemed', 'reversed']
+export const rewardReportSchemeOptions = Array.from(
+  new Set(mockRewardReports.map((r) => r.schemeName)),
+).sort()
+export const rewardReportStatusOptions: RewardReportStatus[] = [
+  'credited',
+  'pending',
+  'redeemed',
+  'reversed',
+]

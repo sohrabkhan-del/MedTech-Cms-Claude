@@ -1,16 +1,24 @@
 export type WalletUserType = 'Dealer' | 'Chemist'
 export type WalletStatus = 'active' | 'inactive' | 'suspended'
 export type TransactionType = 'credit' | 'debit'
-export type TransactionSource = 'Product Scan' | 'Scheme Reward' | 'Manual Adjustment' | 'Redemption' | 'Referral Program' | 'Promotional Campaign' | 'Fraud Recovery'
+export type TransactionSource =
+  | 'Product Scan'
+  | 'Scheme Reward'
+  | 'Manual Adjustment'
+  | 'Redemption'
+  | 'Referral Program'
+  | 'Promotional Campaign'
+  | 'Fraud Recovery'
 export type TransactionStatus = 'completed' | 'pending' | 'reversed'
-export type WalletRedemptionStatus = 'pending' | 'approved' | 'shipped' | 'delivered' | 'cancelled'
+export type WalletRedemptionStatus =
+  'pending' | 'approved' | 'shipped' | 'delivered' | 'cancelled'
 
 export interface WalletTransaction {
   id: string
   transactionDate: string
   transactionType: TransactionType
   previousBalance: number
-  coinsAdjusted: number
+  PointsAdjusted: number
   updatedBalance: number
   transactionSource: TransactionSource
   reason: string
@@ -23,7 +31,7 @@ export interface WalletRedemptionEntry {
   id: string
   giftName: string
   category: string
-  coinsRedeemed: number
+  PointsRedeemed: number
   requestDate: string
   approvalDate: string | null
   deliveryDate: string | null
@@ -32,7 +40,7 @@ export interface WalletRedemptionEntry {
   trackingNumber: string | null
 }
 
-export interface EarnedCoinsBreakdown {
+export interface EarnedPointsBreakdown {
   productScans: number
   activeSchemes: number
   referralProgram: number
@@ -47,14 +55,14 @@ export interface RecentRewardActivity {
   qrCode: string
   dealer: string
   chemist: string
-  coinsEarned: number
+  PointsEarned: number
   appliedScheme: string
   status: 'credited' | 'pending' | 'failed'
 }
 
 export type WalletTimelineActivity =
   | 'Reward Points Earned'
-  | 'Manual Coin Adjustment'
+  | 'Manual Point Adjustment'
   | 'Redemption Request'
   | 'Scheme Reward'
   | 'Fraud Recovery'
@@ -69,7 +77,7 @@ export interface WalletTimelineEntry {
 export interface FraudAdjustmentEntry {
   id: string
   incidentId: string
-  coinsAdjusted: number
+  PointsAdjusted: number
   adjustmentReason: string
   actionTaken: string
   performedBy: string
@@ -91,12 +99,12 @@ export interface Wallet {
   lifetimeEarned: number
   lifetimeRedeemed: number
   manualAdjustments: number
-  pendingRedemptionCoins: number
+  pendingRedemptionPoints: number
   lastUpdated: string
 
   transactions: WalletTransaction[]
   redemptionHistory: WalletRedemptionEntry[]
-  earnedCoinsBreakdown: EarnedCoinsBreakdown
+  earnedPointsBreakdown: EarnedPointsBreakdown
   recentActivity: RecentRewardActivity[]
   timeline: WalletTimelineEntry[]
   fraudLog: FraudAdjustmentEntry[]

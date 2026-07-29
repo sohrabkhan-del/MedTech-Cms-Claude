@@ -25,7 +25,11 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDealers } from '@/features/userManagement/hooks/useDealers'
-import type { Dealer, PartnerZone, PartnerStatus } from '@/features/userManagement/types/userManagement.types'
+import type {
+  Dealer,
+  PartnerZone,
+  PartnerStatus,
+} from '@/features/userManagement/types/userManagement.types'
 
 interface DealerFilters extends Record<string, unknown> {
   zone: PartnerZone | 'all'
@@ -144,13 +148,13 @@ export function DealerListPage() {
       render: (row) => row.onboardedBy,
     },
     {
-      key: 'availableCoins',
+      key: 'availablePoints',
       header: 'Points Earned',
       align: 'center',
       minWidth: 100,
       sortable: true,
-      sortValue: (row) => row.availableCoins,
-      render: (row) => row.availableCoins.toLocaleString('en-IN'),
+      sortValue: (row) => row.availablePoints,
+      render: (row) => row.availablePoints.toLocaleString('en-IN'),
     },
   ]
 

@@ -31,11 +31,16 @@ import {
   SlidersHorizontal,
   Columns3,
   Plus,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { SkeletonLoader } from '@/components/common/SkeletonLoader/SkeletonLoader'
 import { ImportPreviewDialog } from '@/components/common/CommonTable/ImportPreviewDialog'
-import { exportRowsToXlsx, parseImportFile, type ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
+import {
+  exportRowsToXlsx,
+  parseImportFile,
+  type ParsedImportFile,
+} from '@/components/common/CommonTable/tableCsv'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 
 export interface CommonTableCreateAction {
@@ -84,7 +89,7 @@ interface CommonTableProps<T> {
   onExportClick?: () => void
   /** Shows the Import button. Parses the chosen file, opens a preview, and calls this with the parsed rows when the user confirms the import. */
   onImportClick?: (parsed: ParsedImportFile) => void
-  /** When provided, makes each row clickable (hover highlight + pointer cursor) and calls this with the clicked row. */
+  /** When provided, makes each row clickable (hover highlight + Pointer cursor) and calls this with the clicked row. */
   onRowClick?: (row: T) => void
   createAction?: CommonTableCreateAction
   emptyTitle?: string
@@ -128,11 +133,14 @@ export function CommonTable<T>({
   const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(
     null,
   )
+  const [ioMenuAnchor, setIoMenuAnchor] = useState<HTMLElement | null>(null)
   const { hidden, toggle } = useColumnVisibility(tableKey)
   const importInputRef = useRef<HTMLInputElement>(null)
   const [importOpen, setImportOpen] = useState(false)
   const [importFileName, setImportFileName] = useState<string | null>(null)
-  const [importParsed, setImportParsed] = useState<ParsedImportFile | null>(null)
+  const [importParsed, setImportParsed] = useState<ParsedImportFile | null>(
+    null,
+  )
   const [importError, setImportError] = useState<string | null>(null)
 
   const visibleColumns = useMemo(
@@ -204,7 +212,9 @@ export function CommonTable<T>({
     importInputRef.current?.click()
   }
 
-  const handleImportFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportFileChange = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
@@ -218,7 +228,9 @@ export function CommonTable<T>({
       const parsed = await parseImportFile(file)
       setImportParsed(parsed)
     } catch (err) {
-      setImportError(err instanceof Error ? err.message : 'Could not parse the file.')
+      setImportError(
+        err instanceof Error ? err.message : 'Could not parse the file.',
+      )
     }
   }
 
@@ -308,50 +320,70 @@ export function CommonTable<T>({
                 </MenuItem>
               ))}
           </Menu>
-          {onImportClick && (
+          {(onImportClick || onExportClick) && (
             <>
-              <input
-                ref={importInputRef}
-                type="file"
-                accept=".xlsx,.xls"
-                hidden
-                onChange={handleImportFileChange}
-              />
-              <Tooltip title="Import from Excel">
+              {onImportClick && (
+                <input
+                  ref={importInputRef}
+                  type="file"
+                  accept=".xlsx,.xls"
+                  hidden
+                  onChange={handleImportFileChange}
+                />
+              )}
+              <Tooltip title="Import / Export">
                 <IconButton
-                  onClick={handleImportClick}
-                  aria-label="Import Excel"
+                  onClick={(e) => setIoMenuAnchor(e.currentTarget)}
+                  aria-label="Import or Export Excel"
                   size="small"
                   sx={{
                     border: '1px solid',
-                    borderColor: 'secondary.main',
-                    color: 'secondary.main',
+                    borderColor: 'primary.main',
+                    color: 'primary.main',
                     borderRadius: '8px',
                     paddingX: 2,
+                    '&:hover': {
+                      bgcolor: 'primary.main',
+                      color: 'primary.contrastText',
+                    },
                   }}
                 >
-                  <Upload size={15} />
+                  <FileSpreadsheet size={15} />
                 </IconButton>
               </Tooltip>
-            </>
-          )}
-          {onExportClick && (
-            <Tooltip title="Export visible rows to Excel">
-              <IconButton
-                onClick={handleExport}
-                aria-label="Export Excel"
-                size="small"
-                sx={{
-                  border: '1px solid',
-                  borderColor: 'success.main',
-                  color: 'success.main',
-                  paddingX: 2,
-                  borderRadius: '8px',
-                }}
+              <Menu
+                anchorEl={ioMenuAnchor}
+                open={!!ioMenuAnchor}
+                onClose={() => setIoMenuAnchor(null)}
               >
-                <Download size={15} />
-              </IconButton>
-            </Tooltip>
+                {onImportClick && (
+                  <MenuItem
+                    dense
+                    sx={{ fontSize: '0.8125rem', color: 'info.main' }}
+                    onClick={() => {
+                      setIoMenuAnchor(null)
+                      handleImportClick()
+                    }}
+                  >
+                    <Upload size={15} style={{ marginRight: 8 }} />
+                    Import Excel
+                  </MenuItem>
+                )}
+                {onExportClick && (
+                  <MenuItem
+                    dense
+                    sx={{ fontSize: '0.8125rem', color: 'success.main' }}
+                    onClick={() => {
+                      setIoMenuAnchor(null)
+                      handleExport()
+                    }}
+                  >
+                    <Download size={15} style={{ marginRight: 8 }} />
+                    Export Excel
+                  </MenuItem>
+                )}
+              </Menu>
+            </>
           )}
           {createAction && (
             <Button

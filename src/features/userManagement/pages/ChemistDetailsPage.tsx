@@ -43,7 +43,11 @@ export function ChemistDetailsPage() {
 
   return (
     <Stack spacing={0}>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{ alignItems: 'center', mb: 2.5 }}
+      >
         <Box
           sx={{
             width: 36,
@@ -73,13 +77,20 @@ export function ChemistDetailsPage() {
         onDeactivate={() => forceRerender((n) => n + 1)}
       />
 
-      <PartnerDetailsFieldsCard partner={chemist} shopLabel="Chemist Shop Name" showGeoLockStatus />
+      <PartnerDetailsFieldsCard
+        partner={chemist}
+        shopLabel="Chemist Shop Name"
+        showGeoLockStatus
+      />
 
       <PartnerStatisticsCards partner={chemist} />
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <RegisteredAddressCard address={chemist.registeredAddress} geoLock={chemist.geoLock} />
+          <RegisteredAddressCard
+            address={chemist.registeredAddress}
+            geoLock={chemist.geoLock}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <GeoLockCard geoLock={chemist.geoLock} />
@@ -88,13 +99,16 @@ export function ChemistDetailsPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={12}>
-          <PointsManagementCard currentBalance={chemist.availableCoins} onAdjust={handleAdjustPoints} />
+          <PointsManagementCard
+            currentBalance={chemist.availablePoints}
+            onAdjust={handleAdjustPoints}
+          />
         </Grid>
       </Grid>
 
       <Stack spacing={3}>
         <ScanHistoryCard entries={chemist.scanHistory} />
-        <PointsHistoryCard entries={chemist.pointsHistory} />
+        <PointsHistoryCard entries={chemist.PointsHistory} />
         <InterestedProductsCard entries={chemist.interestedProducts} />
         <LicenseDocumentsCard documents={chemist.documents} />
       </Stack>

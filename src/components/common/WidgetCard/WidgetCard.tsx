@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
 import { Box, Card, Divider, Stack, Typography } from '@mui/material'
 import { DateRangeDropdown } from '@/components/common/DateRangeDropdown/DateRangeDropdown'
-import { DATE_RANGE_OPTIONS, type DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
+import {
+  DATE_RANGE_OPTIONS,
+  type DateRangeValue,
+} from '@/components/common/DateRangeSelect/DateRangeSelect'
 
 interface WidgetCardProps {
   title: string
@@ -39,9 +42,20 @@ export function WidgetCard({
         }),
       }}
     >
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', px: 3, pt: 2.5, pb: 1.5 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          px: 3,
+          pt: 2.5,
+          pb: 1.5,
+        }}
+      >
         <Box>
-          <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem' }}>{title}</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem' }}>
+            {title}
+          </Typography>
           {subtitle && (
             <Typography variant="caption" sx={{ display: 'block', mt: 0.25 }}>
               {subtitle}
@@ -59,7 +73,9 @@ export function WidgetCard({
         )}
       </Stack>
 
-      <Box sx={{ flexGrow: 1, px: 3, pb: footer ? 1.5 : 2.5, minHeight: 0 }}>{children}</Box>
+      <Box sx={{ flexGrow: 1, px: 3, pb: footer ? 1.5 : 2.5, minHeight: 0 }}>
+        {children}
+      </Box>
 
       {footer && (
         <>

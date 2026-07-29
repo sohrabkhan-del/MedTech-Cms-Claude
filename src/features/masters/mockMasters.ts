@@ -1,5 +1,13 @@
-import type { CategoryProductEntry, CategorySchemeEntry, ProductCategory, ProductCategoryStatus } from '@/types/productCategory'
-import { mockProducts, categoryThumbnailFor } from '@/features/inventoryManagement/mockProducts'
+import type {
+  CategoryProductEntry,
+  CategorySchemeEntry,
+  ProductCategory,
+  ProductCategoryStatus,
+} from '@/types/productCategory'
+import {
+  mockProducts,
+  categoryThumbnailFor,
+} from '@/features/inventoryManagement/mockProducts'
 
 const categoryDefs: { name: string; parent?: string }[] = [
   { name: 'Nebulizers' },
@@ -12,8 +20,17 @@ const categoryDefs: { name: string; parent?: string }[] = [
   { name: 'Oxygen Concentrators' },
 ]
 
-const schemeTypes = ['Seasonal Scheme', 'General Scheme', 'Gift Rule Bonus', 'Volume Booster']
-const schemeStatuses: CategorySchemeEntry['status'][] = ['active', 'upcoming', 'expired']
+const schemeTypes = [
+  'Seasonal Scheme',
+  'General Scheme',
+  'Gift Rule Bonus',
+  'Volume Booster',
+]
+const schemeStatuses: CategorySchemeEntry['status'][] = [
+  'active',
+  'upcoming',
+  'expired',
+]
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -56,58 +73,74 @@ function buildCategoryProducts(categoryName: string): CategoryProductEntry[] {
     }))
 }
 
-export const mockProductCategories: ProductCategory[] = categoryDefs.map((def, index) => {
-  const seed = index + 1
-  const id = `CAT-${1000 + index}`
-  const status = resolveStatus(seed)
-  const linkedProducts = buildCategoryProducts(def.name)
-  const totalRewardPointsIssued = mockProducts
-    .filter((p) => p.productCategory === def.name)
-    .reduce((sum, p) => sum + p.totalRewardPointsIssued, 0)
-  const totalScans = mockProducts
-    .filter((p) => p.productCategory === def.name)
-    .reduce((sum, p) => sum + p.totalSuccessfulScans, 0)
-  const activeSchemes = buildSchemes(seed, id)
+export const mockProductCategories: ProductCategory[] = categoryDefs
+  .map((def, index) => {
+    const seed = index + 1
+    const id = `CAT-${1000 + index}`
+    const status = resolveStatus(seed)
+    const linkedProducts = buildCategoryProducts(def.name)
+    const totalRewardPointsIssued = mockProducts
+      .filter((p) => p.productCategory === def.name)
+      .reduce((sum, p) => sum + p.totalRewardPointsIssued, 0)
+    const totalScans = mockProducts
+      .filter((p) => p.productCategory === def.name)
+      .reduce((sum, p) => sum + p.totalSuccessfulScans, 0)
+    const activeSchemes = buildSchemes(seed, id)
 
-  return {
-    id,
-    categoryName: def.name,
-    categoryCode: `CAT-${20260000 + index * 17}`,
-    image: categoryThumbnailFor(def.name),
-    parentCategoryId: undefined,
-    description: `${def.name} covers home healthcare devices in the ${def.name.toLowerCase()} range.`,
-    status,
-    createdDate: dateFromSeed(seed, 'Jan'),
+    return {
+      id,
+      categoryName: def.name,
+      categoryCode: `CAT-${20260000 + index * 17}`,
+      image: categoryThumbnailFor(def.name),
+      parentCategoryId: undefined,
+      description: `${def.name} covers home healthcare devices in the ${def.name.toLowerCase()} range.`,
+      status,
+      createdDate: dateFromSeed(seed, 'Jan'),
 
-    totalProducts: linkedProducts.length,
-    activeSchemesCount: activeSchemes.filter((s) => s.status === 'active').length,
-    totalRewardPointsIssued,
-    totalScans,
+      totalProducts: linkedProducts.length,
+      activeSchemesCount: activeSchemes.filter((s) => s.status === 'active')
+        .length,
+      totalRewardPointsIssued,
+      totalScans,
 
-    products: linkedProducts,
-    activeSchemes,
-  }
-}).map((category, index, all) => {
-  const parentDef = categoryDefs[index]!.parent
-  if (!parentDef) return category
-  const parent = all.find((c) => c.categoryName === parentDef)
-  return { ...category, parentCategoryId: parent?.id }
-})
+      products: linkedProducts,
+      activeSchemes,
+    }
+  })
+  .map((category, index, all) => {
+    const parentDef = categoryDefs[index]!.parent
+    if (!parentDef) return category
+    const parent = all.find((c) => c.categoryName === parentDef)
+    return { ...category, parentCategoryId: parent?.id }
+  })
 
-export function getProductCategoryById(id: string): ProductCategory | undefined {
+export function getProductCategoryById(
+  id: string,
+): ProductCategory | undefined {
   return mockProductCategories.find((category) => category.id === id)
 }
 
-export function getParentCategoryName(parentCategoryId?: string): string | undefined {
+export function getParentCategoryName(
+  parentCategoryId?: string,
+): string | undefined {
   if (!parentCategoryId) return undefined
-  return mockProductCategories.find((c) => c.id === parentCategoryId)?.categoryName
+  return mockProductCategories.find((c) => c.id === parentCategoryId)
+    ?.categoryName
 }
 
-export const topLevelCategoryOptions = mockProductCategories.filter((c) => !c.parentCategoryId)
+export const topLevelCategoryOptions = mockProductCategories.filter(
+  (c) => !c.parentCategoryId,
+)
 
 export const productCategoryKpis = {
   totalCategories: mockProductCategories.length,
-  activeCategories: mockProductCategories.filter((c) => c.status === 'active').length,
-  inactiveCategories: mockProductCategories.filter((c) => c.status === 'inactive').length,
-  totalProductsMapped: mockProductCategories.reduce((sum, c) => sum + c.totalProducts, 0),
+  activeCategories: mockProductCategories.filter((c) => c.status === 'active')
+    .length,
+  inactiveCategories: mockProductCategories.filter(
+    (c) => c.status === 'inactive',
+  ).length,
+  totalProductsMapped: mockProductCategories.reduce(
+    (sum, c) => sum + c.totalProducts,
+    0,
+  ),
 }

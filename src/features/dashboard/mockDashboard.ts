@@ -23,7 +23,7 @@ export interface RewardMixSlice {
 
 export const rewardMix: RewardMixSlice[] = [
   { name: 'Gift Catalogue', value: 42 },
-  { name: 'Wallet Coins', value: 33 },
+  { name: 'Wallet Points', value: 33 },
   { name: 'Scheme Bonus', value: 25 },
 ]
 
@@ -37,21 +37,126 @@ export interface ActivityEvent {
 }
 
 export const activityTimeline: ActivityEvent[] = [
-  { id: 'evt-1', actor: 'Rahul Mehta', action: 'approved dealer', target: 'Om Medical Store', timestamp: '8 min ago', linkTo: '/partners/dealers/dealer-1' },
-  { id: 'evt-2', actor: 'System', action: 'flagged security alert for', target: 'Chemist #4021', timestamp: '24 min ago', linkTo: '/field-operations/security-alerts' },
-  { id: 'evt-3', actor: 'Priya Nair', action: 'uploaded factory inventory batch', target: 'BTC-88291', timestamp: '1 hr ago', linkTo: '/inventory/factory-inventory-upload' },
-  { id: 'evt-4', actor: 'Amit Verma', action: 'redeemed reward for', target: 'Sunrise Pharma', timestamp: '2 hr ago', linkTo: '/rewards-wallet/reward-redemptions/RDM-1' },
-  { id: 'evt-5', actor: 'System', action: 'closed scheme', target: 'Monsoon Bonanza 2026', timestamp: '5 hr ago', linkTo: '/scheme-management/schemes/sessional' },
-  { id: 'evt-6', actor: 'Neha Joshi', action: 'rejected onboarding request for', target: 'City Medical Godown', timestamp: '6 hr ago', linkTo: '/verification/rejected-requests' },
-  { id: 'evt-7', actor: 'Vikram Singh', action: 'updated geo-fence rule for', target: 'Wellness Medical Godown', timestamp: '7 hr ago', linkTo: '/field-operations/geo-fence-management' },
-  { id: 'evt-8', actor: 'System', action: 'issued reward points to', target: 'Apollo Chemist', timestamp: '9 hr ago', linkTo: '/rewards-wallet/wallet-management' },
-  { id: 'evt-9', actor: 'Sunita Rao', action: 'added gift product to', target: 'Diwali Double Rewards', timestamp: '11 hr ago', linkTo: '/scheme-management/schemes' },
-  { id: 'evt-10', actor: 'System', action: 'auto-verified live scan for', target: 'Care Plus Medical Godown', timestamp: '13 hr ago', linkTo: '/field-operations/live-scan-feed' },
-  { id: 'evt-11', actor: 'Kavita Reddy', action: 'updated coin value rule for', target: 'Nebulizers', timestamp: '15 hr ago', linkTo: '/rewards-wallet/coin-value-rules/dealer' },
-  { id: 'evt-12', actor: 'Rohan Gupta', action: 'approved chemist', target: 'Sunrise Chemist', timestamp: '18 hr ago', linkTo: '/partners/chemists' },
-  { id: 'evt-13', actor: 'System', action: 'generated audit log entry for', target: 'Product Master sync', timestamp: '20 hr ago', linkTo: '/audit/audit-logs' },
-  { id: 'evt-14', actor: 'Priya Nair', action: 'uploaded distributor inventory batch', target: 'BTC-88304', timestamp: '1 day ago', linkTo: '/inventory/distributor-upload' },
-  { id: 'evt-15', actor: 'Amit Verma', action: 'marked delivery completed for', target: 'RDM-22', timestamp: '1 day ago', linkTo: '/rewards-wallet/reward-redemptions' },
+  {
+    id: 'evt-1',
+    actor: 'Rahul Mehta',
+    action: 'approved dealer',
+    target: 'Om Medical Store',
+    timestamp: '8 min ago',
+    linkTo: '/partners/dealers/dealer-1',
+  },
+  {
+    id: 'evt-2',
+    actor: 'System',
+    action: 'flagged security alert for',
+    target: 'Chemist #4021',
+    timestamp: '24 min ago',
+    linkTo: '/field-operations/security-alerts',
+  },
+  {
+    id: 'evt-3',
+    actor: 'Priya Nair',
+    action: 'uploaded factory inventory batch',
+    target: 'BTC-88291',
+    timestamp: '1 hr ago',
+    linkTo: '/inventory/factory-inventory-upload',
+  },
+  {
+    id: 'evt-4',
+    actor: 'Amit Verma',
+    action: 'redeemed reward for',
+    target: 'Sunrise Pharma',
+    timestamp: '2 hr ago',
+    linkTo: '/rewards-wallet/reward-redemptions/RDM-1',
+  },
+  {
+    id: 'evt-5',
+    actor: 'System',
+    action: 'closed scheme',
+    target: 'Monsoon Bonanza 2026',
+    timestamp: '5 hr ago',
+    linkTo: '/scheme-management/schemes/sessional',
+  },
+  {
+    id: 'evt-6',
+    actor: 'Neha Joshi',
+    action: 'rejected onboarding request for',
+    target: 'City Medical Godown',
+    timestamp: '6 hr ago',
+    linkTo: '/verification/rejected-requests',
+  },
+  {
+    id: 'evt-7',
+    actor: 'Vikram Singh',
+    action: 'updated geo-fence rule for',
+    target: 'Wellness Medical Godown',
+    timestamp: '7 hr ago',
+    linkTo: '/field-operations/geo-fence-management',
+  },
+  {
+    id: 'evt-8',
+    actor: 'System',
+    action: 'issued reward points to',
+    target: 'Apollo Chemist',
+    timestamp: '9 hr ago',
+    linkTo: '/rewards-wallet/wallet-management',
+  },
+  {
+    id: 'evt-9',
+    actor: 'Sunita Rao',
+    action: 'added gift product to',
+    target: 'Diwali Double Rewards',
+    timestamp: '11 hr ago',
+    linkTo: '/scheme-management/schemes',
+  },
+  {
+    id: 'evt-10',
+    actor: 'System',
+    action: 'auto-verified live scan for',
+    target: 'Care Plus Medical Godown',
+    timestamp: '13 hr ago',
+    linkTo: '/field-operations/live-scan-feed',
+  },
+  {
+    id: 'evt-11',
+    actor: 'Kavita Reddy',
+    action: 'updated point value rule for',
+    target: 'Nebulizers',
+    timestamp: '15 hr ago',
+    linkTo: '/rewards-wallet/point-value-rules/dealer',
+  },
+  {
+    id: 'evt-12',
+    actor: 'Rohan Gupta',
+    action: 'approved chemist',
+    target: 'Sunrise Chemist',
+    timestamp: '18 hr ago',
+    linkTo: '/partners/chemists',
+  },
+  {
+    id: 'evt-13',
+    actor: 'System',
+    action: 'generated audit log entry for',
+    target: 'Product Master sync',
+    timestamp: '20 hr ago',
+    linkTo: '/audit/audit-logs',
+  },
+  {
+    id: 'evt-14',
+    actor: 'Priya Nair',
+    action: 'uploaded distributor inventory batch',
+    target: 'BTC-88304',
+    timestamp: '1 day ago',
+    linkTo: '/inventory/distributor-upload',
+  },
+  {
+    id: 'evt-15',
+    actor: 'Amit Verma',
+    action: 'marked delivery completed for',
+    target: 'RDM-22',
+    timestamp: '1 day ago',
+    linkTo: '/rewards-wallet/reward-redemptions',
+  },
 ]
 
 export interface RecentScan {
@@ -70,7 +175,7 @@ export interface EntityLeaderboardEntry {
   rank: number
   name: string
   region: string
-  points: number
+  Points: number
   linkTo?: string
 }
 
@@ -78,17 +183,49 @@ export interface Redemption {
   id: string
   requester: string
   reward: string
-  points: number
+  Points: number
   status: BadgeStatus
   date: string
   linkTo?: string
 }
 
 export const recentRedemptions: Redemption[] = [
-  { id: 'r1', requester: 'Om Medical Store', reward: 'Wireless Earbuds', points: 1200, status: 'approved', date: '13 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-1' },
-  { id: 'r2', requester: 'City Chemist', reward: 'Amazon Voucher ₹2000', points: 2000, status: 'pending', date: '12 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-2' },
-  { id: 'r3', requester: 'Sunrise Pharma', reward: 'Steel Cookware Set', points: 850, status: 'approved', date: '11 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-3' },
-  { id: 'r4', requester: 'Wellness Chemist', reward: 'Smart Watch', points: 3200, status: 'rejected', date: '10 Jul 2026', linkTo: '/rewards-wallet/reward-redemptions/RDM-4' },
+  {
+    id: 'r1',
+    requester: 'Om Medical Store',
+    reward: 'Wireless Earbuds',
+    Points: 1200,
+    status: 'approved',
+    date: '13 Jul 2026',
+    linkTo: '/rewards-wallet/reward-redemptions/RDM-1',
+  },
+  {
+    id: 'r2',
+    requester: 'City Chemist',
+    reward: 'Amazon Voucher ₹2000',
+    Points: 2000,
+    status: 'pending',
+    date: '12 Jul 2026',
+    linkTo: '/rewards-wallet/reward-redemptions/RDM-2',
+  },
+  {
+    id: 'r3',
+    requester: 'Sunrise Pharma',
+    reward: 'Steel Cookware Set',
+    Points: 850,
+    status: 'approved',
+    date: '11 Jul 2026',
+    linkTo: '/rewards-wallet/reward-redemptions/RDM-3',
+  },
+  {
+    id: 'r4',
+    requester: 'Wellness Chemist',
+    reward: 'Smart Watch',
+    Points: 3200,
+    status: 'rejected',
+    date: '10 Jul 2026',
+    linkTo: '/rewards-wallet/reward-redemptions/RDM-4',
+  },
 ]
 
 export interface SchemeProgress {
@@ -100,11 +237,41 @@ export interface SchemeProgress {
 }
 
 export const schemePerformance: SchemeProgress[] = [
-  { id: 's1', name: 'Monsoon Bonanza 2026', category: 'Seasonal', progress: 78, endsIn: '12 days' },
-  { id: 's2', name: 'Loyalty Booster Q3', category: 'General', progress: 54, endsIn: '41 days' },
-  { id: 's3', name: 'Festive Rewards Drive', category: 'Seasonal', progress: 22, endsIn: '68 days' },
-  { id: 's4', name: 'New Dealer Onboarding Bonus', category: 'General', progress: 65, endsIn: '30 days' },
-  { id: 's5', name: 'Winter Wellness Push', category: 'Seasonal', progress: 41, endsIn: '55 days' },
+  {
+    id: 's1',
+    name: 'Monsoon Bonanza 2026',
+    category: 'Seasonal',
+    progress: 78,
+    endsIn: '12 days',
+  },
+  {
+    id: 's2',
+    name: 'Loyalty Booster Q3',
+    category: 'General',
+    progress: 54,
+    endsIn: '41 days',
+  },
+  {
+    id: 's3',
+    name: 'Festive Rewards Drive',
+    category: 'Seasonal',
+    progress: 22,
+    endsIn: '68 days',
+  },
+  {
+    id: 's4',
+    name: 'New Dealer Onboarding Bonus',
+    category: 'General',
+    progress: 65,
+    endsIn: '30 days',
+  },
+  {
+    id: 's5',
+    name: 'Winter Wellness Push',
+    category: 'Seasonal',
+    progress: 41,
+    endsIn: '55 days',
+  },
 ]
 
 export interface LeaderboardEntry {
@@ -112,15 +279,43 @@ export interface LeaderboardEntry {
   rank: number
   name: string
   region: string
-  points: number
+  Points: number
   linkTo?: string
 }
 
 export const leaderboard: LeaderboardEntry[] = [
-  { id: 'l1', rank: 1, name: 'Om Medical Store', region: 'North', points: 18420, linkTo: '/partners/dealers/dealer-1' },
-  { id: 'l2', rank: 2, name: 'Sunrise Pharma', region: 'West', points: 16980, linkTo: '/partners/dealers/dealer-2' },
-  { id: 'l3', rank: 3, name: 'City Chemist', region: 'North', points: 15230, linkTo: '/partners/chemists/chemist-1' },
-  { id: 'l4', rank: 4, name: 'Care Plus Distributors', region: 'East', points: 13860, linkTo: '/partners/dealers/dealer-3' },
+  {
+    id: 'l1',
+    rank: 1,
+    name: 'Om Medical Store',
+    region: 'North',
+    Points: 18420,
+    linkTo: '/partners/dealers/dealer-1',
+  },
+  {
+    id: 'l2',
+    rank: 2,
+    name: 'Sunrise Pharma',
+    region: 'West',
+    Points: 16980,
+    linkTo: '/partners/dealers/dealer-2',
+  },
+  {
+    id: 'l3',
+    rank: 3,
+    name: 'City Chemist',
+    region: 'North',
+    Points: 15230,
+    linkTo: '/partners/chemists/chemist-1',
+  },
+  {
+    id: 'l4',
+    rank: 4,
+    name: 'Care Plus Distributors',
+    region: 'East',
+    Points: 13860,
+    linkTo: '/partners/dealers/dealer-3',
+  },
 ]
 
 export interface NotificationItem {
@@ -132,12 +327,30 @@ export interface NotificationItem {
 }
 
 export const notifications: NotificationItem[] = [
-  { id: 'n1', title: 'New approval requests', description: '3 dealer applications are awaiting review.', time: '10 min ago', read: false },
-  { id: 'n2', title: 'Factory upload completed', description: 'Batch BTC-88291 processed successfully.', time: '1 hr ago', read: false },
-  { id: 'n3', title: 'Scheme ending soon', description: 'Monsoon Bonanza 2026 ends in 12 days.', time: '3 hr ago', read: true },
+  {
+    id: 'n1',
+    title: 'New approval requests',
+    description: '3 dealer applications are awaiting review.',
+    time: '10 min ago',
+    read: false,
+  },
+  {
+    id: 'n2',
+    title: 'Factory upload completed',
+    description: 'Batch BTC-88291 processed successfully.',
+    time: '1 hr ago',
+    read: false,
+  },
+  {
+    id: 'n3',
+    title: 'Scheme ending soon',
+    description: 'Monsoon Bonanza 2026 ends in 12 days.',
+    time: '3 hr ago',
+    read: true,
+  },
 ]
 
-export const pointsSummary = {
+export const PointsSummary = {
   totalPointsEarned: 428600,
   totalPointsClaimed: 184200,
   totalRewardPoints: 244400,

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chip, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import { Gift, Coins, Layers, Percent } from 'lucide-react'
+import { Gift, Coins as Points, Layers, Percent } from 'lucide-react'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -166,10 +166,10 @@ export function RewardReportListPage() {
             iconColor: 'primary',
           },
           {
-            key: 'points',
+            key: 'Points',
             label: 'Total Points Distributed',
             value: (kpis?.totalPointsDistributed ?? 0).toLocaleString('en-IN'),
-            icon: <Coins size={20} />,
+            icon: <Points size={20} />,
             iconColor: 'secondary',
           },
           {
@@ -196,7 +196,9 @@ export function RewardReportListPage() {
         getRowId={(row) => row.id}
         loading={isLoading}
         searchPlaceholder="Search by user name, business name, or description…"
-        searchKeys={(row) => `${row.userName} ${row.businessName} ${row.schemeName} ${row.id}`}
+        searchKeys={(row) =>
+          `${row.userName} ${row.businessName} ${row.schemeName} ${row.id}`
+        }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.userType !== 'all' ? 1 : 0) +

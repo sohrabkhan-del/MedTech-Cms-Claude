@@ -6,7 +6,7 @@ import {
   Wallet as WalletIcon,
   TrendingUp,
   TrendingDown,
-  Coins,
+  Coins as Points,
 } from 'lucide-react'
 import {
   CommonTable,
@@ -190,7 +190,7 @@ export function WalletReportListPage() {
             key: 'outstanding',
             label: 'Total Balance Outstanding',
             value: (kpis?.totalBalanceOutstanding ?? 0).toLocaleString('en-IN'),
-            icon: <Coins size={20} />,
+            icon: <Points size={20} />,
             iconColor: 'secondary',
           },
           {

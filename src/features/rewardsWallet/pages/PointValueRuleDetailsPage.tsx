@@ -6,6 +6,7 @@ import {
   Chip,
   Grid,
   IconButton,
+  InputAdornment,
   Menu,
   MenuItem,
   Stack,
@@ -13,7 +14,7 @@ import {
   Typography,
 } from '@mui/material'
 import {
-  Coins,
+  Coins as Points,
   ArrowLeft as ArrowBackOutlined,
   Pencil,
   SlidersHorizontal,
@@ -33,25 +34,25 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { radius } from '@/theme/tokens'
-import { useCoinRuleDetail } from '@/features/rewardsWallet/hooks/useCoinRuleDetail'
+import { usePointRuleDetail } from '@/features/rewardsWallet/hooks/usePointRuleDetail'
 import type {
-  CoinRulePartnerType,
-  CoinRuleRegion,
-  CoinValueRule,
-  RegionCoinHistoryEntry,
+  PointRulePartnerType,
+  PointRuleRegion,
+  PointValueRule,
+  RegionPointHistoryEntry,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
-const regionInitials: Record<CoinRuleRegion, string> = {
+const regionInitials: Record<PointRuleRegion, string> = {
   North: 'NR',
   South: 'SR',
   East: 'ER',
   West: 'WR',
 }
 
-const REGIONS: CoinRuleRegion[] = ['North', 'South', 'East', 'West']
+const REGIONS: PointRuleRegion[] = ['North', 'South', 'East', 'West']
 
 const REGION_STYLES: Record<
-  CoinRuleRegion,
+  PointRuleRegion,
   { bg: string; text: string; main: string }
 > = {
   North: { bg: 'primary.light', text: 'primary.dark', main: 'primary.main' },
@@ -68,7 +69,7 @@ const MULTIPLIER_OPTIONS = Array.from({ length: 37 }, (_, i) =>
   Number((1 + i * 0.25).toFixed(2)),
 )
 
-const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
+const regionalHistoryColumns: CommonTableColumn<RegionPointHistoryEntry>[] = [
   {
     key: 'region',
     header: 'Region',
@@ -93,7 +94,9 @@ const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
         >
           {regionInitials[entry.region]}
         </Box>
-        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>{entry.region}</Typography>
+        <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+          {entry.region}
+        </Typography>
       </Stack>
     ),
   },
@@ -104,7 +107,9 @@ const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
     sortable: true,
     sortValue: (entry) => entry.previousMultiplier,
     render: (entry) => (
-      <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>{entry.previousMultiplier}x</Typography>
+      <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+        {entry.previousMultiplier}x
+      </Typography>
     ),
   },
   {
@@ -113,7 +118,13 @@ const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
     align: 'center',
     sortable: true,
     sortValue: (entry) => entry.currentMultiplier,
-    render: (entry) => <Chip size="small" color="primary" label={`${entry.currentMultiplier}x`} />,
+    render: (entry) => (
+      <Chip
+        size="small"
+        color="primary"
+        label={`${entry.currentMultiplier}x`}
+      />
+    ),
   },
   {
     key: 'previousPoints',
@@ -124,7 +135,7 @@ const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
     render: (entry) => (
       <Box>
         <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-          {entry.previousRewardPoints.toLocaleString('en-IN')} Coins
+          {entry.previousRewardPoints.toLocaleString('en-IN')} Points
         </Typography>
         <Typography sx={{ fontSize: '0.6875rem', color: 'text.disabled' }}>
           {entry.previousEffectiveDate}
@@ -141,7 +152,7 @@ const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
     render: (entry) => (
       <Box>
         <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-          {entry.currentRewardPoints.toLocaleString('en-IN')} Coins
+          {entry.currentRewardPoints.toLocaleString('en-IN')} Points
         </Typography>
         <Typography sx={{ fontSize: '0.6875rem', color: 'text.disabled' }}>
           {entry.currentEffectiveDate}
@@ -154,7 +165,9 @@ const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
     header: 'Changed By',
     sortable: true,
     sortValue: (entry) => entry.changedBy,
-    render: (entry) => <Typography sx={{ fontSize: '0.8125rem' }}>{entry.changedBy}</Typography>,
+    render: (entry) => (
+      <Typography sx={{ fontSize: '0.8125rem' }}>{entry.changedBy}</Typography>
+    ),
   },
   {
     key: 'changedAt',
@@ -162,28 +175,30 @@ const regionalHistoryColumns: CommonTableColumn<RegionCoinHistoryEntry>[] = [
     sortable: true,
     sortValue: (entry) => entry.changedAt,
     render: (entry) => (
-      <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>{entry.changedAt}</Typography>
+      <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+        {entry.changedAt}
+      </Typography>
     ),
   },
 ]
 
-const PARTNER_TYPE_TABS: { label: string; value: CoinRulePartnerType }[] = [
+const PARTNER_TYPE_TABS: { label: string; value: PointRulePartnerType }[] = [
   { label: 'Chemist', value: 'Chemist' },
   { label: 'Dealer', value: 'Dealer' },
 ]
 
-export function CoinValueRuleDetailsPage() {
+export function PointValueRuleDetailsPage() {
   const navigate = useNavigate()
   const { ruleId } = useParams<{ ruleId: string }>()
   const { rule, siblingRule, updateRegionMultiplier, isLoading } =
-    useCoinRuleDetail(ruleId)
+    usePointRuleDetail(ruleId)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
-  const [activeTab, setActiveTab] = useState<CoinRulePartnerType>('Chemist')
+  const [activeTab, setActiveTab] = useState<PointRulePartnerType>('Chemist')
 
   const [regionEditTarget, setRegionEditTarget] =
-    useState<CoinRuleRegion | null>(null)
+    useState<PointRuleRegion | null>(null)
   const [regionEditValue, setRegionEditValue] = useState('')
-  const [regionConfirmOpen, setRegionConfirmOpen] = useState(false)
+  const [regionConfirmStep, setRegionConfirmStep] = useState<0 | 1 | 2>(0)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={2} />
@@ -192,15 +207,15 @@ export function CoinValueRuleDetailsPage() {
   if (!rule) {
     return (
       <EmptyState
-        title="Coin value rule not found"
+        title="Point value rule not found"
         description="This rule may have been removed."
-        actionLabel="Back to Coin Value Rules"
-        onAction={() => navigate('/rewards-wallet/coin-value-rules')}
+        actionLabel="Back to Point Value Rules"
+        onAction={() => navigate('/rewards-wallet/point-value-rules')}
       />
     )
   }
 
-  const activeRule: CoinValueRule | undefined =
+  const activeRule: PointValueRule | undefined =
     activeTab === rule.partnerType ? rule : siblingRule
 
   function closestMultiplierOption(value: number): number {
@@ -209,7 +224,7 @@ export function CoinValueRuleDetailsPage() {
     )
   }
 
-  const openRegionEditDialog = (region: CoinRuleRegion) => {
+  const openRegionEditDialog = (region: PointRuleRegion) => {
     if (!activeRule) return
     const regionRow = activeRule.regions.find((r) => r.region === region)
     setRegionEditTarget(region)
@@ -224,17 +239,22 @@ export function CoinValueRuleDetailsPage() {
       : undefined
   const regionEditNextMultiplier = Math.max(0, Number(regionEditValue) || 0)
   const regionEditNextPoints = activeRule
-    ? Math.round((activeRule.baseCoinValue * regionEditNextMultiplier) / 100) * 100
+    ? Math.round((activeRule.basePointValue * regionEditNextMultiplier) / 100) *
+      100
     : 0
 
   const handleRegionEditContinue = () => {
-    setRegionConfirmOpen(true)
+    setRegionConfirmStep(1)
   }
 
   const handleRegionEditConfirm = () => {
     if (regionEditTarget && activeRule)
-      void updateRegionMultiplier(regionEditTarget, regionEditNextMultiplier, activeRule.id)
-    setRegionConfirmOpen(false)
+      void updateRegionMultiplier(
+        regionEditTarget,
+        regionEditNextMultiplier,
+        activeRule.id,
+      )
+    setRegionConfirmStep(0)
     setRegionEditTarget(null)
   }
 
@@ -263,12 +283,12 @@ export function CoinValueRuleDetailsPage() {
               color: 'primary.main',
             }}
           >
-            <Coins size={20} />
+            <Points size={20} />
           </Box>
           <Box>
             <Typography variant="h1">{rule.productName}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Coin Rule · {rule.modelCode}
+              Point Rule · {rule.modelCode}
             </Typography>
           </Box>
         </Stack>
@@ -279,7 +299,7 @@ export function CoinValueRuleDetailsPage() {
             startIcon={<Pencil size={18} />}
             onClick={() =>
               navigate(
-                `/rewards-wallet/coin-value-rules/${rule.id}/edit-base-value`,
+                `/rewards-wallet/point-value-rules/${rule.id}/edit-base-value`,
               )
             }
             sx={{ fontSize: '0.8125rem' }}
@@ -289,7 +309,7 @@ export function CoinValueRuleDetailsPage() {
           <Button
             variant="outlined"
             startIcon={<ArrowBackOutlined size={18} />}
-            onClick={() => navigate('/rewards-wallet/coin-value-rules')}
+            onClick={() => navigate('/rewards-wallet/point-value-rules')}
             sx={{ fontSize: '0.8125rem' }}
           >
             Back
@@ -334,20 +354,20 @@ export function CoinValueRuleDetailsPage() {
               { label: 'Product Category', value: rule.productCategory },
 
               {
-                label: 'Base Coin Value (Dealer)',
+                label: 'Base Point Value (Dealer)',
                 labelColor: 'primary.main',
                 value:
                   rule.partnerType === 'Dealer'
-                    ? rule.baseCoinValue
-                    : (siblingRule?.baseCoinValue ?? '—'),
+                    ? rule.basePointValue
+                    : (siblingRule?.basePointValue ?? '—'),
               },
               {
-                label: 'Base Coin Value (Chemist)',
+                label: 'Base Point Value (Chemist)',
                 labelColor: 'secondary.main',
                 value:
                   rule.partnerType === 'Chemist'
-                    ? rule.baseCoinValue
-                    : (siblingRule?.baseCoinValue ?? '—'),
+                    ? rule.basePointValue
+                    : (siblingRule?.basePointValue ?? '—'),
               },
 
               { label: 'Last Modified By', value: rule.lastModifiedBy },
@@ -357,7 +377,7 @@ export function CoinValueRuleDetailsPage() {
         </SectionCard>
 
         <SectionCard
-          title="Regional Coin Values"
+          title="Regional Point Values"
           action={
             <ModularTabs
               tabs={PARTNER_TYPE_TABS}
@@ -440,7 +460,7 @@ export function CoinValueRuleDetailsPage() {
                         {(regionRow?.currentPoints ?? 0).toLocaleString(
                           'en-IN',
                         )}{' '}
-                        Coins · {regionRow?.currentEffectiveDate}
+                        Points · {regionRow?.currentEffectiveDate}
                       </Typography>
 
                       <Button
@@ -471,15 +491,15 @@ export function CoinValueRuleDetailsPage() {
           ) : (
             <EmptyState
               title={`No ${activeTab} rule configured`}
-              description={`This product does not have a ${activeTab.toLowerCase()} coin value rule yet.`}
+              description={`This product does not have a ${activeTab.toLowerCase()} Point value rule yet.`}
             />
           )}
         </SectionCard>
 
         {activeRule && (
-          <SectionCard title="Regional Coin History">
+          <SectionCard title="Regional Point History">
             <CommonTable
-              tableKey="coin-rule-regional-history"
+              tableKey="Point-rule-regional-history"
               columns={regionalHistoryColumns}
               rows={activeRule.regionalHistory}
               getRowId={(entry) => entry.id}
@@ -498,45 +518,44 @@ export function CoinValueRuleDetailsPage() {
         open={regionEditTarget !== null}
         onClose={() => setRegionEditTarget(null)}
         title={`Edit ${regionEditTarget ?? ''} Multiplier (${activeRule?.partnerType ?? ''})`}
-        description="Update the coin-point multiplier applied to this region for this product."
+        description="Update the region multiplier applied to this region for this product."
         primaryActionLabel="Continue"
         onPrimaryAction={handleRegionEditContinue}
         maxWidth="sm"
       >
         <TextField
           fullWidth
-          select
+          type="number"
           label={`${regionEditTarget ?? ''} Multiplier`}
+          placeholder="e.g. 1x, 2x, 3x, 4x"
           size="small"
           value={regionEditValue}
           onChange={(e) => setRegionEditValue(e.target.value)}
+          slotProps={{
+            htmlInput: { step: 0.25, min: 0 },
+            input: {
+              endAdornment: <InputAdornment position="end">x</InputAdornment>,
+            },
+          }}
           sx={{ mt: 1 }}
-        >
-          {MULTIPLIER_OPTIONS.map((option) => (
-            <MenuItem key={option} value={option}>
-              {option}x
-            </MenuItem>
-          ))}
-        </TextField>
+        />
       </Modal>
 
       <Modal
-        open={regionConfirmOpen}
-        onClose={() => setRegionConfirmOpen(false)}
+        open={regionConfirmStep === 1}
+        onClose={() => setRegionConfirmStep(0)}
         title="Confirm Multiplier Change"
-        description="Please review before saving — this change is applied immediately."
-        primaryActionLabel="Confirm & Save"
-        onPrimaryAction={handleRegionEditConfirm}
+        description="Please review before continuing."
+        primaryActionLabel="Continue"
+        onPrimaryAction={() => setRegionConfirmStep(2)}
         secondaryActionLabel="Back"
-        onSecondaryAction={() => {
-          setRegionConfirmOpen(false)
-        }}
+        onSecondaryAction={() => setRegionConfirmStep(0)}
         maxWidth="sm"
       >
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-            This will update the {regionEditTarget} region multiplier ({activeRule?.partnerType}) for{' '}
-            <strong>{rule.productName}</strong>.
+            This will update the {regionEditTarget} region multiplier (
+            {activeRule?.partnerType}) for <strong>{rule.productName}</strong>.
           </Typography>
           <Stack
             direction="row"
@@ -572,7 +591,7 @@ export function CoinValueRuleDetailsPage() {
               <Chip
                 size="small"
                 variant="outlined"
-                label={`${(regionEditRow?.currentPoints ?? 0).toLocaleString('en-IN')} Coins`}
+                label={`${(regionEditRow?.currentPoints ?? 0).toLocaleString('en-IN')} Points`}
               />
               <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
                 →
@@ -580,16 +599,54 @@ export function CoinValueRuleDetailsPage() {
               <Chip
                 size="small"
                 color="primary"
-                label={`${regionEditNextPoints.toLocaleString('en-IN')} Coins`}
+                label={`${regionEditNextPoints.toLocaleString('en-IN')} Points`}
               />
             </Stack>
           </Stack>
           <Typography sx={{ fontSize: '0.75rem', color: 'warning.main' }}>
-            This will recalculate reward coin payouts for this product in the{' '}
+            This will recalculate reward Point payouts for this product in the{' '}
             {regionEditTarget} region going forward and add an entry to Regional
-            Coin History. Existing partner wallets are not retroactively
+            Point History. Existing partner wallets are not retroactively
             adjusted.
           </Typography>
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={regionConfirmStep === 2}
+        onClose={() => setRegionConfirmStep(0)}
+        title="Are you sure?"
+        description="This is your final confirmation — the change is applied immediately and cannot be undone from here."
+        primaryActionLabel="Confirm & Save"
+        onPrimaryAction={handleRegionEditConfirm}
+        secondaryActionLabel="Back"
+        onSecondaryAction={() => setRegionConfirmStep(1)}
+        maxWidth="sm"
+      >
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+              {regionEditTarget} Multiplier
+            </Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Chip
+                size="small"
+                variant="outlined"
+                label={`${closestMultiplierOption(regionEditRow?.currentMultiplier ?? 1)}x`}
+              />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
+                →
+              </Typography>
+              <Chip
+                size="small"
+                color="primary"
+                label={`${regionEditNextMultiplier}x`}
+              />
+            </Stack>
+          </Stack>
         </Stack>
       </Modal>
     </>

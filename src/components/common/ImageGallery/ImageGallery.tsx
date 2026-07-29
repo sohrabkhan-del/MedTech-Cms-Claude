@@ -9,7 +9,11 @@ interface ImageGalleryProps {
   height?: number
 }
 
-export function ImageGallery({ images, alt = 'Product image', height = 280 }: ImageGalleryProps) {
+export function ImageGallery({
+  images,
+  alt = 'Product image',
+  height = 280,
+}: ImageGalleryProps) {
   const [activeIndex, setActiveIndex] = useState(0)
 
   if (images.length === 0) {
@@ -32,7 +36,8 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
     )
   }
 
-  const goTo = (index: number) => setActiveIndex((index + images.length) % images.length)
+  const goTo = (index: number) =>
+    setActiveIndex((index + images.length) % images.length)
 
   return (
     <Stack spacing={1.5}>
@@ -51,7 +56,12 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
           component="img"
           src={images[activeIndex]}
           alt={`${alt} ${activeIndex + 1}`}
-          sx={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          sx={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            display: 'block',
+          }}
         />
         {images.length > 1 && (
           <>
@@ -87,7 +97,17 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
             >
               <ChevronRight size={20} />
             </IconButton>
-            <Stack direction="row" spacing={0.75} sx={{ position: 'absolute', bottom: 10, left: 0, right: 0, justifyContent: 'center' }}>
+            <Stack
+              direction="row"
+              spacing={0.75}
+              sx={{
+                position: 'absolute',
+                bottom: 10,
+                left: 0,
+                right: 0,
+                justifyContent: 'center',
+              }}
+            >
               {images.map((image, index) => (
                 <Box
                   key={image}
@@ -97,8 +117,14 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
                     height: 6,
                     borderRadius: 3,
                     cursor: 'pointer',
-                    backgroundColor: index === activeIndex ? 'primary.main' : 'rgba(255,255,255,0.7)',
-                    boxShadow: index === activeIndex ? 'none' : '0 0 0 1px rgba(0,0,0,0.15)',
+                    backgroundColor:
+                      index === activeIndex
+                        ? 'primary.main'
+                        : 'rgba(255,255,255,0.7)',
+                    boxShadow:
+                      index === activeIndex
+                        ? 'none'
+                        : '0 0 0 1px rgba(0,0,0,0.15)',
                     transition: 'width 0.2s ease',
                   }}
                 />
@@ -123,7 +149,8 @@ export function ImageGallery({ images, alt = 'Product image', height = 280 }: Im
                 objectFit: 'cover',
                 cursor: 'pointer',
                 border: '2px solid',
-                borderColor: index === activeIndex ? 'primary.main' : 'transparent',
+                borderColor:
+                  index === activeIndex ? 'primary.main' : 'transparent',
                 opacity: index === activeIndex ? 1 : 0.7,
                 transition: 'opacity 0.15s ease, border-color 0.15s ease',
                 '&:hover': { opacity: 1 },

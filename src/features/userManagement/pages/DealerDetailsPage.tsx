@@ -39,7 +39,11 @@ export function DealerDetailsPage() {
 
   return (
     <Stack spacing={0}>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{ alignItems: 'center', mb: 2.5 }}
+      >
         <Box
           sx={{
             width: 36,
@@ -75,7 +79,10 @@ export function DealerDetailsPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, md: 6 }}>
-          <RegisteredAddressCard address={dealer.registeredAddress} geoLock={dealer.geoLock} />
+          <RegisteredAddressCard
+            address={dealer.registeredAddress}
+            geoLock={dealer.geoLock}
+          />
         </Grid>
         <Grid size={{ xs: 12, md: 6 }}>
           <GeoLockCard geoLock={dealer.geoLock} />
@@ -84,13 +91,16 @@ export function DealerDetailsPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={12}>
-          <PointsManagementCard currentBalance={dealer.availableCoins} onAdjust={() => forceRerender((n) => n + 1)} />
+          <PointsManagementCard
+            currentBalance={dealer.availablePoints}
+            onAdjust={() => forceRerender((n) => n + 1)}
+          />
         </Grid>
       </Grid>
 
       <Stack spacing={3}>
         <ScanHistoryCard entries={dealer.scanHistory} />
-        <PointsHistoryCard entries={dealer.pointsHistory} />
+        <PointsHistoryCard entries={dealer.PointsHistory} />
         <InterestedProductsCard entries={dealer.interestedProducts} />
         <LicenseDocumentsCard documents={dealer.documents} />
       </Stack>

@@ -3,7 +3,7 @@ import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
 import {
   Gift,
   ArrowLeft as ArrowBackOutlined,
-  Coins,
+  Coins as Points,
   Layers,
   Wallet as WalletIcon,
 } from 'lucide-react'
@@ -33,7 +33,7 @@ const statusConfig: Record<
 interface RedemptionRow {
   id: string
   redeemedItem: string
-  coinsUsed: number
+  PointsUsed: number
   redemptionDate: string
   deliveryStatus: string
 }
@@ -46,10 +46,10 @@ const redemptionColumns: CommonTableColumn<RedemptionRow>[] = [
     render: (row) => row.redeemedItem,
   },
   {
-    key: 'coinsUsed',
-    header: 'Coins Used',
+    key: 'PointsUsed',
+    header: 'Points Used',
     align: 'center',
-    render: (row) => row.coinsUsed.toLocaleString('en-IN'),
+    render: (row) => row.PointsUsed.toLocaleString('en-IN'),
   },
   {
     key: 'redemptionDate',
@@ -88,14 +88,14 @@ export function RewardReportDetailsPage() {
   const redemptionRows: RedemptionRow[] =
     report.isRedeemed &&
     report.redeemedItem &&
-    report.coinsUsed !== undefined &&
+    report.PointsUsed !== undefined &&
     report.redemptionDate &&
     report.deliveryStatus
       ? [
           {
             id: `${report.id}-redemption`,
             redeemedItem: report.redeemedItem,
-            coinsUsed: report.coinsUsed,
+            PointsUsed: report.PointsUsed,
             redemptionDate: report.redemptionDate,
             deliveryStatus: report.deliveryStatus,
           },
@@ -187,7 +187,7 @@ export function RewardReportDetailsPage() {
             <StatCard
               label="Total Reward Points"
               value={report.totalRewardPoints.toLocaleString('en-IN')}
-              icon={<Coins size={20} />}
+              icon={<Points size={20} />}
               iconColor="primary"
             />
           </Grid>

@@ -11,13 +11,15 @@ import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // security alerts API is available. `setUserStatus` is currently a no-op
-// resolving immediately — swap for a real activate/deactivate endpoint.
+// resolving immediately — swap for a real activate/deactivate endPoint.
 
 async function getSecurityAlerts(): Promise<SecurityAlert[]> {
   return mockDelay(mockSecurityAlerts)
 }
 
-async function getSecurityAlertDetail(id: string): Promise<SecurityAlert | undefined> {
+async function getSecurityAlertDetail(
+  id: string,
+): Promise<SecurityAlert | undefined> {
   return mockDelay(getSecurityAlertById(id))
 }
 
@@ -34,7 +36,10 @@ async function getUserSecurityProfile(userId: string) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
-async function setUserStatus(_userId: string, _status: 'active' | 'inactive'): Promise<void> {
+async function setUserStatus(
+  _userId: string,
+  _status: 'active' | 'inactive',
+): Promise<void> {
   return Promise.resolve()
 }
 

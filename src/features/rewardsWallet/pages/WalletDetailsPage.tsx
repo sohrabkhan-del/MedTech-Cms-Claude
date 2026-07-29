@@ -18,7 +18,7 @@ import {
   MinusCircle,
   Download,
   ExternalLink,
-  Coins,
+  Coins as Points,
   TrendingUp,
   TrendingDown,
   Wrench,
@@ -127,11 +127,11 @@ const transactionColumns: CommonTableColumn<WalletTransaction>[] = [
     render: (row) => row.previousBalance.toLocaleString('en-IN'),
   },
   {
-    key: 'coinsAdjusted',
-    header: 'Coins Adjusted',
+    key: 'PointsAdjusted',
+    header: 'Points Adjusted',
     align: 'center',
     render: (row) =>
-      `${row.coinsAdjusted > 0 ? '+' : ''}${row.coinsAdjusted.toLocaleString('en-IN')}`,
+      `${row.PointsAdjusted > 0 ? '+' : ''}${row.PointsAdjusted.toLocaleString('en-IN')}`,
   },
   {
     key: 'updatedBalance',
@@ -199,12 +199,12 @@ const redemptionColumns: CommonTableColumn<WalletRedemptionEntry>[] = [
     render: (row) => row.category,
   },
   {
-    key: 'coinsRedeemed',
-    header: 'Coins Redeemed',
+    key: 'PointsRedeemed',
+    header: 'Points Redeemed',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.coinsRedeemed,
-    render: (row) => row.coinsRedeemed.toLocaleString('en-IN'),
+    sortValue: (row) => row.PointsRedeemed,
+    render: (row) => row.PointsRedeemed.toLocaleString('en-IN'),
   },
   {
     key: 'requestDate',
@@ -278,10 +278,10 @@ const activityColumns: CommonTableColumn<RecentRewardActivity>[] = [
     render: (row) => row.chemist,
   },
   {
-    key: 'coinsEarned',
-    header: 'Coins Earned',
+    key: 'PointsEarned',
+    header: 'Points Earned',
     align: 'center',
-    render: (row) => row.coinsEarned,
+    render: (row) => row.PointsEarned,
   },
   {
     key: 'appliedScheme',
@@ -378,7 +378,7 @@ export function WalletDetailsPage() {
             onClick={() => setAdjustmentType('add')}
             sx={{ fontSize: '0.8125rem' }}
           >
-            Add Coins
+            Add Points
           </Button>
           <Button
             variant="contained"
@@ -387,7 +387,7 @@ export function WalletDetailsPage() {
             onClick={() => setAdjustmentType('deduct')}
             sx={{ fontSize: '0.8125rem' }}
           >
-            Deduct Coins
+            Deduct Points
           </Button>
           <Button
             variant="outlined"
@@ -472,7 +472,7 @@ export function WalletDetailsPage() {
               <StatCard
                 label="Current Wallet Balance"
                 value={currentBalance.toLocaleString('en-IN')}
-                icon={<Coins size={20} />}
+                icon={<Points size={20} />}
                 iconColor="primary"
               />
             )}
@@ -482,7 +482,7 @@ export function WalletDetailsPage() {
               <StatCardSkeleton />
             ) : (
               <StatCard
-                label="Lifetime Coins Earned"
+                label="Lifetime Points Earned"
                 value={wallet.lifetimeEarned.toLocaleString('en-IN')}
                 icon={<TrendingUp size={20} />}
                 iconColor="success"
@@ -494,7 +494,7 @@ export function WalletDetailsPage() {
               <StatCardSkeleton />
             ) : (
               <StatCard
-                label="Lifetime Coins Redeemed"
+                label="Lifetime Points Redeemed"
                 value={wallet.lifetimeRedeemed.toLocaleString('en-IN')}
                 icon={<TrendingDown size={20} />}
                 iconColor="secondary"
@@ -518,8 +518,8 @@ export function WalletDetailsPage() {
               <StatCardSkeleton />
             ) : (
               <StatCard
-                label="Pending Redemption Coins"
-                value={wallet.pendingRedemptionCoins.toLocaleString('en-IN')}
+                label="Pending Redemption Points"
+                value={wallet.pendingRedemptionPoints.toLocaleString('en-IN')}
                 icon={<Clock3 size={20} />}
                 iconColor="info"
               />
@@ -583,7 +583,7 @@ export function WalletDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Earned Coins Breakdown">
+        <SectionCard title="Earned Points Breakdown">
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
               {isLoading ? (
@@ -591,7 +591,7 @@ export function WalletDetailsPage() {
               ) : (
                 <StatCard
                   label="Product Scans"
-                  value={wallet.earnedCoinsBreakdown.productScans.toLocaleString(
+                  value={wallet.earnedPointsBreakdown.productScans.toLocaleString(
                     'en-IN',
                   )}
                   icon={<ScanLine size={20} />}
@@ -605,7 +605,7 @@ export function WalletDetailsPage() {
               ) : (
                 <StatCard
                   label="Active Schemes"
-                  value={wallet.earnedCoinsBreakdown.activeSchemes.toLocaleString(
+                  value={wallet.earnedPointsBreakdown.activeSchemes.toLocaleString(
                     'en-IN',
                   )}
                   icon={<Sparkles size={20} />}
@@ -619,7 +619,7 @@ export function WalletDetailsPage() {
               ) : (
                 <StatCard
                   label="Referral Program"
-                  value={wallet.earnedCoinsBreakdown.referralProgram.toLocaleString(
+                  value={wallet.earnedPointsBreakdown.referralProgram.toLocaleString(
                     'en-IN',
                   )}
                   icon={<UserPlus size={20} />}
@@ -633,7 +633,7 @@ export function WalletDetailsPage() {
               ) : (
                 <StatCard
                   label="Promotional Campaigns"
-                  value={wallet.earnedCoinsBreakdown.promotionalCampaigns.toLocaleString(
+                  value={wallet.earnedPointsBreakdown.promotionalCampaigns.toLocaleString(
                     'en-IN',
                   )}
                   icon={<Megaphone size={20} />}
@@ -647,7 +647,7 @@ export function WalletDetailsPage() {
               ) : (
                 <StatCard
                   label="Manual Credits"
-                  value={wallet.earnedCoinsBreakdown.manualCredits.toLocaleString(
+                  value={wallet.earnedPointsBreakdown.manualCredits.toLocaleString(
                     'en-IN',
                   )}
                   icon={<Users2 size={20} />}
@@ -714,7 +714,7 @@ export function WalletDetailsPage() {
                         fontWeight: 600,
                       }}
                     >
-                      {entry.coinsAdjusted.toLocaleString('en-IN')} coins
+                      {entry.PointsAdjusted.toLocaleString('en-IN')} Points
                     </Typography>
                   </Stack>
                   <Typography variant="body1" sx={{ color: 'text.secondary' }}>

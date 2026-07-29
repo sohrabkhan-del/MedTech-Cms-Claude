@@ -17,11 +17,17 @@ function ValidationRow({ label, passed }: { label: string; passed: boolean }) {
   return (
     <Stack direction="row" spacing={1} sx={{ alignItems: 'center', py: 0.75 }}>
       {passed ? (
-        <Box component="span" sx={{ display: 'inline-flex', color: 'success.main' }}>
+        <Box
+          component="span"
+          sx={{ display: 'inline-flex', color: 'success.main' }}
+        >
           <CheckCircleOutlined size={20} />
         </Box>
       ) : (
-        <Box component="span" sx={{ display: 'inline-flex', color: 'error.main' }}>
+        <Box
+          component="span"
+          sx={{ display: 'inline-flex', color: 'error.main' }}
+        >
           <CancelOutlined size={20} />
         </Box>
       )}
@@ -52,7 +58,16 @@ export function ScanDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -95,8 +110,14 @@ export function ScanDetailsPage() {
               { label: 'Product Code', value: selectedScan.productCode },
               { label: 'Batch Number', value: selectedScan.batchNumber },
               { label: 'Scan Date & Time', value: selectedScan.scanDateTime },
-              { label: 'Reward Points Earned', value: selectedScan.rewardPoints.toString() },
-              { label: 'Scan Result', value: <ScanResultChip result={selectedScan.result} /> },
+              {
+                label: 'Reward Points Earned',
+                value: selectedScan.rewardPoints.toString(),
+              },
+              {
+                label: 'Scan Result',
+                value: <ScanResultChip result={selectedScan.result} />,
+              },
             ]}
           />
         </SectionCard>
@@ -108,15 +129,27 @@ export function ScanDetailsPage() {
                 label: 'User Name',
                 value: (
                   <Typography
-                    sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-                    onClick={() => navigate(`/field-operations/live-scan-feed/user/${selectedScan.userId}`)}
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '0.8125rem',
+                      cursor: 'pointer',
+                      '&:hover': { textDecoration: 'underline' },
+                    }}
+                    onClick={() =>
+                      navigate(
+                        `/field-operations/live-scan-feed/user/${selectedScan.userId}`,
+                      )
+                    }
                   >
                     {selectedScan.userName}
                   </Typography>
                 ),
               },
               { label: 'User Type', value: selectedScan.userRole },
-              { label: 'Registered Location', value: selectedScan.businessName },
+              {
+                label: 'Registered Location',
+                value: selectedScan.businessName,
+              },
               { label: 'Assigned Region', value: selectedScan.region },
               { label: 'Business Name', value: selectedScan.businessName },
             ]}
@@ -212,13 +245,15 @@ export function ScanDetailsPage() {
                 <Grid size={12}>
                   <Chip
                     label={
-                      selectedScan.location.geoFenceValidationResult === 'within_range'
+                      selectedScan.location.geoFenceValidationResult ===
+                      'within_range'
                         ? 'Within Range'
                         : 'Outside Range'
                     }
                     size="small"
                     color={
-                      selectedScan.location.geoFenceValidationResult === 'within_range'
+                      selectedScan.location.geoFenceValidationResult ===
+                      'within_range'
                         ? 'success'
                         : 'error'
                     }
@@ -232,10 +267,19 @@ export function ScanDetailsPage() {
         <SectionCard title="Technical Information">
           <DetailFieldGrid
             fields={[
-              { label: 'Source IP Address', value: selectedScan.technical.sourceIp },
-              { label: 'Device Information', value: selectedScan.technical.deviceInfo },
+              {
+                label: 'Source IP Address',
+                value: selectedScan.technical.sourceIp,
+              },
+              {
+                label: 'Device Information',
+                value: selectedScan.technical.deviceInfo,
+              },
               { label: 'Scan Timestamp', value: selectedScan.scanDateTime },
-              { label: 'Application Version', value: selectedScan.technical.appVersion },
+              {
+                label: 'Application Version',
+                value: selectedScan.technical.appVersion,
+              },
             ]}
           />
         </SectionCard>

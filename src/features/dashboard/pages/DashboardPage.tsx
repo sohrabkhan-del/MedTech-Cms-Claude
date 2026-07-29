@@ -39,7 +39,7 @@ export function DashboardPage() {
   const dealerLeaderboard = overview?.dealerLeaderboard ?? []
   const chemistLeaderboard = overview?.chemistLeaderboard ?? []
   const topProducts = overview?.topProducts ?? []
-  const pointsSummary = overview?.pointsSummary ?? {
+  const PointsSummary = overview?.PointsSummary ?? {
     totalPointsEarned: 0,
     totalPointsClaimed: 0,
     totalRewardPoints: 0,
@@ -84,7 +84,7 @@ export function DashboardPage() {
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
                 label="Rewards Claimed"
-                value={pointsSummary.totalPointsClaimed.toLocaleString('en-IN')}
+                value={PointsSummary.totalPointsClaimed.toLocaleString('en-IN')}
                 icon={<Wallet size={20} />}
                 iconColor="success"
                 trend={{
@@ -231,7 +231,7 @@ export function DashboardPage() {
           {overviewLoading ? (
             <WidgetCardSkeleton />
           ) : (
-            <RevenueSummaryWidget pointsSummary={pointsSummary} />
+            <RevenueSummaryWidget PointsSummary={PointsSummary} />
           )}
         </Grid>
 

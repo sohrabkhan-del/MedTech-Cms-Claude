@@ -1,7 +1,14 @@
-import { Box, Button, Dialog, DialogContent, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogContent,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { CheckCircle2, Smartphone } from 'lucide-react'
 import { radius } from '@/theme/tokens'
-import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
+import { useIsMobile } from '@/hooks/useMediaQueryBreakPoint'
 
 interface InviteSuccessDialogProps {
   open: boolean
@@ -9,7 +16,11 @@ interface InviteSuccessDialogProps {
   contactEmail: string
 }
 
-export function InviteSuccessDialog({ open, applicationId, contactEmail }: InviteSuccessDialogProps) {
+export function InviteSuccessDialog({
+  open,
+  applicationId,
+  contactEmail,
+}: InviteSuccessDialogProps) {
   const isMobile = useIsMobile()
 
   return (
@@ -18,7 +29,9 @@ export function InviteSuccessDialog({ open, applicationId, contactEmail }: Invit
       fullScreen={isMobile}
       maxWidth="xs"
       fullWidth
-      slotProps={{ paper: { sx: { borderRadius: isMobile ? 0 : `${radius.xl}px` } } }}
+      slotProps={{
+        paper: { sx: { borderRadius: isMobile ? 0 : `${radius.xl}px` } },
+      }}
     >
       <DialogContent sx={{ p: 4, textAlign: 'center' }}>
         <Stack spacing={2.5} sx={{ alignItems: 'center' }}>
@@ -42,13 +55,25 @@ export function InviteSuccessDialog({ open, applicationId, contactEmail }: Invit
               Application submitted successfully!
             </Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Thank you for registering with MedTech. Your application
-              {' '}<Box component="span" sx={{ fontWeight: 700, color: 'text.primary' }}>{applicationId}</Box>{' '}
-              has been sent to our team for verification and approval. This usually takes 1–2 business days.
+              Thank you for registering with MedTech. Your application{' '}
+              <Box
+                component="span"
+                sx={{ fontWeight: 700, color: 'text.primary' }}
+              >
+                {applicationId}
+              </Box>{' '}
+              has been sent to our team for verification and approval. This
+              usually takes 1–2 business days.
             </Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              We'll notify you at <Box component="span" sx={{ fontWeight: 600, color: 'text.primary' }}>{contactEmail}</Box> as soon as your
-              account is approved and ready to use.
+              We'll notify you at{' '}
+              <Box
+                component="span"
+                sx={{ fontWeight: 600, color: 'text.primary' }}
+              >
+                {contactEmail}
+              </Box>{' '}
+              as soon as your account is approved and ready to use.
             </Typography>
           </Stack>
 
@@ -62,18 +87,36 @@ export function InviteSuccessDialog({ open, applicationId, contactEmail }: Invit
               alignItems: 'center',
             }}
           >
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', color: 'primary.main' }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', color: 'primary.main' }}
+            >
               <Smartphone size={18} />
-              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>Get the MedTech Partner App</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>
+                Get the MedTech Partner App
+              </Typography>
             </Stack>
-            <Typography variant="body1" sx={{ color: 'text.secondary', textAlign: 'center' }}>
-              Download the app to scan products, track rewards, and manage your account on the go once your account is approved.
+            <Typography
+              variant="body1"
+              sx={{ color: 'text.secondary', textAlign: 'center' }}
+            >
+              Download the app to scan products, track rewards, and manage your
+              account on the go once your account is approved.
             </Typography>
             <Stack direction="row" spacing={1.5}>
-              <Button variant="contained" size="small" sx={{ fontSize: '0.75rem' }}>
+              <Button
+                variant="contained"
+                size="small"
+                sx={{ fontSize: '0.75rem' }}
+              >
                 Download for Android
               </Button>
-              <Button variant="outlined" size="small" sx={{ fontSize: '0.75rem' }}>
+              <Button
+                variant="outlined"
+                size="small"
+                sx={{ fontSize: '0.75rem' }}
+              >
                 Download for iOS
               </Button>
             </Stack>

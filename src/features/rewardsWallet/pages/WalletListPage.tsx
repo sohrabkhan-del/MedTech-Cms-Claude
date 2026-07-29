@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { Wallet as WalletIcon, Coins, Repeat2, Clock3 } from 'lucide-react'
+import { Wallet as WalletIcon, Coins as Points, Repeat2, Clock3 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
@@ -158,10 +158,10 @@ export function WalletListPage() {
       render: (row) => row.lifetimeRedeemed.toLocaleString('en-IN'),
     },
     {
-      key: 'pendingRedemptionCoins',
+      key: 'pendingRedemptionPoints',
       header: 'Pending Redemptions',
       align: 'center',
-      render: (row) => row.pendingRedemptionCoins.toLocaleString('en-IN'),
+      render: (row) => row.pendingRedemptionPoints.toLocaleString('en-IN'),
     },
     {
       key: 'lastUpdated',
@@ -203,9 +203,9 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Coins Earned"
-              value={(kpis?.totalCoinsEarned ?? 0).toLocaleString('en-IN')}
-              icon={<Coins size={20} />}
+              label="Total Points Earned"
+              value={(kpis?.totalPointsEarned ?? 0).toLocaleString('en-IN')}
+              icon={<Points size={20} />}
               iconColor="success"
             />
           )}
@@ -215,8 +215,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Coins Redeemed"
-              value={(kpis?.totalCoinsRedeemed ?? 0).toLocaleString('en-IN')}
+              label="Total Points Redeemed"
+              value={(kpis?.totalPointsRedeemed ?? 0).toLocaleString('en-IN')}
               icon={<Repeat2 size={20} />}
               iconColor="secondary"
             />

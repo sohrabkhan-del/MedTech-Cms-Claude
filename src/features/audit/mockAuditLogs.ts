@@ -58,23 +58,56 @@ const performers = [
 ]
 
 const entityNamesByType: Record<AuditEntityType, string[]> = {
-  Dealer: ['Om Medical Godown', 'Sunrise Pharma Godown', 'Care Plus Godown', 'Wellness Godown'],
-  Chemist: ['Apollo Pharma Chemist', 'Sri Sai Medical', 'National Chemist', 'Metro Chemist'],
+  Dealer: [
+    'Om Medical Godown',
+    'Sunrise Pharma Godown',
+    'Care Plus Godown',
+    'Wellness Godown',
+  ],
+  Chemist: [
+    'Apollo Pharma Chemist',
+    'Sri Sai Medical',
+    'National Chemist',
+    'Metro Chemist',
+  ],
   MR: ['Rohan Kapoor', 'Neha Joshi', 'Sanjay Iyer', 'Kavita Reddy'],
-  Product: ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance'],
-  Scheme: ['Seasonal Booster 2026', 'General Reward Scheme', 'Volume Booster Scheme'],
+  Product: [
+    'CardioCare 10mg',
+    'NeuroPlus 500mg',
+    'ImmunoBoost Syrup',
+    'GlucoBalance',
+  ],
+  Scheme: [
+    'Seasonal Booster 2026',
+    'General Reward Scheme',
+    'Volume Booster Scheme',
+  ],
   Reward: ['Gift Rule Bonus', 'Referral Reward', 'Festive Bonus Points'],
   Wallet: ['Wallet #WLT-1042', 'Wallet #WLT-1108', 'Wallet #WLT-1221'],
-  Redemption: ['Redemption #RDM-2201', 'Redemption #RDM-2245', 'Redemption #RDM-2299'],
-  User: ['Admin Account — Anita Sharma', 'Admin Account — Karan Chawla', 'MR Account — Rohan Kapoor'],
+  Redemption: [
+    'Redemption #RDM-2201',
+    'Redemption #RDM-2245',
+    'Redemption #RDM-2299',
+  ],
+  User: [
+    'Admin Account — Anita Sharma',
+    'Admin Account — Karan Chawla',
+    'MR Account — Rohan Kapoor',
+  ],
 }
 
-const devices = ['Windows 11 · Chrome', 'macOS · Safari', 'Android App v4.2', 'iOS App v4.2', 'Windows 10 · Edge']
+const devices = [
+  'Windows 11 · Chrome',
+  'macOS · Safari',
+  'Android App v4.2',
+  'iOS App v4.2',
+  'Windows 10 · Edge',
+]
 const browsers = ['Chrome 126', 'Safari 17', 'Edge 125', 'Firefox 127']
 
 const fieldNamesByModule: Record<AuditModule, string[]> = {
-  Dealers: ['status', 'assignedMr', 'availableCoins', 'city'],
-  Chemists: ['status', 'assignedMr', 'availableCoins', 'city'],
+  Dealers: ['status', 'assignedMr', 'availablePoints', 'city'],
+  Chemists: ['status', 'assignedMr', 'availablePoints', 'city'],
   'Medical Representatives': ['status', 'region', 'phone'],
   Products: ['dealerRewardPoints', 'chemistRewardPoints', 'status'],
   Schemes: ['status', 'validTill', 'rewardMultiplier'],
@@ -108,7 +141,12 @@ function resolveStatus(seed: number): AuditStatus {
   return seed % 13 === 0 ? 'failed' : 'success'
 }
 
-function buildChangedData(seed: number, module: AuditModule, action: AuditActionType, logId: string): AuditChangedField[] {
+function buildChangedData(
+  seed: number,
+  module: AuditModule,
+  action: AuditActionType,
+  logId: string,
+): AuditChangedField[] {
   if (action !== 'Record Updated') return []
   const fields = fieldNamesByModule[module]
   if (fields.length === 0) return []
@@ -120,27 +158,52 @@ function buildChangedData(seed: number, module: AuditModule, action: AuditAction
       fieldName: field,
       oldValue: field.toLowerCase().includes('status')
         ? 'pending'
-        : field.toLowerCase().includes('points') || field.toLowerCase().includes('balance')
+        : field.toLowerCase().includes('Points') ||
+            field.toLowerCase().includes('balance')
           ? `${seededNumber(seed + i, 100, 900)}`
           : 'North',
       newValue: field.toLowerCase().includes('status')
         ? 'active'
-        : field.toLowerCase().includes('points') || field.toLowerCase().includes('balance')
+        : field.toLowerCase().includes('Points') ||
+            field.toLowerCase().includes('balance')
           ? `${seededNumber(seed + i + 5, 900, 2000)}`
           : 'South',
     }
   })
 }
 
-function buildTimeline(seed: number, action: AuditActionType, status: AuditStatus, logId: string): AuditTimelineEvent[] {
-  const timeline: AuditTimelineEvent[] = [{ id: `${logId}-tl-0`, activity: 'Login', dateTime: dateTimeFromSeed(seed - 1) }]
+function buildTimeline(
+  seed: number,
+  action: AuditActionType,
+  status: AuditStatus,
+  logId: string,
+): AuditTimelineEvent[] {
+  const timeline: AuditTimelineEvent[] = [
+    {
+      id: `${logId}-tl-0`,
+      activity: 'Login',
+      dateTime: dateTimeFromSeed(seed - 1),
+    },
+  ]
   if (action !== 'Login' && action !== 'Logout') {
-    timeline.push({ id: `${logId}-tl-1`, activity: action, dateTime: dateTimeFromSeed(seed) })
+    timeline.push({
+      id: `${logId}-tl-1`,
+      activity: action,
+      dateTime: dateTimeFromSeed(seed),
+    })
   }
   if (status === 'success' && seed % 4 === 0) {
-    timeline.push({ id: `${logId}-tl-2`, activity: 'Export', dateTime: dateTimeFromSeed(seed + 1) })
+    timeline.push({
+      id: `${logId}-tl-2`,
+      activity: 'Export',
+      dateTime: dateTimeFromSeed(seed + 1),
+    })
   }
-  timeline.push({ id: `${logId}-tl-3`, activity: 'Logout', dateTime: dateTimeFromSeed(seed + 2) })
+  timeline.push({
+    id: `${logId}-tl-3`,
+    activity: 'Logout',
+    dateTime: dateTimeFromSeed(seed + 2),
+  })
   return timeline
 }
 
@@ -176,7 +239,9 @@ function buildLog(index: number): AuditLogEntry {
   }
 }
 
-export const mockAuditLogs: AuditLogEntry[] = Array.from({ length: 80 }).map((_, index) => buildLog(index))
+export const mockAuditLogs: AuditLogEntry[] = Array.from({ length: 80 }).map(
+  (_, index) => buildLog(index),
+)
 
 export function getAuditLogById(id: string): AuditLogEntry | undefined {
   return mockAuditLogs.find((log) => log.id === id)
@@ -185,11 +250,34 @@ export function getAuditLogById(id: string): AuditLogEntry | undefined {
 export const auditLogKpis = {
   totalEntries: mockAuditLogs.length,
   loginActivities: mockAuditLogs.filter((l) => l.action === 'Login').length,
-  recordUpdates: mockAuditLogs.filter((l) => l.action === 'Record Updated').length,
+  recordUpdates: mockAuditLogs.filter((l) => l.action === 'Record Updated')
+    .length,
   exportActivities: mockAuditLogs.filter((l) => l.action === 'Export').length,
 }
 
 export const auditModuleOptions = modules
-export const auditActionOptions: AuditActionType[] = ['Login', 'Record Created', 'Record Updated', 'Record Deleted', 'Export', 'Logout']
-export const auditEntityOptions: AuditEntityType[] = ['Dealer', 'Chemist', 'MR', 'Product', 'Scheme', 'Reward', 'Wallet', 'Redemption', 'User']
-export const auditUserRoleOptions: AuditUserRole[] = ['Super Admin', 'Admin', 'MR', 'System']
+export const auditActionOptions: AuditActionType[] = [
+  'Login',
+  'Record Created',
+  'Record Updated',
+  'Record Deleted',
+  'Export',
+  'Logout',
+]
+export const auditEntityOptions: AuditEntityType[] = [
+  'Dealer',
+  'Chemist',
+  'MR',
+  'Product',
+  'Scheme',
+  'Reward',
+  'Wallet',
+  'Redemption',
+  'User',
+]
+export const auditUserRoleOptions: AuditUserRole[] = [
+  'Super Admin',
+  'Admin',
+  'MR',
+  'System',
+]

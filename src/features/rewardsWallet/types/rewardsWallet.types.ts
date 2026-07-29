@@ -8,7 +8,7 @@ export type {
   WalletRedemptionStatus,
   WalletTransaction,
   WalletRedemptionEntry,
-  EarnedCoinsBreakdown,
+  EarnedPointsBreakdown,
   RecentRewardActivity,
   WalletTimelineActivity,
   WalletTimelineEntry,
@@ -24,10 +24,10 @@ export type {
   RedemptionRequest,
 } from '@/types/redemption'
 export type {
-  CoinRuleRegion,
-  CoinRulePartnerType,
-  CoinRuleStatus,
-  RegionCoinHistoryEntry,
+  PointRuleRegion,
+  PointRulePartnerType,
+  PointRuleStatus,
+  RegionPointHistoryEntry,
   RegionMultiplierRow,
-  CoinValueRule,
-} from '@/types/coinRule'
+  PointValueRule,
+} from '@/types/PointRule'

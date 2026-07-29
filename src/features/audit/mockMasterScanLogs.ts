@@ -8,12 +8,51 @@ import type {
 } from '@/types/masterScanLog'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 
-const distributors = ['Apex Distribution', 'Meridian Supply Co.', 'Vantage Logistics', 'Prime Channel Partners', 'Horizon Distributors']
-const dealers = ['Om Medical Godown', 'Sunrise Pharma Godown', 'Care Plus Godown', 'Wellness Godown', 'City Drug Godown']
-const chemists = ['Apollo Pharma Chemist', 'Sri Sai Medical', 'National Chemist', 'Metro Chemist', 'United Pharma Chemist']
-const cities = ['Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Bengaluru', 'Hyderabad']
-const devices = ['Android App v4.2', 'iOS App v4.2', 'Android App v4.1', 'Web Scanner Portal']
-const schemeNames = ['Seasonal Booster 2026', 'General Reward Scheme', 'Gift Rule Bonus', 'Volume Booster Scheme']
+const distributors = [
+  'Apex Distribution',
+  'Meridian Supply Co.',
+  'Vantage Logistics',
+  'Prime Channel Partners',
+  'Horizon Distributors',
+]
+const dealers = [
+  'Om Medical Godown',
+  'Sunrise Pharma Godown',
+  'Care Plus Godown',
+  'Wellness Godown',
+  'City Drug Godown',
+]
+const chemists = [
+  'Apollo Pharma Chemist',
+  'Sri Sai Medical',
+  'National Chemist',
+  'Metro Chemist',
+  'United Pharma Chemist',
+]
+const cities = [
+  'Delhi',
+  'Mumbai',
+  'Chennai',
+  'Kolkata',
+  'Pune',
+  'Ahmedabad',
+  'Jaipur',
+  'Lucknow',
+  'Bengaluru',
+  'Hyderabad',
+]
+const devices = [
+  'Android App v4.2',
+  'iOS App v4.2',
+  'Android App v4.1',
+  'Web Scanner Portal',
+]
+const schemeNames = [
+  'Seasonal Booster 2026',
+  'General Reward Scheme',
+  'Gift Rule Bonus',
+  'Volume Booster Scheme',
+]
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -41,12 +80,22 @@ function resolveScanResult(seed: number): ScanStatus {
   return 'valid'
 }
 
-function resolveWalletStatus(scanResult: ScanStatus, seed: number): WalletStatus {
+function resolveWalletStatus(
+  scanResult: ScanStatus,
+  seed: number,
+): WalletStatus {
   if (scanResult !== 'valid') return 'failed'
   return seed % 8 === 0 ? 'pending' : 'credited'
 }
 
-function buildScanHistory(seed: number, logId: string, primaryUser: string, userType: ScanHistoryEntry['userType'], primaryResult: ScanStatus, rewardPoints: number): ScanHistoryEntry[] {
+function buildScanHistory(
+  seed: number,
+  logId: string,
+  primaryUser: string,
+  userType: ScanHistoryEntry['userType'],
+  primaryResult: ScanStatus,
+  rewardPoints: number,
+): ScanHistoryEntry[] {
   const count = seededNumber(seed, 1, 4)
   return Array.from({ length: count }).map((_, i) => {
     const isPrimary = i === 0
@@ -64,48 +113,134 @@ function buildScanHistory(seed: number, logId: string, primaryUser: string, user
   })
 }
 
-function buildOwnershipTimeline(seed: number, logId: string, dealer: string | undefined, chemist: string | undefined, walletStatus: WalletStatus): OwnershipTimelineEntry[] {
+function buildOwnershipTimeline(
+  seed: number,
+  logId: string,
+  dealer: string | undefined,
+  chemist: string | undefined,
+  walletStatus: WalletStatus,
+): OwnershipTimelineEntry[] {
   const timeline: OwnershipTimelineEntry[] = [
-    { id: `${logId}-own-0`, activity: 'Product Created', dateTime: dateTimeFromSeed(seed, 'May') },
-    { id: `${logId}-own-1`, activity: 'Batch Generated', dateTime: dateTimeFromSeed(seed + 2, 'May') },
-    { id: `${logId}-own-2`, activity: 'Assigned to Distributor', dateTime: dateTimeFromSeed(seed + 4, 'Jun') },
+    {
+      id: `${logId}-own-0`,
+      activity: 'Product Created',
+      dateTime: dateTimeFromSeed(seed, 'May'),
+    },
+    {
+      id: `${logId}-own-1`,
+      activity: 'Batch Generated',
+      dateTime: dateTimeFromSeed(seed + 2, 'May'),
+    },
+    {
+      id: `${logId}-own-2`,
+      activity: 'Assigned to Distributor',
+      dateTime: dateTimeFromSeed(seed + 4, 'Jun'),
+    },
   ]
   if (dealer) {
-    timeline.push({ id: `${logId}-own-3`, activity: 'Assigned to Dealer', dateTime: dateTimeFromSeed(seed + 6, 'Jun') })
+    timeline.push({
+      id: `${logId}-own-3`,
+      activity: 'Assigned to Dealer',
+      dateTime: dateTimeFromSeed(seed + 6, 'Jun'),
+    })
   }
   if (chemist) {
-    timeline.push({ id: `${logId}-own-4`, activity: 'Purchased by Chemist', dateTime: dateTimeFromSeed(seed + 8, 'Jun') })
+    timeline.push({
+      id: `${logId}-own-4`,
+      activity: 'Purchased by Chemist',
+      dateTime: dateTimeFromSeed(seed + 8, 'Jun'),
+    })
   }
-  timeline.push({ id: `${logId}-own-5`, activity: 'Barcode Scanned', dateTime: dateTimeFromSeed(seed + 10) })
-  timeline.push({ id: `${logId}-own-6`, activity: 'Reward Calculated', dateTime: dateTimeFromSeed(seed + 10) })
+  timeline.push({
+    id: `${logId}-own-5`,
+    activity: 'Barcode Scanned',
+    dateTime: dateTimeFromSeed(seed + 10),
+  })
+  timeline.push({
+    id: `${logId}-own-6`,
+    activity: 'Reward Calculated',
+    dateTime: dateTimeFromSeed(seed + 10),
+  })
   if (walletStatus === 'credited') {
-    timeline.push({ id: `${logId}-own-7`, activity: 'Wallet Credited', dateTime: dateTimeFromSeed(seed + 11) })
+    timeline.push({
+      id: `${logId}-own-7`,
+      activity: 'Wallet Credited',
+      dateTime: dateTimeFromSeed(seed + 11),
+    })
   }
   return timeline
 }
 
-function buildAuditTimeline(seed: number, logId: string, dealer: string | undefined, chemist: string | undefined, scanResult: ScanStatus, walletStatus: WalletStatus): AuditTimelineEntry[] {
+function buildAuditTimeline(
+  seed: number,
+  logId: string,
+  dealer: string | undefined,
+  chemist: string | undefined,
+  scanResult: ScanStatus,
+  walletStatus: WalletStatus,
+): AuditTimelineEntry[] {
   const timeline: AuditTimelineEntry[] = [
-    { id: `${logId}-audit-0`, activity: 'Product Created', dateTime: dateTimeFromSeed(seed, 'May') },
-    { id: `${logId}-audit-1`, activity: 'Batch Generated', dateTime: dateTimeFromSeed(seed + 2, 'May') },
-    { id: `${logId}-audit-2`, activity: 'Barcode Generated', dateTime: dateTimeFromSeed(seed + 3, 'May') },
-    { id: `${logId}-audit-3`, activity: 'Distributor Assigned', dateTime: dateTimeFromSeed(seed + 4, 'Jun') },
+    {
+      id: `${logId}-audit-0`,
+      activity: 'Product Created',
+      dateTime: dateTimeFromSeed(seed, 'May'),
+    },
+    {
+      id: `${logId}-audit-1`,
+      activity: 'Batch Generated',
+      dateTime: dateTimeFromSeed(seed + 2, 'May'),
+    },
+    {
+      id: `${logId}-audit-2`,
+      activity: 'Barcode Generated',
+      dateTime: dateTimeFromSeed(seed + 3, 'May'),
+    },
+    {
+      id: `${logId}-audit-3`,
+      activity: 'Distributor Assigned',
+      dateTime: dateTimeFromSeed(seed + 4, 'Jun'),
+    },
   ]
   if (dealer) {
-    timeline.push({ id: `${logId}-audit-4`, activity: 'Dealer Assigned', dateTime: dateTimeFromSeed(seed + 6, 'Jun') })
+    timeline.push({
+      id: `${logId}-audit-4`,
+      activity: 'Dealer Assigned',
+      dateTime: dateTimeFromSeed(seed + 6, 'Jun'),
+    })
   }
   if (chemist) {
-    timeline.push({ id: `${logId}-audit-5`, activity: 'Chemist Purchase', dateTime: dateTimeFromSeed(seed + 8, 'Jun') })
+    timeline.push({
+      id: `${logId}-audit-5`,
+      activity: 'Chemist Purchase',
+      dateTime: dateTimeFromSeed(seed + 8, 'Jun'),
+    })
   }
-  timeline.push({ id: `${logId}-audit-6`, activity: 'Barcode Scanned', dateTime: dateTimeFromSeed(seed + 10) })
+  timeline.push({
+    id: `${logId}-audit-6`,
+    activity: 'Barcode Scanned',
+    dateTime: dateTimeFromSeed(seed + 10),
+  })
   if (scanResult === 'valid') {
-    timeline.push({ id: `${logId}-audit-7`, activity: 'Reward Calculated', dateTime: dateTimeFromSeed(seed + 10) })
+    timeline.push({
+      id: `${logId}-audit-7`,
+      activity: 'Reward Calculated',
+      dateTime: dateTimeFromSeed(seed + 10),
+    })
   }
   if (walletStatus === 'credited') {
-    timeline.push({ id: `${logId}-audit-8`, activity: 'Wallet Credited', dateTime: dateTimeFromSeed(seed + 11) })
+    timeline.push({
+      id: `${logId}-audit-8`,
+      activity: 'Wallet Credited',
+      dateTime: dateTimeFromSeed(seed + 11),
+    })
   }
   if (scanResult === 'duplicate' || scanResult === 'invalid') {
-    timeline.push({ id: `${logId}-audit-9`, activity: 'Security Alert Generated', dateTime: dateTimeFromSeed(seed + 11), flagged: true })
+    timeline.push({
+      id: `${logId}-audit-9`,
+      activity: 'Security Alert Generated',
+      dateTime: dateTimeFromSeed(seed + 11),
+      flagged: true,
+    })
   }
   return timeline
 }
@@ -121,12 +256,18 @@ function buildLog(index: number): MasterScanLogEntry {
   const dealer = hasDealer ? dealers[seed % dealers.length] : undefined
   const chemist = hasChemist ? chemists[seed % chemists.length] : undefined
   const primaryUser = chemist ?? dealer ?? distributor
-  const primaryUserType: ScanHistoryEntry['userType'] = chemist ? 'Chemist' : dealer ? 'Dealer' : 'Distributor'
+  const primaryUserType: ScanHistoryEntry['userType'] = chemist
+    ? 'Chemist'
+    : dealer
+      ? 'Dealer'
+      : 'Distributor'
 
   const scanResult = resolveScanResult(seed)
   const walletStatus = resolveWalletStatus(scanResult, seed)
-  const baseRewardPoints = scanResult === 'valid' ? seededNumber(seed, 10, 40) : 0
-  const bonusPoints = scanResult === 'valid' && seed % 4 === 0 ? seededNumber(seed + 1, 5, 20) : 0
+  const baseRewardPoints =
+    scanResult === 'valid' ? seededNumber(seed, 10, 40) : 0
+  const bonusPoints =
+    scanResult === 'valid' && seed % 4 === 0 ? seededNumber(seed + 1, 5, 20) : 0
   const totalRewardPoints = baseRewardPoints + bonusPoints
 
   return {
@@ -150,21 +291,47 @@ function buildLog(index: number): MasterScanLogEntry {
     ipAddress: `192.168.${seed % 255}.${(seed * 5) % 255}`,
 
     baseRewardPoints,
-    appliedScheme: scanResult === 'valid' ? schemeNames[seed % schemeNames.length]! : '—',
+    appliedScheme:
+      scanResult === 'valid' ? schemeNames[seed % schemeNames.length]! : '—',
     bonusPoints,
     totalRewardPoints,
     walletStatus,
-    walletTransactionId: walletStatus === 'credited' ? `WTX-${900000 + seed * 3}` : undefined,
+    walletTransactionId:
+      walletStatus === 'credited' ? `WTX-${900000 + seed * 3}` : undefined,
 
-    scanHistory: buildScanHistory(seed, id, primaryUser, primaryUserType, scanResult, totalRewardPoints),
-    ownershipTimeline: buildOwnershipTimeline(seed, id, dealer, chemist, walletStatus),
-    auditTimeline: buildAuditTimeline(seed, id, dealer, chemist, scanResult, walletStatus),
+    scanHistory: buildScanHistory(
+      seed,
+      id,
+      primaryUser,
+      primaryUserType,
+      scanResult,
+      totalRewardPoints,
+    ),
+    ownershipTimeline: buildOwnershipTimeline(
+      seed,
+      id,
+      dealer,
+      chemist,
+      walletStatus,
+    ),
+    auditTimeline: buildAuditTimeline(
+      seed,
+      id,
+      dealer,
+      chemist,
+      scanResult,
+      walletStatus,
+    ),
   }
 }
 
-export const mockMasterScanLogs: MasterScanLogEntry[] = Array.from({ length: 60 }).map((_, index) => buildLog(index))
+export const mockMasterScanLogs: MasterScanLogEntry[] = Array.from({
+  length: 60,
+}).map((_, index) => buildLog(index))
 
-export function getMasterScanLogById(id: string): MasterScanLogEntry | undefined {
+export function getMasterScanLogById(
+  id: string,
+): MasterScanLogEntry | undefined {
   return mockMasterScanLogs.find((log) => log.id === id)
 }
 
@@ -172,12 +339,20 @@ export const masterScanLogKpis = {
   totalProducts: new Set(mockMasterScanLogs.map((l) => l.productCode)).size,
   totalBatches: new Set(mockMasterScanLogs.map((l) => l.batchNumber)).size,
   totalBarcodeScans: mockMasterScanLogs.length,
-  successfulScans: mockMasterScanLogs.filter((l) => l.scanResult === 'valid').length,
-  rewardPointsIssued: mockMasterScanLogs.reduce((sum, l) => sum + l.totalRewardPoints, 0),
+  successfulScans: mockMasterScanLogs.filter((l) => l.scanResult === 'valid')
+    .length,
+  rewardPointsIssued: mockMasterScanLogs.reduce(
+    (sum, l) => sum + l.totalRewardPoints,
+    0,
+  ),
 }
 
 export const distributorOptions = distributors
 export const dealerOptions = dealers
 export const chemistOptions = chemists
-export const batchOptions = Array.from(new Set(mockMasterScanLogs.map((l) => l.batchNumber))).sort()
-export const productOptions = Array.from(new Set(mockMasterScanLogs.map((l) => l.productName))).sort()
+export const batchOptions = Array.from(
+  new Set(mockMasterScanLogs.map((l) => l.batchNumber)),
+).sort()
+export const productOptions = Array.from(
+  new Set(mockMasterScanLogs.map((l) => l.productName)),
+).sort()

@@ -1,4 +1,9 @@
-import type { ProductAuditEntry, ProductMovementEntry, ProductStatus, ProductTimelineEntry } from '@/types/product'
+import type {
+  ProductAuditEntry,
+  ProductMovementEntry,
+  ProductStatus,
+  ProductTimelineEntry,
+} from '@/types/product'
 
 export interface ProductReportEntry {
   id: string

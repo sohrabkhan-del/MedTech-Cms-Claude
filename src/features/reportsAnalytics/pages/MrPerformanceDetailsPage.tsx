@@ -1,5 +1,13 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Grid,
+  Stack,
+  Typography,
+} from '@mui/material'
 import {
   ChartColumnBig as ChartColumnBigIcon,
   ArrowLeft as ArrowLeftIcon,
@@ -9,7 +17,7 @@ import {
   Clock,
   Store as StoreIcon,
   Pill as PillIcon,
-  Coins as CoinsIcon,
+  Coins as PointsIcon,
   TrendingUp as TrendingUpIcon,
   Gauge as GaugeIcon,
 } from 'lucide-react'
@@ -17,14 +25,25 @@ import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useMrPerformanceReportDetail } from '@/features/reportsAnalytics/hooks/useMrPerformanceReportDetail'
 import type { MrMonthlyActivity } from '@/types/mrPerformanceReport'
 import type { MrManagedPartner } from '@/types/medicalRep'
 
-function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+function InfoItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: React.ReactNode
+}) {
   return (
     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'flex-start' }}>
       <Box
@@ -46,7 +65,15 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
         <Typography variant="caption" sx={{ display: 'block' }}>
           {label}
         </Typography>
-        <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', wordBreak: 'break-word' }}>{value}</Typography>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            wordBreak: 'break-word',
+          }}
+        >
+          {value}
+        </Typography>
       </Box>
     </Stack>
   )
@@ -72,14 +99,38 @@ export function MrPerformanceDetailsPage() {
     )
   }
 
-  const { report, assignedDealers, assignedChemists, scanContribution, analytics, monthlyActivity } = details
+  const {
+    report,
+    assignedDealers,
+    assignedChemists,
+    scanContribution,
+    analytics,
+    monthlyActivity,
+  } = details
   const { mr } = report
 
   const partnerColumns: CommonTableColumn<MrManagedPartner>[] = [
-    { key: 'partnerName', header: 'Partner Name', minWidth: 200, sortable: true, sortValue: (row) => row.partnerName, render: (row) => row.partnerName },
+    {
+      key: 'partnerName',
+      header: 'Partner Name',
+      minWidth: 200,
+      sortable: true,
+      sortValue: (row) => row.partnerName,
+      render: (row) => row.partnerName,
+    },
     { key: 'city', header: 'City', sortable: true, render: (row) => row.city },
-    { key: 'region', header: 'Region', sortable: true, render: (row) => row.region },
-    { key: 'source', header: 'Source', sortable: true, render: (row) => row.source },
+    {
+      key: 'region',
+      header: 'Region',
+      sortable: true,
+      render: (row) => row.region,
+    },
+    {
+      key: 'source',
+      header: 'Source',
+      sortable: true,
+      render: (row) => row.source,
+    },
     {
       key: 'status',
       header: 'Status',
@@ -90,7 +141,12 @@ export function MrPerformanceDetailsPage() {
   ]
 
   const monthlyColumns: CommonTableColumn<MrMonthlyActivity>[] = [
-    { key: 'month', header: 'Month', sortable: true, render: (row) => row.month },
+    {
+      key: 'month',
+      header: 'Month',
+      sortable: true,
+      render: (row) => row.month,
+    },
     {
       key: 'onboardings',
       header: 'Onboardings',
@@ -105,7 +161,13 @@ export function MrPerformanceDetailsPage() {
     <Stack spacing={0}>
       <Stack
         direction="row"
-        sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
       >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
@@ -124,7 +186,11 @@ export function MrPerformanceDetailsPage() {
             <ChartColumnBigIcon size={18} />
           </Box>
           <Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+            >
               <Typography variant="h1">{report.mrName}</Typography>
               <StatusBadge status={report.status} />
             </Stack>
@@ -148,14 +214,35 @@ export function MrPerformanceDetailsPage() {
       <Stack spacing={3}>
         <SectionCard
           title="MR Summary"
-          action={<Chip size="small" label={`MR ID: ${mr.id}`} variant="outlined" sx={{ fontWeight: 600, fontSize: '0.75rem' }} />}
+          action={
+            <Chip
+              size="small"
+              label={`MR ID: ${mr.id}`}
+              variant="outlined"
+              sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+            />
+          }
         >
-          <Stack direction="row" spacing={2.5} sx={{ mb: 3, alignItems: 'center' }}>
-            <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.25rem', fontWeight: 700 }}>
+          <Stack
+            direction="row"
+            spacing={2.5}
+            sx={{ mb: 3, alignItems: 'center' }}
+          >
+            <Avatar
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: 'primary.main',
+                fontSize: '1.25rem',
+                fontWeight: 700,
+              }}
+            >
               {mr.name.slice(0, 1)}
             </Avatar>
             <Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>{mr.name}</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
+                {mr.name}
+              </Typography>
               <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                 Field Representative · {mr.region} Region
               </Typography>
@@ -164,16 +251,32 @@ export function MrPerformanceDetailsPage() {
 
           <Grid container spacing={2.5} sx={{ mb: 2.5 }}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Mail size={16} />} label="Email Address" value={mr.email} />
+              <InfoItem
+                icon={<Mail size={16} />}
+                label="Email Address"
+                value={mr.email}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Phone size={16} />} label="Contact Number" value={mr.phone} />
+              <InfoItem
+                icon={<Phone size={16} />}
+                label="Contact Number"
+                value={mr.phone}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<MapPin size={16} />} label="Region" value={mr.region} />
+              <InfoItem
+                icon={<MapPin size={16} />}
+                label="Region"
+                value={mr.region}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Clock size={16} />} label="Last Login" value={mr.lastLogin} />
+              <InfoItem
+                icon={<Clock size={16} />}
+                label="Last Login"
+                value={mr.lastLogin}
+              />
             </Grid>
           </Grid>
 
@@ -181,7 +284,10 @@ export function MrPerformanceDetailsPage() {
             fields={[
               { label: 'Dealers Onboarded', value: report.dealersOnboarded },
               { label: 'Chemists Onboarded', value: report.chemistsOnboarded },
-              { label: 'Total Partners Managed', value: mr.totalPartnersManaged },
+              {
+                label: 'Total Partners Managed',
+                value: mr.totalPartnersManaged,
+              },
             ]}
           />
         </SectionCard>
@@ -190,26 +296,50 @@ export function MrPerformanceDetailsPage() {
           <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard
               label="Reward Points Generated"
-              value={scanContribution.totalRewardPointsGenerated.toLocaleString('en-IN')}
-              icon={<CoinsIcon size={20} />}
+              value={scanContribution.totalRewardPointsGenerated.toLocaleString(
+                'en-IN',
+              )}
+              icon={<PointsIcon size={20} />}
               iconColor="secondary"
             />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-            <StatCard label="Onboarding Rate" value={`${analytics.onboardingRate}%`} icon={<TrendingUpIcon size={20} />} iconColor="success" />
+            <StatCard
+              label="Onboarding Rate"
+              value={`${analytics.onboardingRate}%`}
+              icon={<TrendingUpIcon size={20} />}
+              iconColor="success"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
-            <StatCard label="Engagement Score" value={`${analytics.engagementScore} / 100`} icon={<GaugeIcon size={20} />} iconColor="warning" />
+            <StatCard
+              label="Engagement Score"
+              value={`${analytics.engagementScore} / 100`}
+              icon={<GaugeIcon size={20} />}
+              iconColor="warning"
+            />
           </Grid>
         </Grid>
 
         <SectionCard title="Performance Analytics">
           <DetailFieldGrid
             fields={[
-              { label: 'Onboarding Rate', value: `${analytics.onboardingRate}%` },
-              { label: 'Engagement Score', value: `${analytics.engagementScore} / 100` },
-              { label: 'Average Scans / Partner', value: analytics.averageScansPerPartner.toLocaleString('en-IN') },
-              { label: 'Active Partner Ratio', value: `${analytics.activePartnerRatio}%` },
+              {
+                label: 'Onboarding Rate',
+                value: `${analytics.onboardingRate}%`,
+              },
+              {
+                label: 'Engagement Score',
+                value: `${analytics.engagementScore} / 100`,
+              },
+              {
+                label: 'Average Scans / Partner',
+                value: analytics.averageScansPerPartner.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Active Partner Ratio',
+                value: `${analytics.activePartnerRatio}%`,
+              },
             ]}
           />
         </SectionCard>
@@ -231,12 +361,19 @@ export function MrPerformanceDetailsPage() {
         <SectionCard title="Assigned Dealers">
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <StatCard label="Total Dealers" value={assignedDealers.length} icon={<StoreIcon size={20} />} iconColor="primary" />
+              <StatCard
+                label="Total Dealers"
+                value={assignedDealers.length}
+                icon={<StoreIcon size={20} />}
+                iconColor="primary"
+              />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
               <StatCard
                 label="Active Dealers"
-                value={assignedDealers.filter((d) => d.status === 'active').length}
+                value={
+                  assignedDealers.filter((d) => d.status === 'active').length
+                }
                 icon={<StoreIcon size={20} />}
                 iconColor="success"
               />
@@ -258,12 +395,19 @@ export function MrPerformanceDetailsPage() {
         <SectionCard title="Assigned Chemists">
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 6, sm: 3 }}>
-              <StatCard label="Total Chemists" value={assignedChemists.length} icon={<PillIcon size={20} />} iconColor="secondary" />
+              <StatCard
+                label="Total Chemists"
+                value={assignedChemists.length}
+                icon={<PillIcon size={20} />}
+                iconColor="secondary"
+              />
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
               <StatCard
                 label="Active Chemists"
-                value={assignedChemists.filter((c) => c.status === 'active').length}
+                value={
+                  assignedChemists.filter((c) => c.status === 'active').length
+                }
                 icon={<PillIcon size={20} />}
                 iconColor="success"
               />

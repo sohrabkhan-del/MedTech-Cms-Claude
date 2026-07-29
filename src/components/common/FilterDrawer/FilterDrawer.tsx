@@ -1,7 +1,15 @@
 import { useState } from 'react'
-import { Box, Button, Divider, Drawer, IconButton, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Divider,
+  Drawer,
+  IconButton,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { X } from 'lucide-react'
-import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
+import { useIsMobile } from '@/hooks/useMediaQueryBreakPoint'
 
 interface FilterDrawerProps<T extends Record<string, unknown>> {
   open: boolean
@@ -9,7 +17,10 @@ interface FilterDrawerProps<T extends Record<string, unknown>> {
   title?: string
   value: T
   onApply: (value: T) => void
-  children: (draft: T, setDraft: (updater: (prev: T) => T) => void) => React.ReactNode
+  children: (
+    draft: T,
+    setDraft: (updater: (prev: T) => T) => void,
+  ) => React.ReactNode
 }
 
 export function FilterDrawer<T extends Record<string, unknown>>({
@@ -58,19 +69,36 @@ export function FilterDrawer<T extends Record<string, unknown>>({
         },
       }}
     >
-      <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', px: 3, py: 2.5 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>{title}</Typography>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          px: 3,
+          py: 2.5,
+        }}
+      >
+        <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
+          {title}
+        </Typography>
         <IconButton onClick={onClose} aria-label="Close filters">
           <X />
         </IconButton>
       </Stack>
       <Divider />
 
-      <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 3, py: 2.5 }}>{children(draft, setDraft)}</Box>
+      <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 3, py: 2.5 }}>
+        {children(draft, setDraft)}
+      </Box>
 
       <Divider />
       <Stack direction="row" spacing={1.5} sx={{ p: 2.5 }}>
-        <Button variant="outlined" color="primary" fullWidth onClick={handleReset}>
+        <Button
+          variant="outlined"
+          color="primary"
+          fullWidth
+          onClick={handleReset}
+        >
           Reset
         </Button>
         <Button variant="contained" fullWidth onClick={handleApply}>

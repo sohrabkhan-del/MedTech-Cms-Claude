@@ -65,9 +65,7 @@ import { WalletListPage } from '@/features/rewardsWallet/pages/WalletListPage'
 import { WalletDetailsPage } from '@/features/rewardsWallet/pages/WalletDetailsPage'
 import { RedemptionListPage } from '@/features/rewardsWallet/pages/RedemptionListPage'
 import { RedemptionDetailsPage } from '@/features/rewardsWallet/pages/RedemptionDetailsPage'
-import { CoinValueRulesListPage } from '@/features/rewardsWallet/pages/CoinValueRulesListPage'
-import { CoinValueRuleDetailsPage } from '@/features/rewardsWallet/pages/CoinValueRuleDetailsPage'
-import { EditBaseCoinValuePage } from '@/features/rewardsWallet/pages/EditBaseCoinValuePage'
+
 import { RegionMultiplierRulesPage } from '@/features/rewardsWallet/pages/RegionMultiplierRulesPage'
 import { AppearanceSettingsPage } from '@/features/settings/pages/AppearanceSettingsPage'
 import { ProfileSettingsPage } from '@/features/settings/pages/ProfileSettingsPage'
@@ -118,7 +116,8 @@ import { getSchemeById } from '@/features/schemeManagement/mockSchemes'
 import { getGiftById } from '@/features/schemeManagement/mockGifts'
 import { getWalletById } from '@/features/rewardsWallet/mockWallets'
 import { getRedemptionRequestById } from '@/features/rewardsWallet/mockRedemptions'
-import { getCoinValueRuleById } from '@/features/rewardsWallet/mockCoinRules'
+import { getPointValueRuleById } from '@/features/rewardsWallet/mockPointRules'
+
 import { getAdminById } from '@/features/systemUsers/mockAdmins'
 import { getMedicalRepById } from '@/features/systemUsers/mockMedicalReps'
 import { getProductCategoryById } from '@/features/masters/mockMasters'
@@ -133,6 +132,9 @@ import { getMrPerformanceReportById } from '@/features/reportsAnalytics/mockMrPe
 import { getProductReportById } from '@/features/reportsAnalytics/mockProductReports'
 import { getSchemeReportById } from '@/features/reportsAnalytics/mockSchemeReports'
 import { getNotificationById } from '@/features/notifications/mockNotifications'
+import { PointValueRulesListPage } from '@/features/rewardsWallet/pages/PointValueRulesListPage'
+import { PointValueRuleDetailsPage } from '@/features/rewardsWallet/pages/PointValueRuleDetailsPage'
+import { EditBasePointValuePage } from '@/features/rewardsWallet/pages/EditBasePointValuePage'
 
 const CUSTOM_PATHS = new Set([
   '/dashboard',
@@ -154,9 +156,9 @@ const CUSTOM_PATHS = new Set([
   '/scheme-management/gift-catalogue',
   '/rewards-wallet/wallet-management',
   '/rewards-wallet/reward-redemptions',
-  '/rewards-wallet/coin-value-rules/all',
-  '/rewards-wallet/coin-value-rules/dealer',
-  '/rewards-wallet/coin-value-rules/chemist',
+  '/rewards-wallet/point-value-rules/all',
+  '/rewards-wallet/point-value-rules/dealer',
+  '/rewards-wallet/point-value-rules/chemist',
   '/settings/general',
   '/settings/profile',
   '/system-users/admin',
@@ -248,8 +250,8 @@ registerDetailRoute({
   resolveEntityName: (id) => getRedemptionRequestById(id)?.rewardItem,
 })
 registerDetailRoute({
-  parentPath: '/rewards-wallet/coin-value-rules',
-  resolveEntityName: (id) => getCoinValueRuleById(id)?.modelCode,
+  parentPath: '/rewards-wallet/point-value-rules',
+  resolveEntityName: (id) => getPointValueRuleById(id)?.modelCode,
 })
 registerDetailRoute({
   parentPath: '/system-users/admin',
@@ -546,28 +548,28 @@ export function AppRouter() {
             element={<RedemptionDetailsPage />}
           />
           <Route
-            path="/rewards-wallet/coin-value-rules/all"
-            element={<CoinValueRulesListPage />}
+            path="/rewards-wallet/point-value-rules/all"
+            element={<PointValueRulesListPage />}
           />
           <Route
-            path="/rewards-wallet/coin-value-rules/dealer"
-            element={<CoinValueRulesListPage />}
+            path="/rewards-wallet/point-value-rules/dealer"
+            element={<PointValueRulesListPage />}
           />
           <Route
-            path="/rewards-wallet/coin-value-rules/chemist"
-            element={<CoinValueRulesListPage />}
+            path="/rewards-wallet/point-value-rules/chemist"
+            element={<PointValueRulesListPage />}
           />
           <Route
-            path="/rewards-wallet/coin-value-rules/region-multipliers"
+            path="/rewards-wallet/point-value-rules/region-multipliers"
             element={<RegionMultiplierRulesPage />}
           />
           <Route
-            path="/rewards-wallet/coin-value-rules/:ruleId"
-            element={<CoinValueRuleDetailsPage />}
+            path="/rewards-wallet/point-value-rules/:ruleId"
+            element={<PointValueRuleDetailsPage />}
           />
           <Route
-            path="/rewards-wallet/coin-value-rules/:ruleId/edit-base-value"
-            element={<EditBaseCoinValuePage />}
+            path="/rewards-wallet/point-value-rules/:ruleId/edit-base-value"
+            element={<EditBasePointValuePage />}
           />
           <Route
             path="/settings/general"

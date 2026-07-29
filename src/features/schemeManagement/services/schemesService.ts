@@ -12,7 +12,11 @@ import {
 } from '@/features/schemeManagement/mockSchemes'
 import { mockGifts } from '@/features/schemeManagement/mockGifts'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
-import type { Scheme, SchemeFormValues, SchemeStatus } from '@/features/schemeManagement/types/schemeManagement.types'
+import type {
+  Scheme,
+  SchemeFormValues,
+  SchemeStatus,
+} from '@/features/schemeManagement/types/schemeManagement.types'
 import { mockDelay } from '@/services/mockDelay'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
@@ -74,11 +78,16 @@ async function getSchemeFormOptions() {
 function isNameTaken(name: string, excludeId?: string): boolean {
   const normalized = name.trim().toLowerCase()
   return [...mockGeneralSchemes, ...mockSeasonalSchemes].some(
-    (scheme) => scheme.id !== excludeId && scheme.name.trim().toLowerCase() === normalized,
+    (scheme) =>
+      scheme.id !== excludeId &&
+      scheme.name.trim().toLowerCase() === normalized,
   )
 }
 
-async function checkNameAvailable(name: string, excludeId?: string): Promise<boolean> {
+async function checkNameAvailable(
+  name: string,
+  excludeId?: string,
+): Promise<boolean> {
   return mockDelay(!isNameTaken(name, excludeId), 300)
 }
 
@@ -88,7 +97,10 @@ async function createScheme(_values: SchemeFormValues): Promise<void> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- other fields document the future real contract
-async function updateScheme(id: string, values: SchemeFormValues): Promise<void> {
+async function updateScheme(
+  id: string,
+  values: SchemeFormValues,
+): Promise<void> {
   setSchemeStatus(id, values.status)
   return Promise.resolve()
 }
@@ -98,7 +110,10 @@ async function deleteScheme(_id: string): Promise<void> {
   return Promise.resolve()
 }
 
-async function updateSchemeStatus(id: string, status: SchemeStatus): Promise<Scheme | undefined> {
+async function updateSchemeStatus(
+  id: string,
+  status: SchemeStatus,
+): Promise<Scheme | undefined> {
   return mockDelay(setSchemeStatus(id, status), 300)
 }
 

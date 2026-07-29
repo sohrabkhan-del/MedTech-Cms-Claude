@@ -67,12 +67,12 @@ const redemptionColumns: CommonTableColumn<GiftRedemptionEntry>[] = [
     render: (row) => row.userType,
   },
   {
-    key: 'coinsUsed',
-    header: 'Coins Used',
+    key: 'PointsUsed',
+    header: 'Points Used',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.coinsUsed,
-    render: (row) => row.coinsUsed.toLocaleString('en-IN'),
+    sortValue: (row) => row.PointsUsed,
+    render: (row) => row.PointsUsed.toLocaleString('en-IN'),
   },
   {
     key: 'redemptionDate',
@@ -262,8 +262,8 @@ export function GiftDetailsPage() {
                 value: `₹${gift.price.toLocaleString('en-IN')}`,
               },
               {
-                label: 'Required Coins',
-                value: gift.requiredCoins.toLocaleString('en-IN'),
+                label: 'Required Points',
+                value: gift.requiredPoints.toLocaleString('en-IN'),
               },
               { label: 'Eligible User Type', value: gift.eligibleUserType },
               {
@@ -288,7 +288,9 @@ export function GiftDetailsPage() {
                     },
                     {
                       label: 'Dealer Base Points',
-                      value: (gift.dealerBasePoints ?? 0).toLocaleString('en-IN'),
+                      value: (gift.dealerBasePoints ?? 0).toLocaleString(
+                        'en-IN',
+                      ),
                     },
                   ]
                 : []),
@@ -300,7 +302,9 @@ export function GiftDetailsPage() {
                     },
                     {
                       label: 'Chemist Base Points',
-                      value: (gift.chemistBasePoints ?? 0).toLocaleString('en-IN'),
+                      value: (gift.chemistBasePoints ?? 0).toLocaleString(
+                        'en-IN',
+                      ),
                     },
                   ]
                 : []),
@@ -353,8 +357,8 @@ export function GiftDetailsPage() {
                         value: `₹${gift.price.toLocaleString('en-IN')}`,
                       },
                       {
-                        label: 'Coin Value',
-                        value: gift.requiredCoins.toLocaleString('en-IN'),
+                        label: 'Point Value',
+                        value: gift.requiredPoints.toLocaleString('en-IN'),
                       },
                       {
                         label: 'Available Quantity',

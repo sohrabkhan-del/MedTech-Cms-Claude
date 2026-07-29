@@ -18,20 +18,20 @@ import { mockDelay } from '@/services/mockDelay'
 // no-ops resolving immediately so the UI/hook contract is stable ahead of time.
 
 /**
- * TODO: wire into the real points ledger once it exists.
+ * TODO: wire into the real Points ledger once it exists.
  *
- * Rule: a Seasonal scheme is a walled-off points bucket. Points a partner earns
+ * Rule: a Seasonal scheme is a walled-off Points bucket. Points a partner earns
  * after enrolling in a seasonal scheme can only be redeemed against gift products
  * attached to THAT SAME seasonal scheme — they never fall back to (or combine with)
- * the partner's general points pool. A General scheme has no such restriction: its
- * points behave like the partner's normal, unrestricted balance.
+ * the partner's general Points pool. A General scheme has no such restriction: its
+ * Points behave like the partner's normal, unrestricted balance.
  *
  * When the ledger is implemented, every redemption must resolve which bucket it is
  * drawing from — `schemeId: null` (general pool) or a specific seasonal `schemeId` —
  * and this function is where that source-scheme check belongs:
  *   1. If `sourceSchemeId` is a seasonal scheme, the target product must be one of
  *      that scheme's attached products (`Scheme.products[].productId`), and the
- *      points spent must come only from that scheme's earned balance.
+ *      Points spent must come only from that scheme's earned balance.
  *   2. If `sourceSchemeId` is null/general (or a general scheme), normal unrestricted
  *      redemption applies.
  */

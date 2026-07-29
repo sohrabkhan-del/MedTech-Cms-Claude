@@ -8,7 +8,14 @@ import type {
   WalletUserType,
 } from '@/types/wallet'
 
-export type { WalletStatus, WalletUserType, WalletTransaction, WalletRedemptionEntry, WalletTimelineEntry, FraudAdjustmentEntry }
+export type {
+  WalletStatus,
+  WalletUserType,
+  WalletTransaction,
+  WalletRedemptionEntry,
+  WalletTimelineEntry,
+  FraudAdjustmentEntry,
+}
 
 export interface WalletReportRow {
   id: string
@@ -31,7 +38,7 @@ export interface WalletReportManualAdjustment {
   id: string
   date: string
   type: 'credit' | 'debit'
-  coins: number
+  Points: number
   reason: string
   performedBy: string
 }
@@ -41,7 +48,7 @@ export interface WalletReportDetails extends WalletReportRow {
   email: string
   lifetimeEarned: number
   lifetimeRedeemed: number
-  pendingRedemptionCoins: number
+  pendingRedemptionPoints: number
   transactions: WalletTransaction[]
   manualAdjustments: WalletReportManualAdjustment[]
   redemptionHistory: WalletRedemptionEntry[]

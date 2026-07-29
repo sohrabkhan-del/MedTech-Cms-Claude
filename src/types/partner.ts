@@ -16,7 +16,7 @@ export interface PointsHistoryEntry {
   transactionId: string
   date: string
   type: 'credit' | 'debit'
-  points: number
+  Points: number
   description: string
   balanceAfter: number
 }
@@ -57,7 +57,7 @@ export interface PartnerBase {
   status: PartnerStatus
   licenseNumber: string
   onboardedBy: OnboardedBy
-  availableCoins: number
+  availablePoints: number
   assignedMr: string
   notes?: string
   geoLock: GeoLockDetails
@@ -65,7 +65,7 @@ export interface PartnerBase {
   totalScans: number
   totalRedemptions: number
   scanHistory: ScanHistoryEntry[]
-  pointsHistory: PointsHistoryEntry[]
+  PointsHistory: PointsHistoryEntry[]
   interestedProducts: InterestedProductEntry[]
   documents: LicenseDocument[]
 }

@@ -35,7 +35,9 @@ export function FactoryUploadListPage() {
     isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
-  const [statFilter, setStatFilter] = useState<'all' | 'containers' | 'rejected'>('all')
+  const [statFilter, setStatFilter] = useState<
+    'all' | 'containers' | 'rejected'
+  >('all')
   const [appliedFilters, setAppliedFilters] = useState<BatchFilters>({
     fromDate: '',
     toDate: '',
@@ -50,8 +52,10 @@ export function FactoryUploadListPage() {
   }
 
   const displayedBatches = useMemo(() => {
-    if (statFilter === 'containers') return batches.filter((b) => b.totalContainers > 0)
-    if (statFilter === 'rejected') return batches.filter((b) => b.totalRejected > 0)
+    if (statFilter === 'containers')
+      return batches.filter((b) => b.totalContainers > 0)
+    if (statFilter === 'rejected')
+      return batches.filter((b) => b.totalRejected > 0)
     return batches
   }, [batches, statFilter])
 

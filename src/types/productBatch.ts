@@ -9,7 +9,7 @@ export interface ProductBatch {
   batchNo: string
   serialRangeStart: string
   serialRangeEnd: string
-  coinValue: number
+  PointValue: number
   scanStatus: BatchScanStatus
   totalScans: number
   activeStatus: BatchActiveStatus
@@ -44,8 +44,8 @@ export interface ScanStatistics {
 }
 
 export interface RewardSummary {
-  baseCoinValue: number
-  bonusCoins: number
+  basePointValue: number
+  bonusPoints: number
   appliedScheme: string
   totalRewardPointsIssued: number
 }
@@ -125,7 +125,7 @@ export interface ProductionBatch {
   totalPackages: number
   qrBarcodeGenerated: boolean
   totalScans: number
-  coinValue: number
+  PointValue: number
   status: BatchActiveStatus
 
   qrBarcodeInfo: QrBarcodeInfo

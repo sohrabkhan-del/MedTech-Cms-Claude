@@ -56,7 +56,7 @@ export function LeaderboardWidget({
             spacing={1.5}
             sx={{
               alignItems: 'center',
-              cursor: entry.linkTo ? 'pointer' : 'default',
+              cursor: entry.linkTo ? 'Pointer' : 'default',
               borderRadius: 1.5,
               px: 1,
               py: 0.5,
@@ -111,7 +111,7 @@ export function LeaderboardWidget({
                 flexShrink: 0,
               }}
             >
-              {`${entry.points.toLocaleString('en-IN')} `}
+              {`${entry.Points.toLocaleString('en-IN')} `}
             </Typography>
           </Stack>
         ))}

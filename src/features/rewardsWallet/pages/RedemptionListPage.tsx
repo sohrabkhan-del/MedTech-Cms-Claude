@@ -9,7 +9,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { Redo2, Clock3, CheckCheck, Coins } from 'lucide-react'
+import { Redo2, Clock3, CheckCheck, Coins as Points } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
@@ -125,12 +125,12 @@ export function RedemptionListPage() {
       render: (row) => row.rewardItem,
     },
     {
-      key: 'coinsUsed',
-      header: 'Coins Used',
+      key: 'PointsUsed',
+      header: 'Points Used',
       align: 'center',
       sortable: true,
-      sortValue: (row) => row.coinsUsed,
-      render: (row) => row.coinsUsed.toLocaleString('en-IN'),
+      sortValue: (row) => row.PointsUsed,
+      render: (row) => row.PointsUsed.toLocaleString('en-IN'),
     },
     {
       key: 'requestDate',
@@ -211,9 +211,9 @@ export function RedemptionListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Coins Redeemed"
-              value={(kpis?.coinsRedeemed ?? 0).toLocaleString('en-IN')}
-              icon={<Coins size={20} />}
+              label="Points Redeemed"
+              value={(kpis?.PointsRedeemed ?? 0).toLocaleString('en-IN')}
+              icon={<Points size={20} />}
               iconColor="secondary"
             />
           )}

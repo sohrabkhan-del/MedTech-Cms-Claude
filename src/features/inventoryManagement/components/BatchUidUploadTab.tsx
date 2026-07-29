@@ -14,6 +14,7 @@ import {
 import {
   Boxes,
   CircleCheck,
+  Download,
   FileSpreadsheet,
   Layers,
   ListChecks,
@@ -33,6 +34,8 @@ import {
 import { Toast } from '@/components/common/Toast/Toast'
 import {
   buildMappedBatches,
+  downloadBmrUploadTemplate,
+  downloadMasterCartonLinkTemplate,
   generateUidsForBatch,
   parseBmrFile,
   parseMasterCartonFile,
@@ -390,6 +393,28 @@ export function BatchUidUploadTab({
             subtitle="Upload the daily BMR (.xlsx / .xls). Batches and UIDs will be validated after both files are selected."
           />
           <SectionCard title="BMR File">
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{ justifyContent: 'flex-end', mb: 1.5, flexWrap: 'wrap', rowGap: 1 }}
+            >
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Download size={16} />}
+                onClick={downloadBmrUploadTemplate}
+              >
+                Download BMR Template
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Download size={16} />}
+                onClick={downloadMasterCartonLinkTemplate}
+              >
+                Download Carton Linkage Template
+              </Button>
+            </Stack>
             <FileDropzone
               file={bmrFile}
               onSelect={(f) => {
@@ -424,6 +449,19 @@ export function BatchUidUploadTab({
             subtitle="Upload the linkage file (UID, Master Carton Number). Reference-only for now — this will be replaced by real line-side scan data."
           />
           <SectionCard title="Master Carton Linkage File">
+            <Stack
+              direction="row"
+              sx={{ justifyContent: 'flex-end', mb: 1.5 }}
+            >
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Download size={16} />}
+                onClick={downloadMasterCartonLinkTemplate}
+              >
+                Download Carton Linkage Template
+              </Button>
+            </Stack>
             <FileDropzone
               file={cartonFile}
               onSelect={(f) => {

@@ -71,12 +71,13 @@ export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
               spacing={1.5}
               sx={{
                 alignItems: 'center',
-                cursor: scan.linkTo ? 'pointer' : 'default',
+                cursor: scan.linkTo ? 'Pointer' : 'default',
                 p: 1,
                 m: -1,
                 borderRadius: 1.5,
                 border: '1px solid transparent',
-                transition: 'border-color 0.15s ease, background-color 0.15s ease',
+                transition:
+                  'border-color 0.15s ease, background-color 0.15s ease',
                 ...(scan.linkTo && {
                   '&:hover': {
                     borderColor: 'primary.main',
@@ -118,11 +119,7 @@ export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
                 spacing={0.5}
               >
                 <StatusBadge status={scan.result} />
-                <Typography
-                  variant="caption"
-                  noWrap
-                  sx={{ maxWidth: '100%' }}
-                >
+                <Typography variant="caption" noWrap sx={{ maxWidth: '100%' }}>
                   {scan.time}
                 </Typography>
               </Stack>

@@ -1,6 +1,7 @@
 export type RedemptionUserType = 'Dealer' | 'Chemist'
 export type RedemptionStatus = 'pending' | 'approved' | 'rejected' | 'completed'
-export type RedemptionDeliveryStatus = 'pending' | 'packed' | 'shipped' | 'delivered' | 'cancelled'
+export type RedemptionDeliveryStatus =
+  'pending' | 'packed' | 'shipped' | 'delivered' | 'cancelled'
 
 export type RedemptionTimelineActivity =
   | 'Redemption Request Created'
@@ -21,7 +22,7 @@ export interface RedemptionTimelineEntry {
 export interface RedemptionHistoryEntry {
   id: string
   rewardItem: string
-  coinsUsed: number
+  PointsUsed: number
   requestDate: string
   approvalDate: string | null
   deliveryDate: string | null
@@ -42,7 +43,7 @@ export interface RedemptionRequest {
   rewardItem: string
   rewardCategory: string
   quantity: number
-  coinsUsed: number
+  PointsUsed: number
   requestDate: string
   expectedDeliveryDate: string
 

@@ -1,5 +1,12 @@
 import type { ReactNode } from 'react'
-import { Box, Card, CardContent, Stack, Tooltip, Typography } from '@mui/material'
+import {
+  Box,
+  Card,
+  CardContent,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import { ArrowUp, ArrowDown } from 'lucide-react'
 import { radius, shadows, transitions } from '@/theme/tokens'
 
@@ -16,13 +23,20 @@ interface StatCardProps {
   onClick?: () => void
 }
 
-export function StatCard({ label, value, icon, iconColor = 'primary', trend, onClick }: StatCardProps) {
+export function StatCard({
+  label,
+  value,
+  icon,
+  iconColor = 'primary',
+  trend,
+  onClick,
+}: StatCardProps) {
   return (
     <Card
       onClick={onClick}
       sx={{
         height: '100%',
-        cursor: onClick ? 'pointer' : 'default',
+        cursor: onClick ? 'Pointer' : 'default',
         '&:hover': {
           boxShadow: shadows.cardHover,
           transform: 'translateY(-2px)',
@@ -30,7 +44,14 @@ export function StatCard({ label, value, icon, iconColor = 'primary', trend, onC
       }}
     >
       <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-        <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', mb: 1 }}>
+        <Stack
+          direction="row"
+          sx={{
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            mb: 1,
+          }}
+        >
           <Tooltip title={label}>
             <Typography
               variant="caption"
@@ -91,7 +112,8 @@ export function StatCard({ label, value, icon, iconColor = 'primary', trend, onC
               sx={{
                 alignItems: 'center',
                 color: trend.direction === 'up' ? 'success.main' : 'error.main',
-                backgroundColor: trend.direction === 'up' ? 'success.light' : 'error.light',
+                backgroundColor:
+                  trend.direction === 'up' ? 'success.light' : 'error.light',
                 borderRadius: '999px',
                 px: 0.75,
                 py: 0.25,
@@ -102,7 +124,9 @@ export function StatCard({ label, value, icon, iconColor = 'primary', trend, onC
               ) : (
                 <ArrowDown size={12} />
               )}
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700 }}>{trend.value}</Typography>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700 }}>
+                {trend.value}
+              </Typography>
             </Stack>
             {trend.caption && (
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>

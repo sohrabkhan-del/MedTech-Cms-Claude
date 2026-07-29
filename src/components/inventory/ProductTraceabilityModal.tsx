@@ -10,7 +10,13 @@ interface ProductTraceabilityModalProps {
   product: BoxProduct | null
 }
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
+function Group({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <Stack spacing={1.5}>
       <Typography sx={sectionTitleSx}>{title}</Typography>
@@ -19,11 +25,21 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   )
 }
 
-export function ProductTraceabilityModal({ open, onClose, product }: ProductTraceabilityModalProps) {
+export function ProductTraceabilityModal({
+  open,
+  onClose,
+  product,
+}: ProductTraceabilityModalProps) {
   if (!product) return null
 
   return (
-    <Modal open={open} onClose={onClose} title={`Product ${product.serialNumber}`} description={product.barcodeNumber} maxWidth="md">
+    <Modal
+      open={open}
+      onClose={onClose}
+      title={`Product ${product.serialNumber}`}
+      description={product.barcodeNumber}
+      maxWidth="md"
+    >
       <Stack spacing={3} sx={{ py: 1 }}>
         <Group title="Identity">
           <DetailFieldGrid
@@ -40,9 +56,18 @@ export function ProductTraceabilityModal({ open, onClose, product }: ProductTrac
           <DetailFieldGrid
             fields={[
               { label: 'Allocated Dealer', value: product.allocatedDealer },
-              { label: 'Dealer Allocation Date', value: product.dealerAllocationDate },
+              {
+                label: 'Dealer Allocation Date',
+                value: product.dealerAllocationDate,
+              },
               { label: 'Dealer Code', value: product.dealerCode },
-              { label: 'Allocation Status', value: product.dealerAllocationStatus === 'allocated' ? 'Allocated' : 'Pending' },
+              {
+                label: 'Allocation Status',
+                value:
+                  product.dealerAllocationStatus === 'allocated'
+                    ? 'Allocated'
+                    : 'Pending',
+              },
             ]}
           />
         </Group>
@@ -53,7 +78,10 @@ export function ProductTraceabilityModal({ open, onClose, product }: ProductTrac
           <DetailFieldGrid
             fields={[
               { label: 'Allocated Chemist', value: product.allocatedChemist },
-              { label: 'Chemist Allocation Date', value: product.chemistAllocationDate },
+              {
+                label: 'Chemist Allocation Date',
+                value: product.chemistAllocationDate,
+              },
               { label: 'Chemist Code', value: product.chemistCode },
               { label: 'Current Holder', value: product.currentHolder },
             ]}
@@ -66,7 +94,10 @@ export function ProductTraceabilityModal({ open, onClose, product }: ProductTrac
           <DetailFieldGrid
             fields={[
               { label: 'Current Status', value: product.currentStatus },
-              { label: 'Scan Status', value: product.scanStatus.replace('_', ' ') },
+              {
+                label: 'Scan Status',
+                value: product.scanStatus.replace('_', ' '),
+              },
               { label: 'Reward Points', value: product.rewardPoints },
               { label: 'Last Scan Date', value: product.lastScanDate },
             ]}
@@ -84,7 +115,10 @@ export function ProductTraceabilityModal({ open, onClose, product }: ProductTrac
               { label: 'Scan Location', value: product.scanLocation },
               { label: 'Geo-fence Status', value: product.geoFenceStatus },
               { label: 'Scan Result', value: product.scanResult },
-              { label: 'Reward Points Earned', value: product.rewardPointsEarned },
+              {
+                label: 'Reward Points Earned',
+                value: product.rewardPointsEarned,
+              },
             ]}
           />
         </Group>
@@ -94,10 +128,19 @@ export function ProductTraceabilityModal({ open, onClose, product }: ProductTrac
         <Group title="Reward Information">
           <DetailFieldGrid
             fields={[
-              { label: 'Dealer Reward Points', value: product.dealerRewardPoints },
-              { label: 'Chemist Reward Points', value: product.chemistRewardPoints },
+              {
+                label: 'Dealer Reward Points',
+                value: product.dealerRewardPoints,
+              },
+              {
+                label: 'Chemist Reward Points',
+                value: product.chemistRewardPoints,
+              },
               { label: 'Reward Scheme', value: product.rewardScheme },
-              { label: 'Wallet Transaction ID', value: product.walletTransactionId },
+              {
+                label: 'Wallet Transaction ID',
+                value: product.walletTransactionId,
+              },
               { label: 'Redemption Status', value: product.redemptionStatus },
             ]}
           />

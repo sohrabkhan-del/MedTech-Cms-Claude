@@ -1,6 +1,13 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
-import { ScanLine, ArrowLeft as ArrowBackOutlined, Coins, MapPin, Wallet as WalletIcon, CheckCircle2 } from 'lucide-react'
+import {
+  ScanLine,
+  ArrowLeft as ArrowBackOutlined,
+  Coins as Points,
+  MapPin,
+  Wallet as WalletIcon,
+  CheckCircle2,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
@@ -8,15 +15,24 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useScanReportDetail } from '@/features/reportsAnalytics/hooks/useScanReportDetail'
-import type { ScanReportResult, ScanReportWalletStatus } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
+import type {
+  ScanReportResult,
+  ScanReportWalletStatus,
+} from '@/features/reportsAnalytics/types/reportsAnalytics.types'
 
-const resultConfig: Record<ScanReportResult, { label: string; color: 'success' | 'warning' | 'error' }> = {
+const resultConfig: Record<
+  ScanReportResult,
+  { label: string; color: 'success' | 'warning' | 'error' }
+> = {
   valid: { label: 'Valid', color: 'success' },
   duplicate: { label: 'Duplicate', color: 'warning' },
   invalid: { label: 'Invalid', color: 'error' },
 }
 
-const walletStatusConfig: Record<ScanReportWalletStatus, { label: string; color: 'success' | 'warning' | 'error' }> = {
+const walletStatusConfig: Record<
+  ScanReportWalletStatus,
+  { label: string; color: 'success' | 'warning' | 'error' }
+> = {
   credited: { label: 'Credited', color: 'success' },
   pending: { label: 'Pending', color: 'warning' },
   failed: { label: 'Failed', color: 'error' },
@@ -44,7 +60,16 @@ export function ScanReportDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -63,7 +88,11 @@ export function ScanReportDetailsPage() {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{report.barcodeNumber}</Typography>
-              <Chip size="small" label={resultConfig[report.scanResult].label} color={resultConfig[report.scanResult].color} />
+              <Chip
+                size="small"
+                label={resultConfig[report.scanResult].label}
+                color={resultConfig[report.scanResult].color}
+              />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {report.id} · {report.productName}
@@ -71,7 +100,12 @@ export function ScanReportDetailsPage() {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          <Button variant="outlined" startIcon={<ArrowBackOutlined size={18} />} onClick={() => navigate('/reports/scan-reports')} sx={{ fontSize: '0.8125rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackOutlined size={18} />}
+            onClick={() => navigate('/reports/scan-reports')}
+            sx={{ fontSize: '0.8125rem' }}
+          >
             Back
           </Button>
         </Stack>
@@ -80,16 +114,42 @@ export function ScanReportDetailsPage() {
       <Stack spacing={3}>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Scan Result" value={resultConfig[report.scanResult].label} icon={<CheckCircle2 size={20} />} iconColor={report.scanResult === 'valid' ? 'success' : 'error'} />
+            <StatCard
+              label="Scan Result"
+              value={resultConfig[report.scanResult].label}
+              icon={<CheckCircle2 size={20} />}
+              iconColor={report.scanResult === 'valid' ? 'success' : 'error'}
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Reward Points" value={report.rewardPoints.toLocaleString('en-IN')} icon={<Coins size={20} />} iconColor="secondary" />
+            <StatCard
+              label="Reward Points"
+              value={report.rewardPoints.toLocaleString('en-IN')}
+              icon={<Points size={20} />}
+              iconColor="secondary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Wallet Status" value={walletStatusConfig[report.walletStatus].label} icon={<WalletIcon size={20} />} iconColor={report.walletStatus === 'credited' ? 'success' : report.walletStatus === 'pending' ? 'warning' : 'error'} />
+            <StatCard
+              label="Wallet Status"
+              value={walletStatusConfig[report.walletStatus].label}
+              icon={<WalletIcon size={20} />}
+              iconColor={
+                report.walletStatus === 'credited'
+                  ? 'success'
+                  : report.walletStatus === 'pending'
+                    ? 'warning'
+                    : 'error'
+              }
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Scan Location" value={report.locationName} icon={<MapPin size={20} />} iconColor="primary" />
+            <StatCard
+              label="Scan Location"
+              value={report.locationName}
+              icon={<MapPin size={20} />}
+              iconColor="primary"
+            />
           </Grid>
         </Grid>
 
@@ -99,7 +159,16 @@ export function ScanReportDetailsPage() {
               { label: 'Scan ID', value: report.id },
               { label: 'Scan Date & Time', value: report.scanDateTime },
               { label: 'Scan Code', value: report.barcodeNumber },
-              { label: 'Scan Result', value: <Chip size="small" label={resultConfig[report.scanResult].label} color={resultConfig[report.scanResult].color} /> },
+              {
+                label: 'Scan Result',
+                value: (
+                  <Chip
+                    size="small"
+                    label={resultConfig[report.scanResult].label}
+                    color={resultConfig[report.scanResult].color}
+                  />
+                ),
+              },
               { label: 'Device', value: report.device },
               { label: 'IP Address', value: report.ipAddress },
             ]}
@@ -139,18 +208,42 @@ export function ScanReportDetailsPage() {
         <SectionCard title="Reward Calculation">
           <DetailFieldGrid
             fields={[
-              { label: 'Base Reward Points', value: report.baseRewardPoints.toLocaleString('en-IN') },
-              { label: 'Bonus Points', value: report.bonusPoints.toLocaleString('en-IN') },
-              { label: 'Total Reward Points', value: report.rewardPoints.toLocaleString('en-IN') },
+              {
+                label: 'Base Reward Points',
+                value: report.baseRewardPoints.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Bonus Points',
+                value: report.bonusPoints.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Total Reward Points',
+                value: report.rewardPoints.toLocaleString('en-IN'),
+              },
               { label: 'Applied Scheme', value: report.appliedScheme },
-              { label: 'Wallet Status', value: <Chip size="small" label={walletStatusConfig[report.walletStatus].label} color={walletStatusConfig[report.walletStatus].color} /> },
-              { label: 'Wallet Transaction ID', value: report.walletTransactionId ?? '—' },
+              {
+                label: 'Wallet Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={walletStatusConfig[report.walletStatus].label}
+                    color={walletStatusConfig[report.walletStatus].color}
+                  />
+                ),
+              },
+              {
+                label: 'Wallet Transaction ID',
+                value: report.walletTransactionId ?? '—',
+              },
             ]}
           />
         </SectionCard>
 
         <SectionCard title="Scan Timeline">
-          <ActivityTimeline entries={report.timeline} emptyTitle="No timeline activity yet" />
+          <ActivityTimeline
+            entries={report.timeline}
+            emptyTitle="No timeline activity yet"
+          />
         </SectionCard>
       </Stack>
     </>

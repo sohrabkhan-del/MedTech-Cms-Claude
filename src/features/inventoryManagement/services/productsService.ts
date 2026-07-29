@@ -1,5 +1,14 @@
-import { mockProducts, getProductById, productKpis, productCategoryOptions, productFromImportedRow } from '@/features/inventoryManagement/mockProducts'
-import type { Product, ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import {
+  mockProducts,
+  getProductById,
+  productKpis,
+  productCategoryOptions,
+  productFromImportedRow,
+} from '@/features/inventoryManagement/mockProducts'
+import type {
+  Product,
+  ProductFormValues,
+} from '@/features/inventoryManagement/types/inventoryManagement.types'
 import type { ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 import { mockDelay } from '@/services/mockDelay'
 
@@ -29,14 +38,21 @@ async function createProduct(_values: ProductFormValues): Promise<void> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars -- params document the future real contract
-async function updateProduct(_id: string, _values: ProductFormValues): Promise<void> {
+async function updateProduct(
+  _id: string,
+  _values: ProductFormValues,
+): Promise<void> {
   return Promise.resolve()
 }
 
 // Maps parsed xlsx rows onto Product records for the mock store. Real imports
-// will need a backend endpoint that validates/maps columns server-side.
+// will need a backend endPoint that validates/maps columns server-side.
 async function importProducts(parsed: ParsedImportFile): Promise<Product[]> {
-  return mockDelay(parsed.rows.map((row, i) => productFromImportedRow(row, mockProducts.length + i + 1)))
+  return mockDelay(
+    parsed.rows.map((row, i) =>
+      productFromImportedRow(row, mockProducts.length + i + 1),
+    ),
+  )
 }
 
 export const productsService = {

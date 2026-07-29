@@ -89,30 +89,27 @@ function ReadOnlyValue({
 }) {
   const value = useWatch({ control, name })
   return (
-    <Box
-      sx={{
-        height: 40,
-        display: 'flex',
-        alignItems: 'center',
-        px: 1.75,
-        borderRadius: `${radius.md}px`,
-        border: '1px solid',
-        borderColor: 'divider',
-        backgroundColor: 'background.paper',
-        fontSize: '0.8125rem',
-        fontWeight: 600,
-        color: 'text.primary',
-      }}
+    <Typography
+      sx={{ fontSize: '0.8125rem', fontWeight: 600, color: 'text.primary' }}
     >
       {(value as ReactNode) || '—'}
       {value && suffix}
-    </Box>
+    </Typography>
   )
 }
 
 const ALL_PARTNER_TYPES: SchemePartnerType[] = ['Dealer', 'Chemist']
 const ALL_REGIONS: PartnerZone[] = ['East', 'West', 'North', 'South']
 const MULTIPLIER_PRESETS = ['1', '1.5', '2', '2.5', '3']
+
+const SELECT_ALL_PRODUCTS_OPTION: SchemeMasterProductOption = {
+  id: '__select_all__',
+  name: 'Select All',
+  code: '',
+  category: '',
+  dealerRewardPoints: 0,
+  chemistRewardPoints: 0,
+}
 
 function randomMultiplier(): string {
   return MULTIPLIER_PRESETS[
@@ -234,10 +231,12 @@ export function SchemeFormPage() {
       chemistRegions: prefillSource.chemistRegions,
       applicableProducts: prefillSource.applicableProducts.map((p) => ({
         productId: p.productId,
-        dealerBaseCoinValue:
-          p.dealerBaseCoinValue === null ? '' : String(p.dealerBaseCoinValue),
-        chemistBaseCoinValue:
-          p.chemistBaseCoinValue === null ? '' : String(p.chemistBaseCoinValue),
+        dealerBasePointValue:
+          p.dealerBasePointValue === null ? '' : String(p.dealerBasePointValue),
+        chemistBasePointValue:
+          p.chemistBasePointValue === null
+            ? ''
+            : String(p.chemistBasePointValue),
         dealerRegionMultipliers: Object.fromEntries(
           Object.entries(p.dealerRegionMultipliers).map(
             ([region, multiplier]) => [region, String(multiplier)],
@@ -254,14 +253,14 @@ export function SchemeFormPage() {
         dealerRule: rule.dealerRule
           ? {
               price: String(rule.dealerRule.price),
-              points: String(rule.dealerRule.points),
+              Points: String(rule.dealerRule.Points),
               discountPrice: String(rule.dealerRule.discountPrice),
             }
           : null,
         chemistRule: rule.chemistRule
           ? {
               price: String(rule.chemistRule.price),
-              points: String(rule.chemistRule.points),
+              Points: String(rule.chemistRule.Points),
               discountPrice: String(rule.chemistRule.discountPrice),
             }
           : null,
@@ -667,35 +666,80 @@ export function SchemeFormPage() {
               getOptionLabel={(option) => option.name}
               filterOptions={(opts, state) => {
                 const query = state.inputValue.trim().toLowerCase()
-                if (!query) return opts
-                return opts.filter(
-                  (opt) =>
-                    opt.name.toLowerCase().includes(query) ||
-                    opt.code.toLowerCase().includes(query),
+                const filtered = query
+                  ? opts.filter(
+                      (opt) =>
+                        opt.name.toLowerCase().includes(query) ||
+                        opt.code.toLowerCase().includes(query),
+                    )
+                  : opts
+                return filtered.length > 0
+                  ? [SELECT_ALL_PRODUCTS_OPTION, ...filtered]
+                  : filtered
+              }}
+              renderOption={(props, option) => {
+                if (option.id === SELECT_ALL_PRODUCTS_OPTION.id) {
+                  const allSelected =
+                    masterProductOptions.length > 0 &&
+                    masterProductOptions.every((p) =>
+                      attachedProductIds.has(p.id),
+                    )
+                  return (
+                    <Box
+                      component="li"
+                      {...props}
+                      key={option.id}
+                      sx={{ fontWeight: 700 }}
+                    >
+                      <Checkbox
+                        size="small"
+                        checked={allSelected}
+                        indeterminate={
+                          !allSelected && attachedProductIds.size > 0
+                        }
+                        sx={{ mr: 1, p: 0.5 }}
+                      />
+                      {allSelected ? 'Deselect All' : 'Select All'}
+                    </Box>
+                  )
+                }
+                return (
+                  <Box component="li" {...props} key={option.id}>
+                    {option.name} ({option.code})
+                  </Box>
                 )
               }}
-              renderOption={(props, option) => (
-                <Box component="li" {...props} key={option.id}>
-                  {option.name} ({option.code})
-                </Box>
-              )}
               isOptionEqualToValue={(option, value) => option.id === value.id}
               onChange={(_, selected: SchemeMasterProductOption[]) => {
-                const selectedIds = new Set(selected.map((p) => p.id))
+                const selectedAll = selected.some(
+                  (p) => p.id === SELECT_ALL_PRODUCTS_OPTION.id,
+                )
+                const allCurrentlySelected =
+                  masterProductOptions.length > 0 &&
+                  masterProductOptions.every((p) => attachedProductIds.has(p.id))
+                const nextSelection = selectedAll
+                  ? allCurrentlySelected
+                    ? []
+                    : masterProductOptions
+                  : selected.filter(
+                      (p) => p.id !== SELECT_ALL_PRODUCTS_OPTION.id,
+                    )
+
+                const selectedIds = new Set(nextSelection.map((p) => p.id))
                 // Remove rows that were unselected.
                 applicableProductRows.forEach((row, index) => {
                   if (!selectedIds.has(row.productId))
                     removeApplicableProduct(index)
                 })
                 // Append rows for newly selected products.
-                selected.forEach((product) => {
+                nextSelection.forEach((product) => {
                   if (!attachedProductIds.has(product.id)) {
                     appendApplicableProduct({
                       productId: product.id,
-                      dealerBaseCoinValue: partnerTypes.includes('Dealer')
+                      dealerBasePointValue: partnerTypes.includes('Dealer')
                         ? String(product.dealerRewardPoints)
                         : '',
-                      chemistBaseCoinValue: partnerTypes.includes('Chemist')
+                      chemistBasePointValue: partnerTypes.includes('Chemist')
                         ? String(product.chemistRewardPoints)
                         : '',
                       dealerRegionMultipliers: Object.fromEntries(
@@ -797,9 +841,9 @@ export function SchemeFormPage() {
                           </Typography>
                           <Grid container spacing={2}>
                             <Grid size={{ xs: 12, sm: 3 }}>
-                              <FieldLabel>Dealer Base Coin Value</FieldLabel>
+                              <FieldLabel>Dealer Base Point Value</FieldLabel>
                               <ReadOnlyValue
-                                name={`applicableProducts.${index}.dealerBaseCoinValue`}
+                                name={`applicableProducts.${index}.dealerBasePointValue`}
                                 control={control}
                               />
                             </Grid>
@@ -835,9 +879,9 @@ export function SchemeFormPage() {
                           </Typography>
                           <Grid container spacing={2}>
                             <Grid size={{ xs: 12, sm: 3 }}>
-                              <FieldLabel>Chemist Base Coin Value</FieldLabel>
+                              <FieldLabel>Chemist Base Point Value</FieldLabel>
                               <ReadOnlyValue
-                                name={`applicableProducts.${index}.chemistBaseCoinValue`}
+                                name={`applicableProducts.${index}.chemistBasePointValue`}
                                 control={control}
                               />
                             </Grid>
@@ -940,7 +984,7 @@ export function SchemeFormPage() {
                           dealerRule: partnerTypes.includes('Dealer')
                             ? {
                                 price: String(gift.price),
-                                points:
+                                Points:
                                   gift.dealerBasePoints === null
                                     ? ''
                                     : String(gift.dealerBasePoints),
@@ -950,7 +994,7 @@ export function SchemeFormPage() {
                           chemistRule: partnerTypes.includes('Chemist')
                             ? {
                                 price: String(gift.price),
-                                points:
+                                Points:
                                   gift.chemistBasePoints === null
                                     ? ''
                                     : String(gift.chemistBasePoints),
@@ -1058,15 +1102,22 @@ export function SchemeFormPage() {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                               <FieldLabel required>Points</FieldLabel>
-                              <FormField
-                                name={`giftRules.${index}.dealerRule.points`}
-                                control={control}
-                                numeric
-                                disabled={selectedGift?.dealerBasePoints !== null && selectedGift?.dealerBasePoints !== undefined}
-                                placeholder="e.g. 200"
-                                size="small"
-                                fullWidth
-                              />
+                              {selectedGift?.dealerBasePoints !== null &&
+                              selectedGift?.dealerBasePoints !== undefined ? (
+                                <ReadOnlyValue
+                                  name={`giftRules.${index}.dealerRule.Points`}
+                                  control={control}
+                                />
+                              ) : (
+                                <FormField
+                                  name={`giftRules.${index}.dealerRule.Points`}
+                                  control={control}
+                                  numeric
+                                  placeholder="e.g. 200"
+                                  size="small"
+                                  fullWidth
+                                />
+                              )}
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                               <FieldLabel required>Discount Points</FieldLabel>
@@ -1123,15 +1174,22 @@ export function SchemeFormPage() {
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                               <FieldLabel required>Points</FieldLabel>
-                              <FormField
-                                name={`giftRules.${index}.chemistRule.points`}
-                                control={control}
-                                numeric
-                                disabled={selectedGift?.chemistBasePoints !== null && selectedGift?.chemistBasePoints !== undefined}
-                                placeholder="e.g. 150"
-                                size="small"
-                                fullWidth
-                              />
+                              {selectedGift?.chemistBasePoints !== null &&
+                              selectedGift?.chemistBasePoints !== undefined ? (
+                                <ReadOnlyValue
+                                  name={`giftRules.${index}.chemistRule.Points`}
+                                  control={control}
+                                />
+                              ) : (
+                                <FormField
+                                  name={`giftRules.${index}.chemistRule.Points`}
+                                  control={control}
+                                  numeric
+                                  placeholder="e.g. 150"
+                                  size="small"
+                                  fullWidth
+                                />
+                              )}
                             </Grid>
                             <Grid size={{ xs: 12, sm: 4 }}>
                               <FieldLabel required>Discount Points</FieldLabel>

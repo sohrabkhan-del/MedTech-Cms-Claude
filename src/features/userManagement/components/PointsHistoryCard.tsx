@@ -21,11 +21,11 @@ const columns: CommonTableColumn<PointsHistoryEntry>[] = [
     render: (row) => (row.type === 'credit' ? 'Credit' : 'Debit'),
   },
   {
-    key: 'points',
+    key: 'Points',
     header: 'Points Added / Deducted',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.points,
+    sortValue: (row) => row.Points,
     render: (row) => (
       <Typography
         component="span"
@@ -36,7 +36,7 @@ const columns: CommonTableColumn<PointsHistoryEntry>[] = [
         }}
       >
         {row.type === 'credit' ? '+' : '-'}
-        {row.points.toLocaleString('en-IN')}
+        {row.Points.toLocaleString('en-IN')}
       </Typography>
     ),
   },
@@ -63,7 +63,7 @@ export function PointsHistoryCard({
   return (
     <SectionCard title="Points History">
       <CommonTable
-        tableKey="partner-points-history"
+        tableKey="partner-Points-history"
         columns={columns}
         rows={entries}
         getRowId={(row) => row.id}

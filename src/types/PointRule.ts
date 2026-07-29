@@ -1,10 +1,10 @@
-export type CoinRuleRegion = 'North' | 'South' | 'East' | 'West'
-export type CoinRulePartnerType = 'Dealer' | 'Chemist'
-export type CoinRuleStatus = 'active' | 'inactive'
+export type PointRuleRegion = 'North' | 'South' | 'East' | 'West'
+export type PointRulePartnerType = 'Dealer' | 'Chemist'
+export type PointRuleStatus = 'active' | 'inactive'
 
-export interface RegionCoinHistoryEntry {
+export interface RegionPointHistoryEntry {
   id: string
-  region: CoinRuleRegion
+  region: PointRuleRegion
   previousMultiplier: number
   currentMultiplier: number
   previousRewardPoints: number
@@ -16,7 +16,7 @@ export interface RegionCoinHistoryEntry {
 }
 
 export interface RegionMultiplierRow {
-  region: CoinRuleRegion
+  region: PointRuleRegion
   previousMultiplier: number
   currentMultiplier: number
   previousPoints: number
@@ -25,18 +25,18 @@ export interface RegionMultiplierRow {
   currentEffectiveDate: string
 }
 
-export interface CoinValueRule {
+export interface PointValueRule {
   id: string
-  partnerType: CoinRulePartnerType
+  partnerType: PointRulePartnerType
   modelCode: string
   productCategory: string
   productName: string
-  defaultCoinValue: number
-  baseCoinValue: number
-  status: CoinRuleStatus
+  defaultPointValue: number
+  basePointValue: number
+  status: PointRuleStatus
 
   regions: RegionMultiplierRow[]
-  regionalHistory: RegionCoinHistoryEntry[]
+  regionalHistory: RegionPointHistoryEntry[]
 
   lastModifiedBy: string
   lastUpdatedTime: string

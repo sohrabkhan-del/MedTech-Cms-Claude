@@ -64,7 +64,8 @@ export function ChemistListPage() {
     const zoneMatch =
       appliedFilters.zone === 'all' || chemist.zone === appliedFilters.zone
     const statusMatch =
-      appliedFilters.status === 'all' || chemist.status === appliedFilters.status
+      appliedFilters.status === 'all' ||
+      chemist.status === appliedFilters.status
     return regionMatch && zoneMatch && statusMatch
   })
 
@@ -160,13 +161,13 @@ export function ChemistListPage() {
       render: (row) => row.onboardedBy,
     },
     {
-      key: 'availableCoins',
+      key: 'availablePoints',
       header: 'Points Earned',
       minWidth: 100,
       align: 'center',
       sortable: true,
-      sortValue: (row) => row.availableCoins,
-      render: (row) => row.availableCoins.toLocaleString('en-IN'),
+      sortValue: (row) => row.availablePoints,
+      render: (row) => row.availablePoints.toLocaleString('en-IN'),
     },
   ]
 

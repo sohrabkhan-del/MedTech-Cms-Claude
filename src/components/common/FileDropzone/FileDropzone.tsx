@@ -1,7 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { DragEvent } from 'react'
 import { Box, IconButton, Stack, Typography } from '@mui/material'
-import { FileUp as UploadFileOutlined, FileText as DescriptionOutlined, Trash2, CircleCheck as CheckCircleOutlined } from 'lucide-react'
+import {
+  FileUp as UploadFileOutlined,
+  FileText as DescriptionOutlined,
+  Trash2,
+  CircleCheck as CheckCircleOutlined,
+} from 'lucide-react'
 import { radius } from '@/theme/tokens'
 
 function formatFileSize(bytes: number): string {
@@ -20,11 +25,20 @@ interface FileDropzoneProps {
   existingPreview?: { url: string; name: string } | null
 }
 
-export function FileDropzone({ file, onSelect, onRemove, accept, helperText, existingPreview }: FileDropzoneProps) {
+export function FileDropzone({
+  file,
+  onSelect,
+  onRemove,
+  accept,
+  helperText,
+  existingPreview,
+}: FileDropzoneProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [dragActive, setDragActive] = useState(false)
 
-  const isImage = file ? file.type.startsWith('image/') : accept.includes('image')
+  const isImage = file
+    ? file.type.startsWith('image/')
+    : accept.includes('image')
 
   const objectUrl = useMemo(() => {
     if (!file || !isImage) return null
@@ -37,7 +51,8 @@ export function FileDropzone({ file, onSelect, onRemove, accept, helperText, exi
     }
   }, [objectUrl])
 
-  const previewUrl = objectUrl ?? (!file ? existingPreview?.url ?? null : null)
+  const previewUrl =
+    objectUrl ?? (!file ? (existingPreview?.url ?? null) : null)
   const displayName = file?.name ?? existingPreview?.name ?? ''
   const hasSelection = Boolean(file || existingPreview)
 
@@ -71,13 +86,17 @@ export function FileDropzone({ file, onSelect, onRemove, accept, helperText, exi
       onClick={() => !hasSelection && fileInputRef.current?.click()}
       sx={{
         border: '2px dashed',
-        borderColor: dragActive ? 'primary.main' : hasSelection ? 'success.main' : 'divider',
+        borderColor: dragActive
+          ? 'primary.main'
+          : hasSelection
+            ? 'success.main'
+            : 'divider',
         borderRadius: `${radius.lg}px`,
         backgroundColor: dragActive ? 'primary.light' : 'background.default',
         py: hasSelection ? 2.5 : 4,
         px: 3,
         textAlign: 'center',
-        cursor: hasSelection ? 'default' : 'pointer',
+        cursor: hasSelection ? 'default' : 'Pointer',
         transition: 'border-color 150ms, background-color 150ms',
       }}
     >
@@ -114,7 +133,10 @@ export function FileDropzone({ file, onSelect, onRemove, accept, helperText, exi
           </Typography>
         </Stack>
       ) : (
-        <Stack spacing={1.5} sx={{ alignItems: 'stretch', maxWidth: 420, mx: 'auto' }}>
+        <Stack
+          spacing={1.5}
+          sx={{ alignItems: 'stretch', maxWidth: 420, mx: 'auto' }}
+        >
           {isImage && previewUrl ? (
             <Box
               sx={{
@@ -163,14 +185,24 @@ export function FileDropzone({ file, onSelect, onRemove, accept, helperText, exi
             </Box>
           ) : null}
 
-          <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', textAlign: 'left' }}>
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ alignItems: 'center', textAlign: 'left' }}
+          >
             {!isImage && (
-              <Box component="span" sx={{ display: 'inline-flex', color: 'primary.main' }}>
+              <Box
+                component="span"
+                sx={{ display: 'inline-flex', color: 'primary.main' }}
+              >
                 <DescriptionOutlined />
               </Box>
             )}
             <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }} noWrap>
+              <Typography
+                sx={{ fontWeight: 600, fontSize: '0.8125rem' }}
+                noWrap
+              >
                 {displayName}
               </Typography>
               {file && (
@@ -208,7 +240,9 @@ export function FileDropzone({ file, onSelect, onRemove, accept, helperText, exi
             }}
           >
             <CheckCircleOutlined size={20} />
-            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>File selected</Typography>
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+              File selected
+            </Typography>
           </Stack>
         </Stack>
       )}

@@ -73,10 +73,10 @@ const historyColumns: CommonTableColumn<RedemptionHistoryEntry>[] = [
     render: (row) => row.rewardItem,
   },
   {
-    key: 'coinsUsed',
-    header: 'Coins Used',
+    key: 'PointsUsed',
+    header: 'Points Used',
     align: 'center',
-    render: (row) => row.coinsUsed.toLocaleString('en-IN'),
+    render: (row) => row.PointsUsed.toLocaleString('en-IN'),
   },
   {
     key: 'requestDate',
@@ -316,8 +316,8 @@ export function RedemptionDetailsPage() {
               { label: 'Reward Item', value: request.rewardItem },
               { label: 'Reward Category', value: request.rewardCategory },
               {
-                label: 'Coins Used',
-                value: request.coinsUsed.toLocaleString('en-IN'),
+                label: 'Points Used',
+                value: request.PointsUsed.toLocaleString('en-IN'),
               },
               {
                 label: 'Current Wallet Balance',
@@ -344,8 +344,8 @@ export function RedemptionDetailsPage() {
               <StatCardSkeleton />
             ) : (
               <StatCard
-                label="Coins Redeemed"
-                value={request.coinsUsed.toLocaleString('en-IN')}
+                label="Points Redeemed"
+                value={request.PointsUsed.toLocaleString('en-IN')}
                 icon={<Redo2 size={20} />}
                 iconColor="primary"
               />
@@ -398,8 +398,8 @@ export function RedemptionDetailsPage() {
               { label: 'Reward Category', value: request.rewardCategory },
               { label: 'Quantity', value: request.quantity },
               {
-                label: 'Coins Redeemed',
-                value: request.coinsUsed.toLocaleString('en-IN'),
+                label: 'Points Redeemed',
+                value: request.PointsUsed.toLocaleString('en-IN'),
               },
               {
                 label: 'Current Wallet Balance',
@@ -442,8 +442,8 @@ export function RedemptionDetailsPage() {
                 value: request.currentWalletBalance.toLocaleString('en-IN'),
               },
               {
-                label: 'Coins Redeemed',
-                value: request.coinsUsed.toLocaleString('en-IN'),
+                label: 'Points Redeemed',
+                value: request.PointsUsed.toLocaleString('en-IN'),
               },
               {
                 label: 'Remaining Balance',

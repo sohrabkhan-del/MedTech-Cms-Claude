@@ -22,7 +22,12 @@ function isGroupActive(group: MenuGroup, pathname: string): boolean {
   )
 }
 
-export function SidebarGroup({ group, railMode, palette, badgeOverrides }: SidebarGroupProps) {
+export function SidebarGroup({
+  group,
+  railMode,
+  palette,
+  badgeOverrides,
+}: SidebarGroupProps) {
   const location = useLocation()
   const [open, setOpen] = useState(() =>
     isGroupActive(group, location.pathname),
@@ -41,7 +46,7 @@ export function SidebarGroup({ group, railMode, palette, badgeOverrides }: Sideb
             px: 2.5,
             pt: 1,
             pb: 0.5,
-            cursor: isCollapsible ? 'pointer' : 'default',
+            cursor: isCollapsible ? 'Pointer' : 'default',
             userSelect: 'none',
           }}
         >

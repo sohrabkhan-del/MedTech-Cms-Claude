@@ -1,7 +1,20 @@
-import type { InterestedProductEntry, PartnerStatus, PartnerZone, PointsHistoryEntry, ScanHistoryEntry } from '@/types/partner'
+import type {
+  InterestedProductEntry,
+  PartnerStatus,
+  PartnerZone,
+  PointsHistoryEntry,
+  ScanHistoryEntry,
+} from '@/types/partner'
 import type { WalletRedemptionEntry } from '@/types/wallet'
 
-export type { PartnerStatus, PartnerZone, ScanHistoryEntry, PointsHistoryEntry, InterestedProductEntry, WalletRedemptionEntry }
+export type {
+  PartnerStatus,
+  PartnerZone,
+  ScanHistoryEntry,
+  PointsHistoryEntry,
+  InterestedProductEntry,
+  WalletRedemptionEntry,
+}
 
 export interface DealerReportRow {
   id: string

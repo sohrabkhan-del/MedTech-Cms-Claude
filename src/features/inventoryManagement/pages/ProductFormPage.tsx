@@ -6,7 +6,11 @@ import { Button, Stack, Typography } from '@mui/material'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { ProductForm } from '@/features/inventoryManagement/components/ProductForm'
 import { useProductForm } from '@/features/inventoryManagement/hooks/useProductForm'
-import { productFormDefaults, productFormSchema, type ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import {
+  productFormDefaults,
+  productFormSchema,
+  type ProductFormValues,
+} from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 export function ProductFormPage() {
   const navigate = useNavigate()
@@ -14,14 +18,26 @@ export function ProductFormPage() {
   const [searchParams] = useSearchParams()
   const cloneFromId = !productId ? searchParams.get('cloneFrom') : null
 
-  const { isEdit, product, cloneSource, categoryOptions, isLoading, isSubmitting, submit } = useProductForm(productId, cloneFromId)
+  const {
+    isEdit,
+    product,
+    cloneSource,
+    categoryOptions,
+    isLoading,
+    isSubmitting,
+    submit,
+  } = useProductForm(productId, cloneFromId)
 
   const { control, handleSubmit, reset } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: productFormDefaults,
   })
 
-  const { fields: imageFields, append: appendImage, remove: removeImage } = useFieldArray({ control, name: 'productImages' })
+  const {
+    fields: imageFields,
+    append: appendImage,
+    remove: removeImage,
+  } = useFieldArray({ control, name: 'productImages' })
   const watchedImages = useWatch({ control, name: 'productImages' })
 
   useEffect(() => {
@@ -36,7 +52,9 @@ export function ProductFormPage() {
       status: prefillSource.status,
       description: prefillSource.description,
       productImages:
-        prefillSource.productImages.length > 0 ? prefillSource.productImages.map((url) => ({ url })) : [{ url: '' }],
+        prefillSource.productImages.length > 0
+          ? prefillSource.productImages.map((url) => ({ url }))
+          : [{ url: '' }],
     })
   }, [product, cloneSource, reset])
 
@@ -51,7 +69,9 @@ export function ProductFormPage() {
     )
   }
 
-  const backTo = isEdit ? `/inventory/product-master/${productId}` : '/inventory/product-master'
+  const backTo = isEdit
+    ? `/inventory/product-master/${productId}`
+    : '/inventory/product-master'
 
   const onSubmit = handleSubmit(async (values) => {
     const success = await submit(values)
@@ -60,8 +80,17 @@ export function ProductFormPage() {
 
   return (
     <>
-      <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h1">{isEdit ? 'Edit Product' : 'Add Product'}</Typography>
+      <Stack
+        sx={{
+          mb: 3,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h1">
+          {isEdit ? 'Edit Product' : 'Add Product'}
+        </Typography>
       </Stack>
 
       <form onSubmit={onSubmit} noValidate>
@@ -83,7 +112,11 @@ export function ProductFormPage() {
           <Button type="submit" variant="contained" loading={isSubmitting}>
             {isEdit ? 'Save Changes' : 'Create Product'}
           </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate(backTo)}
+          >
             Cancel
           </Button>
         </Stack>

@@ -93,7 +93,9 @@ function buildScanColumns(
           <PartnerNameCell
             name={row.dealerName}
             onClick={
-              dealer ? () => navigate(`/partners/dealers/${dealer.id}`) : undefined
+              dealer
+                ? () => navigate(`/partners/dealers/${dealer.id}`)
+                : undefined
             }
           />
         )

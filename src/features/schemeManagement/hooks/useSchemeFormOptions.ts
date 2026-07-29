@@ -28,7 +28,12 @@ interface FormOptions {
   masterProductOptions: SchemeMasterProductOption[]
 }
 
-const emptyOptions: FormOptions = { regionOptions: [], partnerTypeOptions: [], giftProductOptions: [], masterProductOptions: [] }
+const emptyOptions: FormOptions = {
+  regionOptions: [],
+  partnerTypeOptions: [],
+  giftProductOptions: [],
+  masterProductOptions: [],
+}
 
 /** Shared static option lists for scheme filters/forms (not just the form page). */
 export function useSchemeFormOptions() {

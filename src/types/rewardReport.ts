@@ -1,6 +1,8 @@
 export type RewardReportUserType = 'Dealer' | 'Chemist'
-export type RewardReportType = 'Scan Reward' | 'Scheme Bonus' | 'Redemption' | 'Loyalty Multiplier'
-export type RewardReportStatus = 'credited' | 'pending' | 'redeemed' | 'reversed'
+export type RewardReportType =
+  'Scan Reward' | 'Scheme Bonus' | 'Redemption' | 'Loyalty Multiplier'
+export type RewardReportStatus =
+  'credited' | 'pending' | 'redeemed' | 'reversed'
 
 export interface RewardReportTimelineEntry {
   id: string
@@ -45,7 +47,7 @@ export interface RewardReportEntry {
   isRedeemed: boolean
   redeemedItem?: string
   redemptionDate?: string
-  coinsUsed?: number
+  PointsUsed?: number
   deliveryStatus?: string
 
   walletBalanceBefore: number

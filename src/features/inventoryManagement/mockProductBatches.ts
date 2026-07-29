@@ -16,7 +16,10 @@ function seededNumber(seed: number, min: number, max: number): number {
   return Math.floor(min + frac * (max - min))
 }
 
-function resolveScanStatus(seed: number, totalScanned: number): BatchScanStatus {
+function resolveScanStatus(
+  seed: number,
+  totalScanned: number,
+): BatchScanStatus {
   if (totalScanned === 0) return 'not_started'
   return seed % 4 === 0 ? 'completed' : 'in_progress'
 }
@@ -39,14 +42,16 @@ function buildProductBatch(seed: number): ProductBatch {
     batchNo: factoryBatch.batchNumber,
     serialRangeStart: factoryBatch.startSerialNumber,
     serialRangeEnd: factoryBatch.endSerialNumber,
-    coinValue: seededNumber(seed, 5, 50),
+    PointValue: seededNumber(seed, 5, 50),
     scanStatus: resolveScanStatus(seed, factoryBatch.totalScanned),
     totalScans: factoryBatch.totalScanned,
     activeStatus: resolveActiveStatus(seed),
   }
 }
 
-export const mockProductBatches: ProductBatch[] = mockFactoryBatches.map((_, index) => buildProductBatch(index + 1))
+export const mockProductBatches: ProductBatch[] = mockFactoryBatches.map(
+  (_, index) => buildProductBatch(index + 1),
+)
 
 export function getProductBatchById(id: string): ProductBatch | undefined {
   return mockProductBatches.find((batch) => batch.id === id)
@@ -54,9 +59,11 @@ export function getProductBatchById(id: string): ProductBatch | undefined {
 
 export const productBatchKpis = {
   totalBatches: mockProductBatches.length,
-  activeBatches: mockProductBatches.filter((b) => b.activeStatus === 'active').length,
+  activeBatches: mockProductBatches.filter((b) => b.activeStatus === 'active')
+    .length,
   totalScans: mockProductBatches.reduce((sum, b) => sum + b.totalScans, 0),
-  scanCompleted: mockProductBatches.filter((b) => b.scanStatus === 'completed').length,
+  scanCompleted: mockProductBatches.filter((b) => b.scanStatus === 'completed')
+    .length,
 }
 
 // --- Full production batch model ---
@@ -74,22 +81,36 @@ export function addProductionBatches(batches: ProductionBatch[]): void {
   uploadedProductionBatches = [...batches, ...uploadedProductionBatches]
 }
 
-export function getProductionBatchById(id: string): ProductionBatch | undefined {
+export function getProductionBatchById(
+  id: string,
+): ProductionBatch | undefined {
   return uploadedProductionBatches.find((batch) => batch.id === id)
 }
 
 export function getProductionBatchKpis() {
   return {
     totalBatches: uploadedProductionBatches.length,
-    activeBatches: uploadedProductionBatches.filter((b) => b.status === 'active').length,
-    expiredBatches: uploadedProductionBatches.filter((b) => b.status === 'expired').length,
-    totalScans: uploadedProductionBatches.reduce((sum, b) => sum + b.totalScans, 0),
+    activeBatches: uploadedProductionBatches.filter(
+      (b) => b.status === 'active',
+    ).length,
+    expiredBatches: uploadedProductionBatches.filter(
+      (b) => b.status === 'expired',
+    ).length,
+    totalScans: uploadedProductionBatches.reduce(
+      (sum, b) => sum + b.totalScans,
+      0,
+    ),
   }
 }
 
 /** Builds a freshly-imported ProductionBatch (zero scans/journey yet) from a Batch & UID Upload result. */
-export function buildProductionBatchFromUpload(mappedBatch: MappedBatch, uploadFileName: string): ProductionBatch {
-  const product = mockProducts.find((p) => p.productCode === mappedBatch.productCode)
+export function buildProductionBatchFromUpload(
+  mappedBatch: MappedBatch,
+  uploadFileName: string,
+): ProductionBatch {
+  const product = mockProducts.find(
+    (p) => p.productCode === mappedBatch.productCode,
+  )
   const today = new Date().toISOString().slice(0, 10)
   const id = `production-batch-upload-${mappedBatch.id}-${Date.now()}`
 
@@ -114,13 +135,23 @@ export function buildProductionBatchFromUpload(mappedBatch: MappedBatch, uploadF
     totalPackages: mappedBatch.producedQty,
     qrBarcodeGenerated: true,
     totalScans: 0,
-    coinValue: 0,
+    PointValue: 0,
     status: 'active',
 
     qrBarcodeInfo,
     distributionJourney: [],
-    scanStatistics: { totalSuccessfulScans: 0, failedScans: 0, duplicateScans: 0, geoFenceViolations: 0 },
-    rewardSummary: { baseCoinValue: 0, bonusCoins: 0, appliedScheme: '—', totalRewardPointsIssued: 0 },
+    scanStatistics: {
+      totalSuccessfulScans: 0,
+      failedScans: 0,
+      duplicateScans: 0,
+      geoFenceViolations: 0,
+    },
+    rewardSummary: {
+      basePointValue: 0,
+      bonusPoints: 0,
+      appliedScheme: '—',
+      totalRewardPointsIssued: 0,
+    },
     timeline: [{ id: `${id}-tl-0`, activity: 'Uploaded', dateTime: today }],
 
     uploadHistory: [
@@ -134,10 +165,25 @@ export function buildProductionBatchFromUpload(mappedBatch: MappedBatch, uploadF
         failed: 0,
       },
     ],
-    qrCodeStatistics: { totalGenerated: mappedBatch.uidCount, activated: 0, scanned: 0, remaining: mappedBatch.uidCount },
-    fraudDetection: { duplicateScanCount: 0, invalidBarcodeCount: 0, outsideGeoFence: 0, suspiciousActivity: 0 },
+    qrCodeStatistics: {
+      totalGenerated: mappedBatch.uidCount,
+      activated: 0,
+      scanned: 0,
+      remaining: mappedBatch.uidCount,
+    },
+    fraudDetection: {
+      duplicateScanCount: 0,
+      invalidBarcodeCount: 0,
+      outsideGeoFence: 0,
+      suspiciousActivity: 0,
+    },
     relatedSchemes: [],
-    relatedRewards: { totalRewardsGenerated: 0, dealerRewards: 0, chemistRewards: 0, redeemedRewards: 0 },
+    relatedRewards: {
+      totalRewardsGenerated: 0,
+      dealerRewards: 0,
+      chemistRewards: 0,
+      redeemedRewards: 0,
+    },
   }
 }
 
@@ -148,7 +194,10 @@ export function getScanAnalyticsRows(): ScanAnalyticsRow[] {
     successfulScans: batch.scanStatistics.totalSuccessfulScans,
     failedScans: batch.scanStatistics.failedScans,
     duplicateScans: batch.scanStatistics.duplicateScans,
-    pendingScans: Math.max(batch.totalPackages - batch.scanStatistics.totalSuccessfulScans, 0),
+    pendingScans: Math.max(
+      batch.totalPackages - batch.scanStatistics.totalSuccessfulScans,
+      0,
+    ),
     rewardPointsIssued: batch.rewardSummary.totalRewardPointsIssued,
   }))
 }

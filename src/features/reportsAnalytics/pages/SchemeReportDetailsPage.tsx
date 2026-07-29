@@ -51,22 +51,22 @@ export function SchemeReportDetailsPage() {
     ...(scheme.partnerTypes.includes('Dealer')
       ? [
           {
-            key: 'dealerBaseCoinValue',
-            header: 'Dealer Base Coin',
+            key: 'dealerBasePointValue',
+            header: 'Dealer Base Point',
             align: 'center' as const,
             render: (row: SchemeApplicableProduct) =>
-              row.dealerBaseCoinValue?.toLocaleString('en-IN') ?? '—',
+              row.dealerBasePointValue?.toLocaleString('en-IN') ?? '—',
           },
         ]
       : []),
     ...(scheme.partnerTypes.includes('Chemist')
       ? [
           {
-            key: 'chemistBaseCoinValue',
-            header: 'Chemist Base Coin',
+            key: 'chemistBasePointValue',
+            header: 'Chemist Base Point',
             align: 'center' as const,
             render: (row: SchemeApplicableProduct) =>
-              row.chemistBaseCoinValue?.toLocaleString('en-IN') ?? '—',
+              row.chemistBasePointValue?.toLocaleString('en-IN') ?? '—',
           },
         ]
       : []),

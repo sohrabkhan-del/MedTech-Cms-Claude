@@ -3,7 +3,7 @@ import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
 import {
   FileBarChart2,
   ArrowLeft as ArrowBackOutlined,
-  Coins,
+  Coins as Points,
   TrendingUp,
   TrendingDown,
   Clock3,
@@ -85,11 +85,11 @@ const transactionColumns: CommonTableColumn<WalletTransaction>[] = [
     ),
   },
   {
-    key: 'coinsAdjusted',
-    header: 'Coins Adjusted',
+    key: 'PointsAdjusted',
+    header: 'Points Adjusted',
     align: 'center',
     render: (row) =>
-      `${row.coinsAdjusted > 0 ? '+' : ''}${row.coinsAdjusted.toLocaleString('en-IN')}`,
+      `${row.PointsAdjusted > 0 ? '+' : ''}${row.PointsAdjusted.toLocaleString('en-IN')}`,
   },
   {
     key: 'updatedBalance',
@@ -150,12 +150,12 @@ const adjustmentColumns: CommonTableColumn<WalletReportManualAdjustment>[] = [
     ),
   },
   {
-    key: 'coins',
-    header: 'Coins',
+    key: 'Points',
+    header: 'Points',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.coins,
-    render: (row) => row.coins.toLocaleString('en-IN'),
+    sortValue: (row) => row.Points,
+    render: (row) => row.Points.toLocaleString('en-IN'),
   },
   {
     key: 'reason',
@@ -193,12 +193,12 @@ const redemptionColumns: CommonTableColumn<WalletRedemptionEntry>[] = [
     render: (row) => row.category,
   },
   {
-    key: 'coinsRedeemed',
-    header: 'Coins Redeemed',
+    key: 'PointsRedeemed',
+    header: 'Points Redeemed',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.coinsRedeemed,
-    render: (row) => row.coinsRedeemed.toLocaleString('en-IN'),
+    sortValue: (row) => row.PointsRedeemed,
+    render: (row) => row.PointsRedeemed.toLocaleString('en-IN'),
   },
   {
     key: 'requestDate',
@@ -326,8 +326,16 @@ export function WalletReportDetailsPage() {
                 value: (
                   <Chip
                     size="small"
-                    label={report.lastTransactionType === 'credit' ? 'Credit' : 'Debit'}
-                    color={report.lastTransactionType === 'credit' ? 'success' : 'error'}
+                    label={
+                      report.lastTransactionType === 'credit'
+                        ? 'Credit'
+                        : 'Debit'
+                    }
+                    color={
+                      report.lastTransactionType === 'credit'
+                        ? 'success'
+                        : 'error'
+                    }
                   />
                 ),
               },
@@ -340,7 +348,7 @@ export function WalletReportDetailsPage() {
             <StatCard
               label="Wallet Balance"
               value={report.walletBalance.toLocaleString('en-IN')}
-              icon={<Coins size={20} />}
+              icon={<Points size={20} />}
               iconColor="primary"
             />
           </Grid>
@@ -370,8 +378,8 @@ export function WalletReportDetailsPage() {
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
             <StatCard
-              label="Pending Redemption Coins"
-              value={report.pendingRedemptionCoins.toLocaleString('en-IN')}
+              label="Pending Redemption Points"
+              value={report.pendingRedemptionPoints.toLocaleString('en-IN')}
               icon={<Clock3 size={20} />}
               iconColor="info"
             />

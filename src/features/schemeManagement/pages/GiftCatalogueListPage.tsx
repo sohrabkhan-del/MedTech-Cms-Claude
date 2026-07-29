@@ -33,8 +33,8 @@ interface GiftFilters extends Record<string, unknown> {
   stockStatus: StockStatus | 'all'
   status: GiftStatus | 'all'
   eligibleUserType: GiftEligibility | 'all'
-  minCoins: string
-  maxCoins: string
+  minPoints: string
+  maxPoints: string
 }
 
 export function GiftCatalogueListPage() {
@@ -58,8 +58,8 @@ export function GiftCatalogueListPage() {
     stockStatus: 'all',
     status: 'all',
     eligibleUserType: 'all',
-    minCoins: '',
-    maxCoins: '',
+    minPoints: '',
+    maxPoints: '',
   })
 
   const giftCatalogueKpis = kpis ?? {
@@ -84,11 +84,11 @@ export function GiftCatalogueListPage() {
       appliedFilters.eligibleUserType === 'all' ||
       gift.eligibleUserType === appliedFilters.eligibleUserType
     const minMatch =
-      !appliedFilters.minCoins ||
-      gift.requiredCoins >= Number(appliedFilters.minCoins)
+      !appliedFilters.minPoints ||
+      gift.requiredPoints >= Number(appliedFilters.minPoints)
     const maxMatch =
-      !appliedFilters.maxCoins ||
-      gift.requiredCoins <= Number(appliedFilters.maxCoins)
+      !appliedFilters.maxPoints ||
+      gift.requiredPoints <= Number(appliedFilters.maxPoints)
     return (
       categoryMatch &&
       brandMatch &&
@@ -233,7 +233,7 @@ export function GiftCatalogueListPage() {
           (appliedFilters.stockStatus !== 'all' ? 1 : 0) +
           (appliedFilters.status !== 'all' ? 1 : 0) +
           (appliedFilters.eligibleUserType !== 'all' ? 1 : 0) +
-          (appliedFilters.minCoins || appliedFilters.maxCoins ? 1 : 0)
+          (appliedFilters.minPoints || appliedFilters.maxPoints ? 1 : 0)
         }
         onExportClick={() => {}}
         onImportClick={() => {}}
@@ -343,7 +343,8 @@ export function GiftCatalogueListPage() {
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  eligibleUserType: e.target.value as GiftFilters['eligibleUserType'],
+                  eligibleUserType: e.target
+                    .value as GiftFilters['eligibleUserType'],
                 }))
               }
             >
@@ -354,20 +355,20 @@ export function GiftCatalogueListPage() {
             </TextField>
             <TextField
               type="number"
-              label="Min Coins"
+              label="Min Points"
               size="small"
-              value={draft.minCoins}
+              value={draft.minPoints}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, minCoins: e.target.value }))
+                setDraft((prev) => ({ ...prev, minPoints: e.target.value }))
               }
             />
             <TextField
               type="number"
-              label="Max Coins"
+              label="Max Points"
               size="small"
-              value={draft.maxCoins}
+              value={draft.maxPoints}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, maxCoins: e.target.value }))
+                setDraft((prev) => ({ ...prev, maxPoints: e.target.value }))
               }
             />
           </Stack>

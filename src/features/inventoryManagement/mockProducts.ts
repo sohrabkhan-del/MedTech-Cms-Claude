@@ -1,4 +1,10 @@
-import type { Product, ProductAuditEntry, ProductMovementEntry, ProductStatus, ProductTimelineEntry } from '@/types/product'
+import type {
+  Product,
+  ProductAuditEntry,
+  ProductMovementEntry,
+  ProductStatus,
+  ProductTimelineEntry,
+} from '@/types/product'
 import { mrs } from '@/features/userManagement/mockPartnerData'
 
 export const productCategoryOptions = [
@@ -31,17 +37,26 @@ const productCatalog: Record<string, string[]> = {
     'Medtech BP18',
   ],
   'Heating Pads': ['Medtech HandyPad HP-01', 'Medtech HandyPad HP-11'],
-  Massagers: ['Medtech Manipol Massager MPV 1', 'Medtech Gun Massager GMV1', 'Medtech Gun Massager GMV4'],
+  Massagers: [
+    'Medtech Manipol Massager MPV 1',
+    'Medtech Gun Massager GMV1',
+    'Medtech Gun Massager GMV4',
+  ],
   'Steam Inhalers': ['Medtech HandyVap 01', 'Medtech HandyVap 100'],
   'Digital Thermometers': ['Medtech Handy TMP 02'],
   'Pulse Oximeters': ['Medtech Oxyguard OG05'],
   'Oxygen Concentrators': ['Medtech OXYTEC-SMART'],
 }
 
-const catalogEntries = Object.entries(productCatalog).flatMap(([category, names]) =>
-  names.map((name) => ({ name, category })),
+const catalogEntries = Object.entries(productCatalog).flatMap(
+  ([category, names]) => names.map((name) => ({ name, category })),
 )
-const brands = ['MedTech Labs', 'Apollo Pharma', 'National Remedies', 'Sunrise Biotech']
+const brands = [
+  'MedTech Labs',
+  'Apollo Pharma',
+  'National Remedies',
+  'Sunrise Biotech',
+]
 
 /** Real stock photo per product category (Unsplash direct CDN — stable, hotlink-safe URLs), 3 angles each. */
 export const categoryImages: Record<string, string[]> = {
@@ -125,13 +140,17 @@ function resolveStatus(seed: number): ProductStatus {
   return (seed * 3 + 1) % 5 === 0 ? 'inactive' : 'active'
 }
 
-function buildMovementHistory(seed: number, productId: string): ProductMovementEntry[] {
+function buildMovementHistory(
+  seed: number,
+  productId: string,
+): ProductMovementEntry[] {
   return Array.from({ length: 3 }).map((_, i) => {
     const quantity = seededNumber(seed + i, 500, 5000)
     const startSerial = 100000 + seed * 7000 + i * 10000
     const endSerial = startSerial + quantity - 1
     const containerStartSerial = startSerial + 500
-    const containerEndSerial = containerStartSerial + Math.min(quantity, 1000) - 1
+    const containerEndSerial =
+      containerStartSerial + Math.min(quantity, 1000) - 1
     return {
       id: `${productId}-movement-${i}`,
       factoryUploadBatch: `BATCH-${2026000 + seed * 3 + i}`,
@@ -145,7 +164,10 @@ function buildMovementHistory(seed: number, productId: string): ProductMovementE
   })
 }
 
-function buildAuditHistory(seed: number, productId: string): ProductAuditEntry[] {
+function buildAuditHistory(
+  seed: number,
+  productId: string,
+): ProductAuditEntry[] {
   const reviewer = mrs[seed % mrs.length]!
   return [
     {
@@ -167,10 +189,22 @@ function buildAuditHistory(seed: number, productId: string): ProductAuditEntry[]
   ]
 }
 
-function buildTimeline(seed: number, productId: string, status: ProductStatus): ProductTimelineEntry[] {
+function buildTimeline(
+  seed: number,
+  productId: string,
+  status: ProductStatus,
+): ProductTimelineEntry[] {
   const timeline: ProductTimelineEntry[] = [
-    { id: `${productId}-tl-0`, activity: 'Product Created', dateTime: dateFromSeed(seed, 'Jun') },
-    { id: `${productId}-tl-1`, activity: 'Reward Points Updated', dateTime: dateFromSeed(seed + 3, 'Jun') },
+    {
+      id: `${productId}-tl-0`,
+      activity: 'Product Created',
+      dateTime: dateFromSeed(seed, 'Jun'),
+    },
+    {
+      id: `${productId}-tl-1`,
+      activity: 'Reward Points Updated',
+      dateTime: dateFromSeed(seed + 3, 'Jun'),
+    },
   ]
   timeline.push({
     id: `${productId}-tl-2`,
@@ -207,7 +241,10 @@ function buildProduct(seed: number): Product {
 
     dealerRewardPoints,
     chemistRewardPoints,
-    rewardConfigStatus: dealerRewardPoints > 0 && chemistRewardPoints > 0 ? 'configured' : 'pending',
+    rewardConfigStatus:
+      dealerRewardPoints > 0 && chemistRewardPoints > 0
+        ? 'configured'
+        : 'pending',
 
     totalFactoryUploads: seededNumber(seed, 5, 40),
     totalQrCodesGenerated: seededNumber(seed + 1, 1000, 8000),
@@ -224,7 +261,9 @@ function buildProduct(seed: number): Product {
   }
 }
 
-export const mockProducts: Product[] = Array.from({ length: 45 }).map((_, index) => buildProduct(index + 1))
+export const mockProducts: Product[] = Array.from({ length: 45 }).map(
+  (_, index) => buildProduct(index + 1),
+)
 
 export function getProductById(id: string): Product | undefined {
   return mockProducts.find((product) => product.id === id)
@@ -233,7 +272,13 @@ export function getProductById(id: string): Product | undefined {
 /** Finds a value in an imported row by trying a list of likely xlsx header spellings, case/space-insensitively. */
 function pickField(row: Record<string, string>, keys: string[]): string {
   const normalized = new Map(
-    Object.entries(row).map(([header, value]) => [header.trim().toLowerCase().replace(/[\s_-]+/g, ''), value]),
+    Object.entries(row).map(([header, value]) => [
+      header
+        .trim()
+        .toLowerCase()
+        .replace(/[\s_-]+/g, ''),
+      value,
+    ]),
   )
   for (const key of keys) {
     const value = normalized.get(key)
@@ -243,26 +288,47 @@ function pickField(row: Record<string, string>, keys: string[]): string {
 }
 
 /** Builds a full Product from one imported xlsx row, mapping common header spellings and filling the rest with defaults. */
-export function productFromImportedRow(row: Record<string, string>, seed: number): Product {
+export function productFromImportedRow(
+  row: Record<string, string>,
+  seed: number,
+): Product {
   const id = `product-import-${Date.now()}-${seed}`
-  const productName = pickField(row, ['productname', 'name']) || `Imported Product ${seed}`
+  const productName =
+    pickField(row, ['productname', 'name']) || `Imported Product ${seed}`
   const productCategory =
-    pickField(row, ['productcategory', 'category']) || productCategoryOptions[0]!
+    pickField(row, ['productcategory', 'category']) ||
+    productCategoryOptions[0]!
   const mrpRaw = pickField(row, ['mrp', 'price'])
   const mrp = Number(mrpRaw.replace(/[^0-9.]/g, '')) || 0
-  const dealerRewardPoints = Number(pickField(row, ['dealerrewardpoints', 'dealerpoints']).replace(/[^0-9.]/g, '')) || 0
-  const chemistRewardPoints = Number(pickField(row, ['chemistrewardpoints', 'chemistpoints']).replace(/[^0-9.]/g, '')) || 0
+  const dealerRewardPoints =
+    Number(
+      pickField(row, ['dealerrewardPoints', 'dealerPoints']).replace(
+        /[^0-9.]/g,
+        '',
+      ),
+    ) || 0
+  const chemistRewardPoints =
+    Number(
+      pickField(row, ['chemistrewardPoints', 'chemistPoints']).replace(
+        /[^0-9.]/g,
+        '',
+      ),
+    ) || 0
   const today = dateFromSeed(seed % 27, 'Jul')
 
   return {
     id,
     productName,
-    productCode: pickField(row, ['productcode', 'code', 'sku']) || `PC-IMPORT-${Date.now()}${seed}`,
+    productCode:
+      pickField(row, ['productcode', 'code', 'sku']) ||
+      `PC-IMPORT-${Date.now()}${seed}`,
     productCategory,
     status: 'active',
     uploadedDate: today,
 
-    description: pickField(row, ['description']) || `${productName} — imported from uploaded file.`,
+    description:
+      pickField(row, ['description']) ||
+      `${productName} — imported from uploaded file.`,
     productImages: [],
     sku: pickField(row, ['sku']) || `SKU-IMPORT-${Date.now()}${seed}`,
     brand: pickField(row, ['brand']) || brands[0]!,
@@ -273,7 +339,10 @@ export function productFromImportedRow(row: Record<string, string>, seed: number
 
     dealerRewardPoints,
     chemistRewardPoints,
-    rewardConfigStatus: dealerRewardPoints > 0 && chemistRewardPoints > 0 ? 'configured' : 'pending',
+    rewardConfigStatus:
+      dealerRewardPoints > 0 && chemistRewardPoints > 0
+        ? 'configured'
+        : 'pending',
 
     totalFactoryUploads: 0,
     totalQrCodesGenerated: 0,
@@ -295,7 +364,9 @@ export function productFromImportedRow(row: Record<string, string>, seed: number
         updatedValue: 'Product added via xlsx import',
       },
     ],
-    timeline: [{ id: `${id}-tl-0`, activity: 'Product Created', dateTime: today }],
+    timeline: [
+      { id: `${id}-tl-0`, activity: 'Product Created', dateTime: today },
+    ],
   }
 }
 
@@ -303,5 +374,8 @@ export const productKpis = {
   totalProducts: mockProducts.length,
   activeProducts: mockProducts.filter((p) => p.status === 'active').length,
   inactiveProducts: mockProducts.filter((p) => p.status === 'inactive').length,
-  totalRewardPointsIssued: mockProducts.reduce((sum, p) => sum + p.totalRewardPointsIssued, 0),
+  totalRewardPointsIssued: mockProducts.reduce(
+    (sum, p) => sum + p.totalRewardPointsIssued,
+    0,
+  ),
 }

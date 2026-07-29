@@ -9,7 +9,9 @@ interface ActivityTimelineWidgetProps {
   activityTimeline: ActivityEvent[]
 }
 
-export function ActivityTimelineWidget({ activityTimeline }: ActivityTimelineWidgetProps) {
+export function ActivityTimelineWidget({
+  activityTimeline,
+}: ActivityTimelineWidgetProps) {
   const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
@@ -27,7 +29,7 @@ export function ActivityTimelineWidget({ activityTimeline }: ActivityTimelineWid
             key={event.id}
             direction="row"
             spacing={1.5}
-            sx={{ cursor: event.linkTo ? 'pointer' : 'default' }}
+            sx={{ cursor: event.linkTo ? 'Pointer' : 'default' }}
             onClick={(e) => {
               if (!event.linkTo) return
               e.stopPropagation()
@@ -35,18 +37,43 @@ export function ActivityTimelineWidget({ activityTimeline }: ActivityTimelineWid
             }}
           >
             <Stack sx={{ alignItems: 'center' }}>
-              <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'primary.main', mt: 0.6 }} />
+              <Box
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: '50%',
+                  backgroundColor: 'primary.main',
+                  mt: 0.6,
+                }}
+              />
               {index < activityTimeline.length - 1 && (
-                <Box sx={{ width: '1px', flexGrow: 1, minHeight: 28, backgroundColor: 'divider' }} />
+                <Box
+                  sx={{
+                    width: '1px',
+                    flexGrow: 1,
+                    minHeight: 28,
+                    backgroundColor: 'divider',
+                  }}
+                />
               )}
             </Stack>
             <Box sx={{ pb: 2.5 }}>
               <Typography variant="body1" sx={{ color: 'text.primary' }}>
-                <Typography component="span" sx={{ fontWeight: 700, fontSize: 'inherit' }}>
+                <Typography
+                  component="span"
+                  sx={{ fontWeight: 700, fontSize: 'inherit' }}
+                >
                   {event.actor}
                 </Typography>{' '}
                 {event.action}{' '}
-                <Typography component="span" sx={{ fontWeight: 600, fontSize: 'inherit', color: 'primary.main' }}>
+                <Typography
+                  component="span"
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: 'inherit',
+                    color: 'primary.main',
+                  }}
+                >
                   {event.target}
                 </Typography>
               </Typography>

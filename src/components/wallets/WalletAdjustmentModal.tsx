@@ -1,5 +1,13 @@
 import { useState } from 'react'
-import { Box, FormControlLabel, MenuItem, Stack, Switch, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  FormControlLabel,
+  MenuItem,
+  Stack,
+  Switch,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Modal } from '@/components/common/Modal/Modal'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 
@@ -10,10 +18,23 @@ interface WalletAdjustmentModalProps {
   onClose: () => void
   currentBalance: number
   defaultType: AdjustmentType
-  onConfirm: (payload: { type: AdjustmentType; amount: number; reason: string; referenceNumber: string; remarks: string; requireApproval: boolean }) => void
+  onConfirm: (payload: {
+    type: AdjustmentType
+    amount: number
+    reason: string
+    referenceNumber: string
+    remarks: string
+    requireApproval: boolean
+  }) => void
 }
 
-export function WalletAdjustmentModal({ open, onClose, currentBalance, defaultType, onConfirm }: WalletAdjustmentModalProps) {
+export function WalletAdjustmentModal({
+  open,
+  onClose,
+  currentBalance,
+  defaultType,
+  onConfirm,
+}: WalletAdjustmentModalProps) {
   const [step, setStep] = useState<'form' | 'confirm'>('form')
   const [type, setType] = useState<AdjustmentType>(defaultType)
   const [amount, setAmount] = useState('')
@@ -23,7 +44,10 @@ export function WalletAdjustmentModal({ open, onClose, currentBalance, defaultTy
   const [requireApproval, setRequireApproval] = useState(true)
 
   const numericAmount = Number(amount) || 0
-  const updatedBalance = type === 'add' ? currentBalance + numericAmount : Math.max(0, currentBalance - numericAmount)
+  const updatedBalance =
+    type === 'add'
+      ? currentBalance + numericAmount
+      : Math.max(0, currentBalance - numericAmount)
 
   const resetAndClose = () => {
     setStep('form')
@@ -39,7 +63,14 @@ export function WalletAdjustmentModal({ open, onClose, currentBalance, defaultTy
   const handleContinue = () => setStep('confirm')
 
   const handleConfirm = () => {
-    onConfirm({ type, amount: numericAmount, reason, referenceNumber, remarks, requireApproval })
+    onConfirm({
+      type,
+      amount: numericAmount,
+      reason,
+      referenceNumber,
+      remarks,
+      requireApproval,
+    })
     resetAndClose()
   }
 
@@ -56,9 +87,19 @@ export function WalletAdjustmentModal({ open, onClose, currentBalance, defaultTy
       >
         <DetailFieldGrid
           fields={[
-            { label: 'Current Wallet Balance', value: currentBalance.toLocaleString('en-IN') },
-            { label: type === 'add' ? 'Coins to be Added' : 'Coins to be Deducted', value: numericAmount.toLocaleString('en-IN') },
-            { label: 'Updated Wallet Balance', value: updatedBalance.toLocaleString('en-IN') },
+            {
+              label: 'Current Wallet Balance',
+              value: currentBalance.toLocaleString('en-IN'),
+            },
+            {
+              label:
+                type === 'add' ? 'Points to be Added' : 'Points to be Deducted',
+              value: numericAmount.toLocaleString('en-IN'),
+            },
+            {
+              label: 'Updated Wallet Balance',
+              value: updatedBalance.toLocaleString('en-IN'),
+            },
             { label: 'Adjustment Reason', value: reason || '—' },
             { label: 'Remarks', value: remarks || '—' },
           ]}
@@ -71,28 +112,68 @@ export function WalletAdjustmentModal({ open, onClose, currentBalance, defaultTy
     <Modal
       open={open}
       onClose={resetAndClose}
-      title={type === 'add' ? 'Add Coins' : 'Deduct Coins'}
+      title={type === 'add' ? 'Add Points' : 'Deduct Points'}
       description="Manually adjust this user's wallet balance."
       primaryActionLabel="Continue"
       onPrimaryAction={handleContinue}
       secondaryActionLabel="Cancel"
     >
       <Stack spacing={2.5} sx={{ pt: 1 }}>
-        <TextField select label="Adjustment Type" size="small" value={type} onChange={(e) => setType(e.target.value as AdjustmentType)}>
-          <MenuItem value="add">Add Coins</MenuItem>
-          <MenuItem value="deduct">Deduct Coins</MenuItem>
+        <TextField
+          select
+          label="Adjustment Type"
+          size="small"
+          value={type}
+          onChange={(e) => setType(e.target.value as AdjustmentType)}
+        >
+          <MenuItem value="add">Add Points</MenuItem>
+          <MenuItem value="deduct">Deduct Points</MenuItem>
         </TextField>
-        <TextField type="number" label="Coin Amount" size="small" value={amount} onChange={(e) => setAmount(e.target.value)} />
-        <TextField label="Adjustment Reason" size="small" value={reason} onChange={(e) => setReason(e.target.value)} />
-        <TextField label="Reference Number (Optional)" size="small" value={referenceNumber} onChange={(e) => setReferenceNumber(e.target.value)} />
-        <TextField label="Remarks" size="small" multiline minRows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+        <TextField
+          type="number"
+          label="Point Amount"
+          size="small"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+        />
+        <TextField
+          label="Adjustment Reason"
+          size="small"
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+        />
+        <TextField
+          label="Reference Number (Optional)"
+          size="small"
+          value={referenceNumber}
+          onChange={(e) => setReferenceNumber(e.target.value)}
+        />
+        <TextField
+          label="Remarks"
+          size="small"
+          multiline
+          minRows={2}
+          value={remarks}
+          onChange={(e) => setRemarks(e.target.value)}
+        />
         <FormControlLabel
-          control={<Switch checked={requireApproval} onChange={(e) => setRequireApproval(e.target.checked)} />}
+          control={
+            <Switch
+              checked={requireApproval}
+              onChange={(e) => setRequireApproval(e.target.checked)}
+            />
+          }
           label="Require Approval"
         />
-        <Box sx={{ p: 1.5, borderRadius: '10px', backgroundColor: 'background.default' }}>
+        <Box
+          sx={{
+            p: 1.5,
+            borderRadius: '10px',
+            backgroundColor: 'background.default',
+          }}
+        >
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Current balance: {currentBalance.toLocaleString('en-IN')} coins
+            Current balance: {currentBalance.toLocaleString('en-IN')} Points
           </Typography>
         </Box>
       </Stack>

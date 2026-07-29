@@ -10,7 +10,9 @@ interface RecentRedemptionsWidgetProps {
   recentRedemptions: Redemption[]
 }
 
-export function RecentRedemptionsWidget({ recentRedemptions }: RecentRedemptionsWidgetProps) {
+export function RecentRedemptionsWidget({
+  recentRedemptions,
+}: RecentRedemptionsWidgetProps) {
   const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
@@ -30,13 +32,14 @@ export function RecentRedemptionsWidget({ recentRedemptions }: RecentRedemptions
             sx={{
               alignItems: 'center',
               justifyContent: 'space-between',
-              cursor: redemption.linkTo ? 'pointer' : 'default',
+              cursor: redemption.linkTo ? 'Pointer' : 'default',
               borderRadius: 1.5,
               px: 1,
               py: 0.5,
               mx: -1,
               border: '1px solid transparent',
-              transition: 'border-color 0.15s ease, background-color 0.15s ease',
+              transition:
+                'border-color 0.15s ease, background-color 0.15s ease',
               ...(redemption.linkTo && {
                 '&:hover': {
                   borderColor: 'primary.main',
@@ -55,7 +58,9 @@ export function RecentRedemptionsWidget({ recentRedemptions }: RecentRedemptions
                 {redemption.reward}
               </Typography>
               <Typography variant="caption">
-                {redemption.requester} · {redemption.points.toLocaleString('en-IN')} pts · {redemption.date}
+                {redemption.requester} ·{' '}
+                {redemption.Points.toLocaleString('en-IN')} pts ·{' '}
+                {redemption.date}
               </Typography>
             </Stack>
             <StatusBadge status={redemption.status} />

@@ -113,7 +113,7 @@ export function GiftFormPage() {
       giftImage: gift.giftImage,
       description: gift.description,
       price: String(gift.price),
-      requiredCoins: String(gift.requiredCoins),
+      requiredPoints: String(gift.requiredPoints),
       availableQuantity: String(gift.availableQuantity),
       status: gift.status,
       eligibleUserType: gift.eligibleUserType,

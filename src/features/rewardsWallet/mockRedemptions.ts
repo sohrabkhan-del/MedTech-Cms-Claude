@@ -34,40 +34,93 @@ function resolveStatus(seed: number): RedemptionStatus {
   return 'rejected'
 }
 
-function resolveDeliveryStatus(seed: number, status: RedemptionStatus): RedemptionDeliveryStatus {
+function resolveDeliveryStatus(
+  seed: number,
+  status: RedemptionStatus,
+): RedemptionDeliveryStatus {
   if (status === 'pending' || status === 'rejected') return 'pending'
-  const options: RedemptionDeliveryStatus[] = ['packed', 'shipped', 'delivered', 'delivered']
+  const options: RedemptionDeliveryStatus[] = [
+    'packed',
+    'shipped',
+    'delivered',
+    'delivered',
+  ]
   return status === 'completed' ? options[seed % options.length]! : 'pending'
 }
 
-function buildTimeline(seed: number, requestId: string, status: RedemptionStatus, deliveryStatus: RedemptionDeliveryStatus): RedemptionTimelineEntry[] {
+function buildTimeline(
+  seed: number,
+  requestId: string,
+  status: RedemptionStatus,
+  deliveryStatus: RedemptionDeliveryStatus,
+): RedemptionTimelineEntry[] {
   const timeline: RedemptionTimelineEntry[] = [
-    { id: `${requestId}-tl-0`, activity: 'Redemption Request Created', dateTime: dateFromSeed(seed, 'Jun') },
-    { id: `${requestId}-tl-1`, activity: 'Pending Approval', dateTime: dateFromSeed(seed + 1, 'Jun') },
+    {
+      id: `${requestId}-tl-0`,
+      activity: 'Redemption Request Created',
+      dateTime: dateFromSeed(seed, 'Jun'),
+    },
+    {
+      id: `${requestId}-tl-1`,
+      activity: 'Pending Approval',
+      dateTime: dateFromSeed(seed + 1, 'Jun'),
+    },
   ]
   if (status === 'rejected') {
-    timeline.push({ id: `${requestId}-tl-2`, activity: 'Rejected by Admin', dateTime: dateFromSeed(seed + 2, 'Jun') })
+    timeline.push({
+      id: `${requestId}-tl-2`,
+      activity: 'Rejected by Admin',
+      dateTime: dateFromSeed(seed + 2, 'Jun'),
+    })
     return timeline
   }
   if (status === 'pending') return timeline
 
-  timeline.push({ id: `${requestId}-tl-2`, activity: 'Approved by Admin', dateTime: dateFromSeed(seed + 2, 'Jun') })
-  if (deliveryStatus === 'packed' || deliveryStatus === 'shipped' || deliveryStatus === 'delivered') {
-    timeline.push({ id: `${requestId}-tl-3`, activity: 'Packed', dateTime: dateFromSeed(seed + 3, 'Jun') })
+  timeline.push({
+    id: `${requestId}-tl-2`,
+    activity: 'Approved by Admin',
+    dateTime: dateFromSeed(seed + 2, 'Jun'),
+  })
+  if (
+    deliveryStatus === 'packed' ||
+    deliveryStatus === 'shipped' ||
+    deliveryStatus === 'delivered'
+  ) {
+    timeline.push({
+      id: `${requestId}-tl-3`,
+      activity: 'Packed',
+      dateTime: dateFromSeed(seed + 3, 'Jun'),
+    })
   }
   if (deliveryStatus === 'shipped' || deliveryStatus === 'delivered') {
-    timeline.push({ id: `${requestId}-tl-4`, activity: 'Shipped', dateTime: dateFromSeed(seed + 4, 'Jul') })
+    timeline.push({
+      id: `${requestId}-tl-4`,
+      activity: 'Shipped',
+      dateTime: dateFromSeed(seed + 4, 'Jul'),
+    })
   }
   if (deliveryStatus === 'delivered') {
-    timeline.push({ id: `${requestId}-tl-5`, activity: 'Delivered', dateTime: dateFromSeed(seed + 5, 'Jul') })
+    timeline.push({
+      id: `${requestId}-tl-5`,
+      activity: 'Delivered',
+      dateTime: dateFromSeed(seed + 5, 'Jul'),
+    })
   }
   if (status === 'completed') {
-    timeline.push({ id: `${requestId}-tl-6`, activity: 'Completed', dateTime: dateFromSeed(seed + 6, 'Jul') })
+    timeline.push({
+      id: `${requestId}-tl-6`,
+      activity: 'Completed',
+      dateTime: dateFromSeed(seed + 6, 'Jul'),
+    })
   }
   return timeline
 }
 
-function buildHistory(seed: number, requestId: string, userSeed: number): RedemptionHistoryEntry[] {
+function buildHistory(
+  seed: number,
+  requestId: string,
+  userSeed: number,
+): RedemptionHistoryEntry[] {
   const count = seededNumber(seed, 2, 5)
   const reviewer = mrs[seed % mrs.length]!
   return Array.from({ length: count }).map((_, i) => {
@@ -77,10 +130,12 @@ function buildHistory(seed: number, requestId: string, userSeed: number): Redemp
     return {
       id: `${requestId}-hist-${i}`,
       rewardItem: gift.giftName,
-      coinsUsed: gift.requiredCoins,
+      PointsUsed: gift.requiredPoints,
       requestDate: dateFromSeed(localSeed, 'May'),
-      approvalDate: status === 'pending' ? null : dateFromSeed(localSeed + 1, 'May'),
-      deliveryDate: status === 'completed' ? dateFromSeed(localSeed + 4, 'Jun') : null,
+      approvalDate:
+        status === 'pending' ? null : dateFromSeed(localSeed + 1, 'May'),
+      deliveryDate:
+        status === 'completed' ? dateFromSeed(localSeed + 4, 'Jun') : null,
       status,
       approvedBy: status === 'pending' ? null : reviewer,
     }
@@ -90,14 +145,20 @@ function buildHistory(seed: number, requestId: string, userSeed: number): Redemp
 function buildRedemptionRequest(seed: number): RedemptionRequest {
   const id = `RDM-${seed}`
   const userType: RedemptionUserType = seed % 2 === 0 ? 'Dealer' : 'Chemist'
-  const partner = userType === 'Dealer' ? mockDealers[seed % mockDealers.length]! : mockChemists[seed % mockChemists.length]!
+  const partner =
+    userType === 'Dealer'
+      ? mockDealers[seed % mockDealers.length]!
+      : mockChemists[seed % mockChemists.length]!
   const gift = mockGifts[seed % mockGifts.length]!
   const status = resolveStatus(seed)
   const deliveryStatus = resolveDeliveryStatus(seed, status)
   const reviewer = mrs[seed % mrs.length]!
 
   const currentWalletBalance = seededNumber(seed, 500, 15000)
-  const walletBalanceAfterRedemption = Math.max(0, currentWalletBalance - gift.requiredCoins)
+  const walletBalanceAfterRedemption = Math.max(
+    0,
+    currentWalletBalance - gift.requiredPoints,
+  )
 
   return {
     id,
@@ -112,7 +173,7 @@ function buildRedemptionRequest(seed: number): RedemptionRequest {
     rewardItem: gift.giftName,
     rewardCategory: gift.category,
     quantity: 1,
-    coinsUsed: gift.requiredCoins,
+    PointsUsed: gift.requiredPoints,
     requestDate: dateFromSeed(seed, 'Jul'),
     expectedDeliveryDate: dateFromSeed(seed + 7, 'Jul'),
 
@@ -125,23 +186,42 @@ function buildRedemptionRequest(seed: number): RedemptionRequest {
 
     transactionId: `TXN-${300000 + seed}`,
     transactionDate: dateFromSeed(seed, 'Jul'),
-    transactionStatus: status === 'rejected' ? 'reversed' : status === 'pending' ? 'pending' : 'completed',
+    transactionStatus:
+      status === 'rejected'
+        ? 'reversed'
+        : status === 'pending'
+          ? 'pending'
+          : 'completed',
 
     timeline: buildTimeline(seed, id, status, deliveryStatus),
     history: buildHistory(seed, id, seed),
-    internalNotes: status === 'rejected' ? 'Rejected due to insufficient wallet balance verification.' : 'No special handling required.',
+    internalNotes:
+      status === 'rejected'
+        ? 'Rejected due to insufficient wallet balance verification.'
+        : 'No special handling required.',
   }
 }
 
-export const mockRedemptionRequests: RedemptionRequest[] = Array.from({ length: 34 }).map((_, index) => buildRedemptionRequest(index + 1))
+export const mockRedemptionRequests: RedemptionRequest[] = Array.from({
+  length: 34,
+}).map((_, index) => buildRedemptionRequest(index + 1))
 
-export function getRedemptionRequestById(id: string): RedemptionRequest | undefined {
+export function getRedemptionRequestById(
+  id: string,
+): RedemptionRequest | undefined {
   return mockRedemptionRequests.find((request) => request.id === id)
 }
 
 export const redemptionKpis = {
   totalRequests: mockRedemptionRequests.length,
-  pendingApprovals: mockRedemptionRequests.filter((r) => r.redemptionStatus === 'pending').length,
-  completedRedemptions: mockRedemptionRequests.filter((r) => r.redemptionStatus === 'completed').length,
-  coinsRedeemed: mockRedemptionRequests.reduce((sum, r) => sum + r.coinsUsed, 0),
+  pendingApprovals: mockRedemptionRequests.filter(
+    (r) => r.redemptionStatus === 'pending',
+  ).length,
+  completedRedemptions: mockRedemptionRequests.filter(
+    (r) => r.redemptionStatus === 'completed',
+  ).length,
+  PointsRedeemed: mockRedemptionRequests.reduce(
+    (sum, r) => sum + r.PointsUsed,
+    0,
+  ),
 }

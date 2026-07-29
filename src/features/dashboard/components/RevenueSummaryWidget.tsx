@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { Box, Grid, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
-import type { pointsSummary } from '@/features/dashboard/mockDashboard'
+import type { PointsSummary } from '@/features/dashboard/mockDashboard'
 
 interface RevenueSummaryWidgetProps {
-  pointsSummary: typeof pointsSummary
+  PointsSummary: typeof PointsSummary
 }
 
 export function RevenueSummaryWidget({
-  pointsSummary,
+  PointsSummary,
 }: RevenueSummaryWidgetProps) {
   const navigate = useNavigate()
   const [dateRange, setDateRange] = useState<DateRangeValue>('7')
@@ -18,17 +18,17 @@ export function RevenueSummaryWidget({
   const rows: { label: string; value: string }[] = [
     {
       label: 'Total Points Earned',
-      value: pointsSummary.totalPointsEarned.toLocaleString('en-IN'),
+      value: PointsSummary.totalPointsEarned.toLocaleString('en-IN'),
     },
     {
       label: 'Total Points Claimed',
-      value: pointsSummary.totalPointsClaimed.toLocaleString('en-IN'),
+      value: PointsSummary.totalPointsClaimed.toLocaleString('en-IN'),
     },
     {
       label: 'Total Reward Points Spent',
-      value: pointsSummary.totalRewardPoints.toLocaleString('en-IN'),
+      value: PointsSummary.totalRewardPoints.toLocaleString('en-IN'),
     },
-    { label: 'Monthly Growth', value: pointsSummary.monthlyGrowth },
+    { label: 'Monthly Growth', value: PointsSummary.monthlyGrowth },
   ]
 
   return (

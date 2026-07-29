@@ -1,8 +1,14 @@
-import type { CoinRulePartnerType, CoinRuleRegion, CoinValueRule, RegionCoinHistoryEntry, RegionMultiplierRow } from '@/types/coinRule'
+import type {
+  PointRulePartnerType,
+  PointRuleRegion,
+  PointValueRule,
+  RegionPointHistoryEntry,
+  RegionMultiplierRow,
+} from '@/types/PointRule'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 import { mrs } from '@/features/userManagement/mockPartnerData'
 
-const REGIONS: CoinRuleRegion[] = ['North', 'South', 'East', 'West']
+const REGIONS: PointRuleRegion[] = ['North', 'South', 'East', 'West']
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -32,7 +38,10 @@ function multiplierFromSeed(seed: number): number {
   return Number((1 + (seed % 6) * 0.15).toFixed(2))
 }
 
-function buildRegionRows(seed: number, baseCoinValue: number): RegionMultiplierRow[] {
+function buildRegionRows(
+  seed: number,
+  basePointValue: number,
+): RegionMultiplierRow[] {
   return REGIONS.map((region, i) => {
     const localSeed = seed * 7 + i
     const previousMultiplier = multiplierFromSeed(localSeed)
@@ -41,15 +50,19 @@ function buildRegionRows(seed: number, baseCoinValue: number): RegionMultiplierR
       region,
       previousMultiplier,
       currentMultiplier,
-      previousPoints: roundToHundred(baseCoinValue * previousMultiplier),
+      previousPoints: roundToHundred(basePointValue * previousMultiplier),
       previousEffectiveDate: dateFromSeed(localSeed, 'May'),
-      currentPoints: roundToHundred(baseCoinValue * currentMultiplier),
+      currentPoints: roundToHundred(basePointValue * currentMultiplier),
       currentEffectiveDate: dateFromSeed(localSeed + 10, 'Jul'),
     }
   })
 }
 
-function buildRegionalHistory(seed: number, ruleId: string, rows: RegionMultiplierRow[]): RegionCoinHistoryEntry[] {
+function buildRegionalHistory(
+  seed: number,
+  ruleId: string,
+  rows: RegionMultiplierRow[],
+): RegionPointHistoryEntry[] {
   const reviewer = mrs[seed % mrs.length]!
   return rows.map((row, i) => ({
     id: `${ruleId}-region-${row.region}`,
@@ -65,13 +78,16 @@ function buildRegionalHistory(seed: number, ruleId: string, rows: RegionMultipli
   }))
 }
 
-function buildCoinValueRule(seed: number, partnerType: CoinRulePartnerType): CoinValueRule {
+function buildPointValueRule(
+  seed: number,
+  partnerType: PointRulePartnerType,
+): PointValueRule {
   const product = mockProducts[seed % mockProducts.length]!
-  const id = `coin-rule-${partnerType.toLowerCase()}-${seed}`
-  const baseCoinValue = roundToHundred(
+  const id = `Point-rule-${partnerType.toLowerCase()}-${seed}`
+  const basePointValue = roundToHundred(
     seededNumber(partnerType === 'Dealer' ? seed : seed + 500, 100, 1000),
   )
-  const regions = buildRegionRows(seed, baseCoinValue)
+  const regions = buildRegionRows(seed, basePointValue)
   const reviewer = mrs[seed % mrs.length]!
 
   return {
@@ -80,8 +96,8 @@ function buildCoinValueRule(seed: number, partnerType: CoinRulePartnerType): Coi
     modelCode: product.productCode,
     productCategory: product.productCategory,
     productName: product.productName,
-    defaultCoinValue: baseCoinValue,
-    baseCoinValue,
+    defaultPointValue: basePointValue,
+    basePointValue,
     status: 'active',
 
     regions,
@@ -92,37 +108,48 @@ function buildCoinValueRule(seed: number, partnerType: CoinRulePartnerType): Coi
   }
 }
 
-export const mockCoinValueRules: CoinValueRule[] = [
-  ...mockProducts.slice(0, 30).map((_, index) => buildCoinValueRule(index + 1, 'Dealer')),
-  ...mockProducts.slice(0, 30).map((_, index) => buildCoinValueRule(index + 1, 'Chemist')),
+export const mockPointValueRules: PointValueRule[] = [
+  ...mockProducts
+    .slice(0, 30)
+    .map((_, index) => buildPointValueRule(index + 1, 'Dealer')),
+  ...mockProducts
+    .slice(0, 30)
+    .map((_, index) => buildPointValueRule(index + 1, 'Chemist')),
 ]
 
-export function getCoinValueRuleById(id: string): CoinValueRule | undefined {
-  const rule = mockCoinValueRules.find((rule) => rule.id === id)
+export function getPointValueRuleById(id: string): PointValueRule | undefined {
+  const rule = mockPointValueRules.find((rule) => rule.id === id)
   if (!rule) return undefined
   const extraHistory = getStoredRegionHistory()[id]
   if (!extraHistory?.length) return rule
-  return { ...rule, regionalHistory: [...extraHistory, ...rule.regionalHistory] }
+  return {
+    ...rule,
+    regionalHistory: [...extraHistory, ...rule.regionalHistory],
+  }
 }
 
-export function getCoinValueRulesByPartnerType(partnerType: CoinRulePartnerType): CoinValueRule[] {
-  return mockCoinValueRules.filter((rule) => rule.partnerType === partnerType)
+export function getPointValueRulesByPartnerType(
+  partnerType: PointRulePartnerType,
+): PointValueRule[] {
+  return mockPointValueRules.filter((rule) => rule.partnerType === partnerType)
 }
 
-/** One row per product, pairing its Dealer and Chemist coin value rules by product code. */
-export interface ProductCoinRuleGroup {
+/** One row per product, pairing its Dealer and Chemist point value rules by product code. */
+export interface ProductPointRuleGroup {
   modelCode: string
   productCategory: string
   productName: string
-  dealerRule?: CoinValueRule
-  chemistRule?: CoinValueRule
+  dealerRule?: PointValueRule
+  chemistRule?: PointValueRule
 }
 
-export function groupCoinValueRulesByProduct(rules: CoinValueRule[]): ProductCoinRuleGroup[] {
-  const groups = new Map<string, ProductCoinRuleGroup>()
+export function groupPointValueRulesByProduct(
+  rules: PointValueRule[],
+): ProductPointRuleGroup[] {
+  const groups = new Map<string, ProductPointRuleGroup>()
   for (const rule of rules) {
     const existing = groups.get(rule.modelCode)
-    const group: ProductCoinRuleGroup = existing ?? {
+    const group: ProductPointRuleGroup = existing ?? {
       modelCode: rule.modelCode,
       productCategory: rule.productCategory,
       productName: rule.productName,
@@ -134,18 +161,31 @@ export function groupCoinValueRulesByProduct(rules: CoinValueRule[]): ProductCoi
   return Array.from(groups.values())
 }
 
-export function highestCurrentPoints(rule: CoinValueRule): number {
+export function highestCurrentPoints(rule: PointValueRule): number {
   return Math.max(...rule.regions.map((r) => r.currentPoints))
 }
 
-function averageMultiplierFor(partnerType: CoinRulePartnerType, region: CoinRuleRegion): number {
-  const rules = mockCoinValueRules.filter((r) => r.partnerType === partnerType)
+function averageMultiplierFor(
+  partnerType: PointRulePartnerType,
+  region: PointRuleRegion,
+): number {
+  const rules = mockPointValueRules.filter((r) => r.partnerType === partnerType)
   return Number(
-    (rules.reduce((sum, r) => sum + (r.regions.find((x) => x.region === region)?.currentMultiplier ?? 1), 0) / rules.length).toFixed(2),
+    (
+      rules.reduce(
+        (sum, r) =>
+          sum +
+          (r.regions.find((x) => x.region === region)?.currentMultiplier ?? 1),
+        0,
+      ) / rules.length
+    ).toFixed(2),
   )
 }
 
-export const regionMultiplierDefaults: Record<CoinRulePartnerType, Record<CoinRuleRegion, number>> = {
+export const regionMultiplierDefaults: Record<
+  PointRulePartnerType,
+  Record<PointRuleRegion, number>
+> = {
   Dealer: {
     North: averageMultiplierFor('Dealer', 'North'),
     South: averageMultiplierFor('Dealer', 'South'),
@@ -160,14 +200,20 @@ export const regionMultiplierDefaults: Record<CoinRulePartnerType, Record<CoinRu
   },
 }
 
-export const coinRuleKpis = {
-  totalOutstandingCoinLiability: mockCoinValueRules.reduce((sum, r) => sum + r.regions.reduce((s, x) => s + x.currentPoints, 0), 0),
-  totalConfiguredRules: mockCoinValueRules.length,
-  averageBaseCoinValue: Math.round(mockCoinValueRules.reduce((sum, r) => sum + r.baseCoinValue, 0) / mockCoinValueRules.length),
+export const PointRuleKpis = {
+  totalOutstandingPointLiability: mockPointValueRules.reduce(
+    (sum, r) => sum + r.regions.reduce((s, x) => s + x.currentPoints, 0),
+    0,
+  ),
+  totalConfiguredRules: mockPointValueRules.length,
+  averageBasePointValue: Math.round(
+    mockPointValueRules.reduce((sum, r) => sum + r.basePointValue, 0) /
+      mockPointValueRules.length,
+  ),
 }
 
-export const coinDistributionByCategory = Object.entries(
-  mockCoinValueRules.reduce<Record<string, number>>((acc, rule) => {
+export const PointDistributionByCategory = Object.entries(
+  mockPointValueRules.reduce<Record<string, number>>((acc, rule) => {
     const total = rule.regions.reduce((s, x) => s + x.currentPoints, 0)
     acc[rule.productCategory] = (acc[rule.productCategory] ?? 0) + total
     return acc
@@ -176,15 +222,35 @@ export const coinDistributionByCategory = Object.entries(
 
 // --- localStorage persistence for region multiplier overrides (mock-only, session-local) ---
 
-const MULTIPLIERS_KEY = 'medtech-cms:coin-rules:region-multipliers-v2'
-const MULTIPLIER_DATES_KEY = 'medtech-cms:coin-rules:region-multiplier-dates-v2'
+const MULTIPLIERS_KEY = 'medtech-cms:Point-rules:region-multipliers-v2'
+const MULTIPLIER_DATES_KEY =
+  'medtech-cms:Point-rules:region-multiplier-dates-v2'
 
-export type RegionMultiplierMap = Record<CoinRulePartnerType, Record<CoinRuleRegion, number>>
-export type RegionDateMap = Record<CoinRulePartnerType, Record<CoinRuleRegion, string>>
+export type RegionMultiplierMap = Record<
+  PointRulePartnerType,
+  Record<PointRuleRegion, number>
+>
+export type RegionDateMap = Record<
+  PointRulePartnerType,
+  Record<PointRuleRegion, string>
+>
 
 export function formatRuleChangeDate(): string {
   const now = new Date()
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+  const months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ]
   return `${pad(now.getDate())} ${months[now.getMonth()]} ${now.getFullYear()}`
 }
 
@@ -219,8 +285,16 @@ export function getStoredMultiplierDates(): RegionDateMap {
     // localStorage unavailable — fall back to defaults
   }
   const today = formatRuleChangeDate()
-  const defaultRegionDates: Record<CoinRuleRegion, string> = { North: today, South: today, East: today, West: today }
-  return { Dealer: { ...defaultRegionDates }, Chemist: { ...defaultRegionDates } }
+  const defaultRegionDates: Record<PointRuleRegion, string> = {
+    North: today,
+    South: today,
+    East: today,
+    West: today,
+  }
+  return {
+    Dealer: { ...defaultRegionDates },
+    Chemist: { ...defaultRegionDates },
+  }
 }
 
 export function storeMultiplierDates(value: RegionDateMap): void {
@@ -231,7 +305,7 @@ export function storeMultiplierDates(value: RegionDateMap): void {
   }
 }
 
-const RULE_STATUS_KEY = 'medtech-cms:coin-rules:status-overrides'
+const RULE_STATUS_KEY = 'medtech-cms:Point-rules:status-overrides'
 
 export type RuleStatusMap = Record<string, 'active' | 'inactive'>
 
@@ -255,9 +329,9 @@ export function storeRuleStatuses(value: RuleStatusMap): void {
 
 // --- localStorage persistence for region-multiplier-driven history entries (mock-only, session-local) ---
 
-const REGION_HISTORY_KEY = 'medtech-cms:coin-rules:region-history'
+const REGION_HISTORY_KEY = 'medtech-cms:Point-rules:region-history'
 
-export type RegionHistoryMap = Record<string, RegionCoinHistoryEntry[]>
+export type RegionHistoryMap = Record<string, RegionPointHistoryEntry[]>
 
 export function getStoredRegionHistory(): RegionHistoryMap {
   try {
@@ -269,7 +343,9 @@ export function getStoredRegionHistory(): RegionHistoryMap {
   return {}
 }
 
-export function appendRegionHistoryEntries(entries: Record<string, RegionCoinHistoryEntry[]>): void {
+export function appendRegionHistoryEntries(
+  entries: Record<string, RegionPointHistoryEntry[]>,
+): void {
   const current = getStoredRegionHistory()
   const next: RegionHistoryMap = { ...current }
   for (const [ruleId, newEntries] of Object.entries(entries)) {

@@ -1,5 +1,5 @@
 import {
-  pointsSummary,
+  PointsSummary,
   scanActivityTrend,
   rewardMix,
   activityTimeline,
@@ -9,7 +9,11 @@ import {
   notifications,
 } from '@/features/dashboard/mockDashboard'
 import type { RecentScan } from '@/features/dashboard/mockDashboard'
-import type { DashboardOverview, DashboardWidgetsData, EntityLeaderboardEntry } from '@/features/dashboard/types/dashboard.types'
+import type {
+  DashboardOverview,
+  DashboardWidgetsData,
+  EntityLeaderboardEntry,
+} from '@/features/dashboard/types/dashboard.types'
 import { mockDelay } from '@/services/mockDelay'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 import { mockDealers } from '@/features/userManagement/mockDealers'
@@ -18,7 +22,7 @@ import { mockScanEvents } from '@/features/fieldOperations/mocks/mockScanFeed'
 import type { BadgeStatus } from '@/components/common/StatusBadge/StatusBadge'
 import type { ScanResult } from '@/types/scanFeed'
 
-// TODO: replace with real aggregate dashboard endpoints once available.
+// TODO: replace with real aggregate dashboard endPoints once available.
 
 const SCAN_RESULT_TO_BADGE_STATUS: Record<ScanResult, BadgeStatus> = {
   success: 'active',
@@ -50,7 +54,7 @@ const dealerLeaderboard: EntityLeaderboardEntry[] = [...mockDealers]
     rank: index + 1,
     name: dealer.shopName,
     region: dealer.zone,
-    points: dealer.totalScans,
+    Points: dealer.totalScans,
     linkTo: `/partners/dealers/${dealer.id}`,
   }))
 
@@ -62,14 +66,17 @@ const chemistLeaderboard: EntityLeaderboardEntry[] = [...mockChemists]
     rank: index + 1,
     name: chemist.shopName,
     region: chemist.zone,
-    points: chemist.totalRedemptions,
+    Points: chemist.totalRedemptions,
     linkTo: `/partners/chemists/${chemist.id}`,
   }))
 
 const topProductsByName = new Map<string, (typeof mockProducts)[number]>()
 for (const product of mockProducts) {
   const existing = topProductsByName.get(product.productName)
-  if (!existing || product.totalSuccessfulScans > existing.totalSuccessfulScans) {
+  if (
+    !existing ||
+    product.totalSuccessfulScans > existing.totalSuccessfulScans
+  ) {
     topProductsByName.set(product.productName, product)
   }
 }
@@ -82,12 +89,17 @@ const topProducts: EntityLeaderboardEntry[] = [...topProductsByName.values()]
     rank: index + 1,
     name: product.productName,
     region: product.productCategory,
-    points: product.totalSuccessfulScans,
+    Points: product.totalSuccessfulScans,
     linkTo: `/inventory/product-master/${product.id}`,
   }))
 
 async function getOverview(): Promise<DashboardOverview> {
-  return mockDelay({ dealerLeaderboard, chemistLeaderboard, topProducts, pointsSummary })
+  return mockDelay({
+    dealerLeaderboard,
+    chemistLeaderboard,
+    topProducts,
+    PointsSummary,
+  })
 }
 
 async function getWidgetsData(): Promise<DashboardWidgetsData> {

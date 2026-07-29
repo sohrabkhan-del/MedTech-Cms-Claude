@@ -12,7 +12,7 @@ import {
   Typography,
 } from '@mui/material'
 import { Box as ViewInArOutlined, UploadCloud, X } from 'lucide-react'
-import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
+import { useIsMobile } from '@/hooks/useMediaQueryBreakPoint'
 import { radius } from '@/theme/tokens'
 import { BatchListingTab } from '@/features/inventoryManagement/components/BatchListingTab'
 import { BatchUidUploadTab } from '@/features/inventoryManagement/components/BatchUidUploadTab'

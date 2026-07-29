@@ -3,8 +3,6 @@ import { useNavigate } from 'react-router-dom'
 import { Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import {
   Package as Inventory2Icon,
-  CircleCheck as CheckCircleOutlined,
-  Ban as BlockOutlined,
   FolderTree as FolderTreeIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
@@ -20,7 +18,10 @@ import { useToast } from '@/contexts/ToastContext'
 import { useProducts } from '@/features/inventoryManagement/hooks/useProducts'
 import { useProductCategoryOptions } from '@/features/inventoryManagement/hooks/useProductCategoryOptions'
 import { useProductCategories } from '@/features/masters/hooks/useProductCategories'
-import type { Product, ProductStatus } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import type {
+  Product,
+  ProductStatus,
+} from '@/features/inventoryManagement/types/inventoryManagement.types'
 import type { ProductCategory } from '@/features/masters/types/masters.types'
 
 interface ProductFilters extends Record<string, unknown> {
@@ -44,7 +45,9 @@ export function ProductListPage() {
     isLoading: isLoading || categoriesLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'products' | 'categories'>('products')
+  const [viewMode, setViewMode] = useState<'products' | 'categories'>(
+    'products',
+  )
   const [appliedFilters, setAppliedFilters] = useState<ProductFilters>({
     category: 'all',
     status: 'all',
@@ -52,7 +55,12 @@ export function ProductListPage() {
     toDate: '',
   })
 
-  const productKpis = kpis ?? { totalProducts: 0, activeProducts: 0, inactiveProducts: 0, totalRewardPointsIssued: 0 }
+  const productKpis = kpis ?? {
+    totalProducts: 0,
+    activeProducts: 0,
+    inactiveProducts: 0,
+    totalRewardPointsIssued: 0,
+  }
 
   const filteredProducts = useMemo(
     () =>
@@ -68,24 +76,14 @@ export function ProductListPage() {
     [products, appliedFilters],
   )
 
-  const showActiveOnly = () => {
-    setViewMode('products')
-    setAppliedFilters((prev) => ({ ...prev, status: 'active' }))
-  }
-
-  const showInactiveOnly = () => {
-    setViewMode('products')
-    setAppliedFilters((prev) => ({ ...prev, status: 'inactive' }))
-  }
-
-  const showAllCategories = () => {
-    setViewMode('categories')
-  }
-
-  const handleImportConfirm = async (parsed: Parameters<typeof importProducts>[0]) => {
+  const handleImportConfirm = async (
+    parsed: Parameters<typeof importProducts>[0],
+  ) => {
     try {
       await importProducts(parsed)
-      toast.success(`${parsed.rows.length} product${parsed.rows.length === 1 ? '' : 's'} imported successfully.`)
+      toast.success(
+        `${parsed.rows.length} product${parsed.rows.length === 1 ? '' : 's'} imported successfully.`,
+      )
     } catch {
       toast.error('Could not import the file. Please try again.')
     }
@@ -142,13 +140,7 @@ export function ProductListPage() {
       sortValue: (row) => row.chemistRewardPoints,
       render: (row) => row.chemistRewardPoints,
     },
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      sortValue: (row) => row.status,
-      render: (row) => <StatusBadge status={row.status} />,
-    },
+
     {
       key: 'uploadedDate',
       header: 'Uploaded Date',
@@ -178,7 +170,12 @@ export function ProductListPage() {
         </Typography>
       ),
     },
-    { key: 'categoryCode', header: 'Category Code', minWidth: 140, render: (row) => row.categoryCode },
+    {
+      key: 'categoryCode',
+      header: 'Category Code',
+      minWidth: 140,
+      render: (row) => row.categoryCode,
+    },
     {
       key: 'totalProducts',
       header: 'Total Products',
@@ -194,13 +191,19 @@ export function ProductListPage() {
       sortValue: (row) => row.status,
       render: (row) => <StatusBadge status={row.status} />,
     },
-    { key: 'createdDate', header: 'Created Date', minWidth: 130, sortable: true, render: (row) => row.createdDate },
+    {
+      key: 'createdDate',
+      header: 'Created Date',
+      minWidth: 130,
+      sortable: true,
+      render: (row) => row.createdDate,
+    },
   ]
 
   return (
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -216,33 +219,7 @@ export function ProductListPage() {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
-            <StatCardSkeleton />
-          ) : (
-            <StatCard
-              label="Active Products"
-              value={productKpis.activeProducts}
-              icon={<CheckCircleOutlined size={20} />}
-              iconColor="success"
-              onClick={showActiveOnly}
-            />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
-            <StatCardSkeleton />
-          ) : (
-            <StatCard
-              label="Inactive Products"
-              value={productKpis.inactiveProducts}
-              icon={<BlockOutlined size={20} />}
-              iconColor="error"
-              onClick={showInactiveOnly}
-            />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6 }}>
           {categoriesLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -251,7 +228,6 @@ export function ProductListPage() {
               value={categories.length}
               icon={<FolderTreeIcon size={20} />}
               iconColor="secondary"
-              onClick={showAllCategories}
             />
           )}
         </Grid>
@@ -270,7 +246,8 @@ export function ProductListPage() {
           actions={[
             {
               label: 'View Details',
-              onClick: (row) => navigate(`/masters/product-categories/${row.id}`),
+              onClick: (row) =>
+                navigate(`/masters/product-categories/${row.id}`),
             },
           ]}
           emptyTitle="No categories found"
@@ -293,24 +270,13 @@ export function ProductListPage() {
           }
           onExportClick={() => {}}
           onImportClick={handleImportConfirm}
-          createAction={{
-            label: 'Add Product',
-            to: '/inventory/product-master/new',
-          }}
+
           defaultSortBy="productName"
           actions={[
             {
               label: 'View Product',
               onClick: (row) => navigate(`/inventory/product-master/${row.id}`),
             },
-            {
-              label: 'Edit Product',
-              onClick: (row) =>
-                navigate(`/inventory/product-master/${row.id}/edit`),
-            },
-            { label: 'Activate Product', onClick: () => {} },
-            { label: 'Deactivate Product', onClick: () => {} },
-            { label: 'Delete Product', onClick: () => {}, danger: true },
           ]}
           emptyTitle="No products found"
           emptyDescription="Try adjusting your filters or search terms."
@@ -342,22 +308,7 @@ export function ProductListPage() {
                 </MenuItem>
               ))}
             </TextField>
-            <TextField
-              select
-              label="Status"
-              size="small"
-              value={draft.status}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  status: e.target.value as ProductFilters['status'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
-            </TextField>
+
             <TextField
               type="date"
               label="Uploaded From"

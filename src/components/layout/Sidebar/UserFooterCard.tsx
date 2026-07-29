@@ -1,8 +1,16 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Badge, Box, Menu, MenuItem, Stack, Typography } from '@mui/material'
-import { ChevronRight as ChevronRightIcon, Settings as SettingsOutlinedIcon, User as PersonOutlineIcon, LogOut as LogoutIcon } from 'lucide-react'
-import { sidebarPalettes, type SidebarPalette } from '@/components/layout/Sidebar/sidebarPalettes'
+import {
+  ChevronRight as ChevronRightIcon,
+  Settings as SettingsOutlinedIcon,
+  User as PersonOutlineIcon,
+  LogOut as LogoutIcon,
+} from 'lucide-react'
+import {
+  sidebarPalettes,
+  type SidebarPalette,
+} from '@/components/layout/Sidebar/sidebarPalettes'
 import { radius } from '@/theme/tokens'
 import type { AuthUser } from '@/types/auth'
 
@@ -12,7 +20,11 @@ interface UserFooterCardProps {
   palette?: SidebarPalette
 }
 
-export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light }: UserFooterCardProps) {
+export function UserFooterCard({
+  user,
+  railMode,
+  palette = sidebarPalettes.light,
+}: UserFooterCardProps) {
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
@@ -67,7 +79,9 @@ export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light
               fontSize: '0.8rem',
               flexShrink: 0,
               overflow: 'hidden',
-              backgroundImage: user.avatarUrl ? `url(${user.avatarUrl})` : 'none',
+              backgroundImage: user.avatarUrl
+                ? `url(${user.avatarUrl})`
+                : 'none',
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
@@ -78,14 +92,30 @@ export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light
         {!railMode && (
           <>
             <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.75rem', lineHeight: 1.2, color: palette.textPrimary }} noWrap>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.75rem',
+                  lineHeight: 1.2,
+                  color: palette.textPrimary,
+                }}
+                noWrap
+              >
                 {user.name}
               </Typography>
-              <Typography sx={{ fontSize: '0.65rem', color: palette.textSecondary }} noWrap>
-                {user.role.replace('_', ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+              <Typography
+                sx={{ fontSize: '0.65rem', color: palette.textSecondary }}
+                noWrap
+              >
+                {user.role
+                  .replace('_', ' ')
+                  .replace(/\b\w/g, (c) => c.toUpperCase())}
               </Typography>
             </Box>
-            <ChevronRightIcon size={18} style={{ color: palette.textDisabled }} />
+            <ChevronRightIcon
+              size={18}
+              style={{ color: palette.textDisabled }}
+            />
           </>
         )}
       </Stack>
@@ -94,18 +124,32 @@ export function UserFooterCard({ user, railMode, palette = sidebarPalettes.light
         anchorEl={anchorEl}
         open={!!anchorEl}
         onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ vertical: 'top', horizontal: railMode ? 'right' : 'left' }}
-        transformOrigin={{ vertical: 'bottom', horizontal: railMode ? 'left' : 'left' }}
-        slotProps={{ paper: { sx: { minWidth: 200, borderRadius: `${radius.lg}px` } } }}
+        anchorOrigin={{
+          vertical: 'top',
+          horizontal: railMode ? 'right' : 'left',
+        }}
+        transformOrigin={{
+          vertical: 'bottom',
+          horizontal: railMode ? 'left' : 'left',
+        }}
+        slotProps={{
+          paper: { sx: { minWidth: 200, borderRadius: `${radius.lg}px` } },
+        }}
       >
         <MenuItem onClick={() => goTo('/settings/profile')}>
-          <Box component="span" sx={{ display: 'inline-flex', mr: 1.5, color: 'text.secondary' }}>
+          <Box
+            component="span"
+            sx={{ display: 'inline-flex', mr: 1.5, color: 'text.secondary' }}
+          >
             <PersonOutlineIcon size={20} />
           </Box>
           Profile
         </MenuItem>
         <MenuItem onClick={() => goTo('/settings/general')}>
-          <Box component="span" sx={{ display: 'inline-flex', mr: 1.5, color: 'text.secondary' }}>
+          <Box
+            component="span"
+            sx={{ display: 'inline-flex', mr: 1.5, color: 'text.secondary' }}
+          >
             <SettingsOutlinedIcon size={20} />
           </Box>
           Settings

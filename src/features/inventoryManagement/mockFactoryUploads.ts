@@ -661,11 +661,18 @@ function buildManifestScanHistory(
   })
 }
 
-function buildBatchFromManifestRow(row: BmrManifestRow, index: number): FactoryBatch {
+function buildBatchFromManifestRow(
+  row: BmrManifestRow,
+  index: number,
+): FactoryBatch {
   const id = `bmr-manifest-${index}`
   const scanHistory = buildManifestScanHistory(row, index, id)
-  const assignedToDealers = scanHistory.filter((s) => s.dealerName !== '—').length
-  const assignedToChemists = scanHistory.filter((s) => s.chemistName !== '—').length
+  const assignedToDealers = scanHistory.filter(
+    (s) => s.dealerName !== '—',
+  ).length
+  const assignedToChemists = scanHistory.filter(
+    (s) => s.chemistName !== '—',
+  ).length
 
   return {
     id,
@@ -691,7 +698,8 @@ function buildBatchFromManifestRow(row: BmrManifestRow, index: number): FactoryB
     issuedBy: row.issuedBy,
     month: row.month,
     retentionSampleQuantity: row.sampleQty,
-    remarks: 'Imported from BMR upload (S0H6 Handyneb Classic Nebulizer Manifest).',
+    remarks:
+      'Imported from BMR upload (S0H6 Handyneb Classic Nebulizer Manifest).',
 
     isBmrSourced: true,
     domestic: row.domestic,
@@ -742,8 +750,8 @@ function buildBatchFromManifestRow(row: BmrManifestRow, index: number): FactoryB
   }
 }
 
-export const mockFactoryBatches: FactoryBatch[] = bmrManifestRows.map((row, index) =>
-  buildBatchFromManifestRow(row, index),
+export const mockFactoryBatches: FactoryBatch[] = bmrManifestRows.map(
+  (row, index) => buildBatchFromManifestRow(row, index),
 )
 
 export function getBatchById(id: string): FactoryBatch | undefined {

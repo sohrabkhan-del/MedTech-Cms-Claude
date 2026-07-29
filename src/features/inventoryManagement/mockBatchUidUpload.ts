@@ -56,6 +56,69 @@ function normalizeHeader(header: string): string {
   return header.trim().toLowerCase()
 }
 
+const BMR_TEMPLATE_HEADERS = [
+  'Product Code',
+  'Batch No.',
+  'Production Plan Number',
+  'Batch Issued Date',
+  'Batch Issued By Name',
+  'Month',
+  'Qty',
+  'Sample Qty',
+  'Plug Type',
+  'Domestic',
+  'Export',
+  'Assy Line No.',
+  'Batch Completed Date',
+  'Produced Qty',
+  'Start Serial Number',
+  'End Serial Number',
+]
+
+const BMR_TEMPLATE_SAMPLE_ROW = [
+  'PRD-1001',
+  'BATCH-0001',
+  'PPN-2001',
+  '01-Jan-2026',
+  'Jane Doe',
+  'January',
+  1000,
+  10,
+  'Type A',
+  'Yes',
+  'No',
+  'LINE-1',
+  '05-Jan-2026',
+  990,
+  'SN-000001',
+  'SN-000990',
+]
+
+/** Downloads a blank .xlsx with the exact column headers `parseBmrFile` expects, plus one sample row. */
+export function downloadBmrUploadTemplate() {
+  const worksheet = XLSX.utils.aoa_to_sheet([
+    BMR_TEMPLATE_HEADERS,
+    BMR_TEMPLATE_SAMPLE_ROW,
+  ])
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'BMR Template')
+  XLSX.writeFile(workbook, 'bmr-upload-template.xlsx')
+}
+
+const MASTER_CARTON_TEMPLATE_HEADERS = ['UID', 'Master Carton Number']
+const MASTER_CARTON_TEMPLATE_SAMPLE_ROW = ['BATCH-0001SN-000001', 'MC-0001']
+
+/** Downloads a blank .xlsx with the exact column headers `parseMasterCartonFile` expects, plus one sample row. */
+export function downloadMasterCartonLinkTemplate() {
+  const worksheet = XLSX.utils.aoa_to_sheet([
+    MASTER_CARTON_TEMPLATE_HEADERS,
+    MASTER_CARTON_TEMPLATE_SAMPLE_ROW,
+  ])
+  const workbook = XLSX.utils.book_new()
+  XLSX.utils.book_append_sheet(workbook, worksheet, 'Carton Linkage Template')
+  XLSX.writeFile(workbook, 'master-carton-linkage-template.xlsx')
+}
+
 function excelDateToString(value: unknown): string {
   if (typeof value === 'number') {
     const parsed = XLSX.SSF.format('dd-mmm-yyyy', value)

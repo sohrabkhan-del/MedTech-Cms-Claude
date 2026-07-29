@@ -47,7 +47,16 @@ export function ScanUserProfilePage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -134,15 +143,27 @@ export function ScanUserProfilePage() {
         <SectionCard title="User Information">
           <DetailFieldGrid
             fields={[
-              { label: 'Last Scan Date & Time', value: userSummary.lastScanDateTime },
+              {
+                label: 'Last Scan Date & Time',
+                value: userSummary.lastScanDateTime,
+              },
               { label: 'Registered Location', value: userSummary.address },
               { label: 'Assigned Region', value: userSummary.zone },
               {
                 label: 'Business Name',
                 value: (
-                  <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1 }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ flexWrap: 'wrap', gap: 1 }}
+                  >
                     {userSummary.businessNames.map((name) => (
-                      <Chip key={name} label={name} size="small" variant="outlined" />
+                      <Chip
+                        key={name}
+                        label={name}
+                        size="small"
+                        variant="outlined"
+                      />
                     ))}
                   </Stack>
                 ),
@@ -155,7 +176,12 @@ export function ScanUserProfilePage() {
           <CommonTable
             tableKey="live-scan-user-history"
             columns={[
-              { key: 'scanDateTime', header: 'Scan Date & Time', sortable: true, render: (row) => row.scanDateTime },
+              {
+                key: 'scanDateTime',
+                header: 'Scan Date & Time',
+                sortable: true,
+                render: (row) => row.scanDateTime,
+              },
               {
                 key: 'scanCode',
                 header: 'Scan Code',
@@ -173,11 +199,27 @@ export function ScanUserProfilePage() {
                   </Typography>
                 ),
               },
-              { key: 'productName', header: 'Product Name', render: (row) => row.productName },
-              { key: 'productCode', header: 'Product Code', render: (row) => row.productCode },
-              { key: 'batchNumber', header: 'Batch Number', render: (row) => row.batchNumber },
+              {
+                key: 'productName',
+                header: 'Product Name',
+                render: (row) => row.productName,
+              },
+              {
+                key: 'productCode',
+                header: 'Product Code',
+                render: (row) => row.productCode,
+              },
+              {
+                key: 'batchNumber',
+                header: 'Batch Number',
+                render: (row) => row.batchNumber,
+              },
               { key: 'region', header: 'Region', render: (row) => row.region },
-              { key: 'sourceIp', header: 'Source IP Address', render: (row) => row.technical.sourceIp },
+              {
+                key: 'sourceIp',
+                header: 'Source IP Address',
+                render: (row) => row.technical.sourceIp,
+              },
               {
                 key: 'result',
                 header: 'Scan Result',
@@ -191,7 +233,9 @@ export function ScanUserProfilePage() {
             getRowId={(row) => row.id}
             onRowClick={(row) => openScan(row.id)}
             searchPlaceholder="Search scans…"
-            searchKeys={(row) => `${row.scanCode} ${row.productName} ${row.productCode}`}
+            searchKeys={(row) =>
+              `${row.scanCode} ${row.productName} ${row.productCode}`
+            }
             defaultSortBy="scanDateTime"
             emptyTitle="No scans recorded"
           />

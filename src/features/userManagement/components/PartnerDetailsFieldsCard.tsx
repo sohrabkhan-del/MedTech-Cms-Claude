@@ -15,10 +15,19 @@ const sectionTitleSx = {
 function FieldRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-      <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+      <Typography
+        variant="caption"
+        sx={{
+          color: 'text.secondary',
+          textTransform: 'uppercase',
+          letterSpacing: '0.04em',
+        }}
+      >
         {label}
       </Typography>
-      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>{value}</Typography>
+      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>
+        {value}
+      </Typography>
     </Grid>
   )
 }
@@ -29,7 +38,11 @@ interface PartnerDetailsFieldsCardProps {
   showGeoLockStatus?: boolean
 }
 
-export function PartnerDetailsFieldsCard({ partner, shopLabel, showGeoLockStatus = false }: PartnerDetailsFieldsCardProps) {
+export function PartnerDetailsFieldsCard({
+  partner,
+  shopLabel,
+  showGeoLockStatus = false,
+}: PartnerDetailsFieldsCardProps) {
   return (
     <Card sx={{ p: 3, mb: 3 }}>
       <Typography sx={sectionTitleSx}>Details</Typography>
@@ -41,7 +54,14 @@ export function PartnerDetailsFieldsCard({ partner, shopLabel, showGeoLockStatus
         <FieldRow label="Location (City)" value={partner.city} />
         <FieldRow label="Zone" value={partner.zone} />
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              textTransform: 'uppercase',
+              letterSpacing: '0.04em',
+            }}
+          >
             Status
           </Typography>
           <Box sx={{ mt: 0.5 }}>
@@ -50,7 +70,14 @@ export function PartnerDetailsFieldsCard({ partner, shopLabel, showGeoLockStatus
         </Grid>
         {showGeoLockStatus && (
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+            <Typography
+              variant="caption"
+              sx={{
+                color: 'text.secondary',
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+              }}
+            >
               Geo-lock Status
             </Typography>
             <Box sx={{ mt: 0.5 }}>
@@ -65,7 +92,10 @@ export function PartnerDetailsFieldsCard({ partner, shopLabel, showGeoLockStatus
         )}
         <FieldRow label="License Number" value={partner.licenseNumber} />
         <FieldRow label="Onboarded By" value={partner.onboardedBy} />
-        <FieldRow label="Points Earned" value={partner.availableCoins.toLocaleString('en-IN')} />
+        <FieldRow
+          label="Points Earned"
+          value={partner.availablePoints.toLocaleString('en-IN')}
+        />
       </Grid>
     </Card>
   )

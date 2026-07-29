@@ -5,19 +5,19 @@ export type SchemeStatus = 'active' | 'inactive'
 export type SchemePartnerType = 'Dealer' | 'Chemist'
 export type SchemePartnerStatus = 'interested' | 'enrolled' | 'redeemed'
 
-/** Per-partner-type base coin value plus its own per-region payout multipliers for one Product Master item attached to a scheme. */
+/** Per-partner-type base point value plus its own per-region payout multipliers for one Product Master item attached to a scheme. */
 export interface SchemeApplicableProduct {
   productId: string
-  dealerBaseCoinValue: number | null
-  chemistBaseCoinValue: number | null
+  dealerBasePointValue: number | null
+  chemistBasePointValue: number | null
   dealerRegionMultipliers: Partial<Record<PartnerZone, number>>
   chemistRegionMultipliers: Partial<Record<PartnerZone, number>>
 }
 
-/** Per-partner-type redemption rule (price / points / discount price) for one gift attached to a scheme. */
+/** Per-partner-type redemption rule (price / Points / discount price) for one gift attached to a scheme. */
 export interface SchemeGiftPartnerRule {
   price: number
-  points: number
+  Points: number
   discountPrice: number
 }
 
@@ -31,7 +31,7 @@ export interface SchemePartnerEntry {
   id: string
   name: string
   region: PartnerZone
-  points: number
+  Points: number
   status: SchemePartnerStatus
 }
 

@@ -2,35 +2,54 @@ import { mockWallets } from '@/features/rewardsWallet/mockWallets'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 import type { TransactionType } from '@/types/wallet'
-import type { WalletReportDetails, WalletReportManualAdjustment, WalletReportRow } from '@/types/walletReport'
+import type {
+  WalletReportDetails,
+  WalletReportManualAdjustment,
+  WalletReportRow,
+} from '@/types/walletReport'
 
-function sumByType(wallet: (typeof mockWallets)[number], type: 'credit' | 'debit'): number {
-  return wallet.transactions.filter((txn) => txn.transactionType === type).reduce((sum, txn) => sum + Math.abs(txn.coinsAdjusted), 0)
+function sumByType(
+  wallet: (typeof mockWallets)[number],
+  type: 'credit' | 'debit',
+): number {
+  return wallet.transactions
+    .filter((txn) => txn.transactionType === type)
+    .reduce((sum, txn) => sum + Math.abs(txn.PointsAdjusted), 0)
 }
 
 function latestTransactionDate(wallet: (typeof mockWallets)[number]): string {
   return wallet.transactions[0]?.transactionDate ?? wallet.lastUpdated
 }
 
-function latestTransactionType(wallet: (typeof mockWallets)[number]): TransactionType {
+function latestTransactionType(
+  wallet: (typeof mockWallets)[number],
+): TransactionType {
   return wallet.transactions[0]?.transactionType ?? 'credit'
 }
 
 function resolveBusinessName(wallet: (typeof mockWallets)[number]): string {
   if (wallet.userType === 'Dealer') {
-    return mockDealers.find((dealer) => dealer.id === wallet.userId)?.shopName ?? wallet.userName
+    return (
+      mockDealers.find((dealer) => dealer.id === wallet.userId)?.shopName ??
+      wallet.userName
+    )
   }
-  return mockChemists.find((chemist) => chemist.id === wallet.userId)?.shopName ?? wallet.userName
+  return (
+    mockChemists.find((chemist) => chemist.id === wallet.userId)?.shopName ??
+    wallet.userName
+  )
 }
 
-function buildManualAdjustments(wallet: (typeof mockWallets)[number]): WalletReportManualAdjustment[] {
+function buildManualAdjustments(
+  wallet: (typeof mockWallets)[number],
+): WalletReportManualAdjustment[] {
   return wallet.transactions
     .filter((txn) => txn.transactionSource === 'Manual Adjustment')
     .map((txn) => ({
       id: `${txn.id}-adj`,
       date: txn.transactionDate,
       type: txn.transactionType,
-      coins: Math.abs(txn.coinsAdjusted),
+      Points: Math.abs(txn.PointsAdjusted),
       reason: txn.reason,
       performedBy: txn.performedBy,
     }))
@@ -57,7 +76,9 @@ function toReportRow(wallet: (typeof mockWallets)[number]): WalletReportRow {
 
 export const mockWalletReports: WalletReportRow[] = mockWallets.map(toReportRow)
 
-export function getWalletReportById(id: string): WalletReportDetails | undefined {
+export function getWalletReportById(
+  id: string,
+): WalletReportDetails | undefined {
   const wallet = mockWallets.find((w) => w.id === id)
   if (!wallet) return undefined
 
@@ -67,7 +88,7 @@ export function getWalletReportById(id: string): WalletReportDetails | undefined
     email: wallet.email,
     lifetimeEarned: wallet.lifetimeEarned,
     lifetimeRedeemed: wallet.lifetimeRedeemed,
-    pendingRedemptionCoins: wallet.pendingRedemptionCoins,
+    pendingRedemptionPoints: wallet.pendingRedemptionPoints,
     transactions: wallet.transactions,
     manualAdjustments: buildManualAdjustments(wallet),
     redemptionHistory: wallet.redemptionHistory,
@@ -77,7 +98,10 @@ export function getWalletReportById(id: string): WalletReportDetails | undefined
 
 export const walletReportKpis = {
   totalWallets: mockWalletReports.length,
-  totalBalanceOutstanding: mockWalletReports.reduce((sum, r) => sum + r.walletBalance, 0),
+  totalBalanceOutstanding: mockWalletReports.reduce(
+    (sum, r) => sum + r.walletBalance,
+    0,
+  ),
   totalCredits: mockWalletReports.reduce((sum, r) => sum + r.credits, 0),
   totalDebits: mockWalletReports.reduce((sum, r) => sum + r.debits, 0),
 }

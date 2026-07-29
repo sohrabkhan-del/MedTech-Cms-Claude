@@ -1,5 +1,5 @@
 import type {
-  EarnedCoinsBreakdown,
+  EarnedPointsBreakdown,
   FraudAdjustmentEntry,
   RecentRewardActivity,
   Wallet,
@@ -12,7 +12,10 @@ import type {
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 import { mrs } from '@/features/userManagement/mockPartnerData'
-import { mockGifts, giftCategoryOptions } from '@/features/schemeManagement/mockGifts'
+import {
+  mockGifts,
+  giftCategoryOptions,
+} from '@/features/schemeManagement/mockGifts'
 import { mockSeasonalSchemes } from '@/features/schemeManagement/mockSchemes'
 
 function seededNumber(seed: number, min: number, max: number): number {
@@ -34,38 +37,63 @@ function timeFromSeed(seed: number): string {
   return `${pad(seededNumber(seed, 8, 20))}:${pad(seededNumber(seed + 1, 0, 59))}`
 }
 
-function buildTransactions(seed: number, walletId: string, startBalance: number): WalletTransaction[] {
-  const sources: WalletTransaction['transactionSource'][] = ['Product Scan', 'Scheme Reward', 'Manual Adjustment', 'Redemption', 'Referral Program', 'Promotional Campaign']
+function buildTransactions(
+  seed: number,
+  walletId: string,
+  startBalance: number,
+): WalletTransaction[] {
+  const sources: WalletTransaction['transactionSource'][] = [
+    'Product Scan',
+    'Scheme Reward',
+    'Manual Adjustment',
+    'Redemption',
+    'Referral Program',
+    'Promotional Campaign',
+  ]
   const count = seededNumber(seed, 5, 12)
   let balance = startBalance
   const reviewer = mrs[seed % mrs.length]!
 
   return Array.from({ length: count }).map((_, i) => {
     const localSeed = seed * 13 + i
-    const type: WalletTransaction['transactionType'] = localSeed % 3 === 0 ? 'debit' : 'credit'
+    const type: WalletTransaction['transactionType'] =
+      localSeed % 3 === 0 ? 'debit' : 'credit'
     const amount = seededNumber(localSeed, 20, 500)
     const previousBalance = balance
-    balance = type === 'credit' ? balance + amount : Math.max(0, balance - amount)
+    balance =
+      type === 'credit' ? balance + amount : Math.max(0, balance - amount)
 
     return {
       id: `${walletId}-txn-${i}`,
       transactionDate: dateFromSeed(localSeed, 'Jul'),
       transactionType: type,
       previousBalance,
-      coinsAdjusted: type === 'credit' ? amount : -amount,
+      PointsAdjusted: type === 'credit' ? amount : -amount,
       updatedBalance: balance,
       transactionSource: sources[localSeed % sources.length]!,
-      reason: type === 'credit' ? 'Reward points credited' : 'Redemption deduction',
+      reason:
+        type === 'credit' ? 'Reward Points credited' : 'Redemption deduction',
       referenceNumber: `REF-${100000 + localSeed}`,
-      performedBy: type === 'debit' && localSeed % 4 === 0 ? reviewer : 'System',
+      performedBy:
+        type === 'debit' && localSeed % 4 === 0 ? reviewer : 'System',
       status: localSeed % 15 === 0 ? 'reversed' : 'completed',
     }
   })
 }
 
-function buildRedemptionHistory(seed: number, walletId: string): WalletRedemptionEntry[] {
+function buildRedemptionHistory(
+  seed: number,
+  walletId: string,
+): WalletRedemptionEntry[] {
   const count = seededNumber(seed, 2, 6)
-  const statuses: WalletRedemptionEntry['redemptionStatus'][] = ['pending', 'approved', 'shipped', 'delivered', 'delivered', 'cancelled']
+  const statuses: WalletRedemptionEntry['redemptionStatus'][] = [
+    'pending',
+    'approved',
+    'shipped',
+    'delivered',
+    'delivered',
+    'cancelled',
+  ]
   const couriers = ['BlueDart', 'Delhivery', 'DTDC', 'India Post']
 
   return Array.from({ length: count }).map((_, i) => {
@@ -78,18 +106,22 @@ function buildRedemptionHistory(seed: number, walletId: string): WalletRedemptio
       id: `${walletId}-redeem-${i}`,
       giftName: gift.giftName,
       category: gift.category,
-      coinsRedeemed: gift.requiredCoins,
+      PointsRedeemed: gift.requiredPoints,
       requestDate: dateFromSeed(localSeed, 'Jun'),
-      approvalDate: status === 'pending' ? null : dateFromSeed(localSeed + 2, 'Jun'),
-      deliveryDate: status === 'delivered' ? dateFromSeed(localSeed + 5, 'Jul') : null,
+      approvalDate:
+        status === 'pending' ? null : dateFromSeed(localSeed + 2, 'Jun'),
+      deliveryDate:
+        status === 'delivered' ? dateFromSeed(localSeed + 5, 'Jul') : null,
       redemptionStatus: status,
-      courierPartner: isShippedOrDelivered ? couriers[localSeed % couriers.length]! : null,
+      courierPartner: isShippedOrDelivered
+        ? couriers[localSeed % couriers.length]!
+        : null,
       trackingNumber: isShippedOrDelivered ? `TRK${1000000 + localSeed}` : null,
     }
   })
 }
 
-function buildEarnedCoinsBreakdown(seed: number): EarnedCoinsBreakdown {
+function buildEarnedPointsBreakdown(seed: number): EarnedPointsBreakdown {
   return {
     productScans: seededNumber(seed, 200, 3000),
     activeSchemes: seededNumber(seed + 1, 50, 1500),
@@ -99,8 +131,20 @@ function buildEarnedCoinsBreakdown(seed: number): EarnedCoinsBreakdown {
   }
 }
 
-function buildRecentActivity(seed: number, walletId: string, userType: WalletUserType, dealerName: string, chemistName: string): RecentRewardActivity[] {
-  const productNames = ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance', 'PainRelief Gel']
+function buildRecentActivity(
+  seed: number,
+  walletId: string,
+  userType: WalletUserType,
+  dealerName: string,
+  chemistName: string,
+): RecentRewardActivity[] {
+  const productNames = [
+    'CardioCare 10mg',
+    'NeuroPlus 500mg',
+    'ImmunoBoost Syrup',
+    'GlucoBalance',
+    'PainRelief Gel',
+  ]
   const scheme = mockSeasonalSchemes[seed % mockSeasonalSchemes.length]!
   const count = seededNumber(seed, 3, 8)
 
@@ -113,9 +157,14 @@ function buildRecentActivity(seed: number, walletId: string, userType: WalletUse
       qrCode: `QR-${1000000 + localSeed}`,
       dealer: userType === 'Dealer' ? dealerName : '—',
       chemist: userType === 'Chemist' ? chemistName : '—',
-      coinsEarned: seededNumber(localSeed, 5, 60),
+      PointsEarned: seededNumber(localSeed, 5, 60),
       appliedScheme: scheme.name,
-      status: localSeed % 12 === 0 ? 'pending' : localSeed % 25 === 0 ? 'failed' : 'credited',
+      status:
+        localSeed % 12 === 0
+          ? 'pending'
+          : localSeed % 25 === 0
+            ? 'failed'
+            : 'credited',
     }
   })
 }
@@ -124,7 +173,7 @@ function buildTimeline(seed: number, walletId: string): WalletTimelineEntry[] {
   const activities: WalletTimelineEntry['activity'][] = [
     'Reward Points Earned',
     'Scheme Reward',
-    'Manual Coin Adjustment',
+    'Manual Point Adjustment',
     'Redemption Request',
     'Admin Action',
   ]
@@ -142,9 +191,9 @@ function buildFraudLog(seed: number, walletId: string): FraudAdjustmentEntry[] {
     {
       id: `${walletId}-fraud-0`,
       incidentId: `INC-${20260000 + seed}`,
-      coinsAdjusted: -seededNumber(seed, 50, 300),
+      PointsAdjusted: -seededNumber(seed, 50, 300),
       adjustmentReason: 'Duplicate scan detected outside geo-fence',
-      actionTaken: 'Coins reversed and wallet flagged for review',
+      actionTaken: 'Points reversed and wallet flagged for review',
       performedBy: reviewer,
       dateTime: `${dateFromSeed(seed, 'Jun')} ${timeFromSeed(seed)}`,
     },
@@ -153,15 +202,19 @@ function buildFraudLog(seed: number, walletId: string): FraudAdjustmentEntry[] {
 
 function buildWallet(seed: number): Wallet {
   const userType: WalletUserType = seed % 2 === 0 ? 'Dealer' : 'Chemist'
-  const partner = userType === 'Dealer' ? mockDealers[seed % mockDealers.length]! : mockChemists[seed % mockChemists.length]!
+  const partner =
+    userType === 'Dealer'
+      ? mockDealers[seed % mockDealers.length]!
+      : mockChemists[seed % mockChemists.length]!
   const id = `wallet-${seed}`
-  const status: WalletStatus = seed % 15 === 0 ? 'suspended' : seed % 9 === 0 ? 'inactive' : 'active'
+  const status: WalletStatus =
+    seed % 15 === 0 ? 'suspended' : seed % 9 === 0 ? 'inactive' : 'active'
 
   const availableBalance = seededNumber(seed, 200, 15000)
   const lifetimeEarned = availableBalance + seededNumber(seed + 1, 500, 20000)
   const lifetimeRedeemed = lifetimeEarned - availableBalance
   const manualAdjustments = seededNumber(seed + 2, -200, 500)
-  const pendingRedemptionCoins = seededNumber(seed + 3, 0, 2000)
+  const pendingRedemptionPoints = seededNumber(seed + 3, 0, 2000)
 
   const dealerName = mockDealers[seed % mockDealers.length]!.shopName
   const chemistName = mockChemists[seed % mockChemists.length]!.shopName
@@ -181,30 +234,50 @@ function buildWallet(seed: number): Wallet {
     lifetimeEarned,
     lifetimeRedeemed,
     manualAdjustments,
-    pendingRedemptionCoins,
+    pendingRedemptionPoints,
     lastUpdated: `${dateFromSeed(seed + 6, 'Jul')} ${timeFromSeed(seed)}`,
 
     transactions: buildTransactions(seed, id, availableBalance),
     redemptionHistory: buildRedemptionHistory(seed, id),
-    earnedCoinsBreakdown: buildEarnedCoinsBreakdown(seed),
-    recentActivity: buildRecentActivity(seed, id, userType, dealerName, chemistName),
+    earnedPointsBreakdown: buildEarnedPointsBreakdown(seed),
+    recentActivity: buildRecentActivity(
+      seed,
+      id,
+      userType,
+      dealerName,
+      chemistName,
+    ),
     timeline: buildTimeline(seed, id),
     fraudLog: buildFraudLog(seed, id),
-    internalNotes: status === 'suspended' ? 'Wallet suspended pending fraud investigation.' : 'No open issues on this wallet.',
+    internalNotes:
+      status === 'suspended'
+        ? 'Wallet suspended pending fraud investigation.'
+        : 'No open issues on this wallet.',
   }
 }
 
-export const mockWallets: Wallet[] = Array.from({ length: 40 }).map((_, index) => buildWallet(index + 1))
+export const mockWallets: Wallet[] = Array.from({ length: 40 }).map(
+  (_, index) => buildWallet(index + 1),
+)
 
 export function getWalletById(id: string): Wallet | undefined {
   return mockWallets.find((wallet) => wallet.id === id)
 }
 
 export const walletKpis = {
-  totalWalletBalance: mockWallets.reduce((sum, w) => sum + w.availableBalance, 0),
-  totalCoinsEarned: mockWallets.reduce((sum, w) => sum + w.lifetimeEarned, 0),
-  totalCoinsRedeemed: mockWallets.reduce((sum, w) => sum + w.lifetimeRedeemed, 0),
-  pendingRedemptions: mockWallets.reduce((sum, w) => sum + w.pendingRedemptionCoins, 0),
+  totalWalletBalance: mockWallets.reduce(
+    (sum, w) => sum + w.availableBalance,
+    0,
+  ),
+  totalPointsEarned: mockWallets.reduce((sum, w) => sum + w.lifetimeEarned, 0),
+  totalPointsRedeemed: mockWallets.reduce(
+    (sum, w) => sum + w.lifetimeRedeemed,
+    0,
+  ),
+  pendingRedemptions: mockWallets.reduce(
+    (sum, w) => sum + w.pendingRedemptionPoints,
+    0,
+  ),
 }
 
 export { giftCategoryOptions as walletGiftCategoryOptions }

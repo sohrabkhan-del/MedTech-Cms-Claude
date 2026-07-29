@@ -9,21 +9,21 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { Coins, ArrowLeft as ArrowBackOutlined } from 'lucide-react'
+import { Coins as Points, ArrowLeft as ArrowBackOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { Modal } from '@/components/common/Modal/Modal'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { radius } from '@/theme/tokens'
-import { useCoinRuleDetail } from '@/features/rewardsWallet/hooks/useCoinRuleDetail'
+import { usePointRuleDetail } from '@/features/rewardsWallet/hooks/usePointRuleDetail'
 import type {
-  CoinRulePartnerType,
-  CoinValueRule,
+  PointRulePartnerType,
+  PointValueRule,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
 
 const PARTNER_TYPE_STYLES: Record<
-  CoinRulePartnerType,
+  PointRulePartnerType,
   { bg: string; text: string; buttonColor: 'primary' | 'warning' }
 > = {
   Dealer: { bg: 'primary.light', text: 'primary.dark', buttonColor: 'primary' },
@@ -34,18 +34,18 @@ const PARTNER_TYPE_STYLES: Record<
   },
 }
 
-interface BaseCoinValueCardProps {
-  partnerType: CoinRulePartnerType
-  rule: CoinValueRule | undefined
-  setBaseCoinValue: (value: number, targetRuleId?: string) => Promise<void>
+interface BasePointValueCardProps {
+  partnerType: PointRulePartnerType
+  rule: PointValueRule | undefined
+  setBasePointValue: (value: number, targetRuleId?: string) => Promise<void>
 }
 
-function BaseCoinValueCard({
+function BasePointValueCard({
   partnerType,
   rule,
-  setBaseCoinValue,
-}: BaseCoinValueCardProps) {
-  const [baseValue, setBaseValue] = useState(String(rule?.baseCoinValue ?? ''))
+  setBasePointValue,
+}: BasePointValueCardProps) {
+  const [baseValue, setBaseValue] = useState(String(rule?.basePointValue ?? ''))
   const [confirmStep, setConfirmStep] = useState<0 | 1 | 2>(0)
 
   if (!rule) {
@@ -74,10 +74,10 @@ function BaseCoinValueCard({
   }
 
   const baseValueNext = Math.max(0, Number(baseValue) || 0)
-  const unchanged = baseValueNext === rule.baseCoinValue
+  const unchanged = baseValueNext === rule.basePointValue
 
   const handleFinalConfirm = () => {
-    void setBaseCoinValue(baseValueNext, rule.id)
+    void setBasePointValue(baseValueNext, rule.id)
     setConfirmStep(0)
   }
 
@@ -105,7 +105,7 @@ function BaseCoinValueCard({
             color: PARTNER_TYPE_STYLES[partnerType].text,
           }}
         >
-          {partnerType} Base Coin Value
+          {partnerType} Base Point Value
         </Typography>
         <Button
           variant="contained"
@@ -121,7 +121,7 @@ function BaseCoinValueCard({
       <TextField
         fullWidth
         type="number"
-        label={`New Base Coin Value (${partnerType})`}
+        label={`New Base Point Value (${partnerType})`}
         size="small"
         slotProps={{ htmlInput: { step: 1, min: 0 } }}
         value={baseValue}
@@ -135,7 +135,7 @@ function BaseCoinValueCard({
       <Modal
         open={confirmStep === 1}
         onClose={() => setConfirmStep(0)}
-        title={`Confirm ${partnerType} Base Coin Value Change`}
+        title={`Confirm ${partnerType} Base Point Value Change`}
         description="Please review the change before continuing."
         primaryActionLabel="Continue"
         onPrimaryAction={() => setConfirmStep(2)}
@@ -145,7 +145,7 @@ function BaseCoinValueCard({
       >
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-            This will update the base coin value ({partnerType}) for{' '}
+            This will update the base Point value ({partnerType}) for{' '}
             <strong>{rule.productName}</strong>.
           </Typography>
           <Stack
@@ -153,13 +153,13 @@ function BaseCoinValueCard({
             sx={{ alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-              Base Coin Value
+              Base Point Value
             </Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Chip
                 size="small"
                 variant="outlined"
-                label={rule.baseCoinValue}
+                label={rule.basePointValue}
               />
               <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
                 →
@@ -187,13 +187,13 @@ function BaseCoinValueCard({
             sx={{ alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-              Base Coin Value
+              Base Point Value
             </Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Chip
                 size="small"
                 variant="outlined"
-                label={rule.baseCoinValue}
+                label={rule.basePointValue}
               />
               <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
                 →
@@ -202,7 +202,7 @@ function BaseCoinValueCard({
             </Stack>
           </Stack>
           <Typography sx={{ fontSize: '0.75rem', color: 'warning.main' }}>
-            This will recalculate reward coin payouts for every configured
+            This will recalculate reward Point payouts for every configured
             region of this {partnerType.toLowerCase()} rule going forward.
             Existing partner wallets are not retroactively adjusted.
           </Typography>
@@ -212,11 +212,11 @@ function BaseCoinValueCard({
   )
 }
 
-export function EditBaseCoinValuePage() {
+export function EditBasePointValuePage() {
   const navigate = useNavigate()
   const { ruleId } = useParams<{ ruleId: string }>()
-  const { rule, siblingRule, setBaseCoinValue, isLoading } =
-    useCoinRuleDetail(ruleId)
+  const { rule, siblingRule, setBasePointValue, isLoading } =
+    usePointRuleDetail(ruleId)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={2} />
@@ -225,10 +225,10 @@ export function EditBaseCoinValuePage() {
   if (!rule) {
     return (
       <EmptyState
-        title="Coin value rule not found"
+        title="Point value rule not found"
         description="This rule may have been removed."
-        actionLabel="Back to Coin Value Rules"
-        onAction={() => navigate('/rewards-wallet/coin-value-rules')}
+        actionLabel="Back to Point Value Rules"
+        onAction={() => navigate('/rewards-wallet/point-value-rules')}
       />
     )
   }
@@ -261,10 +261,10 @@ export function EditBaseCoinValuePage() {
               color: 'primary.main',
             }}
           >
-            <Coins size={20} />
+            <Points size={20} />
           </Box>
           <Box>
-            <Typography variant="h1">Edit Base Coin Value</Typography>
+            <Typography variant="h1">Edit Base Point Value</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {rule.productName} · {rule.modelCode}
             </Typography>
@@ -275,7 +275,7 @@ export function EditBaseCoinValuePage() {
           variant="outlined"
           startIcon={<ArrowBackOutlined size={18} />}
           onClick={() =>
-            navigate(`/rewards-wallet/coin-value-rules/${rule.id}`)
+            navigate(`/rewards-wallet/point-value-rules/${rule.id}`)
           }
           sx={{ fontSize: '0.8125rem' }}
         >
@@ -289,9 +289,9 @@ export function EditBaseCoinValuePage() {
             fields={[
               { label: 'Rule ID (Model Code)', value: rule.modelCode },
               { label: 'Product Category', value: rule.productCategory },
-              { label: 'Default Coin Value', value: rule.defaultCoinValue },
+              { label: 'Default Point Value', value: rule.defaultPointValue },
               {
-                label: 'Base Coin Value (Dealer)',
+                label: 'Base Point Value (Dealer)',
                 labelColor: 'primary.main',
                 value: (
                   <Typography
@@ -301,7 +301,7 @@ export function EditBaseCoinValuePage() {
                       color: 'primary.main',
                     }}
                   >
-                    {dealerRule?.baseCoinValue ?? '—'}
+                    {dealerRule?.basePointValue ?? '—'}
                   </Typography>
                 ),
               },
@@ -310,7 +310,7 @@ export function EditBaseCoinValuePage() {
               { label: 'Last Modified By', value: rule.lastModifiedBy },
               { label: 'Last Updated Time', value: rule.lastUpdatedTime },
               {
-                label: 'Base Coin Value (Chemist)',
+                label: 'Base Point Value (Chemist)',
                 labelColor: 'secondary.main',
                 value: (
                   <Typography
@@ -320,7 +320,7 @@ export function EditBaseCoinValuePage() {
                       color: 'secondary.main',
                     }}
                   >
-                    {chemistRule?.baseCoinValue ?? '—'}
+                    {chemistRule?.basePointValue ?? '—'}
                   </Typography>
                 ),
               },
@@ -329,17 +329,17 @@ export function EditBaseCoinValuePage() {
         </SectionCard>
 
         <Stack spacing={3}>
-          <BaseCoinValueCard
-            key={`dealer-${dealerRule?.baseCoinValue ?? 'none'}`}
+          <BasePointValueCard
+            key={`dealer-${dealerRule?.basePointValue ?? 'none'}`}
             partnerType="Dealer"
             rule={dealerRule}
-            setBaseCoinValue={setBaseCoinValue}
+            setBasePointValue={setBasePointValue}
           />
-          <BaseCoinValueCard
-            key={`chemist-${chemistRule?.baseCoinValue ?? 'none'}`}
+          <BasePointValueCard
+            key={`chemist-${chemistRule?.basePointValue ?? 'none'}`}
             partnerType="Chemist"
             rule={chemistRule}
-            setBaseCoinValue={setBaseCoinValue}
+            setBasePointValue={setBasePointValue}
           />
         </Stack>
       </Stack>

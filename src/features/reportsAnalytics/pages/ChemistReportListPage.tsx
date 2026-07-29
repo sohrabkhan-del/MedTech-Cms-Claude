@@ -1,19 +1,33 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Avatar, Checkbox, FormControlLabel, Grid, Stack, TextField, Typography } from '@mui/material'
+import {
+  Avatar,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import {
   FileBarChart as FileBarChartIcon,
   Users as UsersIcon,
   UserCheck as UserCheckIcon,
   ScanLine as ScanLineIcon,
-  Coins as CoinsIcon,
+  Coins as PointsIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { mockChemistReports, chemistReportKpis } from '@/features/reportsAnalytics/mockChemistReports'
+import {
+  mockChemistReports,
+  chemistReportKpis,
+} from '@/features/reportsAnalytics/mockChemistReports'
 import type { ChemistReportRow } from '@/types/chemistReport'
 import type { PartnerStatus, PartnerZone } from '@/types/partner'
 
@@ -33,7 +47,8 @@ export function ChemistReportListPage() {
   useRegionTopbarHeader({
     icon: <FileBarChartIcon size={20} />,
     title: 'Chemist Reports',
-    subtitle: 'Displays chemist onboarding, scan activity, and reward performance.',
+    subtitle:
+      'Displays chemist onboarding, scan activity, and reward performance.',
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ChemistReportFilters>({
@@ -45,9 +60,15 @@ export function ChemistReportListPage() {
   })
 
   const filteredReports = mockChemistReports.filter((report) => {
-    const zoneMatch = appliedFilters.zones.length === 0 || appliedFilters.zones.includes(report.zone)
-    const statusMatch = appliedFilters.statuses.length === 0 || appliedFilters.statuses.includes(report.status)
-    const cityMatch = !appliedFilters.city || report.city.toLowerCase().includes(appliedFilters.city.toLowerCase())
+    const zoneMatch =
+      appliedFilters.zones.length === 0 ||
+      appliedFilters.zones.includes(report.zone)
+    const statusMatch =
+      appliedFilters.statuses.length === 0 ||
+      appliedFilters.statuses.includes(report.status)
+    const cityMatch =
+      !appliedFilters.city ||
+      report.city.toLowerCase().includes(appliedFilters.city.toLowerCase())
     return zoneMatch && statusMatch && cityMatch
   })
 
@@ -66,11 +87,24 @@ export function ChemistReportListPage() {
       sortValue: (row) => row.chemistName,
       render: (row) => (
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.75rem', fontWeight: 700 }}>
+          <Avatar
+            sx={{
+              width: 32,
+              height: 32,
+              bgcolor: 'primary.main',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+            }}
+          >
             {row.chemistName.slice(0, 1)}
           </Avatar>
           <Typography
-            sx={{ fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
+            }}
             onClick={() => navigate(`/reports/chemist-reports/${row.id}`)}
           >
             {row.chemistName}
@@ -117,10 +151,20 @@ export function ChemistReportListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Chemists" value={chemistReportKpis.totalChemists} icon={<UsersIcon size={20} />} iconColor="primary" />
+          <StatCard
+            label="Total Chemists"
+            value={chemistReportKpis.totalChemists}
+            icon={<UsersIcon size={20} />}
+            iconColor="primary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Active Chemists" value={chemistReportKpis.activeChemists} icon={<UserCheckIcon size={20} />} iconColor="success" />
+          <StatCard
+            label="Active Chemists"
+            value={chemistReportKpis.activeChemists}
+            icon={<UserCheckIcon size={20} />}
+            iconColor="success"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
@@ -134,7 +178,7 @@ export function ChemistReportListPage() {
           <StatCard
             label="Total Reward Points"
             value={chemistReportKpis.totalRewardPoints.toLocaleString('en-IN')}
-            icon={<CoinsIcon size={20} />}
+            icon={<PointsIcon size={20} />}
             iconColor="warning"
           />
         </Grid>
@@ -152,7 +196,10 @@ export function ChemistReportListPage() {
         onExportClick={() => {}}
         defaultSortBy="chemistName"
         actions={[
-          { label: 'View Report', onClick: (row) => navigate(`/reports/chemist-reports/${row.id}`) },
+          {
+            label: 'View Report',
+            onClick: (row) => navigate(`/reports/chemist-reports/${row.id}`),
+          },
         ]}
         emptyTitle="No chemist reports found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -168,7 +215,9 @@ export function ChemistReportListPage() {
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Zone</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Zone
+              </Typography>
               {ALL_ZONES.map((zone) => (
                 <FormControlLabel
                   key={zone}
@@ -178,7 +227,9 @@ export function ChemistReportListPage() {
                       onChange={(e) =>
                         setDraft((prev) => ({
                           ...prev,
-                          zones: e.target.checked ? [...prev.zones, zone] : prev.zones.filter((z) => z !== zone),
+                          zones: e.target.checked
+                            ? [...prev.zones, zone]
+                            : prev.zones.filter((z) => z !== zone),
                         }))
                       }
                     />
@@ -188,7 +239,9 @@ export function ChemistReportListPage() {
               ))}
             </Stack>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Status</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Status
+              </Typography>
               {ALL_STATUSES.map((status) => (
                 <FormControlLabel
                   key={status}
@@ -198,7 +251,9 @@ export function ChemistReportListPage() {
                       onChange={(e) =>
                         setDraft((prev) => ({
                           ...prev,
-                          statuses: e.target.checked ? [...prev.statuses, status] : prev.statuses.filter((s) => s !== status),
+                          statuses: e.target.checked
+                            ? [...prev.statuses, status]
+                            : prev.statuses.filter((s) => s !== status),
                         }))
                       }
                     />
@@ -208,22 +263,30 @@ export function ChemistReportListPage() {
               ))}
             </Stack>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>City</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                City
+              </Typography>
               <TextField
                 size="small"
                 placeholder="Filter by city…"
                 value={draft.city}
-                onChange={(e) => setDraft((prev) => ({ ...prev, city: e.target.value }))}
+                onChange={(e) =>
+                  setDraft((prev) => ({ ...prev, city: e.target.value }))
+                }
               />
             </Stack>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Date Range</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Date Range
+              </Typography>
               <TextField
                 label="From"
                 type="date"
                 size="small"
                 value={draft.dateFrom}
-                onChange={(e) => setDraft((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                onChange={(e) =>
+                  setDraft((prev) => ({ ...prev, dateFrom: e.target.value }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
               <TextField
@@ -231,7 +294,9 @@ export function ChemistReportListPage() {
                 type="date"
                 size="small"
                 value={draft.dateTo}
-                onChange={(e) => setDraft((prev) => ({ ...prev, dateTo: e.target.value }))}
+                onChange={(e) =>
+                  setDraft((prev) => ({ ...prev, dateTo: e.target.value }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
             </Stack>

@@ -1,11 +1,33 @@
-import type { ScanEvent, ScanResult, ScanUserRole, ScanUserSummary } from '@/types/scanFeed'
+import type {
+  ScanEvent,
+  ScanResult,
+  ScanUserRole,
+  ScanUserSummary,
+} from '@/types/scanFeed'
 import type { PartnerBase } from '@/types/partner'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 
-const productNames = ['CardioCare 10mg', 'NeuroPlus 500mg', 'ImmunoBoost Syrup', 'GlucoBalance', 'PainRelief Gel']
-const productCodes = ['S0H6-2', 'S0H6-1', 'CU82-S0H6-5-1', 'CU82-S0H6-5-2', 'S0H4-1']
-const devices = ['Android 14 / Chrome 128', 'iOS 18 / Safari 18', 'Android 13 / MedTech App 4.2', 'iOS 17 / MedTech App 4.2']
+const productNames = [
+  'CardioCare 10mg',
+  'NeuroPlus 500mg',
+  'ImmunoBoost Syrup',
+  'GlucoBalance',
+  'PainRelief Gel',
+]
+const productCodes = [
+  'S0H6-2',
+  'S0H6-1',
+  'CU82-S0H6-5-1',
+  'CU82-S0H6-5-2',
+  'S0H4-1',
+]
+const devices = [
+  'Android 14 / Chrome 128',
+  'iOS 18 / Safari 18',
+  'Android 13 / MedTech App 4.2',
+  'iOS 17 / MedTech App 4.2',
+]
 const results: ScanResult[] = [
   'success',
   'success',
@@ -25,8 +47,20 @@ interface ScanUser {
 }
 
 const scanUsers: ScanUser[] = [
-  ...mockDealers.map((dealer) => ({ id: dealer.id, name: dealer.ownerName, role: 'Dealer' as const, businessName: dealer.shopName, partner: dealer })),
-  ...mockChemists.map((chemist) => ({ id: chemist.id, name: chemist.ownerName, role: 'Chemist' as const, businessName: chemist.shopName, partner: chemist })),
+  ...mockDealers.map((dealer) => ({
+    id: dealer.id,
+    name: dealer.ownerName,
+    role: 'Dealer' as const,
+    businessName: dealer.shopName,
+    partner: dealer,
+  })),
+  ...mockChemists.map((chemist) => ({
+    id: chemist.id,
+    name: chemist.ownerName,
+    role: 'Chemist' as const,
+    businessName: chemist.shopName,
+    partner: chemist,
+  })),
 ]
 
 function seededNumber(seed: number, min: number, max: number): number {
@@ -51,7 +85,7 @@ function isSuccess(result: ScanResult): boolean {
 }
 
 function buildScanCode(seed: number, productCode: string): string {
-  const yearMonth = `25${pad(((seed % 12) + 1))}`
+  const yearMonth = `25${pad((seed % 12) + 1)}`
   const sequence = String((seed * 37) % 100000).padStart(5, '0')
   const suffix = String(100000 + ((seed * 6151) % 900000))
   return `${productCode}-${yearMonth}-${sequence}_${suffix}`
@@ -79,8 +113,10 @@ function buildScanEvent(seed: number): ScanEvent {
     rewardPoints: success ? seededNumber(seed, 10, 60) : 0,
     validation: {
       codeValidation: result === 'failed_invalid_code' ? 'failed' : 'passed',
-      duplicateScanCheck: result === 'failed_duplicate_scan' ? 'failed' : 'passed',
-      geoFenceValidation: result === 'failed_outside_geofence' ? 'failed' : 'passed',
+      duplicateScanCheck:
+        result === 'failed_duplicate_scan' ? 'failed' : 'passed',
+      geoFenceValidation:
+        result === 'failed_outside_geofence' ? 'failed' : 'passed',
       productEligibility: 'passed',
       rewardEligibility: success ? 'passed' : 'failed',
     },
@@ -88,8 +124,12 @@ function buildScanEvent(seed: number): ScanEvent {
       latitude: user.partner.geoLock.latitude,
       longitude: user.partner.geoLock.longitude,
       registeredGeoFenceRadiusMeters: user.partner.geoLock.allowedRadiusMeters,
-      distanceFromRegisteredMeters: result === 'failed_outside_geofence' ? seededNumber(seed, 300, 900) : seededNumber(seed, 5, 80),
-      geoFenceValidationResult: result === 'failed_outside_geofence' ? 'outside_range' : 'within_range',
+      distanceFromRegisteredMeters:
+        result === 'failed_outside_geofence'
+          ? seededNumber(seed, 300, 900)
+          : seededNumber(seed, 5, 80),
+      geoFenceValidationResult:
+        result === 'failed_outside_geofence' ? 'outside_range' : 'within_range',
     },
     technical: {
       sourceIp: `103.${seed % 255}.${(seed * 3) % 255}.${(seed * 7) % 255}`,
@@ -99,7 +139,9 @@ function buildScanEvent(seed: number): ScanEvent {
   }
 }
 
-export const mockScanEvents: ScanEvent[] = Array.from({ length: 160 }).map((_, index) => buildScanEvent(index + 1))
+export const mockScanEvents: ScanEvent[] = Array.from({ length: 160 }).map(
+  (_, index) => buildScanEvent(index + 1),
+)
 
 let liveScanCounter = mockScanEvents.length
 
@@ -133,8 +175,10 @@ export function generateLiveScanEvent(): ScanEvent {
     rewardPoints: success ? seededNumber(seed, 10, 60) : 0,
     validation: {
       codeValidation: result === 'failed_invalid_code' ? 'failed' : 'passed',
-      duplicateScanCheck: result === 'failed_duplicate_scan' ? 'failed' : 'passed',
-      geoFenceValidation: result === 'failed_outside_geofence' ? 'failed' : 'passed',
+      duplicateScanCheck:
+        result === 'failed_duplicate_scan' ? 'failed' : 'passed',
+      geoFenceValidation:
+        result === 'failed_outside_geofence' ? 'failed' : 'passed',
       productEligibility: 'passed',
       rewardEligibility: success ? 'passed' : 'failed',
     },
@@ -142,8 +186,12 @@ export function generateLiveScanEvent(): ScanEvent {
       latitude: user.partner.geoLock.latitude,
       longitude: user.partner.geoLock.longitude,
       registeredGeoFenceRadiusMeters: user.partner.geoLock.allowedRadiusMeters,
-      distanceFromRegisteredMeters: result === 'failed_outside_geofence' ? seededNumber(seed, 300, 900) : seededNumber(seed, 5, 80),
-      geoFenceValidationResult: result === 'failed_outside_geofence' ? 'outside_range' : 'within_range',
+      distanceFromRegisteredMeters:
+        result === 'failed_outside_geofence'
+          ? seededNumber(seed, 300, 900)
+          : seededNumber(seed, 5, 80),
+      geoFenceValidationResult:
+        result === 'failed_outside_geofence' ? 'outside_range' : 'within_range',
     },
     technical: {
       sourceIp: `103.${seed % 255}.${(seed * 3) % 255}.${(seed * 7) % 255}`,
@@ -177,12 +225,16 @@ function getUserGodowns(user: ScanUser): string[] {
   })
 }
 
-export function getUserScanSummary(userId: string): ScanUserSummary | undefined {
+export function getUserScanSummary(
+  userId: string,
+): ScanUserSummary | undefined {
   const user = scanUsers.find((u) => u.id === userId)
   if (!user) return undefined
 
   const userScans = mockScanEvents.filter((scan) => scan.userId === userId)
-  const successfulScans = userScans.filter((scan) => isSuccess(scan.result)).length
+  const successfulScans = userScans.filter((scan) =>
+    isSuccess(scan.result),
+  ).length
 
   return {
     userId: user.id,
@@ -200,7 +252,10 @@ export function getUserScanSummary(userId: string): ScanUserSummary | undefined 
     totalScans: userScans.length,
     successfulScans,
     failedScans: userScans.length - successfulScans,
-    totalPointsEarned: userScans.reduce((sum, scan) => sum + scan.rewardPoints, 0),
+    totalPointsEarned: userScans.reduce(
+      (sum, scan) => sum + scan.rewardPoints,
+      0,
+    ),
   }
 }
 
@@ -210,7 +265,10 @@ export function getUserScanHistory(userId: string): ScanEvent[] {
 
 export const scanFeedKpis = {
   totalScans: mockScanEvents.length,
-  successfulScans: mockScanEvents.filter((scan) => isSuccess(scan.result)).length,
+  successfulScans: mockScanEvents.filter((scan) => isSuccess(scan.result))
+    .length,
   failedScans: mockScanEvents.filter((scan) => !isSuccess(scan.result)).length,
-  geoFenceViolations: mockScanEvents.filter((scan) => scan.result === 'failed_outside_geofence').length,
+  geoFenceViolations: mockScanEvents.filter(
+    (scan) => scan.result === 'failed_outside_geofence',
+  ).length,
 }

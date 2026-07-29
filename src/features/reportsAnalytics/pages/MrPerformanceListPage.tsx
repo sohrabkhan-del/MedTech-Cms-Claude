@@ -1,6 +1,14 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Avatar, Checkbox, FormControlLabel, Grid, Stack, TextField, Typography } from '@mui/material'
+import {
+  Avatar,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import {
   ChartColumnBig as ChartColumnBigIcon,
   UserRound as UserRoundIcon,
@@ -8,10 +16,16 @@ import {
   Pill as PillIcon,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { mockMrPerformanceReports, mrPerformanceKpis } from '@/features/reportsAnalytics/mockMrPerformanceReports'
+import {
+  mockMrPerformanceReports,
+  mrPerformanceKpis,
+} from '@/features/reportsAnalytics/mockMrPerformanceReports'
 import type { MrPerformanceReportRow } from '@/types/mrPerformanceReport'
 import type { PartnerStatus, PartnerZone } from '@/types/partner'
 
@@ -30,7 +44,8 @@ export function MrPerformanceListPage() {
   useRegionTopbarHeader({
     icon: <ChartColumnBigIcon size={20} />,
     title: 'MR Performance',
-    subtitle: 'Displays Medical Representative performance across dealer and chemist engagement.',
+    subtitle:
+      'Displays Medical Representative performance across dealer and chemist engagement.',
   })
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<MrPerformanceFilters>({
@@ -41,13 +56,19 @@ export function MrPerformanceListPage() {
   })
 
   const filteredReports = mockMrPerformanceReports.filter((report) => {
-    const regionMatch = appliedFilters.regions.length === 0 || appliedFilters.regions.includes(report.region)
-    const statusMatch = appliedFilters.statuses.length === 0 || appliedFilters.statuses.includes(report.status)
+    const regionMatch =
+      appliedFilters.regions.length === 0 ||
+      appliedFilters.regions.includes(report.region)
+    const statusMatch =
+      appliedFilters.statuses.length === 0 ||
+      appliedFilters.statuses.includes(report.status)
     return regionMatch && statusMatch
   })
 
   const filterCount =
-    appliedFilters.regions.length + appliedFilters.statuses.length + (appliedFilters.dateFrom || appliedFilters.dateTo ? 1 : 0)
+    appliedFilters.regions.length +
+    appliedFilters.statuses.length +
+    (appliedFilters.dateFrom || appliedFilters.dateTo ? 1 : 0)
 
   const columns: CommonTableColumn<MrPerformanceReportRow>[] = [
     {
@@ -58,11 +79,24 @@ export function MrPerformanceListPage() {
       sortValue: (row) => row.mrName,
       render: (row) => (
         <Stack direction="row" spacing={1.25} sx={{ alignItems: 'center' }}>
-          <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.75rem', fontWeight: 700 }}>
+          <Avatar
+            sx={{
+              width: 32,
+              height: 32,
+              bgcolor: 'primary.main',
+              fontSize: '0.75rem',
+              fontWeight: 700,
+            }}
+          >
             {row.mrName.slice(0, 1)}
           </Avatar>
           <Typography
-            sx={{ fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
+            }}
             onClick={() => navigate(`/reports/mr-performance/${row.id}`)}
           >
             {row.mrName}
@@ -70,7 +104,12 @@ export function MrPerformanceListPage() {
         </Stack>
       ),
     },
-    { key: 'region', header: 'Region', sortable: true, render: (row) => row.region },
+    {
+      key: 'region',
+      header: 'Region',
+      sortable: true,
+      render: (row) => row.region,
+    },
     {
       key: 'dealersOnboarded',
       header: 'Dealers Onboarded',
@@ -93,13 +132,28 @@ export function MrPerformanceListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total MRs" value={mrPerformanceKpis.totalMrs} icon={<UserRoundIcon size={20} />} iconColor="primary" />
+          <StatCard
+            label="Total MRs"
+            value={mrPerformanceKpis.totalMrs}
+            icon={<UserRoundIcon size={20} />}
+            iconColor="primary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Dealers Onboarded" value={mrPerformanceKpis.totalDealersOnboarded} icon={<StoreIcon size={20} />} iconColor="secondary" />
+          <StatCard
+            label="Total Dealers Onboarded"
+            value={mrPerformanceKpis.totalDealersOnboarded}
+            icon={<StoreIcon size={20} />}
+            iconColor="secondary"
+          />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          <StatCard label="Total Chemists Onboarded" value={mrPerformanceKpis.totalChemistsOnboarded} icon={<PillIcon size={20} />} iconColor="info" />
+          <StatCard
+            label="Total Chemists Onboarded"
+            value={mrPerformanceKpis.totalChemistsOnboarded}
+            icon={<PillIcon size={20} />}
+            iconColor="info"
+          />
         </Grid>
       </Grid>
 
@@ -115,7 +169,10 @@ export function MrPerformanceListPage() {
         onExportClick={() => {}}
         defaultSortBy="mrName"
         actions={[
-          { label: 'View Report', onClick: (row) => navigate(`/reports/mr-performance/${row.id}`) },
+          {
+            label: 'View Report',
+            onClick: (row) => navigate(`/reports/mr-performance/${row.id}`),
+          },
         ]}
         emptyTitle="No MR performance reports found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -131,7 +188,9 @@ export function MrPerformanceListPage() {
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Region</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Region
+              </Typography>
               {ALL_REGIONS.map((region) => (
                 <FormControlLabel
                   key={region}
@@ -141,7 +200,9 @@ export function MrPerformanceListPage() {
                       onChange={(e) =>
                         setDraft((prev) => ({
                           ...prev,
-                          regions: e.target.checked ? [...prev.regions, region] : prev.regions.filter((r) => r !== region),
+                          regions: e.target.checked
+                            ? [...prev.regions, region]
+                            : prev.regions.filter((r) => r !== region),
                         }))
                       }
                     />
@@ -151,7 +212,9 @@ export function MrPerformanceListPage() {
               ))}
             </Stack>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Status</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Status
+              </Typography>
               {ALL_STATUSES.map((status) => (
                 <FormControlLabel
                   key={status}
@@ -161,7 +224,9 @@ export function MrPerformanceListPage() {
                       onChange={(e) =>
                         setDraft((prev) => ({
                           ...prev,
-                          statuses: e.target.checked ? [...prev.statuses, status] : prev.statuses.filter((s) => s !== status),
+                          statuses: e.target.checked
+                            ? [...prev.statuses, status]
+                            : prev.statuses.filter((s) => s !== status),
                         }))
                       }
                     />
@@ -171,13 +236,17 @@ export function MrPerformanceListPage() {
               ))}
             </Stack>
             <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Date Range</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                Date Range
+              </Typography>
               <TextField
                 label="From"
                 type="date"
                 size="small"
                 value={draft.dateFrom}
-                onChange={(e) => setDraft((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                onChange={(e) =>
+                  setDraft((prev) => ({ ...prev, dateFrom: e.target.value }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
               <TextField
@@ -185,7 +254,9 @@ export function MrPerformanceListPage() {
                 type="date"
                 size="small"
                 value={draft.dateTo}
-                onChange={(e) => setDraft((prev) => ({ ...prev, dateTo: e.target.value }))}
+                onChange={(e) =>
+                  setDraft((prev) => ({ ...prev, dateTo: e.target.value }))
+                }
                 slotProps={{ inputLabel: { shrink: true } }}
               />
             </Stack>

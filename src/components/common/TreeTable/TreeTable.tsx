@@ -19,7 +19,14 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import { Search, ChevronRight, ChevronDown, MoreVertical, Columns3 as ViewColumnIcon, SlidersHorizontal as Tune } from 'lucide-react'
+import {
+  Search,
+  ChevronRight,
+  ChevronDown,
+  MoreVertical,
+  Columns3 as ViewColumnIcon,
+  SlidersHorizontal as Tune,
+} from 'lucide-react'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { useColumnVisibility } from '@/hooks/useColumnVisibility'
 
@@ -74,21 +81,35 @@ export function TreeTable<T>({
 }: TreeTableProps<T>) {
   const [search, setSearch] = useState('')
   const [expanded, setExpanded] = useState<Set<string>>(
-    () => new Set(defaultExpanded ? nodes.filter((n) => n.children?.length).map((n) => n.id) : []),
+    () =>
+      new Set(
+        defaultExpanded
+          ? nodes.filter((n) => n.children?.length).map((n) => n.id)
+          : [],
+      ),
   )
-  const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(null)
+  const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(
+    null,
+  )
   const [activeRow, setActiveRow] = useState<T | null>(null)
-  const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(null)
+  const [columnMenuAnchor, setColumnMenuAnchor] = useState<HTMLElement | null>(
+    null,
+  )
   const { hidden, toggle } = useColumnVisibility(tableKey)
 
-  const visibleColumns = useMemo(() => columns.filter((col) => !hidden.has(col.key)), [columns, hidden])
+  const visibleColumns = useMemo(
+    () => columns.filter((col) => !hidden.has(col.key)),
+    [columns, hidden],
+  )
 
   const filteredNodes = useMemo(() => {
     if (!search || !searchKeys) return nodes
     const query = search.toLowerCase()
     return nodes.filter((node) => {
       const parentMatch = searchKeys(node.data).toLowerCase().includes(query)
-      const childMatch = node.children?.some((child) => searchKeys(child.data).toLowerCase().includes(query))
+      const childMatch = node.children?.some((child) =>
+        searchKeys(child.data).toLowerCase().includes(query),
+      )
       return parentMatch || childMatch
     })
   }, [nodes, search, searchKeys])
@@ -117,14 +138,21 @@ export function TreeTable<T>({
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         spacing={1.5}
-        sx={{ mb: 2, alignItems: { sm: 'center' }, justifyContent: 'space-between' }}
+        sx={{
+          mb: 2,
+          alignItems: { sm: 'center' },
+          justifyContent: 'space-between',
+        }}
       >
         <TextField
           size="small"
           placeholder={searchPlaceholder}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          sx={{ width: { xs: '100%', sm: 260 }, '& .MuiOutlinedInput-root': { height: 36, fontSize: '0.8125rem' } }}
+          sx={{
+            width: { xs: '100%', sm: 260 },
+            '& .MuiOutlinedInput-root': { height: 36, fontSize: '0.8125rem' },
+          }}
           slotProps={{
             input: {
               startAdornment: (
@@ -184,13 +212,25 @@ export function TreeTable<T>({
             <ViewColumnIcon size={16} />
             Columns
           </Box>
-          <Menu anchorEl={columnMenuAnchor} open={!!columnMenuAnchor} onClose={() => setColumnMenuAnchor(null)}>
+          <Menu
+            anchorEl={columnMenuAnchor}
+            open={!!columnMenuAnchor}
+            onClose={() => setColumnMenuAnchor(null)}
+          >
             {columns
               .filter((col) => col.hideable !== false)
               .map((col) => (
-                <MenuItem key={col.key} onClick={() => toggle(col.key)} dense sx={{ fontSize: '0.8125rem' }}>
+                <MenuItem
+                  key={col.key}
+                  onClick={() => toggle(col.key)}
+                  dense
+                  sx={{ fontSize: '0.8125rem' }}
+                >
                   <Checkbox checked={!hidden.has(col.key)} size="small" />
-                  <ListItemText primary={col.header} slotProps={{ primary: { sx: { fontSize: '0.8125rem' } } }} />
+                  <ListItemText
+                    primary={col.header}
+                    slotProps={{ primary: { sx: { fontSize: '0.8125rem' } } }}
+                  />
                 </MenuItem>
               ))}
           </Menu>
@@ -211,13 +251,25 @@ export function TreeTable<T>({
                       align={col.align}
                       sx={{
                         width: col.width,
-                        minWidth: i === 0 ? (col.minWidth ?? 220) : (col.minWidth ?? col.width ?? 120),
+                        minWidth:
+                          i === 0
+                            ? (col.minWidth ?? 220)
+                            : (col.minWidth ?? col.width ?? 120),
                         maxWidth: col.width ?? 220,
                         fontSize: '0.6875rem',
                       }}
                     >
                       <Tooltip title={col.header}>
-                        <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}>{col.header}</Box>
+                        <Box
+                          sx={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                          }}
+                        >
+                          {col.header}
+                        </Box>
                       </Tooltip>
                     </TableCell>
                   ))}
@@ -233,11 +285,28 @@ export function TreeTable<T>({
                   <Fragment key={node.id}>
                     <TableRow>
                       {visibleColumns.map((col, i) => (
-                        <TableCell key={col.key} align={col.align} sx={{ fontSize: '0.8125rem' }}>
+                        <TableCell
+                          key={col.key}
+                          align={col.align}
+                          sx={{ fontSize: '0.8125rem' }}
+                        >
                           {i === 0 && node.children?.length ? (
-                            <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-                              <IconButton size="small" onClick={() => toggleExpanded(node.id)} sx={{ p: 0.25 }} aria-label="Toggle row">
-                                {expanded.has(node.id) ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                            <Stack
+                              direction="row"
+                              spacing={0.5}
+                              sx={{ alignItems: 'center' }}
+                            >
+                              <IconButton
+                                size="small"
+                                onClick={() => toggleExpanded(node.id)}
+                                sx={{ p: 0.25 }}
+                                aria-label="Toggle row"
+                              >
+                                {expanded.has(node.id) ? (
+                                  <ChevronDown size={16} />
+                                ) : (
+                                  <ChevronRight size={16} />
+                                )}
                               </IconButton>
                               {col.render(node.data)}
                             </Stack>
@@ -248,7 +317,11 @@ export function TreeTable<T>({
                       ))}
                       {actions && actions.length > 0 && (
                         <TableCell align="right">
-                          <IconButton size="small" onClick={(e) => openActionMenu(e, node.data)} aria-label="Row actions">
+                          <IconButton
+                            size="small"
+                            onClick={(e) => openActionMenu(e, node.data)}
+                            aria-label="Row actions"
+                          >
                             <MoreVertical size={16} />
                           </IconButton>
                         </TableCell>
@@ -256,11 +329,20 @@ export function TreeTable<T>({
                     </TableRow>
                     {node.children?.length && expanded.has(node.id)
                       ? node.children.map((child) => (
-                          <TableRow key={child.id} sx={{ backgroundColor: 'background.default' }}>
+                          <TableRow
+                            key={child.id}
+                            sx={{ backgroundColor: 'background.default' }}
+                          >
                             {visibleColumns.map((col, i) => (
-                              <TableCell key={col.key} align={col.align} sx={{ fontSize: '0.8125rem' }}>
+                              <TableCell
+                                key={col.key}
+                                align={col.align}
+                                sx={{ fontSize: '0.8125rem' }}
+                              >
                                 {i === 0 ? (
-                                  <Box sx={{ pl: 4 }}>{col.render(child.data)}</Box>
+                                  <Box sx={{ pl: 4 }}>
+                                    {col.render(child.data)}
+                                  </Box>
                                 ) : (
                                   col.render(child.data)
                                 )}
@@ -268,7 +350,11 @@ export function TreeTable<T>({
                             ))}
                             {actions && actions.length > 0 && (
                               <TableCell align="right">
-                                <IconButton size="small" onClick={(e) => openActionMenu(e, child.data)} aria-label="Row actions">
+                                <IconButton
+                                  size="small"
+                                  onClick={(e) => openActionMenu(e, child.data)}
+                                  aria-label="Row actions"
+                                >
                                   <MoreVertical size={16} />
                                 </IconButton>
                               </TableCell>
@@ -284,7 +370,11 @@ export function TreeTable<T>({
         )}
 
         {actions && (
-          <Menu anchorEl={actionMenuAnchor} open={!!actionMenuAnchor} onClose={closeActionMenu}>
+          <Menu
+            anchorEl={actionMenuAnchor}
+            open={!!actionMenuAnchor}
+            onClose={closeActionMenu}
+          >
             {actions.map((action) => (
               <MenuItem
                 key={action.label}
@@ -294,7 +384,10 @@ export function TreeTable<T>({
                 }}
                 sx={action.danger ? { color: 'error.main' } : undefined}
               >
-                <Typography variant="body1" sx={{ color: 'inherit', fontSize: '0.8125rem' }}>
+                <Typography
+                  variant="body1"
+                  sx={{ color: 'inherit', fontSize: '0.8125rem' }}
+                >
                   {action.label}
                 </Typography>
               </MenuItem>

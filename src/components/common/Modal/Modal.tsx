@@ -1,8 +1,17 @@
 import type { ReactNode } from 'react'
-import { Box, Button, Dialog, DialogActions, DialogContent, IconButton, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  IconButton,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { X } from 'lucide-react'
 import { radius } from '@/theme/tokens'
-import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
+import { useIsMobile } from '@/hooks/useMediaQueryBreakPoint'
 
 interface ModalProps {
   open: boolean
@@ -46,11 +55,25 @@ export function Modal({
         paper: { sx: { borderRadius: isMobile ? 0 : `${radius.xl}px` } },
       }}
     >
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', px: 3, pt: 3, pb: description ? 1 : 2 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          px: 3,
+          pt: 3,
+          pb: description ? 1 : 2,
+        }}
+      >
         <Box>
-          <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>{title}</Typography>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.125rem' }}>
+            {title}
+          </Typography>
           {description && (
-            <Typography variant="body1" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            <Typography
+              variant="body1"
+              sx={{ color: 'text.secondary', mt: 0.5 }}
+            >
               {description}
             </Typography>
           )}
@@ -64,7 +87,12 @@ export function Modal({
 
       {(primaryActionLabel || secondaryActionLabel) && (
         <DialogActions sx={{ px: 3, py: 2.5 }}>
-          <Button variant="outlined" color="primary" onClick={onSecondaryAction ?? onClose} disabled={loading}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={onSecondaryAction ?? onClose}
+            disabled={loading}
+          >
             {secondaryActionLabel}
           </Button>
           {primaryActionLabel && (

@@ -1,5 +1,13 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Grid,
+  Stack,
+  Typography,
+} from '@mui/material'
 import {
   Pencil,
   ArrowLeft as ArrowLeftIcon,
@@ -12,14 +20,23 @@ import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useProductCategoryDetail } from '@/features/masters/hooks/useProductCategoryDetail'
 import { productCategoriesService } from '@/features/masters/services/productCategoriesService'
-import type { CategoryProductEntry, CategorySchemeEntry } from '@/features/masters/types/masters.types'
+import type {
+  CategoryProductEntry,
+  CategorySchemeEntry,
+} from '@/features/masters/types/masters.types'
 
-const schemeStatusConfig: Record<CategorySchemeEntry['status'], { label: string; color: 'success' | 'info' | 'error' }> = {
+const schemeStatusConfig: Record<
+  CategorySchemeEntry['status'],
+  { label: string; color: 'success' | 'info' | 'error' }
+> = {
   active: { label: 'Active', color: 'success' },
   upcoming: { label: 'Upcoming', color: 'info' },
   expired: { label: 'Expired', color: 'error' },
@@ -45,7 +62,9 @@ export function ProductCategoryDetailsPage() {
     )
   }
 
-  const parentName = productCategoriesService.resolveParentCategoryName(category.parentCategoryId)
+  const parentName = productCategoriesService.resolveParentCategoryName(
+    category.parentCategoryId,
+  )
 
   const productColumns: CommonTableColumn<CategoryProductEntry>[] = [
     {
@@ -56,14 +75,24 @@ export function ProductCategoryDetailsPage() {
       sortValue: (row) => row.productName,
       render: (row) => (
         <Typography
-          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
           onClick={() => navigate(`/inventory/product-master/${row.id}`)}
         >
           {row.productName}
         </Typography>
       ),
     },
-    { key: 'productCode', header: 'Product Code', minWidth: 140, render: (row) => row.productCode },
+    {
+      key: 'productCode',
+      header: 'Product Code',
+      minWidth: 140,
+      render: (row) => row.productCode,
+    },
     {
       key: 'status',
       header: 'Status',
@@ -74,14 +103,36 @@ export function ProductCategoryDetailsPage() {
   ]
 
   const schemeColumns: CommonTableColumn<CategorySchemeEntry>[] = [
-    { key: 'schemeName', header: 'Scheme Name', minWidth: 200, sortable: true, sortValue: (row) => row.schemeName, render: (row) => row.schemeName },
-    { key: 'schemeType', header: 'Scheme Type', minWidth: 160, render: (row) => row.schemeType },
-    { key: 'validTill', header: 'Valid Till', minWidth: 130, sortable: true, render: (row) => row.validTill },
+    {
+      key: 'schemeName',
+      header: 'Scheme Name',
+      minWidth: 200,
+      sortable: true,
+      sortValue: (row) => row.schemeName,
+      render: (row) => row.schemeName,
+    },
+    {
+      key: 'schemeType',
+      header: 'Scheme Type',
+      minWidth: 160,
+      render: (row) => row.schemeType,
+    },
+    {
+      key: 'validTill',
+      header: 'Valid Till',
+      minWidth: 130,
+      sortable: true,
+      render: (row) => row.validTill,
+    },
     {
       key: 'status',
       header: 'Status',
       render: (row) => (
-        <Chip size="small" label={schemeStatusConfig[row.status].label} color={schemeStatusConfig[row.status].color} />
+        <Chip
+          size="small"
+          label={schemeStatusConfig[row.status].label}
+          color={schemeStatusConfig[row.status].color}
+        />
       ),
     },
   ]
@@ -90,12 +141,27 @@ export function ProductCategoryDetailsPage() {
     <>
       <Stack
         direction="row"
-        sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
       >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
-          <Avatar src={category.image} alt={category.categoryName} variant="rounded" sx={{ width: 48, height: 48, flexShrink: 0 }} />
+          <Avatar
+            src={category.image}
+            alt={category.categoryName}
+            variant="rounded"
+            sx={{ width: 48, height: 48, flexShrink: 0 }}
+          />
           <Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+            >
               <Typography variant="h1">{category.categoryName}</Typography>
               <StatusBadge status={category.status} />
             </Stack>
@@ -110,7 +176,9 @@ export function ProductCategoryDetailsPage() {
             variant="outlined"
             color="primary"
             startIcon={<Pencil size={16} />}
-            onClick={() => navigate(`/masters/product-categories/${category.id}/edit`)}
+            onClick={() =>
+              navigate(`/masters/product-categories/${category.id}/edit`)
+            }
             sx={{ fontSize: '0.8125rem' }}
           >
             Edit Category
@@ -130,13 +198,28 @@ export function ProductCategoryDetailsPage() {
       <Stack spacing={3}>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Products" value={category.totalProducts} icon={<PackageIcon size={20} />} iconColor="primary" />
+            <StatCard
+              label="Total Products"
+              value={category.totalProducts}
+              icon={<PackageIcon size={20} />}
+              iconColor="primary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Active Schemes" value={category.activeSchemesCount} icon={<Sparkles size={20} />} iconColor="secondary" />
+            <StatCard
+              label="Active Schemes"
+              value={category.activeSchemesCount}
+              icon={<Sparkles size={20} />}
+              iconColor="secondary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Scans" value={category.totalScans.toLocaleString('en-IN')} icon={<ScanLine size={20} />} iconColor="info" />
+            <StatCard
+              label="Total Scans"
+              value={category.totalScans.toLocaleString('en-IN')}
+              icon={<ScanLine size={20} />}
+              iconColor="info"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             <StatCard
@@ -152,14 +235,23 @@ export function ProductCategoryDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Category Code', value: category.categoryCode },
-              { label: 'Parent Category', value: parentName ?? 'None (Top Level)' },
+              {
+                label: 'Parent Category',
+                value: parentName ?? 'None (Top Level)',
+              },
               { label: 'Created Date', value: category.createdDate },
             ]}
           />
         </SectionCard>
 
         <SectionCard title="Category Description">
-          <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>
+          <Typography
+            sx={{
+              fontSize: '0.8125rem',
+              color: 'text.secondary',
+              lineHeight: 1.6,
+            }}
+          >
             {category.description}
           </Typography>
         </SectionCard>

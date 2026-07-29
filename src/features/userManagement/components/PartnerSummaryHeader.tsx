@@ -20,14 +20,32 @@ export function PartnerSummaryHeader({
 
   return (
     <Card sx={{ p: 3, mb: 3 }}>
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={3} sx={{ justifyContent: 'space-between' }}>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={3}
+        sx={{ justifyContent: 'space-between' }}
+      >
         <Stack direction="row" spacing={2}>
-          <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.25rem', fontWeight: 700 }}>
+          <Avatar
+            sx={{
+              width: 56,
+              height: 56,
+              bgcolor: 'primary.main',
+              fontSize: '1.25rem',
+              fontWeight: 700,
+            }}
+          >
             {partner.shopName.slice(0, 1)}
           </Avatar>
           <Stack spacing={1.5}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography sx={{ fontWeight: 700, fontSize: '1.25rem' }}>{partner.shopName}</Typography>
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+            >
+              <Typography sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
+                {partner.shopName}
+              </Typography>
               <StatusBadge status={partner.status} />
             </Stack>
             <Typography variant="caption">ID: {partner.id}</Typography>
@@ -37,7 +55,9 @@ export function PartnerSummaryHeader({
                 <Typography variant="caption" sx={{ display: 'block' }}>
                   {shopLabel}
                 </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>{partner.shopName}</Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {partner.shopName}
+                </Typography>
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
                 <Typography variant="caption" sx={{ display: 'block' }}>
@@ -51,13 +71,17 @@ export function PartnerSummaryHeader({
                 <Typography variant="caption" sx={{ display: 'block' }}>
                   Contact Number
                 </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>{partner.phone}</Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {partner.phone}
+                </Typography>
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
                 <Typography variant="caption" sx={{ display: 'block' }}>
                   Assigned MR
                 </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>{partner.assignedMr}</Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {partner.assignedMr}
+                </Typography>
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
                 <Typography variant="caption" sx={{ display: 'block' }}>
@@ -71,8 +95,14 @@ export function PartnerSummaryHeader({
                 <Typography variant="caption" sx={{ display: 'block' }}>
                   Points Earned
                 </Typography>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.875rem', color: 'primary.main' }}>
-                  {partner.availableCoins.toLocaleString('en-IN')}
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                    color: 'primary.main',
+                  }}
+                >
+                  {partner.availablePoints.toLocaleString('en-IN')}
                 </Typography>
               </Grid>
             </Grid>
@@ -80,7 +110,10 @@ export function PartnerSummaryHeader({
         </Stack>
 
         <Stack spacing={1} sx={{ minWidth: 220 }}>
-          <Typography variant="caption" sx={{ textTransform: 'uppercase', fontWeight: 700 }}>
+          <Typography
+            variant="caption"
+            sx={{ textTransform: 'uppercase', fontWeight: 700 }}
+          >
             Account Actions
           </Typography>
           <Stack direction="row" spacing={1.5}>

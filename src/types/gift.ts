@@ -3,7 +3,8 @@ import type { PartnerZone } from '@/types/partner'
 export type GiftStatus = 'active' | 'inactive'
 export type StockStatus = 'in_stock' | 'low_stock' | 'out_of_stock'
 export type GiftUserType = 'Dealer' | 'Chemist' | 'MR'
-export type GiftDeliveryStatus = 'pending' | 'packed' | 'shipped' | 'delivered' | 'cancelled'
+export type GiftDeliveryStatus =
+  'pending' | 'packed' | 'shipped' | 'delivered' | 'cancelled'
 export type GiftEligibility = 'All' | 'Dealer' | 'Chemist'
 export type GiftPartnerType = 'Dealer' | 'Chemist'
 
@@ -11,7 +12,7 @@ export interface GiftRedemptionEntry {
   id: string
   userName: string
   userType: GiftUserType
-  coinsUsed: number
+  PointsUsed: number
   redemptionDate: string
   deliveryStatus: GiftDeliveryStatus
 }
@@ -35,7 +36,7 @@ export interface Gift {
   description: string
   sku: string
   price: number
-  requiredCoins: number
+  requiredPoints: number
   availableQuantity: number
   redeemedQuantity: number
   status: GiftStatus

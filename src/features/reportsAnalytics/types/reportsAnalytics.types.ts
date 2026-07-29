@@ -1,4 +1,10 @@
-export type { ScanReportResult, ScanReportUserType, ScanReportWalletStatus, ScanReportTimelineEntry, ScanReportEntry } from '@/types/scanReport'
+export type {
+  ScanReportResult,
+  ScanReportUserType,
+  ScanReportWalletStatus,
+  ScanReportTimelineEntry,
+  ScanReportEntry,
+} from '@/types/scanReport'
 
 export type {
   RewardReportUserType,
@@ -34,7 +40,10 @@ export type {
   WalletRedemptionEntry as DealerReportWalletRedemptionEntry,
 } from '@/types/dealerReport'
 
-export type { ChemistReportRow, ChemistPerformanceSummary } from '@/types/chemistReport'
+export type {
+  ChemistReportRow,
+  ChemistPerformanceSummary,
+} from '@/types/chemistReport'
 
 export type {
   MrMonthlyActivity,

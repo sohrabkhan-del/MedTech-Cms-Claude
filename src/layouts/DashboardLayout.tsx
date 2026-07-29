@@ -6,7 +6,7 @@ import { Header } from '@/components/layout/Header/Header'
 import { Breadcrumbs } from '@/components/layout/Breadcrumbs/Breadcrumbs'
 import { RegionTopbar } from '@/components/common/RegionTopbar/RegionTopbar'
 import { LastUpdatedBadge } from '@/components/common/LastUpdatedBadge/LastUpdatedBadge'
-import { useIsMobile, useIsTablet } from '@/hooks/useMediaQueryBreakpoint'
+import { useIsMobile, useIsTablet } from '@/hooks/useMediaQueryBreakPoint'
 import { findRouteEntry } from '@/routes/routeConfig'
 import {
   RegionFilterProvider,

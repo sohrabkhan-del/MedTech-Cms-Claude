@@ -13,7 +13,7 @@ import {
   FileBarChart2,
   Store as StorefrontIcon,
   ScanLine,
-  Coins,
+  Coins as Points,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import {
@@ -186,7 +186,7 @@ export function DealerReportListPage() {
           <StatCard
             label="Total Reward Points"
             value={dealerReportKpis.totalRewardPoints.toLocaleString('en-IN')}
-            icon={<Coins size={20} />}
+            icon={<Points size={20} />}
             iconColor="warning"
           />
         </Grid>

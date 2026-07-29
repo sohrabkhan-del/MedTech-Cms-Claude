@@ -1,4 +1,7 @@
-import type { MedicalRepresentative, MrManagedPartner } from '@/types/medicalRep'
+import type {
+  MedicalRepresentative,
+  MrManagedPartner,
+} from '@/types/medicalRep'
 import type { PartnerStatus, PartnerZone } from '@/types/partner'
 
 export interface MrMonthlyActivity {

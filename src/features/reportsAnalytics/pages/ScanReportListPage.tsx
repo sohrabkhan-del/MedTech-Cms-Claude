@@ -1,7 +1,12 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Chip, MenuItem, Stack, TextField, Typography } from '@mui/material'
-import { ScanLine, CheckCircle2, XCircle, Coins } from 'lucide-react'
+import {
+  ScanLine,
+  CheckCircle2,
+  XCircle,
+  Coins as Points,
+} from 'lucide-react'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -170,10 +175,10 @@ export function ScanReportListPage() {
             iconColor: 'error',
           },
           {
-            key: 'points',
+            key: 'Points',
             label: 'Reward Points Issued',
             value: (kpis?.rewardPointsIssued ?? 0).toLocaleString('en-IN'),
-            icon: <Coins size={20} />,
+            icon: <Points size={20} />,
             iconColor: 'secondary',
           },
         ]}

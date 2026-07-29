@@ -5,7 +5,7 @@ import {
   DateRangeFilter,
   type DateRange,
 } from '@/components/common/DateRangeFilter/DateRangeFilter'
-import { useIsMobile } from '@/hooks/useMediaQueryBreakpoint'
+import { useIsMobile } from '@/hooks/useMediaQueryBreakPoint'
 import { radius, transitions } from '@/theme/tokens'
 
 const REGIONS = ['All India', 'North', 'South', 'East', 'West']

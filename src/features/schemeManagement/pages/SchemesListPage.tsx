@@ -132,9 +132,14 @@ export function SchemesListPage() {
     setDeleteTarget(null)
   }
 
-  const handleStatusChange = async (scheme: Scheme, status: 'active' | 'inactive') => {
+  const handleStatusChange = async (
+    scheme: Scheme,
+    status: 'active' | 'inactive',
+  ) => {
     await schemesService.updateSchemeStatus(scheme.id, status)
-    toast.success(`Scheme ${status === 'active' ? 'activated' : 'deactivated'} successfully.`)
+    toast.success(
+      `Scheme ${status === 'active' ? 'activated' : 'deactivated'} successfully.`,
+    )
     refetch()
   }
 

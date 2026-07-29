@@ -127,12 +127,12 @@ const walletHistoryColumns: CommonTableColumn<PointsHistoryEntry>[] = [
     ),
   },
   {
-    key: 'points',
+    key: 'Points',
     header: 'Points',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.points,
-    render: (row) => row.points.toLocaleString('en-IN'),
+    sortValue: (row) => row.Points,
+    render: (row) => row.Points.toLocaleString('en-IN'),
   },
   {
     key: 'description',
@@ -206,12 +206,12 @@ const redemptionColumns: CommonTableColumn<WalletRedemptionEntry>[] = [
     render: (row) => row.category,
   },
   {
-    key: 'coinsRedeemed',
-    header: 'Coins Redeemed',
+    key: 'PointsRedeemed',
+    header: 'Points Redeemed',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.coinsRedeemed,
-    render: (row) => row.coinsRedeemed.toLocaleString('en-IN'),
+    sortValue: (row) => row.PointsRedeemed,
+    render: (row) => row.PointsRedeemed.toLocaleString('en-IN'),
   },
   {
     key: 'requestDate',

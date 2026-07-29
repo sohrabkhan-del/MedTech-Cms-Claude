@@ -1,6 +1,6 @@
 import type {
   EntityLeaderboardEntry,
-  pointsSummary,
+  PointsSummary,
   ScanActivityPoint,
   RewardMixSlice,
   ActivityEvent,
@@ -27,7 +27,7 @@ export interface DashboardOverview {
   dealerLeaderboard: EntityLeaderboardEntry[]
   chemistLeaderboard: EntityLeaderboardEntry[]
   topProducts: EntityLeaderboardEntry[]
-  pointsSummary: typeof pointsSummary
+  PointsSummary: typeof PointsSummary
 }
 
 export interface DashboardWidgetsData {

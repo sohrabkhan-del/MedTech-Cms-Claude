@@ -23,7 +23,7 @@ import {
   BarChart3,
   SlidersHorizontal,
   Wallet,
-  Coins,
+  Coins as Points,
   Redo2,
 } from 'lucide-react'
 
@@ -208,9 +208,9 @@ export const menuConfig: MenuGroup[] = [
     icon: Wallet,
     items: [
       {
-        label: 'Coin Value Rules',
-        path: '/rewards-wallet/coin-value-rules/all',
-        icon: Coins,
+        label: 'Point Value Rules',
+        path: '/rewards-wallet/point-value-rules/all',
+        icon: Points,
         showRegionTopbar: true,
       },
       {

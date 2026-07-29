@@ -25,6 +25,7 @@ import {
   Wallet,
   Coins as Points,
   Redo2,
+  Palette,
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -326,4 +327,16 @@ export const menuConfig: MenuGroup[] = [
   //     },
   //   ],
   // },
+
+  {
+    groupLabel: 'UI',
+    icon: Palette,
+    items: [
+      {
+        label: 'Component Library',
+        path: '/ui',
+        icon: Palette,
+      },
+    ],
+  },
 ]

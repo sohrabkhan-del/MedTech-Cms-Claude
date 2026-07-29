@@ -99,6 +99,8 @@ import { ProductReportDetailsPage } from '@/features/reportsAnalytics/pages/Prod
 import { SchemeReportListPage } from '@/features/reportsAnalytics/pages/SchemeReportListPage'
 import { SchemeReportDetailsPage } from '@/features/reportsAnalytics/pages/SchemeReportDetailsPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { UiShowcaseLandingPage } from '@/features/uiShowcase/pages/UiShowcaseLandingPage'
+import { UiComponentDemoPage } from '@/features/uiShowcase/pages/UiComponentDemoPage'
 import { routeEntries, registerDetailRoute } from '@/routes/routeConfig'
 import { getDealerById } from '@/features/userManagement/mockDealers'
 import { getChemistById } from '@/features/userManagement/mockChemists'
@@ -175,6 +177,7 @@ const CUSTOM_PATHS = new Set([
   '/reports/product-reports-1',
   '/reports/product-reports-2',
   '/reports/scheme-reports',
+  '/ui',
 ])
 
 registerDetailRoute({
@@ -575,6 +578,8 @@ export function AppRouter() {
             path="/settings/general"
             element={<AppearanceSettingsPage />}
           /> */}
+          <Route path="/ui" element={<UiShowcaseLandingPage />} />
+          <Route path="/ui/:slug" element={<UiComponentDemoPage />} />
           <Route path="/settings/profile" element={<ProfileSettingsPage />} />
           <Route path="/system-users/admin" element={<AdminListPage />} />
           <Route path="/system-users/admin/new" element={<AdminFormPage />} />

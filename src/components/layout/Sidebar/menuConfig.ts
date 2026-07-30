@@ -26,6 +26,8 @@ import {
   Coins as Points,
   Redo2,
   Palette,
+  ClipboardList,
+  ListTree,
 } from 'lucide-react'
 
 export interface MenuItem {
@@ -315,27 +317,30 @@ export const menuConfig: MenuGroup[] = [
     ],
   },
 
-  // {
-  //   groupLabel: 'Audit',
-  //   icon: ClipboardList,
-  //   items: [
-  //     { label: 'Audit Logs', path: '/audit/audit-logs', icon: ClipboardList },
-  //     {
-  //       label: 'Master Scan Table Logs',
-  //       path: '/audit/master-scan-table-logs',
-  //       icon: ListTree,
-  //     },
-  //   ],
-  // },
+  {
+    groupLabel: 'Audit',
+    icon: ClipboardList,
+    items: [
+      { label: 'Audit Logs', path: '/audit/audit-logs', icon: ClipboardList },
+      {
+        label: 'Master Scan Table Logs',
+        path: '/audit/master-scan-table-logs',
+        icon: ListTree,
+      },
+    ],
+  },
 
   {
     groupLabel: 'UI',
     icon: Palette,
     items: [
       {
-        label: 'Component Library',
-        path: '/ui',
+        label: 'UI Library',
         icon: Palette,
+        children: [
+          { label: 'Components', path: '/ui' },
+          { label: 'Page Templates', path: '/ui/templates' },
+        ],
       },
     ],
   },

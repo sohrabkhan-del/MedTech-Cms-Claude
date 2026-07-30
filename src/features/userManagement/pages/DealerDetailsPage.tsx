@@ -11,14 +11,17 @@ import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistor
 import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
 import { LicenseDocumentsCard } from '@/features/userManagement/components/LicenseDocumentsCard'
+import { RedemptionHistoryCard } from '@/features/userManagement/components/RedemptionHistoryCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
+import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemptions'
 
 export function DealerDetailsPage() {
   const { dealerId } = useParams<{ dealerId: string }>()
   const navigate = useNavigate()
   const { dealer, isLoading } = useDealerDetail(dealerId)
+  const { redemptions, isLoading: isRedemptionsLoading } = useUserRedemptions(dealerId)
   const [, forceRerender] = useState(0)
 
   if (isLoading) {
@@ -103,6 +106,10 @@ export function DealerDetailsPage() {
       <Stack spacing={3}>
         <ScanHistoryCard entries={dealer.scanHistory} />
         <PointsHistoryCard entries={dealer.PointsHistory} />
+        <RedemptionHistoryCard
+          entries={redemptions}
+          isLoading={isRedemptionsLoading}
+        />
         <InterestedProductsCard entries={dealer.interestedProducts} />
         <LicenseDocumentsCard documents={dealer.documents} />
       </Stack>

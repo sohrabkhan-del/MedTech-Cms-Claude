@@ -178,6 +178,7 @@ const CUSTOM_PATHS = new Set([
   '/reports/product-reports-2',
   '/reports/scheme-reports',
   '/ui',
+  '/ui/templates',
 ])
 
 registerDetailRoute({
@@ -578,7 +579,8 @@ export function AppRouter() {
             path="/settings/general"
             element={<AppearanceSettingsPage />}
           /> */}
-          <Route path="/ui" element={<UiShowcaseLandingPage />} />
+          <Route path="/ui" element={<UiShowcaseLandingPage category="component" />} />
+          <Route path="/ui/templates" element={<UiShowcaseLandingPage category="page-template" />} />
           <Route path="/ui/:slug" element={<UiComponentDemoPage />} />
           <Route path="/settings/profile" element={<ProfileSettingsPage />} />
           <Route path="/system-users/admin" element={<AdminListPage />} />

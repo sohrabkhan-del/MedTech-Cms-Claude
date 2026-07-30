@@ -212,6 +212,12 @@ export function getRedemptionRequestById(
   return mockRedemptionRequests.find((request) => request.id === id)
 }
 
+export function getRedemptionRequestsByUserId(
+  userId: string,
+): RedemptionRequest[] {
+  return mockRedemptionRequests.filter((request) => request.userId === userId)
+}
+
 export const redemptionKpis = {
   totalRequests: mockRedemptionRequests.length,
   pendingApprovals: mockRedemptionRequests.filter(

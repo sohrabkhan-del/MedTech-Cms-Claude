@@ -1,6 +1,7 @@
 import {
   mockRedemptionRequests,
   getRedemptionRequestById,
+  getRedemptionRequestsByUserId,
   redemptionKpis,
 } from '@/features/rewardsWallet/mockRedemptions'
 import { giftCategoryOptions } from '@/features/schemeManagement/mockGifts'
@@ -58,6 +59,12 @@ async function getRedemptionDetail(
   return mockDelay(getRedemptionRequestById(id))
 }
 
+async function getRedemptionsByUserId(
+  userId: string,
+): Promise<RedemptionRequest[]> {
+  return mockDelay(getRedemptionRequestsByUserId(userId))
+}
+
 async function getRedemptionKpis() {
   return mockDelay(redemptionKpis)
 }
@@ -85,6 +92,7 @@ async function setDeliveryStatus(
 export const redemptionsService = {
   getRedemptions,
   getRedemptionDetail,
+  getRedemptionsByUserId,
   getRedemptionKpis,
   getRedemptionFormOptions,
   setRedemptionStatus,

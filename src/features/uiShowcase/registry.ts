@@ -16,6 +16,20 @@ import {
   ListCollapse,
   CircleUserRound,
   MoreHorizontal,
+  GalleryHorizontal,
+  Grip,
+  XSquare,
+  Navigation as NavbarIcon,
+  PanelRightOpen,
+  Rows3,
+  Star,
+  GitCommitHorizontal,
+  Search as SearchIcon,
+  Users,
+  ChevronsRight,
+  Newspaper,
+  FileText,
+  PenSquare,
 } from 'lucide-react'
 import type { ComponentDemo } from './types'
 import { ButtonDemo } from './demos/ButtonDemo'
@@ -35,6 +49,21 @@ import { RadioDemo } from './demos/RadioDemo'
 import { AccordionDemo } from './demos/AccordionDemo'
 import { AvatarDemo } from './demos/AvatarDemo'
 import { PaginationDemo } from './demos/PaginationDemo'
+import { CarouselDemo } from './demos/CarouselDemo'
+import { SwiperJsDemo } from './demos/SwiperJsDemo'
+import { DraggableCardDemo } from './demos/DraggableCardDemo'
+import { ModalCloseDemo } from './demos/ModalCloseDemo'
+import { NavbarDemo } from './demos/NavbarDemo'
+import { OffcanvasDemo } from './demos/OffcanvasDemo'
+import { PlaceholderDemo } from './demos/PlaceholderDemo'
+import { RatingDemo } from './demos/RatingDemo'
+import { TimelineDemo } from './demos/TimelineDemo'
+import { SearchDemo } from './demos/SearchDemo'
+import { UserListDemo } from './demos/UserListDemo'
+import { BreadcrumbDemo } from './demos/BreadcrumbDemo'
+import { BlogDemo } from './demos/BlogDemo'
+import { BlogDetailsDemo } from './demos/BlogDetailsDemo'
+import { EditPostDemo } from './demos/EditPostDemo'
 
 /**
  * Single source of truth for the UI showcase. Adding a new component demo
@@ -49,6 +78,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'All variants, sizes, and disabled/loading states.',
     icon: MousePointerClick,
     Demo: ButtonDemo,
+    category: 'component',
   },
   {
     slug: 'dialog',
@@ -56,6 +86,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Default, confirmation, form content, and scrollable dialogs.',
     icon: PanelTop,
     Demo: DialogDemo,
+    category: 'component',
   },
   {
     slug: 'toggle',
@@ -63,6 +94,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Colors, sizes, and disabled state.',
     icon: ToggleLeft,
     Demo: ToggleDemo,
+    category: 'component',
   },
   {
     slug: 'slider',
@@ -70,6 +102,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Single value, range, stepped, and disabled sliders.',
     icon: SliderIcon,
     Demo: SliderDemo,
+    category: 'component',
   },
   {
     slug: 'date-range-picker',
@@ -77,6 +110,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Presets, custom range, and compact preset dropdown.',
     icon: CalendarRange,
     Demo: DateRangePickerDemo,
+    category: 'component',
   },
   {
     slug: 'snackbar',
@@ -84,6 +118,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Success, error, warning, info — auto-dismiss and persistent.',
     icon: MessageSquareWarning,
     Demo: SnackbarDemo,
+    category: 'component',
   },
   {
     slug: 'tabs',
@@ -91,6 +126,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Filled, outlined, and underline variants.',
     icon: LayoutList,
     Demo: TabsDemo,
+    category: 'component',
   },
   {
     slug: 'badge',
@@ -98,6 +134,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Status badges and plain chips.',
     icon: Tags,
     Demo: BadgeDemo,
+    category: 'component',
   },
   {
     slug: 'card',
@@ -105,6 +142,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'SectionCard and StatCard building blocks.',
     icon: LayoutPanelTop,
     Demo: CardDemo,
+    category: 'component',
   },
   {
     slug: 'input',
@@ -112,6 +150,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Sizes, helper text, error and disabled states.',
     icon: TextCursorInput,
     Demo: InputDemo,
+    category: 'component',
   },
   {
     slug: 'tooltip',
@@ -119,6 +158,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Placement options for hover hints.',
     icon: MessageCircleQuestion,
     Demo: TooltipDemo,
+    category: 'component',
   },
   {
     slug: 'select',
@@ -126,6 +166,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'TextField select, plain Select, and the compact preset dropdown.',
     icon: ChevronDownSquare,
     Demo: SelectDemo,
+    category: 'component',
   },
   {
     slug: 'checkbox',
@@ -133,6 +174,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Checked, indeterminate, and disabled states.',
     icon: CheckSquare,
     Demo: CheckboxDemo,
+    category: 'component',
   },
   {
     slug: 'radio',
@@ -140,6 +182,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Single radios and a grouped example.',
     icon: CircleDot,
     Demo: RadioDemo,
+    category: 'component',
   },
   {
     slug: 'accordion',
@@ -147,6 +190,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Expand/collapse panels, including a disabled panel.',
     icon: ListCollapse,
     Demo: AccordionDemo,
+    category: 'component',
   },
   {
     slug: 'avatar',
@@ -154,6 +198,7 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Display sizes and the editable upload variant.',
     icon: CircleUserRound,
     Demo: AvatarDemo,
+    category: 'component',
   },
   {
     slug: 'pagination',
@@ -161,6 +206,127 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Sizes, variants, and disabled state.',
     icon: MoreHorizontal,
     Demo: PaginationDemo,
+    category: 'component',
+  },
+  {
+    slug: 'carousel',
+    label: 'Carousel',
+    description: 'Arrows + dots, autoplay, and multi-item-per-slide variants.',
+    icon: GalleryHorizontal,
+    Demo: CarouselDemo,
+    category: 'component',
+  },
+  {
+    slug: 'draggable-card',
+    label: 'Draggable Card',
+    description: 'Freely reorderable card grid via drag-and-drop.',
+    icon: Grip,
+    Demo: DraggableCardDemo,
+    category: 'component',
+  },
+  {
+    slug: 'modal-closes',
+    label: 'Modal & Closes',
+    description: 'Close via X, backdrop click, Escape key, and confirm/cancel.',
+    icon: XSquare,
+    Demo: ModalCloseDemo,
+    category: 'component',
+  },
+  {
+    slug: 'navbar',
+    label: 'Navbar',
+    description: 'Default, dropdown menu, sticky/scrolled, and mobile hamburger states.',
+    icon: NavbarIcon,
+    Demo: NavbarDemo,
+    category: 'component',
+  },
+  {
+    slug: 'offcanvas',
+    label: 'Offcanvas',
+    description: 'Slide-in panel from left, right, top, and bottom, with overlay.',
+    icon: PanelRightOpen,
+    Demo: OffcanvasDemo,
+    category: 'component',
+  },
+  {
+    slug: 'placeholder',
+    label: 'Placeholder',
+    description: 'Loading skeletons: text lines, avatar circle, card, and image.',
+    icon: Rows3,
+    Demo: PlaceholderDemo,
+    category: 'component',
+  },
+  {
+    slug: 'rating',
+    label: 'Ratings',
+    description: 'Read-only display, interactive selection, and half-star precision.',
+    icon: Star,
+    Demo: RatingDemo,
+    category: 'component',
+  },
+  {
+    slug: 'swiper-js',
+    label: 'Swiper JS',
+    description: 'slidesPerView, pagination, and navigation module options.',
+    icon: GalleryHorizontal,
+    Demo: SwiperJsDemo,
+    category: 'component',
+  },
+  {
+    slug: 'timeline',
+    label: 'Timeline',
+    description: 'Vertical and horizontal variants, with icons and dates.',
+    icon: GitCommitHorizontal,
+    Demo: TimelineDemo,
+    category: 'component',
+  },
+  {
+    slug: 'search',
+    label: 'Search',
+    description: 'Basic bar, live filtered suggestions, and clear button.',
+    icon: SearchIcon,
+    Demo: SearchDemo,
+    category: 'component',
+  },
+  {
+    slug: 'user-list',
+    label: 'Userlist',
+    description: 'Avatar, name, role, and status in a searchable table.',
+    icon: Users,
+    Demo: UserListDemo,
+    category: 'component',
+  },
+  {
+    slug: 'breadcrumb',
+    label: 'Breadcrumb',
+    description: '2-level and 4-level trails, with a non-clickable current page.',
+    icon: ChevronsRight,
+    Demo: BreadcrumbDemo,
+    category: 'component',
+  },
+  {
+    slug: 'blog',
+    label: 'Blog',
+    description: 'Post grid: thumbnail, title, excerpt, author, date, tags.',
+    icon: Newspaper,
+    Demo: BlogDemo,
+    category: 'page-template',
+  },
+  {
+    slug: 'blog-details',
+    label: 'Blog Details',
+    description: 'Single post: hero, meta, body content, related posts.',
+    icon: FileText,
+    Demo: BlogDetailsDemo,
+    category: 'page-template',
+  },
+  {
+    slug: 'edit-post',
+    label: 'Edit Post',
+    description: 'Title, rich text editor, tags, featured image, save/publish.',
+    icon: PenSquare,
+    Demo: EditPostDemo,
+    category: 'page-template',
   },
 ]
 

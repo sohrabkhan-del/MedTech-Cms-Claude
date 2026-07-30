@@ -123,9 +123,14 @@ export function RedemptionListPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() =>
-            navigate(`/rewards-wallet/reward-redemptions/${row.id}`)
-          }
+          onClick={(e) => {
+            e.stopPropagation()
+            navigate(
+              row.userType === 'Dealer'
+                ? `/partners/dealers/${row.userId}`
+                : `/partners/chemists/${row.userId}`,
+            )
+          }}
         >
           {row.userName}
         </Typography>

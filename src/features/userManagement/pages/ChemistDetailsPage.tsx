@@ -11,14 +11,17 @@ import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistor
 import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
 import { LicenseDocumentsCard } from '@/features/userManagement/components/LicenseDocumentsCard'
+import { RedemptionHistoryCard } from '@/features/userManagement/components/RedemptionHistoryCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
+import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemptions'
 
 export function ChemistDetailsPage() {
   const { chemistId } = useParams<{ chemistId: string }>()
   const navigate = useNavigate()
   const { chemist, isLoading } = useChemistDetail(chemistId)
+  const { redemptions, isLoading: isRedemptionsLoading } = useUserRedemptions(chemistId)
   const [, forceRerender] = useState(0)
 
   if (isLoading) {
@@ -101,6 +104,10 @@ export function ChemistDetailsPage() {
       <Stack spacing={3}>
         <ScanHistoryCard entries={chemist.scanHistory} />
         <PointsHistoryCard entries={chemist.PointsHistory} />
+        <RedemptionHistoryCard
+          entries={redemptions}
+          isLoading={isRedemptionsLoading}
+        />
         <InterestedProductsCard entries={chemist.interestedProducts} />
         <LicenseDocumentsCard documents={chemist.documents} />
       </Stack>

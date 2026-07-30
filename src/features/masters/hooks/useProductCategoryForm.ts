@@ -1,77 +1,54 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
-import { productCategoriesService } from '@/features/masters/services/productCategoriesService'
+import {
+  useGetProductCategoryDetailQuery,
+  useGetParentCategoryOptionsQuery,
+  useCreateProductCategoryMutation,
+  useUpdateProductCategoryMutation,
+} from '@/features/masters/services/productCategoriesApi'
 import type { ProductCategory, ProductCategoryFormValues } from '@/features/masters/types/masters.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 interface FormOptions {
   parentCategoryOptions: ProductCategory[]
 }
 
-interface LoadState {
-  category: ProductCategory | undefined
-  options: FormOptions | null
-  isLoading: boolean
-  loadError: string | null
-}
-
-type LoadAction =
-  | { type: 'loading' }
-  | { type: 'succeeded'; category: ProductCategory | undefined; options: FormOptions }
-  | { type: 'failed'; error: string }
-
-const initialLoadState: LoadState = { category: undefined, options: null, isLoading: false, loadError: null }
-
-function loadReducer(state: LoadState, action: LoadAction): LoadState {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, loadError: null }
-    case 'succeeded':
-      return { ...action, isLoading: false, loadError: null }
-    case 'failed':
-      return { ...state, isLoading: false, loadError: action.error }
-  }
-}
-
 export function useProductCategoryForm(categoryId: string | undefined) {
   const isEdit = !!categoryId
   const toast = useToast()
-  const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const categoryResult = useGetProductCategoryDetailQuery(categoryId ?? skipToken)
+  const parentOptionsResult = useGetParentCategoryOptionsQuery(categoryId)
+  const [createProductCategory] = useCreateProductCategoryMutation()
+  const [updateProductCategory] = useUpdateProductCategoryMutation()
 
-    Promise.all([
-      categoryId ? productCategoriesService.getProductCategoryDetail(categoryId) : Promise.resolve(undefined),
-      productCategoriesService.getParentCategoryOptions(categoryId),
-    ])
-      .then(([category, parentCategoryOptions]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', category, options: { parentCategoryOptions } })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load product category form data.' })
-      })
+  const isLoading = (isEdit && categoryResult.isLoading) || parentOptionsResult.isLoading
+  const loadError = categoryResult.error
+    ? getApiErrorMessage(categoryResult.error, 'Failed to load product category form data.')
+    : parentOptionsResult.error
+      ? getApiErrorMessage(parentOptionsResult.error, 'Failed to load product category form data.')
+      : null
 
-    return () => {
-      cancelled = true
-    }
-  }, [categoryId])
+  const options: FormOptions | null = parentOptionsResult.data
+    ? { parentCategoryOptions: parentOptionsResult.data }
+    : null
 
   async function submit(values: ProductCategoryFormValues) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
       if (isEdit && categoryId) {
-        await productCategoriesService.updateProductCategory(categoryId, values)
+        await updateProductCategory({ id: categoryId, values }).unwrap()
       } else {
-        await productCategoriesService.createProductCategory(values)
+        await createProductCategory(values).unwrap()
       }
       toast.success(isEdit ? 'Category updated successfully.' : 'Category created successfully.')
       return true
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save product category.'
+      const message = getApiErrorMessage(err, 'Failed to save product category.')
       setSubmitError(message)
       toast.error(message)
       return false
@@ -80,5 +57,13 @@ export function useProductCategoryForm(categoryId: string | undefined) {
     }
   }
 
-  return { isEdit, ...loadState, isSubmitting, error: loadState.loadError ?? submitError, submit }
+  return {
+    isEdit,
+    category: categoryResult.data,
+    options,
+    isLoading,
+    isSubmitting,
+    error: loadError ?? submitError,
+    submit,
+  }
 }

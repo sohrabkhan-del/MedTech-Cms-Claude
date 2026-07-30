@@ -1,65 +1,29 @@
-import { useEffect, useReducer } from 'react'
-import { scanReportsService } from '@/features/reportsAnalytics/services/scanReportsService'
-import type { ScanReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { scanReportKpis } from '@/features/reportsAnalytics/mockScanReports'
-
-type ScanReportKpis = typeof scanReportKpis
-
-interface FilterOptions {
-  productOptions: string[]
-  dealerOptions: string[]
-  chemistOptions: string[]
-}
-
-interface State {
-  reports: ScanReportEntry[]
-  kpis: ScanReportKpis | null
-  filterOptions: FilterOptions | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; reports: ScanReportEntry[]; kpis: ScanReportKpis; filterOptions: FilterOptions }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { reports: [], kpis: null, filterOptions: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { reports: action.reports, kpis: action.kpis, filterOptions: action.filterOptions, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import {
+  useGetScanReportsQuery,
+  useGetScanReportKpisQuery,
+  useGetScanReportFilterOptionsQuery,
+} from '@/features/reportsAnalytics/services/scanReportsApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useScanReports() {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const reportsResult = useGetScanReportsQuery()
+  const kpisResult = useGetScanReportKpisQuery()
+  const filterOptionsResult = useGetScanReportFilterOptionsQuery()
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const isLoading = reportsResult.isLoading || kpisResult.isLoading || filterOptionsResult.isLoading
+  const error = reportsResult.error
+    ? getApiErrorMessage(reportsResult.error, 'Failed to load scan reports.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load scan reports.')
+      : filterOptionsResult.error
+        ? getApiErrorMessage(filterOptionsResult.error, 'Failed to load scan reports.')
+        : null
 
-    Promise.all([
-      scanReportsService.getScanReports(),
-      scanReportsService.getScanReportKpis(),
-      scanReportsService.getScanReportFilterOptions(),
-    ])
-      .then(([reports, kpis, filterOptions]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', reports, kpis, filterOptions })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load scan reports.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return state
+  return {
+    reports: reportsResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    filterOptions: filterOptionsResult.data ?? null,
+    isLoading,
+    error,
+  }
 }

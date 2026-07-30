@@ -1,73 +1,46 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
-import { partnersService } from '@/features/userManagement/services/partnersService'
-import type { Dealer, DealerFormValues } from '@/features/userManagement/types/userManagement.types'
-
-interface LoadState {
-  dealer: Dealer | undefined
-  mrOptions: string[]
-  isLoading: boolean
-  loadError: string | null
-}
-
-type LoadAction =
-  | { type: 'loading' }
-  | { type: 'succeeded'; dealer: Dealer | undefined; mrOptions: string[] }
-  | { type: 'failed'; error: string }
-
-const initialLoadState: LoadState = { dealer: undefined, mrOptions: [], isLoading: false, loadError: null }
-
-function loadReducer(state: LoadState, action: LoadAction): LoadState {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, loadError: null }
-    case 'succeeded':
-      return { dealer: action.dealer, mrOptions: action.mrOptions, isLoading: false, loadError: null }
-    case 'failed':
-      return { ...state, isLoading: false, loadError: action.error }
-  }
-}
+import {
+  useGetDealerDetailQuery,
+  useGetMrOptionsQuery,
+  useCreateDealerMutation,
+  useUpdateDealerMutation,
+} from '@/features/userManagement/services/partnersApi'
+import type { DealerFormValues } from '@/features/userManagement/types/userManagement.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useDealerForm(dealerId: string | undefined) {
   const isEdit = !!dealerId
   const toast = useToast()
-  const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const dealerResult = useGetDealerDetailQuery(dealerId ?? skipToken)
+  const mrOptionsResult = useGetMrOptionsQuery()
+  const [createDealer] = useCreateDealerMutation()
+  const [updateDealer] = useUpdateDealerMutation()
 
-    Promise.all([
-      dealerId ? partnersService.getDealerDetail(dealerId) : Promise.resolve(undefined),
-      partnersService.getMrOptions(),
-    ])
-      .then(([dealer, mrOptions]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', dealer, mrOptions })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load dealer form data.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [dealerId])
+  const isLoading = (isEdit && dealerResult.isLoading) || mrOptionsResult.isLoading
+  const loadError = dealerResult.error
+    ? getApiErrorMessage(dealerResult.error, 'Failed to load dealer form data.')
+    : mrOptionsResult.error
+      ? getApiErrorMessage(mrOptionsResult.error, 'Failed to load dealer form data.')
+      : null
 
   async function submit(values: DealerFormValues) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
       if (isEdit && dealerId) {
-        await partnersService.updateDealer(dealerId, values)
+        await updateDealer({ id: dealerId, values }).unwrap()
       } else {
-        await partnersService.createDealer(values)
+        await createDealer(values).unwrap()
       }
       toast.success(isEdit ? 'Dealer updated successfully.' : 'Dealer created successfully.')
       return true
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save dealer.'
+      const message = getApiErrorMessage(err, 'Failed to save dealer.')
       setSubmitError(message)
       toast.error(message)
       return false
@@ -76,5 +49,13 @@ export function useDealerForm(dealerId: string | undefined) {
     }
   }
 
-  return { isEdit, ...loadState, isSubmitting, error: loadState.loadError ?? submitError, submit }
+  return {
+    isEdit,
+    dealer: dealerResult.data,
+    mrOptions: mrOptionsResult.data ?? [],
+    isLoading,
+    isSubmitting,
+    error: loadError ?? submitError,
+    submit,
+  }
 }

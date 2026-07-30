@@ -1,73 +1,43 @@
-import { useEffect, useReducer, useState } from 'react'
-import { verificationService } from '@/features/userManagement/services/verificationService'
-import type { ApprovalRequest } from '@/features/userManagement/types/userManagement.types'
-import type { rejectedRequestKpis } from '@/features/userManagement/mockApprovalRequests'
-
-type RejectedRequestKpis = typeof rejectedRequestKpis
-
-interface State {
-  requests: ApprovalRequest[]
-  kpis: RejectedRequestKpis | null
-  reviewers: string[]
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; requests: ApprovalRequest[]; kpis: RejectedRequestKpis; reviewers: string[] }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { requests: [], kpis: null, reviewers: [], isLoading: false, error: null }
-
-function reducer(_state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { requests: [], kpis: null, reviewers: [], isLoading: true, error: null }
-    case 'succeeded':
-      return { ...action, isLoading: false, error: null }
-    case 'failed':
-      return { requests: [], kpis: null, reviewers: [], isLoading: false, error: action.error }
-  }
-}
+import {
+  useGetApprovalRequestsQuery,
+  useGetRejectedRequestKpisQuery,
+  useGetRejectedReviewersQuery,
+  useReopenRequestMutation,
+  useDeleteRequestMutation,
+} from '@/features/userManagement/services/verificationApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useRejectedRequests() {
-  const [state, dispatch] = useReducer(reducer, initialState)
-  const [reopenedIds, setReopenedIds] = useState<Set<string>>(new Set())
-  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
+  const requestsResult = useGetApprovalRequestsQuery('rejected')
+  const kpisResult = useGetRejectedRequestKpisQuery()
+  const reviewersResult = useGetRejectedReviewersQuery()
+  const [reopenMutation] = useReopenRequestMutation()
+  const [deleteMutation] = useDeleteRequestMutation()
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    Promise.all([
-      verificationService.getApprovalRequests('rejected'),
-      verificationService.getRejectedRequestKpis(),
-      verificationService.getRejectedReviewers(),
-    ])
-      .then(([requests, kpis, reviewers]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', requests, kpis, reviewers })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load rejected requests.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const isLoading = requestsResult.isLoading || kpisResult.isLoading || reviewersResult.isLoading
+  const error = requestsResult.error
+    ? getApiErrorMessage(requestsResult.error, 'Failed to load rejected requests.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load rejected requests.')
+      : reviewersResult.error
+        ? getApiErrorMessage(reviewersResult.error, 'Failed to load rejected requests.')
+        : null
 
   async function reopen(id: string) {
-    await verificationService.reopenRequest(id)
-    setReopenedIds((prev) => new Set(prev).add(id))
+    await reopenMutation(id).unwrap()
   }
 
   async function remove(id: string) {
-    await verificationService.deleteRequest(id)
-    setDeletedIds((prev) => new Set(prev).add(id))
+    await deleteMutation(id).unwrap()
   }
 
-  const requests = state.requests.filter((r) => !reopenedIds.has(r.id) && !deletedIds.has(r.id))
-
-  return { ...state, requests, reopen, remove }
+  return {
+    requests: requestsResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    reviewers: reviewersResult.data ?? [],
+    isLoading,
+    error,
+    reopen,
+    remove,
+  }
 }

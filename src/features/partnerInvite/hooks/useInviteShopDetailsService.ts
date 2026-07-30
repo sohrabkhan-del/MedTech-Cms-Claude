@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { partnerInviteService } from '@/features/partnerInvite/services/partnerInviteService'
+import { useSubmitPartnerInviteMutation } from '@/features/partnerInvite/services/partnerInviteApi'
 import { getAuthErrorMessage } from '@/features/auth/getAuthErrorMessage'
 import { usePartnerInvite } from '@/features/partnerInvite/PartnerInviteContext'
 import type { PartnerInviteShopDetails } from '@/types/partnerInvite'
@@ -11,6 +11,7 @@ export function useInviteShopDetailsService() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [applicationId, setApplicationId] = useState<string | null>(null)
+  const [submitPartnerInviteMutation] = useSubmitPartnerInviteMutation()
 
   async function submitShopDetails(shopDetails: PartnerInviteShopDetails) {
     if (!basicDetails || !password) {
@@ -22,12 +23,12 @@ export function useInviteShopDetailsService() {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await partnerInviteService.submitPartnerInvite({
+      const response = await submitPartnerInviteMutation({
         token,
         basicDetails,
         password,
         shopDetails,
-      })
+      }).unwrap()
       setShopDetails(shopDetails)
       setApplicationId(response.applicationId)
     } catch (err) {

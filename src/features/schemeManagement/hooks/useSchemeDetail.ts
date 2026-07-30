@@ -1,63 +1,28 @@
-import { useCallback, useEffect, useReducer } from 'react'
-import { schemesService } from '@/features/schemeManagement/services/schemesService'
-import type { Scheme, SchemeStatus } from '@/features/schemeManagement/types/schemeManagement.types'
-
-interface State {
-  scheme: Scheme | undefined
-  isLoading: boolean
-  error: string | null
-}
-
-type Action = { type: 'loading' } | { type: 'succeeded'; scheme: Scheme | undefined } | { type: 'failed'; error: string }
-
-const initialState: State = { scheme: undefined, isLoading: false, error: null }
-
-function reducer(_state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { scheme: undefined, isLoading: true, error: null }
-    case 'succeeded':
-      return { scheme: action.scheme, isLoading: false, error: null }
-    case 'failed':
-      return { scheme: undefined, isLoading: false, error: action.error }
-  }
-}
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import {
+  useGetSchemeDetailQuery,
+  useUpdateSchemeStatusMutation,
+  useDeleteSchemeMutation,
+} from '@/features/schemeManagement/services/schemesApi'
+import type { SchemeStatus } from '@/features/schemeManagement/types/schemeManagement.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useSchemeDetail(schemeId: string | undefined) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const { data: scheme, isLoading, error: queryError } = useGetSchemeDetailQuery(schemeId ?? skipToken)
+  const [updateStatusMutation] = useUpdateSchemeStatusMutation()
+  const [deleteSchemeMutation] = useDeleteSchemeMutation()
 
-  const load = useCallback(() => {
-    if (!schemeId) return () => {}
-
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    schemesService
-      .getSchemeDetail(schemeId)
-      .then((scheme) => {
-        if (!cancelled) dispatch({ type: 'succeeded', scheme })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load scheme.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [schemeId])
-
-  useEffect(() => load(), [load])
+  const error = queryError ? getApiErrorMessage(queryError, 'Failed to load scheme.') : null
 
   async function remove() {
     if (!schemeId) return
-    await schemesService.deleteScheme(schemeId)
+    await deleteSchemeMutation(schemeId).unwrap()
   }
 
   async function setStatus(status: SchemeStatus) {
     if (!schemeId) return
-    const updated = await schemesService.updateSchemeStatus(schemeId, status)
-    if (updated) dispatch({ type: 'succeeded', scheme: updated })
+    await updateStatusMutation({ id: schemeId, status }).unwrap()
   }
 
-  return { ...state, remove, setStatus }
+  return { scheme, isLoading, error, remove, setStatus }
 }

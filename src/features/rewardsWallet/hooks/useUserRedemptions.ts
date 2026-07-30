@@ -1,54 +1,14 @@
-import { useEffect, useReducer } from 'react'
-import { redemptionsService } from '@/features/rewardsWallet/services/redemptionsService'
-import type { RedemptionRequest } from '@/features/rewardsWallet/types/rewardsWallet.types'
-
-interface State {
-  redemptions: RedemptionRequest[]
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; redemptions: RedemptionRequest[] }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { redemptions: [], isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { redemptions: action.redemptions, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import { useGetRedemptionsByUserIdQuery } from '@/features/rewardsWallet/services/redemptionsApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useUserRedemptions(userId: string | undefined) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const { data, isLoading, error: queryError } = useGetRedemptionsByUserIdQuery(userId ?? skipToken)
+  const error = queryError ? getApiErrorMessage(queryError, 'Failed to load redemption history.') : null
 
-  useEffect(() => {
-    if (!userId) return
-
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    redemptionsService
-      .getRedemptionsByUserId(userId)
-      .then((redemptions) => {
-        if (!cancelled) dispatch({ type: 'succeeded', redemptions })
-      })
-      .catch((err: Error) => {
-        if (!cancelled)
-          dispatch({ type: 'failed', error: err.message ?? 'Failed to load redemption history.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [userId])
-
-  return state
+  return {
+    redemptions: data ?? [],
+    isLoading,
+    error,
+  }
 }

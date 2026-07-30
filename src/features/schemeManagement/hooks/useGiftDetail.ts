@@ -1,70 +1,28 @@
-import { useEffect, useReducer } from 'react'
-import { giftsService } from '@/features/schemeManagement/services/giftsService'
-import type { Gift, GiftStatus } from '@/features/schemeManagement/types/schemeManagement.types'
-
-interface State {
-  gift: Gift | undefined
-  statusOverride: GiftStatus | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; gift: Gift | undefined }
-  | { type: 'failed'; error: string }
-  | { type: 'statusChanged'; status: GiftStatus }
-
-const initialState: State = { gift: undefined, statusOverride: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { gift: undefined, statusOverride: null, isLoading: true, error: null }
-    case 'succeeded':
-      return { gift: action.gift, statusOverride: null, isLoading: false, error: null }
-    case 'failed':
-      return { gift: undefined, statusOverride: null, isLoading: false, error: action.error }
-    case 'statusChanged':
-      return { ...state, statusOverride: action.status }
-  }
-}
+import {
+  useGetGiftDetailQuery,
+  useSetGiftStatusMutation,
+  useDeleteGiftMutation,
+} from '@/features/schemeManagement/services/giftsApi'
+import type { GiftStatus } from '@/features/schemeManagement/types/schemeManagement.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 
 export function useGiftDetail(giftId: string | undefined) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const { data: gift, isLoading, error: queryError } = useGetGiftDetailQuery(giftId ?? skipToken)
+  const [setStatusMutation] = useSetGiftStatusMutation()
+  const [deleteGiftMutation] = useDeleteGiftMutation()
 
-  useEffect(() => {
-    if (!giftId) return
-
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    giftsService
-      .getGiftDetail(giftId)
-      .then((gift) => {
-        if (!cancelled) dispatch({ type: 'succeeded', gift })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load gift.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [giftId])
+  const error = queryError ? getApiErrorMessage(queryError, 'Failed to load gift.') : null
 
   async function setStatus(status: GiftStatus) {
     if (!giftId) return
-    await giftsService.setGiftStatus(giftId, status)
-    dispatch({ type: 'statusChanged', status })
+    await setStatusMutation({ id: giftId, status }).unwrap()
   }
 
   async function remove() {
     if (!giftId) return
-    await giftsService.deleteGift(giftId)
+    await deleteGiftMutation(giftId).unwrap()
   }
 
-  const gift = state.gift && state.statusOverride ? { ...state.gift, status: state.statusOverride } : state.gift
-
-  return { ...state, gift, setStatus, remove }
+  return { gift, isLoading, error, setStatus, remove }
 }

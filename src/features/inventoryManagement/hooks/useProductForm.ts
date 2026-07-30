@@ -1,75 +1,53 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
-import { productsService } from '@/features/inventoryManagement/services/productsService'
-import type { Product, ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
-
-interface LoadState {
-  product: Product | undefined
-  cloneSource: Product | undefined
-  categoryOptions: string[]
-  isLoading: boolean
-  loadError: string | null
-}
-
-type LoadAction =
-  | { type: 'loading' }
-  | { type: 'succeeded'; product: Product | undefined; cloneSource: Product | undefined; categoryOptions: string[] }
-  | { type: 'failed'; error: string }
-
-const initialLoadState: LoadState = { product: undefined, cloneSource: undefined, categoryOptions: [], isLoading: false, loadError: null }
-
-function loadReducer(state: LoadState, action: LoadAction): LoadState {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, loadError: null }
-    case 'succeeded':
-      return { ...action, isLoading: false, loadError: null }
-    case 'failed':
-      return { ...state, isLoading: false, loadError: action.error }
-  }
-}
+import {
+  useGetProductDetailQuery,
+  useGetProductCategoryOptionsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+} from '@/features/inventoryManagement/services/productsApi'
+import type { ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useProductForm(productId: string | undefined, cloneFromId: string | null) {
   const isEdit = !!productId
   const toast = useToast()
-  const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const productResult = useGetProductDetailQuery(productId ?? skipToken)
+  const cloneSourceResult = useGetProductDetailQuery(!productId && cloneFromId ? cloneFromId : skipToken)
+  const categoryOptionsResult = useGetProductCategoryOptionsQuery()
+  const [createProduct] = useCreateProductMutation()
+  const [updateProduct] = useUpdateProductMutation()
 
-    Promise.all([
-      productId ? productsService.getProductDetail(productId) : Promise.resolve(undefined),
-      !productId && cloneFromId ? productsService.getProductDetail(cloneFromId) : Promise.resolve(undefined),
-      productsService.getProductCategoryOptions(),
-    ])
-      .then(([product, cloneSource, categoryOptions]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', product, cloneSource, categoryOptions })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load product form data.' })
-      })
+  const isLoading =
+    (isEdit && productResult.isLoading) ||
+    (!isEdit && !!cloneFromId && cloneSourceResult.isLoading) ||
+    categoryOptionsResult.isLoading
 
-    return () => {
-      cancelled = true
-    }
-  }, [productId, cloneFromId])
+  const loadError = productResult.error
+    ? getApiErrorMessage(productResult.error, 'Failed to load product form data.')
+    : cloneSourceResult.error
+      ? getApiErrorMessage(cloneSourceResult.error, 'Failed to load product form data.')
+      : categoryOptionsResult.error
+        ? getApiErrorMessage(categoryOptionsResult.error, 'Failed to load product form data.')
+        : null
 
   async function submit(values: ProductFormValues) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
       if (isEdit && productId) {
-        await productsService.updateProduct(productId, values)
+        await updateProduct({ id: productId, values }).unwrap()
       } else {
-        await productsService.createProduct(values)
+        await createProduct(values).unwrap()
       }
       toast.success(isEdit ? 'Product updated successfully.' : 'Product created successfully.')
       return true
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save product.'
+      const message = getApiErrorMessage(err, 'Failed to save product.')
       setSubmitError(message)
       toast.error(message)
       return false
@@ -78,5 +56,15 @@ export function useProductForm(productId: string | undefined, cloneFromId: strin
     }
   }
 
-  return { isEdit, ...loadState, isSubmitting, error: loadState.loadError ?? submitError, submit }
+  return {
+    isEdit,
+    product: productResult.data,
+    cloneSource: cloneSourceResult.data,
+    categoryOptions: categoryOptionsResult.data ?? [],
+    isLoading,
+    loadError,
+    isSubmitting,
+    error: loadError ?? submitError,
+    submit,
+  }
 }

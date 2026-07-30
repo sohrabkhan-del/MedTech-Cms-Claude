@@ -1,54 +1,24 @@
-import { useEffect, useReducer } from 'react'
-import { walletReportsService } from '@/features/reportsAnalytics/services/walletReportsService'
-import type { WalletReportRow } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { walletReportKpis } from '@/features/reportsAnalytics/mockWalletReports'
-
-type WalletReportKpis = typeof walletReportKpis
-
-interface State {
-  reports: WalletReportRow[]
-  kpis: WalletReportKpis | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; reports: WalletReportRow[]; kpis: WalletReportKpis }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { reports: [], kpis: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { reports: action.reports, kpis: action.kpis, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import {
+  useGetWalletReportsQuery,
+  useGetWalletReportKpisQuery,
+} from '@/features/reportsAnalytics/services/walletReportsApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useWalletReports() {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const reportsResult = useGetWalletReportsQuery()
+  const kpisResult = useGetWalletReportKpisQuery()
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const isLoading = reportsResult.isLoading || kpisResult.isLoading
+  const error = reportsResult.error
+    ? getApiErrorMessage(reportsResult.error, 'Failed to load wallet reports.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load wallet reports.')
+      : null
 
-    Promise.all([walletReportsService.getWalletReports(), walletReportsService.getWalletReportKpis()])
-      .then(([reports, kpis]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', reports, kpis })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load wallet reports.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return state
+  return {
+    reports: reportsResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    isLoading,
+    error,
+  }
 }

@@ -21,7 +21,7 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { Modal } from '@/components/common/Modal/Modal'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useGiftDetail } from '@/features/schemeManagement/hooks/useGiftDetail'
-import { giftsService } from '@/features/schemeManagement/services/giftsService'
+import { getGiftStockStatus } from '@/features/schemeManagement/services/giftsApi'
 import type {
   GiftDeliveryStatus,
   GiftInventoryEntry,
@@ -139,7 +139,7 @@ export function GiftDetailsPage() {
     )
   }
 
-  const stockStatus = giftsService.getStockStatus(gift)
+  const stockStatus = getGiftStockStatus(gift)
   const remainingStock = gift.availableQuantity
 
   const confirmDelete = () => {

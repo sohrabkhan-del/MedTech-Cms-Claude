@@ -1,66 +1,29 @@
-import { useEffect, useReducer } from 'react'
-import { schemeReportsService } from '@/features/reportsAnalytics/services/schemeReportsService'
-import type { SchemeReportEntry } from '@/features/reportsAnalytics/types/reportsAnalytics.types'
-import type { schemeReportKpis } from '@/features/reportsAnalytics/mockSchemeReports'
-import type { PartnerZone } from '@/types/partner'
-import type { SchemePartnerType } from '@/features/schemeManagement/types/schemeManagement.types'
-
-type SchemeReportKpis = typeof schemeReportKpis
-
-interface FilterOptions {
-  regionOptions: PartnerZone[]
-  partnerTypeOptions: SchemePartnerType[]
-}
-
-interface State {
-  reports: SchemeReportEntry[]
-  kpis: SchemeReportKpis | null
-  filterOptions: FilterOptions | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; reports: SchemeReportEntry[]; kpis: SchemeReportKpis; filterOptions: FilterOptions }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { reports: [], kpis: null, filterOptions: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { reports: action.reports, kpis: action.kpis, filterOptions: action.filterOptions, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import {
+  useGetSchemeReportsQuery,
+  useGetSchemeReportKpisQuery,
+  useGetSchemeReportFilterOptionsQuery,
+} from '@/features/reportsAnalytics/services/schemeReportsApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useSchemeReports() {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const reportsResult = useGetSchemeReportsQuery()
+  const kpisResult = useGetSchemeReportKpisQuery()
+  const filterOptionsResult = useGetSchemeReportFilterOptionsQuery()
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const isLoading = reportsResult.isLoading || kpisResult.isLoading || filterOptionsResult.isLoading
+  const error = reportsResult.error
+    ? getApiErrorMessage(reportsResult.error, 'Failed to load scheme reports.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load scheme reports.')
+      : filterOptionsResult.error
+        ? getApiErrorMessage(filterOptionsResult.error, 'Failed to load scheme reports.')
+        : null
 
-    Promise.all([
-      schemeReportsService.getSchemeReports(),
-      schemeReportsService.getSchemeReportKpis(),
-      schemeReportsService.getSchemeReportFilterOptions(),
-    ])
-      .then(([reports, kpis, filterOptions]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', reports, kpis, filterOptions })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load scheme reports.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return state
+  return {
+    reports: reportsResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    filterOptions: filterOptionsResult.data ?? null,
+    isLoading,
+    error,
+  }
 }

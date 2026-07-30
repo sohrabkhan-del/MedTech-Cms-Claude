@@ -1,54 +1,21 @@
-import { useEffect, useReducer } from 'react'
-import { partnersService } from '@/features/userManagement/services/partnersService'
-import type { Dealer } from '@/features/userManagement/types/userManagement.types'
-import type { dealerKpis } from '@/features/userManagement/mockDealers'
-
-type DealerKpis = typeof dealerKpis
-
-interface State {
-  dealers: Dealer[]
-  kpis: DealerKpis | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; dealers: Dealer[]; kpis: DealerKpis }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { dealers: [], kpis: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { dealers: action.dealers, kpis: action.kpis, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import { useGetDealersQuery, useGetDealerKpisQuery } from '@/features/userManagement/services/partnersApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useDealers() {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const dealersResult = useGetDealersQuery()
+  const kpisResult = useGetDealerKpisQuery()
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const isLoading = dealersResult.isLoading || kpisResult.isLoading
+  const error = dealersResult.error
+    ? getApiErrorMessage(dealersResult.error, 'Failed to load dealers.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load dealers.')
+      : null
 
-    Promise.all([partnersService.getDealers(), partnersService.getDealerKpis()])
-      .then(([dealers, kpis]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', dealers, kpis })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load dealers.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return state
+  return {
+    dealers: dealersResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    isLoading,
+    error,
+  }
 }

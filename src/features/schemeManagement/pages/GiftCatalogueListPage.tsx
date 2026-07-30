@@ -19,7 +19,7 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useGifts } from '@/features/schemeManagement/hooks/useGifts'
 import { useGiftFormOptions } from '@/features/schemeManagement/hooks/useGiftFormOptions'
-import { giftsService } from '@/features/schemeManagement/services/giftsService'
+import { getGiftStockStatus } from '@/features/schemeManagement/services/giftsApi'
 import type {
   Gift,
   GiftEligibility,
@@ -77,7 +77,7 @@ export function GiftCatalogueListPage() {
       appliedFilters.brand === 'all' || gift.brand === appliedFilters.brand
     const stockMatch =
       appliedFilters.stockStatus === 'all' ||
-      giftsService.getStockStatus(gift) === appliedFilters.stockStatus
+      getGiftStockStatus(gift) === appliedFilters.stockStatus
     const statusMatch =
       appliedFilters.status === 'all' || gift.status === appliedFilters.status
     const eligibilityMatch =

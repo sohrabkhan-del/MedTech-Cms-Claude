@@ -1,69 +1,41 @@
 import { useEffect, useReducer } from 'react'
-import { PointRulesService } from '@/features/rewardsWallet/services/PointRulesService'
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import {
+  useGetPointRuleDetailQuery,
+  useLazyGetSiblingPointRuleQuery,
+  getHighestCurrentPoints,
+  getChangeDate,
+  getChangeTimestamp,
+  useSaveRegionHistoryEntriesMutation,
+  useSetBasePointValueMutation,
+} from '@/features/rewardsWallet/services/PointRulesApi'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import type {
   PointRuleRegion,
   PointValueRule,
   RegionPointHistoryEntry,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 interface State {
-  rule: PointValueRule | undefined
-  siblingRule: PointValueRule | undefined
   basePointValueOverrides: Record<string, number>
-  isLoading: boolean
-  error: string | null
+  regionOverrides: Record<string, PointValueRule>
 }
 
 type Action =
-  | { type: 'loading' }
-  | {
-      type: 'succeeded'
-      rule: PointValueRule | undefined
-      siblingRule: PointValueRule | undefined
-    }
-  | { type: 'failed'; error: string }
+  | { type: 'reset' }
   | { type: 'basePointValueChanged'; ruleId: string; value: number }
-  | {
-      type: 'regionMultiplierUpdated'
-      rule: PointValueRule
-      isSibling: boolean
-    }
+  | { type: 'regionMultiplierUpdated'; rule: PointValueRule }
 
 const initialState: State = {
-  rule: undefined,
-  siblingRule: undefined,
   basePointValueOverrides: {},
-  isLoading: false,
-  error: null,
+  regionOverrides: {},
 }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'loading':
-      return {
-        rule: undefined,
-        siblingRule: undefined,
-        basePointValueOverrides: {},
-        isLoading: true,
-        error: null,
-      }
-    case 'succeeded':
-      return {
-        rule: action.rule,
-        siblingRule: action.siblingRule,
-        basePointValueOverrides: {},
-        isLoading: false,
-        error: null,
-      }
-    case 'failed':
-      return {
-        rule: undefined,
-        siblingRule: undefined,
-        basePointValueOverrides: {},
-        isLoading: false,
-        error: action.error,
-      }
+    case 'reset':
+      return initialState
     case 'basePointValueChanged':
       return {
         ...state,
@@ -73,9 +45,13 @@ function reducer(state: State, action: Action): State {
         },
       }
     case 'regionMultiplierUpdated':
-      return action.isSibling
-        ? { ...state, siblingRule: action.rule }
-        : { ...state, rule: action.rule }
+      return {
+        ...state,
+        regionOverrides: {
+          ...state.regionOverrides,
+          [action.rule.id]: action.rule,
+        },
+      }
   }
 }
 
@@ -83,43 +59,47 @@ export function usePointRuleDetail(ruleId: string | undefined) {
   const [state, dispatch] = useReducer(reducer, initialState)
   const { user } = useAuth()
 
+  const {
+    data: fetchedRule,
+    isLoading: isRuleLoading,
+    error: ruleQueryError,
+  } = useGetPointRuleDetailQuery(ruleId ?? skipToken)
+
+  const [fetchSibling, { data: fetchedSiblingRule, isFetching: isSiblingFetching }] =
+    useLazyGetSiblingPointRuleQuery()
+
+  const [saveRegionHistoryEntriesMutation] = useSaveRegionHistoryEntriesMutation()
+  const [setBasePointValueMutation] = useSetBasePointValueMutation()
+
   useEffect(() => {
-    if (!ruleId) return
-
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    PointRulesService.getPointRuleDetail(ruleId)
-      .then(async (rule) => {
-        if (!rule) return { rule, siblingRule: undefined }
-        const siblingPartnerType =
-          rule.partnerType === 'Dealer' ? 'Chemist' : 'Dealer'
-        const siblingRule = await PointRulesService.getSiblingPointRule(
-          rule.modelCode,
-          siblingPartnerType,
-        )
-        return { rule, siblingRule }
-      })
-      .then(({ rule, siblingRule }) => {
-        if (!cancelled) dispatch({ type: 'succeeded', rule, siblingRule })
-      })
-      .catch((err: Error) => {
-        if (!cancelled)
-          dispatch({
-            type: 'failed',
-            error: err.message ?? 'Failed to load point value rule.',
-          })
-      })
-
-    return () => {
-      cancelled = true
-    }
+    dispatch({ type: 'reset' })
   }, [ruleId])
+
+  useEffect(() => {
+    if (!fetchedRule) return
+    const siblingPartnerType = fetchedRule.partnerType === 'Dealer' ? 'Chemist' : 'Dealer'
+    fetchSibling({ modelCode: fetchedRule.modelCode, partnerType: siblingPartnerType })
+  }, [fetchedRule, fetchSibling])
+
+  const isLoading = isRuleLoading || (!!fetchedRule && isSiblingFetching)
+  const error = ruleQueryError ? getApiErrorMessage(ruleQueryError, 'Failed to load point value rule.') : null
+
+  function applyOverrides(rule: PointValueRule | undefined): PointValueRule | undefined {
+    if (!rule) return rule
+    let next = state.regionOverrides[rule.id] ?? rule
+    if (next.id in state.basePointValueOverrides) {
+      next = { ...next, basePointValue: state.basePointValueOverrides[next.id]! }
+    }
+    return next
+  }
+
+  const rule = applyOverrides(fetchedRule)
+  const siblingRule = applyOverrides(fetchedSiblingRule)
 
   async function setBasePointValue(value: number, targetRuleId?: string) {
     const id = targetRuleId ?? ruleId
     if (!id) return
-    await PointRulesService.setBasePointValue(id, value)
+    await setBasePointValueMutation({ id, basePointValue: value }).unwrap()
     dispatch({ type: 'basePointValueChanged', ruleId: id, value })
   }
 
@@ -130,20 +110,14 @@ export function usePointRuleDetail(ruleId: string | undefined) {
   ) {
     const id = targetRuleId ?? ruleId
     if (!id) return
-    const targetRule =
-      state.rule?.id === id
-        ? state.rule
-        : state.siblingRule?.id === id
-          ? state.siblingRule
-          : undefined
+    const targetRule = rule?.id === id ? rule : siblingRule?.id === id ? siblingRule : undefined
     if (!targetRule) return
     const regionRow = targetRule.regions.find((r) => r.region === region)
     if (!regionRow) return
 
-    const changeDate = PointRulesService.getChangeDate()
-    const changeTimestamp = PointRulesService.getChangeTimestamp()
-    const baseValue =
-      state.basePointValueOverrides[id] ?? targetRule.basePointValue
+    const changeDate = getChangeDate()
+    const changeTimestamp = getChangeTimestamp()
+    const baseValue = state.basePointValueOverrides[id] ?? targetRule.basePointValue
     const newPoints = Math.round((baseValue * newMultiplier) / 100) * 100
 
     const historyEntry: RegionPointHistoryEntry = {
@@ -159,7 +133,7 @@ export function usePointRuleDetail(ruleId: string | undefined) {
       changedAt: changeTimestamp,
     }
 
-    await PointRulesService.saveRegionHistoryEntries({ [id]: [historyEntry] })
+    await saveRegionHistoryEntriesMutation({ [id]: [historyEntry] }).unwrap()
 
     const updatedRule: PointValueRule = {
       ...targetRule,
@@ -178,35 +152,17 @@ export function usePointRuleDetail(ruleId: string | undefined) {
       ),
       regionalHistory: [historyEntry, ...targetRule.regionalHistory],
     }
-    dispatch({
-      type: 'regionMultiplierUpdated',
-      rule: updatedRule,
-      isSibling: state.siblingRule?.id === id,
-    })
+    dispatch({ type: 'regionMultiplierUpdated', rule: updatedRule })
   }
 
-  const rule =
-    state.rule && state.rule.id in state.basePointValueOverrides
-      ? {
-          ...state.rule,
-          basePointValue: state.basePointValueOverrides[state.rule.id]!,
-        }
-      : state.rule
-  const siblingRule =
-    state.siblingRule && state.siblingRule.id in state.basePointValueOverrides
-      ? {
-          ...state.siblingRule,
-          basePointValue: state.basePointValueOverrides[state.siblingRule.id]!,
-        }
-      : state.siblingRule
-  const highestCurrentPoints = rule
-    ? PointRulesService.getHighestCurrentPoints(rule)
-    : 0
+  const highestCurrentPoints = rule ? getHighestCurrentPoints(rule) : 0
 
   return {
-    ...state,
     rule,
     siblingRule,
+    basePointValueOverrides: state.basePointValueOverrides,
+    isLoading,
+    error,
     highestCurrentPoints,
     setBasePointValue,
     updateRegionMultiplier,

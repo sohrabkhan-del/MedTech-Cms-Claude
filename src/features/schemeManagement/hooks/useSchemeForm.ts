@@ -1,76 +1,46 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
-import { schemesService } from '@/features/schemeManagement/services/schemesService'
-import type { SchemeGiftProductOption, SchemeMasterProductOption } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
-import type { PartnerZone } from '@/types/partner'
-import type { Scheme, SchemeFormValues, SchemePartnerType } from '@/features/schemeManagement/types/schemeManagement.types'
-
-interface FormOptions {
-  regionOptions: PartnerZone[]
-  partnerTypeOptions: SchemePartnerType[]
-  giftProductOptions: SchemeGiftProductOption[]
-  masterProductOptions: SchemeMasterProductOption[]
-}
-
-interface LoadState {
-  scheme: Scheme | undefined
-  cloneSource: Scheme | undefined
-  options: FormOptions | null
-  isLoading: boolean
-  loadError: string | null
-}
-
-type LoadAction =
-  | { type: 'loading' }
-  | { type: 'succeeded'; scheme: Scheme | undefined; cloneSource: Scheme | undefined; options: FormOptions }
-  | { type: 'failed'; error: string }
-
-const initialLoadState: LoadState = { scheme: undefined, cloneSource: undefined, options: null, isLoading: false, loadError: null }
-
-function loadReducer(state: LoadState, action: LoadAction): LoadState {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, loadError: null }
-    case 'succeeded':
-      return { ...action, isLoading: false, loadError: null }
-    case 'failed':
-      return { ...state, isLoading: false, loadError: action.error }
-  }
-}
+import {
+  useGetSchemeDetailQuery,
+  useGetSchemeFormOptionsQuery,
+  useCreateSchemeMutation,
+  useUpdateSchemeMutation,
+  useLazyCheckSchemeNameAvailableQuery,
+} from '@/features/schemeManagement/services/schemesApi'
+import type { SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useSchemeForm(schemeId: string | undefined, cloneFromId: string | null) {
   const isEdit = !!schemeId
   const toast = useToast()
-  const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const schemeResult = useGetSchemeDetailQuery(schemeId ?? skipToken)
+  const cloneSourceResult = useGetSchemeDetailQuery(!schemeId && cloneFromId ? cloneFromId : skipToken)
+  const optionsResult = useGetSchemeFormOptionsQuery()
+  const [createScheme] = useCreateSchemeMutation()
+  const [updateScheme] = useUpdateSchemeMutation()
+  const [checkNameAvailable] = useLazyCheckSchemeNameAvailableQuery()
 
-    Promise.all([
-      schemeId ? schemesService.getSchemeDetail(schemeId) : Promise.resolve(undefined),
-      !schemeId && cloneFromId ? schemesService.getSchemeDetail(cloneFromId) : Promise.resolve(undefined),
-      schemesService.getSchemeFormOptions(),
-    ])
-      .then(([scheme, cloneSource, options]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', scheme, cloneSource, options })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load scheme form data.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [schemeId, cloneFromId])
+  const isLoading =
+    (isEdit && schemeResult.isLoading) ||
+    (!isEdit && !!cloneFromId && cloneSourceResult.isLoading) ||
+    optionsResult.isLoading
+  const loadError = schemeResult.error
+    ? getApiErrorMessage(schemeResult.error, 'Failed to load scheme form data.')
+    : cloneSourceResult.error
+      ? getApiErrorMessage(cloneSourceResult.error, 'Failed to load scheme form data.')
+      : optionsResult.error
+        ? getApiErrorMessage(optionsResult.error, 'Failed to load scheme form data.')
+        : null
 
   async function submit(values: SchemeFormValues) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      const nameAvailable = await schemesService.checkNameAvailable(values.name, schemeId)
+      const nameAvailable = await checkNameAvailable({ name: values.name, excludeId: schemeId }).unwrap()
       if (!nameAvailable) {
         const message = 'A scheme with this name already exists.'
         setSubmitError(message)
@@ -79,14 +49,14 @@ export function useSchemeForm(schemeId: string | undefined, cloneFromId: string 
       }
 
       if (isEdit && schemeId) {
-        await schemesService.updateScheme(schemeId, values)
+        await updateScheme({ id: schemeId, values }).unwrap()
       } else {
-        await schemesService.createScheme(values)
+        await createScheme(values).unwrap()
       }
       toast.success(isEdit ? 'Scheme updated successfully.' : 'Scheme created successfully.')
       return true
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save scheme.'
+      const message = getApiErrorMessage(err, 'Failed to save scheme.')
       setSubmitError(message)
       toast.error(message)
       return false
@@ -95,5 +65,14 @@ export function useSchemeForm(schemeId: string | undefined, cloneFromId: string 
     }
   }
 
-  return { isEdit, ...loadState, isSubmitting, error: loadState.loadError ?? submitError, submit }
+  return {
+    isEdit,
+    scheme: schemeResult.data,
+    cloneSource: cloneSourceResult.data,
+    options: optionsResult.data ?? null,
+    isLoading,
+    isSubmitting,
+    error: loadError ?? submitError,
+    submit,
+  }
 }

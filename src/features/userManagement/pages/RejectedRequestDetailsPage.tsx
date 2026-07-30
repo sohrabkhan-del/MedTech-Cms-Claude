@@ -20,12 +20,19 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
-import { verificationService } from '@/features/userManagement/services/verificationService'
+import {
+  useReopenRequestMutation,
+  useDeleteRequestMutation,
+  useUpdateDocumentMutation,
+} from '@/features/userManagement/services/verificationApi'
 
 export function RejectedRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
   const { request, isLoading } = useApprovalRequestDetail(requestId)
+  const [reopenRequest] = useReopenRequestMutation()
+  const [deleteRequest] = useDeleteRequestMutation()
+  const [updateDocument] = useUpdateDocumentMutation()
   const [reopened, setReopened] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -45,7 +52,7 @@ export function RejectedRequestDetailsPage() {
   }
 
   const handleReopen = () => {
-    verificationService.reopenRequest(request.id)
+    reopenRequest(request.id)
     setReopened(true)
   }
 
@@ -53,11 +60,11 @@ export function RejectedRequestDetailsPage() {
     doc: { id: string; documentName: string },
     file: File,
   ) => {
-    await verificationService.updateDocument(request.id, doc.id, file)
+    await updateDocument({ requestId: request.id, documentId: doc.id, file }).unwrap()
   }
 
   const confirmDelete = () => {
-    verificationService.deleteRequest(request.id)
+    deleteRequest(request.id)
     setDeleteOpen(false)
     navigate('/verification/rejected-requests')
   }

@@ -1,70 +1,34 @@
-import { useEffect, useReducer } from 'react'
-import { interestedUsersService } from '@/features/marketingProducts/services/interestedUsersService'
-import type { InterestedUserLead, LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
-
-interface State {
-  lead: InterestedUserLead | undefined
-  statusOverride: LeadStatus | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; lead: InterestedUserLead | undefined }
-  | { type: 'failed'; error: string }
-  | { type: 'statusChanged'; status: LeadStatus }
-
-const initialState: State = { lead: undefined, statusOverride: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { lead: undefined, statusOverride: null, isLoading: true, error: null }
-    case 'succeeded':
-      return { lead: action.lead, statusOverride: null, isLoading: false, error: null }
-    case 'failed':
-      return { lead: undefined, statusOverride: null, isLoading: false, error: action.error }
-    case 'statusChanged':
-      return { ...state, statusOverride: action.status }
-  }
-}
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import {
+  useGetInterestedUserDetailQuery,
+  useSetLeadStatusMutation,
+  useDeleteLeadMutation,
+} from '@/features/marketingProducts/services/interestedUsersApi'
+import type { LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useInterestedUserDetail(leadId: string | undefined) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const [statusOverride, setStatusOverride] = useState<LeadStatus | null>(null)
 
-  useEffect(() => {
-    if (!leadId) return
+  const { data: fetchedLead, isLoading, error: queryError } = useGetInterestedUserDetailQuery(leadId ?? skipToken)
+  const [setLeadStatusMutation] = useSetLeadStatusMutation()
+  const [deleteLeadMutation] = useDeleteLeadMutation()
 
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    interestedUsersService
-      .getInterestedUserDetail(leadId)
-      .then((lead) => {
-        if (!cancelled) dispatch({ type: 'succeeded', lead })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load lead.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [leadId])
+  const error = queryError ? getApiErrorMessage(queryError, 'Failed to load lead.') : null
 
   async function setStatus(status: LeadStatus) {
     if (!leadId) return
-    await interestedUsersService.setLeadStatus(leadId, status)
-    dispatch({ type: 'statusChanged', status })
+    await setLeadStatusMutation({ id: leadId, status }).unwrap()
+    setStatusOverride(status)
   }
 
   async function remove() {
     if (!leadId) return
-    await interestedUsersService.deleteLead(leadId)
+    await deleteLeadMutation(leadId).unwrap()
   }
 
-  const lead = state.lead && state.statusOverride ? { ...state.lead, leadStatus: state.statusOverride } : state.lead
+  const lead = fetchedLead && statusOverride ? { ...fetchedLead, leadStatus: statusOverride } : fetchedLead
 
-  return { ...state, lead, setStatus, remove }
+  return { lead, isLoading, error, setStatus, remove }
 }

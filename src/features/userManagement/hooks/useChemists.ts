@@ -1,33 +1,21 @@
-import { useEffect } from 'react'
-import { chemistService } from '@/features/userManagement/services/chemistService'
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks'
-import { fetchChemistsStart, fetchChemistsSuccess, fetchChemistsFailure } from '@/features/userManagement/slices/chemistSlice'
-import {
-  selectChemists,
-  selectChemistKpis,
-  selectChemistsStatus,
-  selectChemistsError,
-} from '@/features/userManagement/slices/chemistSelectors'
+import { useGetChemistsQuery, useGetChemistKpisQuery } from '@/features/userManagement/services/chemistApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useChemists() {
-  const dispatch = useAppDispatch()
-  const chemists = useAppSelector(selectChemists)
-  const kpis = useAppSelector(selectChemistKpis)
-  const status = useAppSelector(selectChemistsStatus)
-  const error = useAppSelector(selectChemistsError)
+  const chemistsResult = useGetChemistsQuery()
+  const kpisResult = useGetChemistKpisQuery()
 
-  useEffect(() => {
-    if (status !== 'idle') return
+  const isLoading = chemistsResult.isLoading || kpisResult.isLoading
+  const error = chemistsResult.error
+    ? getApiErrorMessage(chemistsResult.error, 'Failed to load chemists.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load chemists.')
+      : null
 
-    dispatch(fetchChemistsStart())
-    Promise.all([chemistService.getChemists(), chemistService.getChemistKpis()])
-      .then(([items, chemistKpis]) => {
-        dispatch(fetchChemistsSuccess({ items, kpis: chemistKpis }))
-      })
-      .catch((err: Error) => {
-        dispatch(fetchChemistsFailure(err.message ?? 'Failed to load chemists.'))
-      })
-  }, [status, dispatch])
-
-  return { chemists, kpis, isLoading: status === 'loading', error }
+  return {
+    chemists: chemistsResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    isLoading,
+    error,
+  }
 }

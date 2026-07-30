@@ -23,7 +23,10 @@ import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useSchemes } from '@/features/schemeManagement/hooks/useSchemes'
 import { useSchemeFormOptions } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
-import { schemesService } from '@/features/schemeManagement/services/schemesService'
+import {
+  useDeleteSchemeMutation,
+  useUpdateSchemeStatusMutation,
+} from '@/features/schemeManagement/services/schemesApi'
 import { useToast } from '@/contexts/ToastContext'
 import type { PartnerZone } from '@/types/partner'
 import type {
@@ -63,6 +66,8 @@ export function SchemesListPage() {
   const toast = useToast()
   const { schemes, kpis, isLoading, refetch } = useSchemes()
   const { regionOptions, partnerTypeOptions } = useSchemeFormOptions()
+  const [deleteScheme] = useDeleteSchemeMutation()
+  const [updateSchemeStatus] = useUpdateSchemeStatusMutation()
   useRegionTopbarHeader({
     icon: <Target size={20} />,
     title: 'Schemes',
@@ -127,7 +132,7 @@ export function SchemesListPage() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return
-    await schemesService.deleteScheme(deleteTarget.id)
+    await deleteScheme(deleteTarget.id).unwrap()
     toast.success('Scheme deleted successfully.')
     setDeleteTarget(null)
   }
@@ -136,7 +141,7 @@ export function SchemesListPage() {
     scheme: Scheme,
     status: 'active' | 'inactive',
   ) => {
-    await schemesService.updateSchemeStatus(scheme.id, status)
+    await updateSchemeStatus({ id: scheme.id, status }).unwrap()
     toast.success(
       `Scheme ${status === 'active' ? 'activated' : 'deactivated'} successfully.`,
     )

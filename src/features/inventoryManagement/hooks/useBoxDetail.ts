@@ -1,58 +1,30 @@
-import { useEffect, useReducer } from 'react'
-import { factoryUploadService } from '@/features/inventoryManagement/services/factoryUploadService'
-import type { FactoryBatch, BatchContainer, ContainerBox } from '@/features/inventoryManagement/types/inventoryManagement.types'
-
-interface State {
-  batch: FactoryBatch | undefined
-  container: BatchContainer | undefined
-  box: ContainerBox | undefined
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; batch: FactoryBatch | undefined; container: BatchContainer | undefined; box: ContainerBox | undefined }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { batch: undefined, container: undefined, box: undefined, isLoading: false, error: null }
-
-function reducer(_state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { batch: undefined, container: undefined, box: undefined, isLoading: true, error: null }
-    case 'succeeded':
-      return { ...action, isLoading: false, error: null }
-    case 'failed':
-      return { batch: undefined, container: undefined, box: undefined, isLoading: false, error: action.error }
-  }
-}
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import {
+  useGetFactoryBatchDetailQuery,
+  useGetContainerDetailQuery,
+  useGetBoxDetailQuery,
+} from '@/features/inventoryManagement/services/factoryUploadApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useBoxDetail(batchId: string | undefined, containerId: string | undefined, boxId: string | undefined) {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const batchResult = useGetFactoryBatchDetailQuery(batchId ?? skipToken)
+  const containerResult = useGetContainerDetailQuery(batchId && containerId ? { batchId, containerId } : skipToken)
+  const boxResult = useGetBoxDetailQuery(batchId && containerId && boxId ? { batchId, containerId, boxId } : skipToken)
 
-  useEffect(() => {
-    if (!batchId || !containerId || !boxId) return
+  const isLoading = batchResult.isLoading || containerResult.isLoading || boxResult.isLoading
+  const error = batchResult.error
+    ? getApiErrorMessage(batchResult.error, 'Failed to load box.')
+    : containerResult.error
+      ? getApiErrorMessage(containerResult.error, 'Failed to load box.')
+      : boxResult.error
+        ? getApiErrorMessage(boxResult.error, 'Failed to load box.')
+        : null
 
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    Promise.all([
-      factoryUploadService.getFactoryBatchDetail(batchId),
-      factoryUploadService.getContainerDetail(batchId, containerId),
-      factoryUploadService.getBoxDetail(batchId, containerId, boxId),
-    ])
-      .then(([batch, container, box]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', batch, container, box })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load box.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [batchId, containerId, boxId])
-
-  return state
+  return {
+    batch: batchResult.data,
+    container: containerResult.data,
+    box: boxResult.data,
+    isLoading,
+    error,
+  }
 }

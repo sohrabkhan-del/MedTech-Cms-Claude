@@ -27,7 +27,7 @@ import {
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useProductCategoryDetail } from '@/features/masters/hooks/useProductCategoryDetail'
-import { productCategoriesService } from '@/features/masters/services/productCategoriesService'
+import { resolveParentCategoryName } from '@/features/masters/services/productCategoriesApi'
 import type {
   CategoryProductEntry,
   CategorySchemeEntry,
@@ -62,9 +62,7 @@ export function ProductCategoryDetailsPage() {
     )
   }
 
-  const parentName = productCategoriesService.resolveParentCategoryName(
-    category.parentCategoryId,
-  )
+  const parentName = resolveParentCategoryName(category.parentCategoryId)
 
   const productColumns: CommonTableColumn<CategoryProductEntry>[] = [
     {

@@ -1,18 +1,6 @@
-import { useEffect, useState } from 'react'
-import { showcaseProductsService } from '@/features/marketingProducts/services/showcaseProductsService'
+import { useGetShowcaseCategoryOptionsQuery } from '@/features/marketingProducts/services/showcaseProductsApi'
 
 export function useShowcaseCategoryOptions() {
-  const [options, setOptions] = useState<string[]>([])
-
-  useEffect(() => {
-    let cancelled = false
-    showcaseProductsService.getShowcaseCategoryOptions().then((result) => {
-      if (!cancelled) setOptions(result)
-    })
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return options
+  const { data } = useGetShowcaseCategoryOptionsQuery()
+  return data ?? []
 }

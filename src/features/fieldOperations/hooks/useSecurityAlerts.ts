@@ -1,54 +1,24 @@
-import { useEffect, useReducer } from 'react'
-import { securityAlertsService } from '@/features/fieldOperations/services/securityAlertsService'
-import type { SecurityAlert } from '@/features/fieldOperations/types/fieldOperations.types'
-import type { securityAlertKpis } from '@/features/fieldOperations/mocks/mockSecurityAlerts'
-
-type SecurityAlertKpis = typeof securityAlertKpis
-
-interface State {
-  alerts: SecurityAlert[]
-  kpis: SecurityAlertKpis | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; alerts: SecurityAlert[]; kpis: SecurityAlertKpis }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { alerts: [], kpis: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { alerts: action.alerts, kpis: action.kpis, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import {
+  useGetSecurityAlertsQuery,
+  useGetSecurityAlertKpisQuery,
+} from '@/features/fieldOperations/services/securityAlertsApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useSecurityAlerts() {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const alertsResult = useGetSecurityAlertsQuery()
+  const kpisResult = useGetSecurityAlertKpisQuery()
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const isLoading = alertsResult.isLoading || kpisResult.isLoading
+  const error = alertsResult.error
+    ? getApiErrorMessage(alertsResult.error, 'Failed to load security alerts.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load security alerts.')
+      : null
 
-    Promise.all([securityAlertsService.getSecurityAlerts(), securityAlertsService.getSecurityAlertKpis()])
-      .then(([alerts, kpis]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', alerts, kpis })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load security alerts.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  return state
+  return {
+    alerts: alertsResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    isLoading,
+    error,
+  }
 }

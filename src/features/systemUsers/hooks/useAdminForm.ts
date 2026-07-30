@@ -1,79 +1,46 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
-import { adminsService } from '@/features/systemUsers/services/adminsService'
-import type { Admin, AdminFormValues } from '@/features/systemUsers/types/systemUsers.types'
-
-interface FormOptions {
-  regionOptions: Admin['regionAccess'][]
-  roleOptions: Admin['role'][]
-  statusOptions: Admin['status'][]
-}
-
-interface LoadState {
-  admin: Admin | undefined
-  options: FormOptions | null
-  isLoading: boolean
-  loadError: string | null
-}
-
-type LoadAction =
-  | { type: 'loading' }
-  | { type: 'succeeded'; admin: Admin | undefined; options: FormOptions }
-  | { type: 'failed'; error: string }
-
-const initialLoadState: LoadState = { admin: undefined, options: null, isLoading: false, loadError: null }
-
-function loadReducer(state: LoadState, action: LoadAction): LoadState {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, loadError: null }
-    case 'succeeded':
-      return { ...action, isLoading: false, loadError: null }
-    case 'failed':
-      return { ...state, isLoading: false, loadError: action.error }
-  }
-}
+import {
+  useGetAdminDetailQuery,
+  useGetAdminFormOptionsQuery,
+  useCreateAdminMutation,
+  useUpdateAdminMutation,
+} from '@/features/systemUsers/services/adminsApi'
+import type { AdminFormValues } from '@/features/systemUsers/types/systemUsers.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useAdminForm(adminId: string | undefined) {
   const isEdit = !!adminId
   const toast = useToast()
-  const [loadState, dispatch] = useReducer(loadReducer, initialLoadState)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const adminResult = useGetAdminDetailQuery(adminId ?? skipToken)
+  const optionsResult = useGetAdminFormOptionsQuery()
+  const [createAdmin] = useCreateAdminMutation()
+  const [updateAdmin] = useUpdateAdminMutation()
 
-    Promise.all([
-      adminId ? adminsService.getAdminDetail(adminId) : Promise.resolve(undefined),
-      adminsService.getAdminFormOptions(),
-    ])
-      .then(([admin, options]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', admin, options })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load admin form data.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [adminId])
+  const isLoading = (isEdit && adminResult.isLoading) || optionsResult.isLoading
+  const loadError = adminResult.error
+    ? getApiErrorMessage(adminResult.error, 'Failed to load admin form data.')
+    : optionsResult.error
+      ? getApiErrorMessage(optionsResult.error, 'Failed to load admin form data.')
+      : null
 
   async function submit(values: AdminFormValues) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
       if (isEdit && adminId) {
-        await adminsService.updateAdmin(adminId, values)
+        await updateAdmin({ id: adminId, values }).unwrap()
       } else {
-        await adminsService.createAdmin(values)
+        await createAdmin(values).unwrap()
       }
       toast.success(isEdit ? 'Admin updated successfully.' : 'Admin created successfully.')
       return true
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to save admin.'
+      const message = getApiErrorMessage(err, 'Failed to save admin.')
       setSubmitError(message)
       toast.error(message)
       return false
@@ -82,5 +49,13 @@ export function useAdminForm(adminId: string | undefined) {
     }
   }
 
-  return { isEdit, ...loadState, isSubmitting, error: loadState.loadError ?? submitError, submit }
+  return {
+    isEdit,
+    admin: adminResult.data,
+    options: optionsResult.data ?? null,
+    isLoading,
+    isSubmitting,
+    error: loadError ?? submitError,
+    submit,
+  }
 }

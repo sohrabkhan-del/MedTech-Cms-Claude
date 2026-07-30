@@ -1,80 +1,42 @@
-import { useEffect, useReducer } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
-import { medicalRepsService } from '@/features/systemUsers/services/medicalRepsService'
-import type { MedicalRepresentative, PartnerStatus } from '@/features/systemUsers/types/systemUsers.types'
-
-interface State {
-  mr: MedicalRepresentative | undefined
-  replacementOptions: MedicalRepresentative[]
-  statusOverride: PartnerStatus | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; mr: MedicalRepresentative | undefined; replacementOptions: MedicalRepresentative[] }
-  | { type: 'failed'; error: string }
-  | { type: 'statusChanged'; status: PartnerStatus }
-
-const initialState: State = { mr: undefined, replacementOptions: [], statusOverride: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { mr: undefined, replacementOptions: [], statusOverride: null, isLoading: true, error: null }
-    case 'succeeded':
-      return { mr: action.mr, replacementOptions: action.replacementOptions, statusOverride: null, isLoading: false, error: null }
-    case 'failed':
-      return { mr: undefined, replacementOptions: [], statusOverride: null, isLoading: false, error: action.error }
-    case 'statusChanged':
-      return { ...state, statusOverride: action.status }
-  }
-}
+import {
+  useGetMedicalRepDetailQuery,
+  useGetReplacementMrsQuery,
+  useSetMedicalRepStatusMutation,
+  useDeleteMedicalRepMutation,
+} from '@/features/systemUsers/services/medicalRepsApi'
+import type { PartnerStatus } from '@/features/systemUsers/types/systemUsers.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useMedicalRepDetail(mrId: string | undefined) {
   const toast = useToast()
-  const [state, dispatch] = useReducer(reducer, initialState)
 
-  useEffect(() => {
-    if (!mrId) return
+  const { data: mr, isLoading: isMrLoading, error: mrQueryError } = useGetMedicalRepDetailQuery(mrId ?? skipToken)
+  const { data: replacementOptions, isLoading: isReplacementLoading } = useGetReplacementMrsQuery(
+    mr ? { region: mr.region, excludeId: mr.id } : skipToken,
+  )
+  const [setStatusMutation] = useSetMedicalRepStatusMutation()
+  const [deleteMrMutation] = useDeleteMedicalRepMutation()
 
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    medicalRepsService
-      .getMedicalRepDetail(mrId)
-      .then(async (mr) => {
-        const replacementOptions = mr ? await medicalRepsService.getReplacementMrs(mr.region, mr.id) : []
-        if (!cancelled) dispatch({ type: 'succeeded', mr, replacementOptions })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load medical representative.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [mrId])
+  const isLoading = isMrLoading || (!!mr && isReplacementLoading)
+  const error = mrQueryError ? getApiErrorMessage(mrQueryError, 'Failed to load medical representative.') : null
 
   async function setStatus(status: PartnerStatus) {
     if (!mrId) return
-    await medicalRepsService.setMedicalRepStatus(mrId, status)
-    dispatch({ type: 'statusChanged', status })
+    await setStatusMutation({ id: mrId, status }).unwrap()
   }
 
   async function remove(replacementMrId: string) {
     if (!mrId) return
     try {
-      await medicalRepsService.deleteMedicalRep(mrId, replacementMrId)
+      await deleteMrMutation({ id: mrId, replacementMrId }).unwrap()
       toast.success('Medical rep deleted successfully.')
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete medical representative.'
+      const message = getApiErrorMessage(err, 'Failed to delete medical representative.')
       toast.error(message)
     }
   }
 
-  const mr = state.mr && state.statusOverride ? { ...state.mr, status: state.statusOverride } : state.mr
-
-  return { ...state, mr, setStatus, remove }
+  return { mr, replacementOptions: replacementOptions ?? [], isLoading, error, setStatus, remove }
 }

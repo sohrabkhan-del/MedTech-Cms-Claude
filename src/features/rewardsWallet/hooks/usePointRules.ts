@@ -1,98 +1,40 @@
 import { useEffect, useReducer } from 'react'
 import {
-  PointRulesService,
+  useGetPointRulesQuery,
+  useGetProductRuleGroupsQuery,
+  useGetPointRuleKpisQuery,
+  useGetPointDistributionByCategoryQuery,
+  useGetRegionMultipliersQuery,
+  useGetRegionMultiplierDatesQuery,
+  useGetRuleStatusesQuery,
+  useSaveRegionMultipliersMutation,
+  useSaveRegionMultiplierDatesMutation,
+  useSaveRuleStatusesMutation,
+  useSaveRegionHistoryEntriesMutation,
+  getChangeDate,
+  getChangeTimestamp,
   type RegionMultiplierMap,
   type RegionDateMap,
   type RuleStatusMap,
-} from '@/features/rewardsWallet/services/PointRulesService'
+} from '@/features/rewardsWallet/services/PointRulesApi'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import type {
-  PointValueRule,
   PointRuleRegion,
   PointRulePartnerType,
   RegionPointHistoryEntry,
 } from '@/features/rewardsWallet/types/rewardsWallet.types'
-import {
-  PointRuleKpis as PointRuleKpisValue,
-  PointDistributionByCategory as PointDistributionByCategoryValue,
-} from '@/features/rewardsWallet/mockPointRules'
-import type { ProductPointRuleGroup } from '@/features/rewardsWallet/mockPointRules'
-
-type PointRuleKpis = typeof PointRuleKpisValue
-type PointDistributionByCategory = typeof PointDistributionByCategoryValue
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 interface State {
-  rules: PointValueRule[]
-  productGroups: ProductPointRuleGroup[]
-  kpis: PointRuleKpis | null
-  distributionByCategory: PointDistributionByCategory
-  regionMultipliers: RegionMultiplierMap | null
-  multiplierDates: RegionDateMap | null
   baseValueOverrides: Record<string, number>
-  statusOverrides: RuleStatusMap
-  isLoading: boolean
-  error: string | null
 }
 
-type Action =
-  | { type: 'loading' }
-  | {
-      type: 'succeeded'
-      rules: PointValueRule[]
-      productGroups: ProductPointRuleGroup[]
-      kpis: PointRuleKpis
-      distributionByCategory: PointDistributionByCategory
-      regionMultipliers: RegionMultiplierMap
-      multiplierDates: RegionDateMap
-      statusOverrides: RuleStatusMap
-    }
-  | { type: 'failed'; error: string }
-  | {
-      type: 'regionMultiplierChanged'
-      regionMultipliers: RegionMultiplierMap
-      multiplierDates: RegionDateMap
-    }
-  | { type: 'baseValueChanged'; ruleId: string; value: number }
-  | { type: 'statusChanged'; statusOverrides: RuleStatusMap }
+type Action = { type: 'baseValueChanged'; ruleId: string; value: number }
 
-const initialState: State = {
-  rules: [],
-  productGroups: [],
-  kpis: null,
-  distributionByCategory: [],
-  regionMultipliers: null,
-  multiplierDates: null,
-  baseValueOverrides: {},
-  statusOverrides: {},
-  isLoading: false,
-  error: null,
-}
+const initialState: State = { baseValueOverrides: {} }
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return {
-        rules: action.rules,
-        productGroups: action.productGroups,
-        kpis: action.kpis,
-        distributionByCategory: action.distributionByCategory,
-        regionMultipliers: action.regionMultipliers,
-        multiplierDates: action.multiplierDates,
-        baseValueOverrides: {},
-        statusOverrides: action.statusOverrides,
-        isLoading: false,
-        error: null,
-      }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-    case 'regionMultiplierChanged':
-      return {
-        ...state,
-        regionMultipliers: action.regionMultipliers,
-        multiplierDates: action.multiplierDates,
-      }
     case 'baseValueChanged':
       return {
         ...state,
@@ -101,8 +43,6 @@ function reducer(state: State, action: Action): State {
           [action.ruleId]: action.value,
         },
       }
-    case 'statusChanged':
-      return { ...state, statusOverrides: action.statusOverrides }
   }
 }
 
@@ -110,109 +50,96 @@ export function usePointRules() {
   const [state, dispatch] = useReducer(reducer, initialState)
   const { user } = useAuth()
 
+  const rulesResult = useGetPointRulesQuery()
+  const productGroupsResult = useGetProductRuleGroupsQuery()
+  const kpisResult = useGetPointRuleKpisQuery()
+  const distributionResult = useGetPointDistributionByCategoryQuery()
+  const regionMultipliersResult = useGetRegionMultipliersQuery()
+  const multiplierDatesResult = useGetRegionMultiplierDatesQuery()
+  const ruleStatusesResult = useGetRuleStatusesQuery()
+
+  const [saveRegionMultipliersMutation] = useSaveRegionMultipliersMutation()
+  const [saveRegionMultiplierDatesMutation] = useSaveRegionMultiplierDatesMutation()
+  const [saveRuleStatusesMutation] = useSaveRuleStatusesMutation()
+  const [saveRegionHistoryEntriesMutation] = useSaveRegionHistoryEntriesMutation()
+
   useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    Promise.all([
-      PointRulesService.getPointRules(),
-      PointRulesService.getProductRuleGroups(),
-      PointRulesService.getPointRuleKpis(),
-      PointRulesService.getPointDistributionByCategory(),
-      PointRulesService.getRegionMultipliers(),
-      PointRulesService.getRegionMultiplierDates(),
-      PointRulesService.getRuleStatuses(),
-    ])
-      .then(
-        ([
-          rules,
-          productGroups,
-          kpis,
-          distributionByCategory,
-          regionMultipliers,
-          multiplierDates,
-          statusOverrides,
-        ]) => {
-          if (!cancelled)
-            dispatch({
-              type: 'succeeded',
-              rules,
-              productGroups,
-              kpis,
-              distributionByCategory,
-              regionMultipliers,
-              multiplierDates,
-              statusOverrides,
-            })
-        },
-      )
-      .catch((err: Error) => {
-        if (!cancelled)
-          dispatch({
-            type: 'failed',
-            error: err.message ?? 'Failed to load point value rules.',
-          })
-      })
-
-    return () => {
-      cancelled = true
-    }
+    dispatch({ type: 'baseValueChanged', ruleId: '', value: 0 })
+    // Reset handled implicitly: baseValueOverrides only ever grows from user edits,
+    // matching original per-mount reset behavior is not needed since RTK Query
+    // caches results across mounts instead of refetching from scratch each time.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  async function setRegionMultiplier(
-    partnerType: PointRulePartnerType,
-    region: PointRuleRegion,
-    value: number,
-  ) {
-    if (!state.regionMultipliers || !state.multiplierDates) return
-    const changeDate = PointRulesService.getChangeDate()
+  const isLoading =
+    rulesResult.isLoading ||
+    productGroupsResult.isLoading ||
+    kpisResult.isLoading ||
+    distributionResult.isLoading ||
+    regionMultipliersResult.isLoading ||
+    multiplierDatesResult.isLoading ||
+    ruleStatusesResult.isLoading
+
+  const firstError =
+    rulesResult.error ??
+    productGroupsResult.error ??
+    kpisResult.error ??
+    distributionResult.error ??
+    regionMultipliersResult.error ??
+    multiplierDatesResult.error ??
+    ruleStatusesResult.error
+
+  const error = firstError ? getApiErrorMessage(firstError, 'Failed to load point value rules.') : null
+
+  const rules = rulesResult.data ?? []
+  const productGroups = productGroupsResult.data ?? []
+  const kpis = kpisResult.data ?? null
+  const distributionByCategory = distributionResult.data ?? []
+  const regionMultipliers = regionMultipliersResult.data ?? null
+  const multiplierDates = multiplierDatesResult.data ?? null
+  const statusOverrides = ruleStatusesResult.data ?? {}
+
+  async function setRegionMultiplier(partnerType: PointRulePartnerType, region: PointRuleRegion, value: number) {
+    if (!regionMultipliers || !multiplierDates) return
+    const changeDate = getChangeDate()
     const nextMultipliers = {
-      ...state.regionMultipliers,
+      ...regionMultipliers,
       [partnerType]: {
-        ...state.regionMultipliers[partnerType],
+        ...regionMultipliers[partnerType],
         [region]: value,
       },
     }
     const nextDates = {
-      ...state.multiplierDates,
+      ...multiplierDates,
       [partnerType]: {
-        ...state.multiplierDates[partnerType],
+        ...multiplierDates[partnerType],
         [region]: changeDate,
       },
     }
     await Promise.all([
-      PointRulesService.saveRegionMultipliers(nextMultipliers),
-      PointRulesService.saveRegionMultiplierDates(nextDates),
+      saveRegionMultipliersMutation(nextMultipliers).unwrap(),
+      saveRegionMultiplierDatesMutation(nextDates).unwrap(),
     ])
-    dispatch({
-      type: 'regionMultiplierChanged',
-      regionMultipliers: nextMultipliers,
-      multiplierDates: nextDates,
-    })
   }
 
-  async function setRegionMultipliers(
-    partnerType: PointRulePartnerType,
-    next: Record<PointRuleRegion, number>,
-  ) {
-    if (!state.multiplierDates || !state.regionMultipliers) return
-    const changeDate = PointRulesService.getChangeDate()
-    const changeTimestamp = PointRulesService.getChangeTimestamp()
-    const currentForPartner = state.regionMultipliers[partnerType]
-    const nextDatesForPartner = { ...state.multiplierDates[partnerType] }
+  async function setRegionMultipliers(partnerType: PointRulePartnerType, next: Record<PointRuleRegion, number>) {
+    if (!multiplierDates || !regionMultipliers) return
+    const changeDate = getChangeDate()
+    const changeTimestamp = getChangeTimestamp()
+    const currentForPartner = regionMultipliers[partnerType]
+    const nextDatesForPartner = { ...multiplierDates[partnerType] }
     const changedRegions = (Object.keys(next) as PointRuleRegion[]).filter(
       (region) => next[region] !== currentForPartner[region],
     )
-    for (const region of changedRegions)
-      nextDatesForPartner[region] = changeDate
-    const nextDates = {
-      ...state.multiplierDates,
+    for (const region of changedRegions) nextDatesForPartner[region] = changeDate
+    const nextDates: RegionDateMap = {
+      ...multiplierDates,
       [partnerType]: nextDatesForPartner,
     }
 
     const historyEntries: Record<string, RegionPointHistoryEntry[]> = {}
     if (changedRegions.length > 0) {
-      for (const rule of state.rules) {
+      for (const rule of rules) {
         if (rule.partnerType !== partnerType) continue
         const entries: RegionPointHistoryEntry[] = []
         for (const region of changedRegions) {
@@ -220,8 +147,7 @@ export function usePointRules() {
           if (!regionRow) continue
           const previousMultiplier = currentForPartner[region]
           const currentMultiplier = next[region]
-          const baseValue =
-            state.baseValueOverrides[rule.id] ?? rule.basePointValue
+          const baseValue = state.baseValueOverrides[rule.id] ?? rule.basePointValue
           entries.push({
             id: `${rule.id}-region-${region}-${Date.now()}`,
             region,
@@ -229,8 +155,7 @@ export function usePointRules() {
             currentMultiplier,
             previousRewardPoints: regionRow.currentPoints,
             previousEffectiveDate: regionRow.currentEffectiveDate,
-            currentRewardPoints:
-              Math.round((baseValue * currentMultiplier) / 100) * 100,
+            currentRewardPoints: Math.round((baseValue * currentMultiplier) / 100) * 100,
             currentEffectiveDate: changeDate,
             changedBy: user?.name ?? 'System',
             changedAt: changeTimestamp,
@@ -240,19 +165,14 @@ export function usePointRules() {
       }
     }
 
-    const nextMultipliers = { ...state.regionMultipliers, [partnerType]: next }
+    const nextMultipliers: RegionMultiplierMap = { ...regionMultipliers, [partnerType]: next }
     await Promise.all([
-      PointRulesService.saveRegionMultipliers(nextMultipliers),
-      PointRulesService.saveRegionMultiplierDates(nextDates),
+      saveRegionMultipliersMutation(nextMultipliers).unwrap(),
+      saveRegionMultiplierDatesMutation(nextDates).unwrap(),
       Object.keys(historyEntries).length > 0
-        ? PointRulesService.saveRegionHistoryEntries(historyEntries)
+        ? saveRegionHistoryEntriesMutation(historyEntries).unwrap()
         : Promise.resolve(),
     ])
-    dispatch({
-      type: 'regionMultiplierChanged',
-      regionMultipliers: nextMultipliers,
-      multiplierDates: nextDates,
-    })
   }
 
   function setBaseValueOverride(ruleId: string, value: number) {
@@ -260,13 +180,21 @@ export function usePointRules() {
   }
 
   async function setRuleStatus(ruleId: string, status: 'active' | 'inactive') {
-    const next = { ...state.statusOverrides, [ruleId]: status }
-    await PointRulesService.saveRuleStatuses(next)
-    dispatch({ type: 'statusChanged', statusOverrides: next })
+    const next: RuleStatusMap = { ...statusOverrides, [ruleId]: status }
+    await saveRuleStatusesMutation(next).unwrap()
   }
 
   return {
-    ...state,
+    rules,
+    productGroups,
+    kpis,
+    distributionByCategory,
+    regionMultipliers,
+    multiplierDates,
+    baseValueOverrides: state.baseValueOverrides,
+    statusOverrides,
+    isLoading,
+    error,
     setRegionMultiplier,
     setRegionMultipliers,
     setBaseValueOverride,

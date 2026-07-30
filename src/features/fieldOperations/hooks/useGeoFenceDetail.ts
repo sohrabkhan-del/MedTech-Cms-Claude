@@ -1,74 +1,28 @@
-import { useEffect, useReducer, useState } from 'react'
-import { geoFencesService } from '@/features/fieldOperations/services/geoFencesService'
-import type { GeoFence } from '@/features/fieldOperations/types/fieldOperations.types'
-
-interface State {
-  geoFence: GeoFence | undefined
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; geoFence: GeoFence | undefined }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { geoFence: undefined, isLoading: false, error: null }
-
-function reducer(_state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { geoFence: undefined, isLoading: true, error: null }
-    case 'succeeded':
-      return { geoFence: action.geoFence, isLoading: false, error: null }
-    case 'failed':
-      return { geoFence: undefined, isLoading: false, error: action.error }
-  }
-}
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import {
+  useGetGeoFenceDetailQuery,
+  useSetGeoFenceStatusMutation,
+  useDeleteGeoFenceMutation,
+} from '@/features/fieldOperations/services/geoFencesApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useGeoFenceDetail(fenceId: string | undefined) {
-  const [state, dispatch] = useReducer(reducer, initialState)
-  const [isMutating, setIsMutating] = useState(false)
+  const { data: geoFence, isLoading, error: queryError } = useGetGeoFenceDetailQuery(fenceId ?? skipToken)
+  const [setStatusMutation, { isLoading: isSettingStatus }] = useSetGeoFenceStatusMutation()
+  const [deleteGeoFenceMutation, { isLoading: isDeleting }] = useDeleteGeoFenceMutation()
 
-  useEffect(() => {
-    if (!fenceId) return
-
-    let cancelled = false
-    dispatch({ type: 'loading' })
-
-    geoFencesService
-      .getGeoFenceDetail(fenceId)
-      .then((geoFence) => {
-        if (!cancelled) dispatch({ type: 'succeeded', geoFence })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load geo fence.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [fenceId])
+  const error = queryError ? getApiErrorMessage(queryError, 'Failed to load geo fence.') : null
+  const isMutating = isSettingStatus || isDeleting
 
   async function setStatus(status: 'active' | 'inactive') {
     if (!fenceId) return
-    setIsMutating(true)
-    try {
-      await geoFencesService.setGeoFenceStatus(fenceId, status)
-    } finally {
-      setIsMutating(false)
-    }
+    await setStatusMutation({ id: fenceId, status }).unwrap()
   }
 
   async function remove() {
     if (!fenceId) return
-    setIsMutating(true)
-    try {
-      await geoFencesService.deleteGeoFence(fenceId)
-    } finally {
-      setIsMutating(false)
-    }
+    await deleteGeoFenceMutation(fenceId).unwrap()
   }
 
-  return { ...state, isMutating, setStatus, remove }
+  return { geoFence, isLoading, error, isMutating, setStatus, remove }
 }

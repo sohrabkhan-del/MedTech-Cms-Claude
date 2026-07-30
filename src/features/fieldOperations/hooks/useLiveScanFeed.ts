@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useScanFeed } from '@/features/fieldOperations/hooks/useScanFeed'
-import { scanFeedService } from '@/features/fieldOperations/services/scanFeedService'
+import { subscribeToLiveScans } from '@/features/fieldOperations/services/scanFeedApi'
 import type { ScanEvent } from '@/features/fieldOperations/types/fieldOperations.types'
 
 const MAX_LIVE_ROWS = 200
@@ -16,7 +16,7 @@ export function useLiveScanFeed() {
   useEffect(() => {
     if (!isLive) return
 
-    const unsubscribe = scanFeedService.subscribeToLiveScans((nextScan) => {
+    const unsubscribe = subscribeToLiveScans((nextScan) => {
       setNewScans((prev) => [nextScan, ...prev].slice(0, MAX_LIVE_ROWS))
       setNewRowIds((prev) => new Set(prev).add(nextScan.id))
 

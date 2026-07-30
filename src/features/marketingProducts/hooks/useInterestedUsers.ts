@@ -1,75 +1,54 @@
-import { useEffect, useReducer, useState } from 'react'
-import { interestedUsersService } from '@/features/marketingProducts/services/interestedUsersService'
-import type { InterestedUserLead, LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
-import type { interestedUserKpis } from '@/features/marketingProducts/mockInterestedUsers'
-
-type InterestedUserKpis = typeof interestedUserKpis
-
-interface State {
-  leads: InterestedUserLead[]
-  kpis: InterestedUserKpis | null
-  handlerOptions: string[]
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; leads: InterestedUserLead[]; kpis: InterestedUserKpis; handlerOptions: string[] }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { leads: [], kpis: null, handlerOptions: [], isLoading: false, error: null }
-
-function reducer(_state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { leads: [], kpis: null, handlerOptions: [], isLoading: true, error: null }
-    case 'succeeded':
-      return { ...action, isLoading: false, error: null }
-    case 'failed':
-      return { leads: [], kpis: null, handlerOptions: [], isLoading: false, error: action.error }
-  }
-}
+import { useState } from 'react'
+import {
+  useGetInterestedUsersQuery,
+  useGetInterestedUserKpisQuery,
+  useGetHandlerOptionsQuery,
+  useSetLeadStatusMutation,
+  useDeleteLeadMutation,
+} from '@/features/marketingProducts/services/interestedUsersApi'
+import type { LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useInterestedUsers() {
-  const [state, dispatch] = useReducer(reducer, initialState)
   const [statusOverrides, setStatusOverrides] = useState<Record<string, LeadStatus>>({})
   const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const leadsResult = useGetInterestedUsersQuery()
+  const kpisResult = useGetInterestedUserKpisQuery()
+  const handlerOptionsResult = useGetHandlerOptionsQuery()
+  const [setLeadStatusMutation] = useSetLeadStatusMutation()
+  const [deleteLeadMutation] = useDeleteLeadMutation()
 
-    Promise.all([
-      interestedUsersService.getInterestedUsers(),
-      interestedUsersService.getInterestedUserKpis(),
-      interestedUsersService.getHandlerOptions(),
-    ])
-      .then(([leads, kpis, handlerOptions]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', leads, kpis, handlerOptions })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load interested users.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const isLoading = leadsResult.isLoading || kpisResult.isLoading || handlerOptionsResult.isLoading
+  const error = leadsResult.error
+    ? getApiErrorMessage(leadsResult.error, 'Failed to load interested users.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load interested users.')
+      : handlerOptionsResult.error
+        ? getApiErrorMessage(handlerOptionsResult.error, 'Failed to load interested users.')
+        : null
 
   async function setStatus(id: string, status: LeadStatus) {
-    await interestedUsersService.setLeadStatus(id, status)
+    await setLeadStatusMutation({ id, status }).unwrap()
     setStatusOverrides((prev) => ({ ...prev, [id]: status }))
   }
 
   async function remove(id: string) {
-    await interestedUsersService.deleteLead(id)
+    await deleteLeadMutation(id).unwrap()
     setDeletedIds((prev) => new Set(prev).add(id))
   }
 
-  const leads = state.leads
+  const leads = (leadsResult.data ?? [])
     .filter((lead) => !deletedIds.has(lead.id))
     .map((lead) => ({ ...lead, leadStatus: statusOverrides[lead.id] ?? lead.leadStatus }))
 
-  return { ...state, leads, setStatus, remove }
+  return {
+    leads,
+    kpis: kpisResult.data ?? null,
+    handlerOptions: handlerOptionsResult.data ?? [],
+    isLoading,
+    error,
+    setStatus,
+    remove,
+  }
 }

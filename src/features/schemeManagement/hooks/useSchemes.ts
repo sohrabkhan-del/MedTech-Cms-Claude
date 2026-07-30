@@ -1,56 +1,27 @@
-import { useCallback, useEffect, useReducer } from 'react'
-import { schemesService } from '@/features/schemeManagement/services/schemesService'
-import type { Scheme } from '@/features/schemeManagement/types/schemeManagement.types'
-import type { allSchemeKpis } from '@/features/schemeManagement/mockSchemes'
-
-type AllSchemeKpis = typeof allSchemeKpis
-
-interface State {
-  schemes: Scheme[]
-  kpis: AllSchemeKpis | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; schemes: Scheme[]; kpis: AllSchemeKpis }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { schemes: [], kpis: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { schemes: action.schemes, kpis: action.kpis, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import { useGetAllSchemesQuery, useGetAllSchemeKpisQuery } from '@/features/schemeManagement/services/schemesApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useSchemes() {
-  const [state, dispatch] = useReducer(reducer, initialState)
+  const schemesResult = useGetAllSchemesQuery()
+  const kpisResult = useGetAllSchemeKpisQuery()
 
-  const load = useCallback(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const isLoading = schemesResult.isLoading || kpisResult.isLoading
+  const error = schemesResult.error
+    ? getApiErrorMessage(schemesResult.error, 'Failed to load schemes.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load schemes.')
+      : null
 
-    Promise.all([schemesService.getAllSchemes(), schemesService.getAllSchemeKpis()])
-      .then(([schemes, kpis]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', schemes, kpis })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load schemes.' })
-      })
+  function refetch() {
+    schemesResult.refetch()
+    kpisResult.refetch()
+  }
 
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  useEffect(() => load(), [load])
-
-  return { ...state, refetch: load }
+  return {
+    schemes: schemesResult.data ?? [],
+    kpis: kpisResult.data ?? null,
+    isLoading,
+    error,
+    refetch,
+  }
 }

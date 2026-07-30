@@ -1,63 +1,33 @@
-import { useEffect, useReducer, useState } from 'react'
-import { showcaseProductsService } from '@/features/marketingProducts/services/showcaseProductsService'
-import type { ShowcaseProduct } from '@/features/marketingProducts/types/marketingProducts.types'
-import type { showcaseProductKpis } from '@/features/marketingProducts/mockShowcaseProducts'
-
-type ShowcaseProductKpis = typeof showcaseProductKpis
-
-interface State {
-  products: ShowcaseProduct[]
-  kpis: ShowcaseProductKpis | null
-  isLoading: boolean
-  error: string | null
-}
-
-type Action =
-  | { type: 'loading' }
-  | { type: 'succeeded'; products: ShowcaseProduct[]; kpis: ShowcaseProductKpis }
-  | { type: 'failed'; error: string }
-
-const initialState: State = { products: [], kpis: null, isLoading: false, error: null }
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'loading':
-      return { ...state, isLoading: true, error: null }
-    case 'succeeded':
-      return { products: action.products, kpis: action.kpis, isLoading: false, error: null }
-    case 'failed':
-      return { ...state, isLoading: false, error: action.error }
-  }
-}
+import { useState } from 'react'
+import {
+  useGetShowcaseProductsQuery,
+  useGetShowcaseProductKpisQuery,
+  useMarkEnquiryRespondedMutation,
+} from '@/features/marketingProducts/services/showcaseProductsApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 /** List + flattened enquiries for the Products Catalog enquiries table. */
 export function useShowcaseProducts() {
-  const [state, dispatch] = useReducer(reducer, initialState)
   const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    let cancelled = false
-    dispatch({ type: 'loading' })
+  const productsResult = useGetShowcaseProductsQuery()
+  const kpisResult = useGetShowcaseProductKpisQuery()
+  const [markEnquiryRespondedMutation] = useMarkEnquiryRespondedMutation()
 
-    Promise.all([showcaseProductsService.getShowcaseProducts(), showcaseProductsService.getShowcaseProductKpis()])
-      .then(([products, kpis]) => {
-        if (!cancelled) dispatch({ type: 'succeeded', products, kpis })
-      })
-      .catch((err: Error) => {
-        if (!cancelled) dispatch({ type: 'failed', error: err.message ?? 'Failed to load showcase products.' })
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
+  const isLoading = productsResult.isLoading || kpisResult.isLoading
+  const error = productsResult.error
+    ? getApiErrorMessage(productsResult.error, 'Failed to load showcase products.')
+    : kpisResult.error
+      ? getApiErrorMessage(kpisResult.error, 'Failed to load showcase products.')
+      : null
 
   async function markEnquiryResponded(enquiryId: string) {
-    await showcaseProductsService.markEnquiryResponded(enquiryId)
+    await markEnquiryRespondedMutation(enquiryId).unwrap()
     setRespondedIds((prev) => new Set(prev).add(enquiryId))
   }
 
-  const enquiries = state.products.flatMap((product) =>
+  const products = productsResult.data ?? []
+  const enquiries = products.flatMap((product) =>
     product.enquiries.map((enquiry) => ({
       ...enquiry,
       enquiryStatus: respondedIds.has(enquiry.id) ? ('responded' as const) : enquiry.enquiryStatus,
@@ -65,5 +35,12 @@ export function useShowcaseProducts() {
     })),
   )
 
-  return { ...state, enquiries, markEnquiryResponded }
+  return {
+    products,
+    kpis: kpisResult.data ?? null,
+    isLoading,
+    error,
+    enquiries,
+    markEnquiryResponded,
+  }
 }

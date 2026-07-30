@@ -16,12 +16,13 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
-import { verificationService } from '@/features/userManagement/services/verificationService'
+import { useUpdateDocumentMutation } from '@/features/userManagement/services/verificationApi'
 
 export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
   const { request, decide, isLoading } = useApprovalRequestDetail(requestId)
+  const [updateDocument] = useUpdateDocumentMutation()
   const [dialog, setDialog] = useState<{
     open: boolean
     action: 'approve' | 'reject'
@@ -57,7 +58,7 @@ export function ApprovalRequestDetailsPage() {
     doc: { id: string; documentName: string },
     file: File,
   ) => {
-    await verificationService.updateDocument(request.id, doc.id, file)
+    await updateDocument({ requestId: request.id, documentId: doc.id, file }).unwrap()
   }
 
   return (

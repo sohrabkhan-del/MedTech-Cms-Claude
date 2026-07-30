@@ -30,6 +30,7 @@ import {
   Newspaper,
   FileText,
   PenSquare,
+  ListTree,
 } from 'lucide-react'
 import type { ComponentDemo } from './types'
 import { ButtonDemo } from './demos/ButtonDemo'
@@ -64,6 +65,7 @@ import { BreadcrumbDemo } from './demos/BreadcrumbDemo'
 import { BlogDemo } from './demos/BlogDemo'
 import { BlogDetailsDemo } from './demos/BlogDetailsDemo'
 import { EditPostDemo } from './demos/EditPostDemo'
+import { ScanTreeTableDemo } from './demos/ScanTreeTableDemo'
 
 /**
  * Single source of truth for the UI showcase. Adding a new component demo
@@ -286,6 +288,14 @@ export const componentDemos: ComponentDemo[] = [
     description: 'Basic bar, live filtered suggestions, and clear button.',
     icon: SearchIcon,
     Demo: SearchDemo,
+    category: 'component',
+  },
+  {
+    slug: 'scan-tree-table',
+    label: 'Master Scan Tree Table',
+    description: 'Virtualized, expandable tree table for flat scan data — Invoice → Distributor → Dealer → Chemist → Category → Product → Batch → Container → Unit.',
+    icon: ListTree,
+    Demo: ScanTreeTableDemo,
     category: 'component',
   },
   {

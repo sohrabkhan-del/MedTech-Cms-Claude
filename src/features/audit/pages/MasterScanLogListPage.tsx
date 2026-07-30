@@ -20,6 +20,7 @@ import {
   Table as TableIcon,
   Network,
   Circle,
+  Waypoints,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -37,6 +38,12 @@ import {
   BubbleGraph,
   type BubbleGraphNode,
 } from '@/components/common/BubbleGraph/BubbleGraph'
+import { SupplyChainNetworkGraph } from '@/components/common/SupplyChainNetworkGraph/SupplyChainNetworkGraph'
+import { buildSupplyChainGraph } from '@/utils/buildSupplyChainGraph'
+import type {
+  SupplyChainGraphEdge,
+  SupplyChainGraphNode,
+} from '@/utils/buildSupplyChainGraph'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useMasterScanLogs } from '@/features/audit/hooks/useMasterScanLogs'
 import type {
@@ -85,9 +92,10 @@ export function MasterScanLogListPage() {
       'End-to-end product traceability across the supply chain — read-only.',
     isLoading,
   })
-  const [view, setView] = useState<'table' | 'tree' | 'bubble'>('table')
+  const [view, setView] = useState<'table' | 'tree' | 'bubble' | 'network'>('table')
   const [filterOpen, setFilterOpen] = useState(false)
   const [bubbleProducts, setBubbleProducts] = useState<string[]>([])
+  const [selectedNetworkNode, setSelectedNetworkNode] = useState<SupplyChainGraphNode | null>(null)
   const [appliedFilters, setAppliedFilters] = useState<ScanLogFilters>({
     product: 'all',
     batch: 'all',
@@ -493,6 +501,38 @@ export function MasterScanLogListPage() {
     return nodes
   }, [bubbleLogs])
 
+  const supplyChainGraph = useMemo(
+    () => buildSupplyChainGraph(filteredLogs),
+    [filteredLogs],
+  )
+
+  const handleNetworkNodeSelect = (node: SupplyChainGraphNode | null) => {
+    setSelectedNetworkNode(node)
+    setAppliedFilters((prev) => ({
+      ...prev,
+      distributor: node?.kind === 'distributor' ? node.name : 'all',
+      dealer: node?.kind === 'dealer' ? node.name : 'all',
+      chemist: node?.kind === 'chemist' ? node.name : 'all',
+    }))
+  }
+
+  const handleNetworkEdgeSelect = (edge: SupplyChainGraphEdge | null) => {
+    if (!edge) return
+    const sourceNode = supplyChainGraph.nodes.find((n) => n.id === edge.source)
+    const targetNode = supplyChainGraph.nodes.find((n) => n.id === edge.target)
+    setAppliedFilters((prev) => ({
+      ...prev,
+      distributor: sourceNode?.kind === 'distributor' ? sourceNode.name : prev.distributor,
+      dealer:
+        sourceNode?.kind === 'dealer'
+          ? sourceNode.name
+          : targetNode?.kind === 'dealer'
+            ? targetNode.name
+            : prev.dealer,
+      chemist: targetNode?.kind === 'chemist' ? targetNode.name : prev.chemist,
+    }))
+  }
+
   return (
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
@@ -586,6 +626,10 @@ export function MasterScanLogListPage() {
             <Circle size={16} style={{ marginRight: 6 }} />
             Bubble Map
           </ToggleButton>
+          <ToggleButton value="network">
+            <Waypoints size={16} style={{ marginRight: 6 }} />
+            Network View
+          </ToggleButton>
         </ToggleButtonGroup>
       </Stack>
 
@@ -625,7 +669,7 @@ export function MasterScanLogListPage() {
             <HierarchyTree nodes={treeNodes} defaultExpandedDepth={1} />
           )}
         </SectionCard>
-      ) : (
+      ) : view === 'bubble' ? (
         <SectionCard title="Product Journey — Bubble Map">
           <TextField
             select
@@ -674,6 +718,38 @@ export function MasterScanLogListPage() {
                 sold without a dealer). Click a bubble to expand or collapse it.
               </Typography>
               <BubbleGraph nodes={bubbleNodes} height={520} />
+            </>
+          )}
+        </SectionCard>
+      ) : (
+        <SectionCard title="Supply Chain Network — Distributor → Dealer → Chemist">
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.75rem', mb: 1.5 }}>
+            Every distributor-dealer and dealer-chemist relationship observed in the
+            filtered records, sized by scan volume. This is a network, not a strict
+            hierarchy — a dealer can appear under multiple distributors and a chemist
+            under multiple dealers. Click a bubble to filter the Table/Tree views to
+            that entity; click a line to see the shared batches.
+          </Typography>
+          {supplyChainGraph.nodes.length === 0 ? (
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.8125rem' }}>
+              No records match the applied filters.
+            </Typography>
+          ) : (
+            <>
+              {selectedNetworkNode && (
+                <Chip
+                  size="small"
+                  label={`Filtered to: ${selectedNetworkNode.name}`}
+                  onDelete={() => handleNetworkNodeSelect(null)}
+                  sx={{ mb: 1.5 }}
+                />
+              )}
+              <SupplyChainNetworkGraph
+                graph={supplyChainGraph}
+                height={560}
+                onNodeSelect={handleNetworkNodeSelect}
+                onEdgeSelect={handleNetworkEdgeSelect}
+              />
             </>
           )}
         </SectionCard>

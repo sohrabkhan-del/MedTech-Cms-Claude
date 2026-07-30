@@ -1,6 +1,12 @@
 export type { Dealer } from '@/types/dealer'
 export type { PartnerZone, PartnerStatus, OnboardedBy, PartnerBase } from '@/types/partner'
-export { dealerFormSchema, dealerFormDefaults, type DealerFormValues } from '@/features/userManagement/dealerFormSchema'
+export {
+  dealerFormSchema,
+  dealerFormDefaults,
+  toDealerApiPayload,
+  type DealerFormValues,
+  type DealerApiPayload,
+} from '@/features/userManagement/dealerFormSchema'
 export type {
   ApprovalRequest,
   RequestType,

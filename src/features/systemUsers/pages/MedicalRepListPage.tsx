@@ -1,13 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Avatar,
-  Checkbox,
-  FormControlLabel,
-  Grid,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { Avatar, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import {
   UserRound as UserRoundIcon,
   UserCheck as UserCheckIcon,
@@ -23,35 +16,69 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useMedicalReps } from '@/features/systemUsers/hooks/useMedicalReps'
-import type {
-  MedicalRepresentative,
-  PartnerStatus,
-  PartnerZone,
-} from '@/features/systemUsers/types/systemUsers.types'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
+import type { MedicalRepresentative } from '@/features/systemUsers/types/systemUsers.types'
+import type { PartnerStatus } from '@/types/partner'
 
 interface MrFilters extends Record<string, unknown> {
-  regions: PartnerZone[]
-  statuses: PartnerStatus[]
+  status: PartnerStatus | 'all'
+  regionId: string
 }
 
-const ALL_REGIONS: PartnerZone[] = ['North', 'South', 'East', 'West']
-const ALL_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
+// Maps CommonTable column keys to the real GET /medical-representatives
+// `sortBy` field names. UNVERIFIED against the backend — best-effort guess
+// based on the API's own request/response field names (firstName, status).
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  name: 'firstName',
+  status: 'status',
+}
 
 export function MedicalRepListPage() {
   const navigate = useNavigate()
-  const { medicalReps, kpis, isLoading } = useMedicalReps()
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const [search, setSearch] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<MrFilters>({
+    status: 'all',
+    regionId: '',
+  })
+  const [sortColumn, setSortColumn] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { medicalReps, kpis, isLoading } = useMedicalReps({
+    page: 1,
+    limit: 10,
+    search: debouncedSearch,
+    status: appliedFilters.status,
+    regionId: appliedFilters.regionId || undefined,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
   useRegionTopbarHeader({
     icon: <UserRoundIcon size={20} />,
     title: 'Medical Representatives',
     subtitle:
       'Manage field representatives, region access, and partner onboarding.',
     isLoading,
-  })
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<MrFilters>({
-    regions: [],
-    statuses: [],
   })
 
   const mrKpis = kpis ?? {
@@ -60,16 +87,6 @@ export function MedicalRepListPage() {
     pendingMrs: 0,
     inactiveMrs: 0,
   }
-
-  const filteredMrs = medicalReps.filter((mr) => {
-    const regionMatch =
-      appliedFilters.regions.length === 0 ||
-      appliedFilters.regions.includes(mr.region)
-    const statusMatch =
-      appliedFilters.statuses.length === 0 ||
-      appliedFilters.statuses.includes(mr.status)
-    return regionMatch && statusMatch
-  })
 
   const columns: CommonTableColumn<MedicalRepresentative>[] = [
     {
@@ -110,7 +127,6 @@ export function MedicalRepListPage() {
     {
       key: 'email',
       header: 'Email Address',
-      sortable: true,
       render: (row) => row.email,
     },
     {
@@ -122,7 +138,6 @@ export function MedicalRepListPage() {
     {
       key: 'region',
       header: 'Region',
-      sortable: true,
       render: (row) => row.region,
     },
     {
@@ -131,28 +146,6 @@ export function MedicalRepListPage() {
       sortable: true,
       sortValue: (row) => row.status,
       render: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-      key: 'lastLogin',
-      header: 'Last Login',
-      minWidth: 180,
-      render: (row) => row.lastLogin,
-    },
-    {
-      key: 'totalDealersOnboarded',
-      header: 'Total Dealers Onboarded',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.totalDealersOnboarded,
-      render: (row) => row.totalDealersOnboarded,
-    },
-    {
-      key: 'totalChemistsOnboarded',
-      header: 'Total Chemists Onboarded',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.totalChemistsOnboarded,
-      render: (row) => row.totalChemistsOnboarded,
     },
   ]
 
@@ -210,16 +203,23 @@ export function MedicalRepListPage() {
       </Grid>
 
       <CommonTable
+        key={`${appliedFilters.regionId || 'all'}-${appliedFilters.status}`}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
         tableKey="mrs-list"
         columns={columns}
-        rows={filteredMrs}
+        rows={medicalReps}
         getRowId={(row) => row.id}
         loading={isLoading}
         searchPlaceholder="Search MRs…"
-        searchKeys={(row) => `${row.name} ${row.email} ${row.phone}`}
+        searchValue={search}
+        onSearchChange={setSearch}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          appliedFilters.regions.length + appliedFilters.statuses.length
+          (appliedFilters.status !== 'all' ? 1 : 0) +
+          (appliedFilters.regionId.trim() ? 1 : 0)
         }
         onExportClick={() => {}}
         createAction={{
@@ -227,6 +227,7 @@ export function MedicalRepListPage() {
           to: '/system-users/medical-representatives/new',
         }}
         defaultSortBy="name"
+        defaultSortDir="desc"
         actions={[
           {
             label: 'View Details',
@@ -238,9 +239,6 @@ export function MedicalRepListPage() {
             onClick: (row) =>
               navigate(`/system-users/medical-representatives/${row.id}/edit`),
           },
-          { label: 'Activate MR', onClick: () => {} },
-          { label: 'Deactivate MR', onClick: () => {}, danger: true },
-          { label: 'Delete MR', onClick: () => {}, danger: true },
         ]}
         emptyTitle="No medical representatives found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -255,54 +253,45 @@ export function MedicalRepListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
-            <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                Region
-              </Typography>
-              {ALL_REGIONS.map((region) => (
-                <FormControlLabel
-                  key={region}
-                  control={
-                    <Checkbox
-                      checked={draft.regions.includes(region)}
-                      onChange={(e) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          regions: e.target.checked
-                            ? [...prev.regions, region]
-                            : prev.regions.filter((r) => r !== region),
-                        }))
-                      }
-                    />
-                  }
-                  label={region}
-                />
+            <TextField
+              select
+              label="Region"
+              value={draft.regionId}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  regionId: e.target.value,
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="">
+                <em>All Regions</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region.id} value={region.id}>
+                  {region.name}
+                </MenuItem>
               ))}
-            </Stack>
-            <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                Status
-              </Typography>
-              {ALL_STATUSES.map((status) => (
-                <FormControlLabel
-                  key={status}
-                  control={
-                    <Checkbox
-                      checked={draft.statuses.includes(status)}
-                      onChange={(e) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          statuses: e.target.checked
-                            ? [...prev.statuses, status]
-                            : prev.statuses.filter((s) => s !== status),
-                        }))
-                      }
-                    />
-                  }
-                  label={status.charAt(0).toUpperCase() + status.slice(1)}
-                />
-              ))}
-            </Stack>
+            </TextField>
+            <TextField
+              select
+              label="Status"
+              value={draft.status}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: e.target.value as PartnerStatus | 'all',
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="pending">Pending</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="suspended">Suspended</MenuItem>
+            </TextField>
           </Stack>
         )}
       </FilterDrawer>

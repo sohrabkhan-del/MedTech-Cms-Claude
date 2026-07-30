@@ -1,6 +1,21 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Button, Checkbox, Chip, Divider, FormControlLabel, Grid, MenuItem, Stack, TextField, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Button,
+  Checkbox,
+  Chip,
+  Divider,
+  FormControlLabel,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material'
 import {
   UserRound as UserRoundIcon,
   CircleCheck,
@@ -21,13 +36,21 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useMedicalRepDetail } from '@/features/systemUsers/hooks/useMedicalRepDetail'
-import type { MrManagedPartner, MrPartnerSource, MrPartnerType, PartnerStatus } from '@/features/systemUsers/types/systemUsers.types'
+import type {
+  MrManagedPartner,
+  MrPartnerSource,
+  MrPartnerType,
+  PartnerStatus,
+} from '@/features/systemUsers/types/systemUsers.types'
 
 interface PartnerTableFilters extends Record<string, unknown> {
   statuses: PartnerStatus[]
@@ -35,7 +58,15 @@ interface PartnerTableFilters extends Record<string, unknown> {
 
 const ALL_PARTNER_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
 
-function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+function InfoItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: React.ReactNode
+}) {
   return (
     <Stack direction="row" spacing={1.25} sx={{ alignItems: 'flex-start' }}>
       <Box
@@ -57,7 +88,15 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
         <Typography variant="caption" sx={{ display: 'block' }}>
           {label}
         </Typography>
-        <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', wordBreak: 'break-word' }}>{value}</Typography>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            wordBreak: 'break-word',
+          }}
+        >
+          {value}
+        </Typography>
       </Box>
     </Stack>
   )
@@ -66,13 +105,15 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
 export function MedicalRepDetailsPage() {
   const { mrId } = useParams<{ mrId: string }>()
   const navigate = useNavigate()
-  const { mr, replacementOptions, setStatus, remove, isLoading } = useMedicalRepDetail(mrId)
+  const { mr, replacementOptions, setStatus, remove, isLoading } =
+    useMedicalRepDetail(mrId)
   const [partnerType, setPartnerType] = useState<'All' | MrPartnerType>('All')
   const [source, setSource] = useState<'All' | MrPartnerSource>('All')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [replacementMrId, setReplacementMrId] = useState('')
   const [partnerFilterOpen, setPartnerFilterOpen] = useState(false)
-  const [appliedPartnerFilters, setAppliedPartnerFilters] = useState<PartnerTableFilters>({ statuses: [] })
+  const [appliedPartnerFilters, setAppliedPartnerFilters] =
+    useState<PartnerTableFilters>({ statuses: [] })
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={3} />
@@ -92,24 +133,56 @@ export function MedicalRepDetailsPage() {
   const isActive = mr.status === 'active'
 
   const filteredPartners = mr.managedPartners.filter((partner) => {
-    const typeMatch = partnerType === 'All' || partner.partnerType === partnerType
+    const typeMatch =
+      partnerType === 'All' || partner.partnerType === partnerType
     const sourceMatch = source === 'All' || partner.source === source
     const statusMatch =
-      appliedPartnerFilters.statuses.length === 0 || appliedPartnerFilters.statuses.includes(partner.status)
+      appliedPartnerFilters.statuses.length === 0 ||
+      appliedPartnerFilters.statuses.includes(partner.status)
     return typeMatch && sourceMatch && statusMatch
   })
 
-  const dealerCount = mr.managedPartners.filter((p) => p.partnerType === 'Dealer').length
-  const chemistCount = mr.managedPartners.filter((p) => p.partnerType === 'Chemist').length
-  const onboardedCount = mr.managedPartners.filter((p) => p.source === 'Onboarded').length
-  const assignedCount = mr.managedPartners.filter((p) => p.source === 'Assigned').length
+  const dealerCount = mr.managedPartners.filter(
+    (p) => p.partnerType === 'Dealer',
+  ).length
+  const chemistCount = mr.managedPartners.filter(
+    (p) => p.partnerType === 'Chemist',
+  ).length
+  const onboardedCount = mr.managedPartners.filter(
+    (p) => p.source === 'Onboarded',
+  ).length
+  const assignedCount = mr.managedPartners.filter(
+    (p) => p.source === 'Assigned',
+  ).length
 
   const partnerColumns: CommonTableColumn<MrManagedPartner>[] = [
-    { key: 'partnerName', header: 'Partner Name', minWidth: 200, sortable: true, sortValue: (row) => row.partnerName, render: (row) => row.partnerName },
-    { key: 'partnerType', header: 'Partner Type', sortable: true, render: (row) => row.partnerType },
+    {
+      key: 'partnerName',
+      header: 'Partner Name',
+      minWidth: 200,
+      sortable: true,
+      sortValue: (row) => row.partnerName,
+      render: (row) => row.partnerName,
+    },
+    {
+      key: 'partnerType',
+      header: 'Partner Type',
+      sortable: true,
+      render: (row) => row.partnerType,
+    },
     { key: 'city', header: 'City', sortable: true, render: (row) => row.city },
-    { key: 'region', header: 'Region', sortable: true, render: (row) => row.region },
-    { key: 'source', header: 'Source', sortable: true, render: (row) => row.source },
+    {
+      key: 'region',
+      header: 'Region',
+      sortable: true,
+      render: (row) => row.region,
+    },
+    {
+      key: 'source',
+      header: 'Source',
+      sortable: true,
+      render: (row) => row.source,
+    },
     {
       key: 'status',
       header: 'Current Status',
@@ -129,7 +202,13 @@ export function MedicalRepDetailsPage() {
     <>
       <Stack
         direction="row"
-        sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
       >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
@@ -148,17 +227,25 @@ export function MedicalRepDetailsPage() {
             <UserRoundIcon size={18} />
           </Box>
           <Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+            >
               <Typography variant="h1">{mr.name}</Typography>
               <StatusBadge status={mr.status} />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {mr.id} · Medical Representative · {mr.region}
+              Medical Representative · {mr.region}
             </Typography>
           </Box>
         </Stack>
 
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+        <Stack
+          direction="row"
+          spacing={1}
+          sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+        >
           {!isActive ? (
             <Button
               variant="contained"
@@ -184,7 +271,9 @@ export function MedicalRepDetailsPage() {
             variant="outlined"
             color="primary"
             startIcon={<Pencil size={16} />}
-            onClick={() => navigate(`/system-users/medical-representatives/${mr.id}/edit`)}
+            onClick={() =>
+              navigate(`/system-users/medical-representatives/${mr.id}/edit`)
+            }
             sx={{ fontSize: '0.8125rem' }}
           >
             Edit
@@ -213,13 +302,40 @@ export function MedicalRepDetailsPage() {
       <Stack spacing={3}>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Partners Managed" value={mr.totalPartnersManaged} icon={<UsersIcon size={20} />} iconColor="primary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Partners Managed"
+                value={mr.totalPartnersManaged}
+                icon={<UsersIcon size={20} />}
+                iconColor="primary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Dealers Onboarded" value={mr.totalDealersOnboarded} icon={<StoreIcon size={20} />} iconColor="secondary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Dealers Onboarded"
+                value={mr.totalDealersOnboarded}
+                icon={<StoreIcon size={20} />}
+                iconColor="secondary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Chemists Onboarded" value={mr.totalChemistsOnboarded} icon={<PillIcon size={20} />} iconColor="info" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Chemists Onboarded"
+                value={mr.totalChemistsOnboarded}
+                icon={<PillIcon size={20} />}
+                iconColor="info"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? (
@@ -237,14 +353,35 @@ export function MedicalRepDetailsPage() {
 
         <SectionCard
           title="Summary"
-          action={<Chip size="small" label={`MR ID: ${mr.id}`} variant="outlined" sx={{ fontWeight: 600, fontSize: '0.75rem' }} />}
+          action={
+            <Chip
+              size="small"
+              label={`MR ID: ${mr.id}`}
+              variant="outlined"
+              sx={{ fontWeight: 600, fontSize: '0.75rem' }}
+            />
+          }
         >
-          <Stack direction="row" spacing={2.5} sx={{ mb: 3, alignItems: 'center' }}>
-            <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.25rem', fontWeight: 700 }}>
+          <Stack
+            direction="row"
+            spacing={2.5}
+            sx={{ mb: 3, alignItems: 'center' }}
+          >
+            <Avatar
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: 'primary.main',
+                fontSize: '1.25rem',
+                fontWeight: 700,
+              }}
+            >
               {mr.name.slice(0, 1)}
             </Avatar>
             <Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>{mr.name}</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
+                {mr.name}
+              </Typography>
               <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                 Field Representative · {mr.region} Region
               </Typography>
@@ -253,16 +390,32 @@ export function MedicalRepDetailsPage() {
 
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Mail size={16} />} label="Email Address" value={mr.email} />
+              <InfoItem
+                icon={<Mail size={16} />}
+                label="Email Address"
+                value={mr.email}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Phone size={16} />} label="Contact Number" value={mr.phone} />
+              <InfoItem
+                icon={<Phone size={16} />}
+                label="Contact Number"
+                value={mr.phone}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<MapPin size={16} />} label="Region" value={mr.region} />
+              <InfoItem
+                icon={<MapPin size={16} />}
+                label="Region"
+                value={mr.region}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Clock size={16} />} label="Last Login" value={mr.lastLogin} />
+              <InfoItem
+                icon={<Clock size={16} />}
+                label="Last Login"
+                value={mr.lastLogin}
+              />
             </Grid>
           </Grid>
 
@@ -272,7 +425,15 @@ export function MedicalRepDetailsPage() {
               <Typography variant="caption" sx={{ display: 'block', mb: 0.5 }}>
                 Notes
               </Typography>
-              <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary', lineHeight: 1.6 }}>{mr.notes}</Typography>
+              <Typography
+                sx={{
+                  fontSize: '0.8125rem',
+                  color: 'text.secondary',
+                  lineHeight: 1.6,
+                }}
+              >
+                {mr.notes}
+              </Typography>
             </>
           )}
         </SectionCard>
@@ -280,16 +441,52 @@ export function MedicalRepDetailsPage() {
         <SectionCard title="Partner Management">
           <Grid container spacing={2} sx={{ mb: 3 }}>
             <Grid size={{ xs: 6, sm: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Dealers" value={dealerCount} icon={<StoreIcon size={20} />} iconColor="primary" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Dealers"
+                  value={dealerCount}
+                  icon={<StoreIcon size={20} />}
+                  iconColor="primary"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Chemists" value={chemistCount} icon={<PillIcon size={20} />} iconColor="secondary" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Chemists"
+                  value={chemistCount}
+                  icon={<PillIcon size={20} />}
+                  iconColor="secondary"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Onboarded" value={onboardedCount} icon={<UserCheckIcon size={20} />} iconColor="success" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Onboarded"
+                  value={onboardedCount}
+                  icon={<UserCheckIcon size={20} />}
+                  iconColor="success"
+                />
+              )}
             </Grid>
             <Grid size={{ xs: 6, sm: 3 }}>
-              {isLoading ? <StatCardSkeleton /> : <StatCard label="Assigned" value={assignedCount} icon={<UserRoundIcon size={20} />} iconColor="warning" />}
+              {isLoading ? (
+                <StatCardSkeleton />
+              ) : (
+                <StatCard
+                  label="Assigned"
+                  value={assignedCount}
+                  icon={<UserRoundIcon size={20} />}
+                  iconColor="warning"
+                />
+              )}
             </Grid>
           </Grid>
 
@@ -301,7 +498,15 @@ export function MedicalRepDetailsPage() {
             sx={{ mb: 2.5, flexWrap: 'wrap', rowGap: 2 }}
           >
             <Stack spacing={0.75}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'text.secondary' }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.6875rem',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: 'text.secondary',
+                }}
+              >
                 Partner Type
               </Typography>
               <ToggleButtonGroup
@@ -326,7 +531,15 @@ export function MedicalRepDetailsPage() {
             </Stack>
 
             <Stack spacing={0.75}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'text.secondary' }}>
+              <Typography
+                sx={{
+                  fontWeight: 700,
+                  fontSize: '0.6875rem',
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  color: 'text.secondary',
+                }}
+              >
                 Source
               </Typography>
               <ToggleButtonGroup
@@ -376,7 +589,9 @@ export function MedicalRepDetailsPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={1}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>Current Status</Typography>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+              Current Status
+            </Typography>
             {ALL_PARTNER_STATUSES.map((status) => (
               <FormControlLabel
                 key={status}
@@ -411,13 +626,15 @@ export function MedicalRepDetailsPage() {
       >
         {replacementOptions.length === 0 ? (
           <Typography variant="body1" sx={{ color: 'error.main' }}>
-            No other MR is available in the {mr.region} region. Deletion is blocked until a replacement MR exists.
+            No other MR is available in the {mr.region} region. Deletion is
+            blocked until a replacement MR exists.
           </Typography>
         ) : (
           <Stack spacing={2}>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Reassigning {mr.totalDealersOnboarded} dealer(s), {mr.totalChemistsOnboarded} chemist(s), and all active
-              locations currently managed by {mr.name}.
+              Reassigning {mr.totalDealersOnboarded} dealer(s),{' '}
+              {mr.totalChemistsOnboarded} chemist(s), and all active locations
+              currently managed by {mr.name}.
             </Typography>
             <TextField
               select

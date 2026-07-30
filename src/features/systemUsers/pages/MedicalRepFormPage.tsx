@@ -1,16 +1,26 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Button, Card, Grid, MenuItem, Stack, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { useMedicalRepForm } from '@/features/systemUsers/hooks/useMedicalRepForm'
+import { useToast } from '@/contexts/ToastContext'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
 import {
   medicalRepFormDefaults,
   medicalRepFormSchema,
+  toMedicalRepApiPayload,
   type MedicalRepFormValues,
-} from '@/features/systemUsers/types/systemUsers.types'
+} from '@/features/systemUsers/medicalRepFormSchema'
+import {
+  useGetMedicalRepDetailQuery,
+  useCreateMedicalRepMutation,
+  useUpdateMedicalRepMutation,
+} from '@/features/systemUsers/services/medicalRepsApi'
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -47,8 +57,31 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 
 export function MedicalRepFormPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { mrId } = useParams<{ mrId: string }>()
-  const { isEdit, mr, options, isLoading, isSubmitting, submit } = useMedicalRepForm(mrId)
+  const isEdit = !!mrId
+  const { data: mr, isLoading: isMrLoading } = useGetMedicalRepDetailQuery(mrId ?? skipToken)
+  const [createMedicalRep, { isLoading: isCreating }] = useCreateMedicalRepMutation()
+  const [updateMedicalRep, { isLoading: isUpdating }] = useUpdateMedicalRepMutation()
+  const [regions, setRegions] = useState<RegionOption[]>(
+    fallbackRegions.filter((region) => region.code !== 'ALL_INDIA'),
+  )
+  const isSubmitting = isCreating || isUpdating
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        const regionsOnly = options.filter((region) => region.code !== 'ALL_INDIA')
+        if (!ignore && regionsOnly.length > 0) setRegions(regionsOnly)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
 
   const { control, handleSubmit, reset } = useForm<MedicalRepFormValues>({
     resolver: zodResolver(medicalRepFormSchema),
@@ -56,18 +89,26 @@ export function MedicalRepFormPage() {
   })
 
   useEffect(() => {
-    if (!mr) return
+    if (!isEdit || !mr) return
     reset({
-      name: mr.name,
+      firstName: mr.firstName ?? mr.name.split(' ')[0] ?? '',
+      lastName: mr.lastName ?? mr.name.split(' ').slice(1).join(' '),
       email: mr.email,
+      password: '',
       phone: mr.phone,
-      region: mr.region,
+      country: mr.country ?? '91',
+      profileImageUrl: '',
+      regionId: mr.regionId ?? '',
       status: mr.status,
       notes: mr.notes ?? '',
     })
-  }, [mr, reset])
+  }, [isEdit, mr, reset])
 
-  if (isEdit && !isLoading && !mr) {
+  if (isEdit && isMrLoading) {
+    return null
+  }
+
+  if (isEdit && !mr) {
     return (
       <EmptyState
         title="Medical Representative not found"
@@ -81,8 +122,24 @@ export function MedicalRepFormPage() {
   const backTo = isEdit ? `/system-users/medical-representatives/${mrId}` : '/system-users/medical-representatives'
 
   const onSubmit = handleSubmit(async (values) => {
-    const success = await submit(values)
-    if (success) navigate(backTo)
+    const payload = toMedicalRepApiPayload(values)
+    try {
+      if (isEdit && mrId) {
+        await updateMedicalRep({ id: mrId, values: payload }).unwrap()
+        toast.success('Medical rep updated successfully.')
+      } else {
+        await createMedicalRep(payload).unwrap()
+        toast.success('Medical rep created successfully.')
+      }
+      navigate(backTo)
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          isEdit ? 'Failed to update medical representative.' : 'Failed to create medical representative.',
+        ),
+      )
+    }
   })
 
   return (
@@ -96,8 +153,12 @@ export function MedicalRepFormPage() {
           <Typography sx={sectionTitleSx}>MR Information</Typography>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Full Name</FieldLabel>
-              <FormField name="name" control={control} placeholder="Full name" {...fieldLabelProps} />
+              <FieldLabel required>First Name</FieldLabel>
+              <FormField name="firstName" control={control} placeholder="First name" {...fieldLabelProps} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Last Name</FieldLabel>
+              <FormField name="lastName" control={control} placeholder="Last name" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Email Address</FieldLabel>
@@ -105,14 +166,27 @@ export function MedicalRepFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Phone Number</FieldLabel>
-              <FormField name="phone" control={control} placeholder="98xxx xxxxx" {...fieldLabelProps} />
+              <FormField name="phone" control={control} placeholder="98xxx xxxxx" numeric {...fieldLabelProps} />
+            </Grid>
+            {!isEdit && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <FieldLabel required>Password</FieldLabel>
+                <FormField name="password" control={control} type="password" placeholder="Minimum 8 characters" {...fieldLabelProps} />
+              </Grid>
+            )}
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel>Profile Image URL</FieldLabel>
+              <FormField name="profileImageUrl" control={control} placeholder="https://…" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Region</FieldLabel>
-              <FormField name="region" control={control} select {...fieldLabelProps}>
-                {(options?.regionOptions ?? []).map((region) => (
-                  <MenuItem key={region} value={region}>
-                    {region}
+              <FormField name="regionId" control={control} select {...fieldLabelProps}>
+                <MenuItem value="">
+                  <em>Select a region</em>
+                </MenuItem>
+                {regions.map((region) => (
+                  <MenuItem key={region.id} value={region.id}>
+                    {region.name}
                   </MenuItem>
                 ))}
               </FormField>
@@ -120,11 +194,10 @@ export function MedicalRepFormPage() {
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Status</FieldLabel>
               <FormField name="status" control={control} select {...fieldLabelProps}>
-                {(options?.statusOptions ?? []).map((status) => (
-                  <MenuItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </MenuItem>
-                ))}
+                <MenuItem value="active">Active</MenuItem>
+                <MenuItem value="pending">Pending</MenuItem>
+                <MenuItem value="inactive">Inactive</MenuItem>
+                <MenuItem value="suspended">Suspended</MenuItem>
               </FormField>
             </Grid>
             <Grid size={12}>

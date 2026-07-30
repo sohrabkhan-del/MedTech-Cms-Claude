@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Autocomplete,
   Avatar,
   Grid,
   MenuItem,
@@ -24,35 +25,90 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useDealers } from '@/features/userManagement/hooks/useDealers'
-import type {
-  Dealer,
-  PartnerZone,
-  PartnerStatus,
-} from '@/features/userManagement/types/userManagement.types'
+import {
+  useActivateDealerMutation,
+  useDeactivateDealerMutation,
+} from '@/features/userManagement/services/dealerApi'
+import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
+import type { Dealer } from '@/types/dealer'
+import type { PartnerStatus } from '@/types/partner'
 
 interface DealerFilters extends Record<string, unknown> {
-  zone: PartnerZone | 'all'
   status: PartnerStatus | 'all'
+  assignedMedicalRepresentativeId: string
+  regionId: string
+}
+
+// Maps CommonTable column keys to the real GET /partners `sortBy` field
+// names. UNVERIFIED against the backend — best-effort guess based on the
+// API's own request/response field names (businessName, ownerFirstName,
+// city, status). `zone` has no backend equivalent (it's inferred
+// client-side from `state`), so it's omitted and not server-sortable.
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  shopName: 'businessName',
+  ownerName: 'ownerFirstName',
+  city: 'city',
+  status: 'status',
 }
 
 export function DealerListPage() {
   const navigate = useNavigate()
-  const { region } = useRegionFilter()
-  const { dealers, kpis, isLoading } = useDealers()
+  const toast = useToast()
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const [activateDealer] = useActivateDealerMutation()
+  const [deactivateDealer] = useDeactivateDealerMutation()
+  const { data: mrOptions = [] } = useGetMedicalRepOptionsQuery()
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const [search, setSearch] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<DealerFilters>({
+    status: 'all',
+    assignedMedicalRepresentativeId: '',
+    regionId: '',
+  })
+  const [sortColumn, setSortColumn] = useState('shopName')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { dealers, kpis, isLoading } = useDealers({
+    page: 1,
+    limit: 10,
+    search: debouncedSearch,
+    status: appliedFilters.status,
+    regionId: effectiveRegionId,
+    assignedMedicalRepresentativeId:
+      appliedFilters.assignedMedicalRepresentativeId,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
   useRegionTopbarHeader({
     icon: <StorefrontIcon size={20} />,
     title: 'Dealers',
     subtitle: 'Registered dealer partners across the network.',
     isLoading,
   })
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<DealerFilters>({
-    zone: 'all',
-    status: 'all',
-  })
-
-  const regionZone = region === 'All India' ? null : (region as PartnerZone)
 
   const dealerKpis = kpis ?? {
     totalDealers: 0,
@@ -60,15 +116,6 @@ export function DealerListPage() {
     inactiveDealers: 0,
     pendingApproval: 0,
   }
-
-  const filteredDealers = dealers.filter((dealer) => {
-    const regionMatch = !regionZone || dealer.zone === regionZone
-    const zoneMatch =
-      appliedFilters.zone === 'all' || dealer.zone === appliedFilters.zone
-    const statusMatch =
-      appliedFilters.status === 'all' || dealer.status === appliedFilters.status
-    return regionMatch && zoneMatch && statusMatch
-  })
 
   const columns: CommonTableColumn<Dealer>[] = [
     {
@@ -111,12 +158,6 @@ export function DealerListPage() {
       render: (row) => row.ownerName,
     },
     {
-      key: 'email',
-      header: 'Email',
-      sortable: true,
-      render: (row) => row.email,
-    },
-    {
       key: 'phone',
       header: 'Phone',
       minWidth: 160,
@@ -128,33 +169,13 @@ export function DealerListPage() {
       sortable: true,
       render: (row) => row.city,
     },
-    { key: 'zone', header: 'Zone', sortable: true, render: (row) => row.zone },
+    { key: 'zone', header: 'Zone', render: (row) => row.zone },
     {
       key: 'status',
       header: 'Status',
       sortable: true,
       sortValue: (row) => row.status,
       render: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-      key: 'licenseNumber',
-      header: 'GSTN Number',
-      render: (row) => row.licenseNumber,
-    },
-    {
-      key: 'onboardedBy',
-      header: 'Onboarded',
-      sortable: true,
-      render: (row) => row.onboardedBy,
-    },
-    {
-      key: 'availablePoints',
-      header: 'Points Earned',
-      align: 'center',
-      minWidth: 100,
-      sortable: true,
-      sortValue: (row) => row.availablePoints,
-      render: (row) => row.availablePoints.toLocaleString('en-IN'),
     },
   ]
 
@@ -224,34 +245,64 @@ export function DealerListPage() {
       </Grid>
 
       <CommonTable
+        key={`${effectiveRegionId ?? 'all'}-${appliedFilters.status}-${appliedFilters.assignedMedicalRepresentativeId}`}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
         tableKey="dealers-list"
         columns={columns}
-        rows={filteredDealers}
+        rows={dealers}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search dealers…"
-        searchKeys={(row) =>
-          `${row.shopName} ${row.ownerName} ${row.email} ${row.city}`
-        }
+        searchValue={search}
+        onSearchChange={setSearch}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          (appliedFilters.zone !== 'all' ? 1 : 0) +
-          (appliedFilters.status !== 'all' ? 1 : 0)
+          (appliedFilters.status !== 'all' ? 1 : 0) +
+          (appliedFilters.assignedMedicalRepresentativeId.trim() ? 1 : 0) +
+          (appliedFilters.regionId.trim() ? 1 : 0)
         }
         onExportClick={() => {}}
         onImportClick={() => {}}
         createAction={{ label: 'Create Dealer', to: '/partners/dealers/new' }}
         defaultSortBy="shopName"
+        defaultSortDir="desc"
         actions={[
           {
-            label: 'View Details',
+            label: 'View Dealer',
             onClick: (row) => navigate(`/partners/dealers/${row.id}`),
           },
           {
-            label: 'Edit',
+            label: 'Edit Dealer',
             onClick: (row) => navigate(`/partners/dealers/${row.id}/edit`),
           },
-          { label: 'Deactivate', onClick: () => {}, danger: true },
+          {
+            label: 'Activate Dealer',
+            hidden: (row) => row.status === 'active',
+            onClick: async (row) => {
+              try {
+                await activateDealer(row.id).unwrap()
+                toast.success('Dealer activated successfully.')
+              } catch (err) {
+                toast.error(getApiErrorMessage(err, 'Failed to activate dealer.'))
+              }
+            },
+          },
+          {
+            label: 'Deactivate Dealer',
+            danger: true,
+            hidden: (row) => row.status !== 'active',
+            onClick: async (row) => {
+              try {
+                await deactivateDealer(row.id).unwrap()
+                toast.success('Dealer deactivated successfully.')
+              } catch (err) {
+                toast.error(getApiErrorMessage(err, 'Failed to deactivate dealer.'))
+              }
+            },
+          },
         ]}
         emptyTitle="No dealers found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -266,23 +317,47 @@ export function DealerListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
+            <Autocomplete
+              options={mrOptions}
+              getOptionLabel={(option) =>
+                option.employeeCode ? `${option.name} (${option.employeeCode})` : option.name
+              }
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={
+                mrOptions.find(
+                  (mr) => mr.id === draft.assignedMedicalRepresentativeId,
+                ) ?? null
+              }
+              onChange={(_, selected) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  assignedMedicalRepresentativeId: selected?.id ?? '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField {...params} label="Assigned MR" placeholder="Search medical representatives…" />
+              )}
+            />
             <TextField
               select
-              label="Zone"
-              value={draft.zone}
+              label="Region"
+              value={draft.regionId}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  zone: e.target.value as PartnerZone | 'all',
+                  regionId: e.target.value,
                 }))
               }
               fullWidth
             >
-              <MenuItem value="all">All Zones</MenuItem>
-              <MenuItem value="North">North</MenuItem>
-              <MenuItem value="South">South</MenuItem>
-              <MenuItem value="East">East</MenuItem>
-              <MenuItem value="West">West</MenuItem>
+              <MenuItem value="">
+                <em>All Regions</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region.id} value={region.id}>
+                  {region.name}
+                </MenuItem>
+              ))}
             </TextField>
             <TextField
               select
@@ -300,6 +375,7 @@ export function DealerListPage() {
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="suspended">Suspended</MenuItem>
             </TextField>
           </Stack>
         )}

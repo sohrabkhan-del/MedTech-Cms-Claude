@@ -1,7 +1,5 @@
-import { useState } from 'react'
+import { Grid, Stack, Typography } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Grid, Stack, Typography } from '@mui/material'
-import { Store as StorefrontIcon } from 'lucide-react'
 import { PartnerSummaryHeader } from '@/features/userManagement/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/userManagement/components/PartnerStatisticsCards'
@@ -20,9 +18,9 @@ import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemp
 export function DealerDetailsPage() {
   const { dealerId } = useParams<{ dealerId: string }>()
   const navigate = useNavigate()
-  const { dealer, isLoading } = useDealerDetail(dealerId)
-  const { redemptions, isLoading: isRedemptionsLoading } = useUserRedemptions(dealerId)
-  const [, forceRerender] = useState(0)
+  const { dealer, isLoading, activate, deactivate } = useDealerDetail(dealerId)
+  const { redemptions, isLoading: isRedemptionsLoading } =
+    useUserRedemptions(dealerId)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={4} />
@@ -41,38 +39,11 @@ export function DealerDetailsPage() {
 
   return (
     <Stack spacing={0}>
-      <Stack
-        direction="row"
-        spacing={1.5}
-        sx={{ alignItems: 'center', mb: 2.5 }}
-      >
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'primary.light',
-            color: 'primary.main',
-          }}
-        >
-          <StorefrontIcon size={20} />
-        </Box>
-        <Box>
-          <Typography variant="h1">{dealer.shopName}</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            {dealer.id} · Dealer
-          </Typography>
-        </Box>
-      </Stack>
-
       <PartnerSummaryHeader
         partner={dealer}
         shopLabel="Business Name"
-        onActivate={() => forceRerender((n) => n + 1)}
-        onDeactivate={() => forceRerender((n) => n + 1)}
+        onActivate={activate}
+        onDeactivate={deactivate}
       />
 
       <PartnerDetailsFieldsCard partner={dealer} shopLabel="Business Name" />
@@ -98,7 +69,7 @@ export function DealerDetailsPage() {
         <Grid size={12}>
           <PointsManagementCard
             currentBalance={dealer.availablePoints}
-            onAdjust={() => forceRerender((n) => n + 1)}
+            onAdjust={() => {}}
           />
         </Grid>
       </Grid>

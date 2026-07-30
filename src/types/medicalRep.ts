@@ -16,9 +16,13 @@ export interface MrManagedPartner {
 export interface MedicalRepresentative {
   id: string
   name: string
+  firstName?: string
+  lastName?: string
   email: string
   phone: string
+  country?: string
   region: PartnerZone
+  regionId?: string
   status: PartnerStatus
   lastLogin: string
   notes?: string

@@ -4,19 +4,23 @@ import {
   mockMedicalReps,
   getMedicalRepById,
   getReplacementMrOptions,
-  mrKpis,
 } from '@/features/systemUsers/mockMedicalReps'
 import type {
-  MedicalRepFormValues,
   MedicalRepresentative,
   PartnerStatus,
   PartnerZone,
 } from '@/features/systemUsers/types/systemUsers.types'
+import type { MedicalRepApiPayload } from '@/features/systemUsers/medicalRepFormSchema'
 import { mockDelay } from '@/services/mockDelay'
 
-export interface MedicalRepFormOptions {
-  regionOptions: PartnerZone[]
-  statusOptions: PartnerStatus[]
+export interface MedicalRepQueryParams {
+  page?: number
+  limit?: number
+  search?: string
+  regionId?: string
+  status?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 interface MedicalRepApiItem {
@@ -70,7 +74,17 @@ function mapMrStatus(status?: string, isBlocked?: boolean): PartnerStatus {
   if (isBlocked) return 'inactive'
   if (status === 'ACTIVE') return 'active'
   if (status === 'PENDING_APPROVAL') return 'pending'
+  if (status === 'SUSPENDED') return 'suspended'
   return 'inactive'
+}
+
+function mapStatusParam(status?: string) {
+  if (!status || status === 'all') return undefined
+  if (status === 'active') return 'ACTIVE'
+  if (status === 'pending') return 'PENDING_APPROVAL'
+  if (status === 'inactive') return 'INACTIVE'
+  if (status === 'suspended') return 'SUSPENDED'
+  return status
 }
 
 function mapMrRegion(region?: { name: string } | null): PartnerZone {
@@ -83,9 +97,13 @@ function mapMedicalRepDetail(data: MedicalRepDetailApiResponse['data']): Medical
   return {
     id: data.id,
     name: [data.firstName, data.lastName].filter(Boolean).join(' ').trim() || 'Unknown',
+    firstName: data.firstName,
+    lastName: data.lastName,
     email: data.email,
     phone: data.phone,
+    country: data.country ?? '91',
     region: mapMrRegion(data.region),
+    regionId: data.region?.id,
     status: mapMrStatus(data.status, data.isBlocked),
     lastLogin: '-',
     totalDealersOnboarded: data.dealerCount ?? 0,
@@ -100,8 +118,25 @@ function mapMedicalRepDetail(data: MedicalRepDetailApiResponse['data']): Medical
 
 const medicalRepsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getMedicalReps: builder.query<MedicalRepresentative[], void>({
-      query: () => ({ tag: 'MedicalReps', url: '/medical-reps', mockResolver: () => mockDelay(mockMedicalReps) }),
+    getMedicalReps: builder.query<MedicalRepresentative[], MedicalRepQueryParams | void>({
+      query: (params) => ({
+        tag: 'MedicalRepDetail',
+        url: '/medical-representatives',
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 10,
+          search: params?.search || undefined,
+          regionId: params?.regionId || undefined,
+          status: mapStatusParam(params?.status),
+          sortBy: params?.sortBy || undefined,
+          sortOrder: params?.sortOrder ?? 'desc',
+        },
+        mockResolver: () => mockDelay(mockMedicalReps),
+      }),
+      transformResponse: (response: MedicalRepListApiResponse | MedicalRepresentative[]) =>
+        Array.isArray(response)
+          ? response
+          : response.data.items.map(mapMedicalRepDetail),
       providesTags: (result) =>
         result
           ? [
@@ -143,24 +178,6 @@ const medicalRepsApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'MedicalReps', id: 'OPTIONS' }],
     }),
 
-    getMedicalRepKpis: builder.query<typeof mrKpis, void>({
-      query: () => ({ tag: 'MedicalReps', url: '/medical-reps/kpis', mockResolver: () => mockDelay(mrKpis) }),
-      providesTags: [{ type: 'MedicalReps', id: 'KPIS' }],
-    }),
-
-    getMedicalRepFormOptions: builder.query<MedicalRepFormOptions, void>({
-      query: () => ({
-        tag: 'MedicalReps',
-        url: '/medical-reps/form-options',
-        mockResolver: () =>
-          mockDelay({
-            regionOptions: ['North', 'South', 'East', 'West'] as PartnerZone[],
-            statusOptions: ['active', 'pending', 'inactive'] as PartnerStatus[],
-          }),
-      }),
-      providesTags: [{ type: 'MedicalReps', id: 'FORM_OPTIONS' }],
-    }),
-
     getReplacementMrs: builder.query<MedicalRepresentative[], { region: PartnerZone; excludeId: string }>({
       query: ({ region, excludeId }) => ({
         tag: 'MedicalReps',
@@ -171,18 +188,22 @@ const medicalRepsApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'MedicalReps', id: 'REPLACEMENT_OPTIONS' }],
     }),
 
-    createMedicalRep: builder.mutation<void, MedicalRepFormValues>({
-      query: (values) => ({
-        tag: 'MedicalReps',
-        url: '/medical-reps',
+    createMedicalRep: builder.mutation<void, MedicalRepApiPayload>({
+      query: (payload) => ({
+        tag: 'MedicalRepDetail',
+        url: '/medical-representatives',
         method: 'POST',
-        data: values,
+        data: payload,
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: [{ type: 'MedicalReps', id: 'LIST' }, { type: 'MedicalReps', id: 'KPIS' }],
+      invalidatesTags: [{ type: 'MedicalReps', id: 'LIST' }],
     }),
 
-    updateMedicalRep: builder.mutation<void, { id: string; values: MedicalRepFormValues }>({
+    // updateMedicalRep/setMedicalRepStatus/deleteMedicalRep: real endpoints
+    // not yet confirmed (unlike create, list, and detail above) — still
+    // pointing at the old placeholder /medical-reps path and resolving as
+    // mock no-ops until the real PUT/PATCH/DELETE shapes are confirmed.
+    updateMedicalRep: builder.mutation<void, { id: string; values: MedicalRepApiPayload }>({
       query: ({ id, values }) => ({
         tag: 'MedicalReps',
         url: `/medical-reps/${id}`,
@@ -193,7 +214,6 @@ const medicalRepsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'MedicalReps', id },
         { type: 'MedicalReps', id: 'LIST' },
-        { type: 'MedicalReps', id: 'KPIS' },
       ],
     }),
 
@@ -208,7 +228,6 @@ const medicalRepsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'MedicalReps', id },
         { type: 'MedicalReps', id: 'LIST' },
-        { type: 'MedicalReps', id: 'KPIS' },
       ],
     }),
 
@@ -223,7 +242,6 @@ const medicalRepsApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'MedicalReps', id },
         { type: 'MedicalReps', id: 'LIST' },
-        { type: 'MedicalReps', id: 'KPIS' },
       ],
     }),
   }),
@@ -233,8 +251,6 @@ export const {
   useGetMedicalRepsQuery,
   useGetMedicalRepDetailQuery,
   useGetMedicalRepOptionsQuery,
-  useGetMedicalRepKpisQuery,
-  useGetMedicalRepFormOptionsQuery,
   useGetReplacementMrsQuery,
   useLazyGetReplacementMrsQuery,
   useCreateMedicalRepMutation,

@@ -15,7 +15,7 @@ import {
 
 function GlobalRegionTopbar() {
   const location = useLocation()
-  const { region, setRegion, dateRange, setDateRange, header } =
+  const { region, setRegionSelection, dateRange, setDateRange, header } =
     useRegionFilter()
 
   const routeEntry = findRouteEntry(location.pathname)
@@ -29,7 +29,7 @@ function GlobalRegionTopbar() {
       subtitle={header.subtitle}
       live={header.live}
       region={region}
-      onRegionChange={setRegion}
+      onRegionChange={setRegionSelection}
       hideRegionSelector={routeEntry.hideRegionSelector}
       dateRange={dateRange}
       onDateRangeChange={setDateRange}

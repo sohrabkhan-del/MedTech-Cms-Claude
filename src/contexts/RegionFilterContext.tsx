@@ -7,6 +7,13 @@ import {
 } from 'react'
 import type { DateRange } from '@/components/common/DateRangeFilter/DateRangeFilter'
 
+export interface RegionOption {
+  id: string
+  code: string
+  name: string
+  isActive: boolean
+}
+
 export interface RegionTopbarHeader {
   icon: ReactNode
   title: string
@@ -17,7 +24,9 @@ export interface RegionTopbarHeader {
 
 interface RegionFilterContextValue {
   region: string
+  regionId: string | null
   setRegion: (region: string) => void
+  setRegionSelection: (region: RegionOption) => void
   dateRange: DateRange
   setDateRange: (range: DateRange) => void
   header: RegionTopbarHeader | null
@@ -30,6 +39,9 @@ const RegionFilterContext = createContext<RegionFilterContextValue | undefined>(
 
 export function RegionFilterProvider({ children }: { children: ReactNode }) {
   const [region, setRegion] = useState('All India')
+  const [regionId, setRegionId] = useState<string | null>(
+    '86709472-1e05-4c9d-9c91-7e7ce5c037d2',
+  )
   const [dateRange, setDateRange] = useState<DateRange>({
     from: null,
     to: null,
@@ -37,9 +49,23 @@ export function RegionFilterProvider({ children }: { children: ReactNode }) {
   })
   const [header, setHeader] = useState<RegionTopbarHeader | null>(null)
 
+  const setRegionSelection = (nextRegion: RegionOption) => {
+    setRegion(nextRegion.name)
+    setRegionId(nextRegion.id)
+  }
+
   const value = useMemo(
-    () => ({ region, setRegion, dateRange, setDateRange, header, setHeader }),
-    [region, dateRange, header],
+    () => ({
+      region,
+      regionId,
+      setRegion,
+      setRegionSelection,
+      dateRange,
+      setDateRange,
+      header,
+      setHeader,
+    }),
+    [region, regionId, dateRange, header],
   )
 
   return (

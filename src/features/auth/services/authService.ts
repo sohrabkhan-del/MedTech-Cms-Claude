@@ -1,4 +1,6 @@
+import { apiClient } from '@/services/apiClient'
 import { findMockAccount } from '@/features/auth/mockAuthUsers'
+import type { AuthUser, UserRole } from '@/types/auth'
 import type {
   FirstLoginResetRequest,
   FirstLoginResetResponse,
@@ -14,29 +16,136 @@ import type {
   VerifyResetOtpResponse,
 } from '@/features/auth/types/auth.types'
 
-// TODO: swap these mock-backed implementations for apiClient calls once the
-// real auth API is available. Function signatures are designed to stay the same.
+interface ApiResponse<T> {
+  success: boolean
+  data: T
+  message?: string
+}
+
+interface AdminLoginData {
+  accessToken: string
+  refreshToken: string
+}
+
+interface AdminProfileData {
+  id: string
+  email: string
+  country?: string | null
+  phone?: string | null
+  firstName?: string | null
+  lastName?: string | null
+  profileImageUrl?: string | null
+  role: string
+  status?: string
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
+  region?: string | null
+}
+
+interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+  confirmPassword: string
+}
+
+function mapRole(role: string): UserRole {
+  const normalized = role.toLowerCase()
+
+  if (normalized === 'super_admin') return 'super_admin'
+  if (normalized === 'warehouse_team') return 'warehouse_team'
+  if (normalized === 'mr') return 'mr'
+  if (normalized === 'auditor') return 'auditor'
+  return 'admin'
+}
+
+function mapAdminProfile(profile: AdminProfileData): AuthUser {
+  const firstName = profile.firstName?.trim() ?? ''
+  const lastName = profile.lastName?.trim() ?? ''
+  const name = [firstName, lastName].filter(Boolean).join(' ') || profile.email
+
+  return {
+    id: profile.id,
+    name,
+    email: profile.email,
+    role: mapRole(profile.role),
+    avatarInitial: name.charAt(0).toUpperCase(),
+    avatarUrl: profile.profileImageUrl ?? undefined,
+    phone: profile.phone
+      ? `${profile.country ?? ''}${profile.phone}`
+      : undefined,
+    location: profile.region ?? undefined,
+  }
+}
 
 function mockToken(email: string, kind: 'access' | 'refresh'): string {
   return `mock-${kind}-token.${btoa(email)}.${Date.now()}`
 }
 
 async function login(payload: LoginRequest): Promise<LoginResponse> {
-  const account = findMockAccount(payload.email)
+  console.info('[auth] login request', { email: payload.email })
 
-  if (!account || account.password !== payload.password) {
-    throw new Error('Invalid email or password')
-  }
+  const loginResponse = await apiClient.post<ApiResponse<AdminLoginData>>(
+    '/admins/login',
+    payload,
+  )
+  const { accessToken, refreshToken } = loginResponse.data.data
+
+  console.info('[auth] login response', {
+    success: loginResponse.data.success,
+    hasAccessToken: Boolean(accessToken),
+    hasRefreshToken: Boolean(refreshToken),
+  })
+
+  const profileResponse = await apiClient.get<ApiResponse<AdminProfileData>>(
+    '/admins/me',
+    {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    },
+  )
+
+  console.info('[auth] profile response', profileResponse.data.data)
 
   return {
     isFirstLogin: false,
-    token: mockToken(payload.email, 'access'),
-    refreshToken: mockToken(payload.email, 'refresh'),
-    user: account.user,
+    token: accessToken,
+    refreshToken,
+    user: mapAdminProfile(profileResponse.data.data),
   }
 }
 
-async function verifyOtp(payload: VerifyOtpRequest): Promise<VerifyOtpResponse> {
+async function getMe(): Promise<AuthUser> {
+  console.info('[auth] me request')
+  const response =
+    await apiClient.get<ApiResponse<AdminProfileData>>('/admins/me')
+  console.info('[auth] me response', response.data.data)
+  return mapAdminProfile(response.data.data)
+}
+
+async function changePassword(
+  payload: ChangePasswordRequest,
+  accessToken?: string,
+): Promise<{ success: true }> {
+  console.info('[auth] change-password request')
+  const response = await apiClient.post<ApiResponse<unknown>>(
+    '/admins/change-password',
+    payload,
+    {
+      headers: accessToken
+        ? {
+            Authorization: `Bearer ${accessToken}`,
+          }
+        : undefined,
+    },
+  )
+  console.info('[auth] change-password response', response.data)
+  return { success: true }
+}
+
+async function verifyOtp(
+  payload: VerifyOtpRequest,
+): Promise<VerifyOtpResponse> {
   const account = findMockAccount(payload.email)
 
   if (!account) {
@@ -50,25 +159,39 @@ async function verifyOtp(payload: VerifyOtpRequest): Promise<VerifyOtpResponse> 
   }
 }
 
-async function firstLoginReset(payload: FirstLoginResetRequest): Promise<FirstLoginResetResponse> {
-  const account = findMockAccount(payload.email)
+async function firstLoginReset(
+  payload: FirstLoginResetRequest,
+): Promise<FirstLoginResetResponse> {
+  const session = await login({
+    email: payload.email,
+    password: payload.tempPassword,
+  })
 
-  if (!account) {
-    throw new Error('Account not found')
+  if (!session.token) {
+    throw new Error('Login response is missing access token.')
   }
 
-  return {
-    token: mockToken(payload.email, 'access'),
-    refreshToken: mockToken(payload.email, 'refresh'),
-    user: account.user,
-  }
+  await changePassword(
+    {
+      currentPassword: payload.tempPassword,
+      newPassword: payload.newPassword,
+      confirmPassword: payload.newPassword,
+    },
+    session.token,
+  )
+  return login({
+    email: payload.email,
+    password: payload.newPassword,
+  }) as Promise<FirstLoginResetResponse>
 }
 
 async function logout(): Promise<void> {
   return Promise.resolve()
 }
 
-async function forgotPassword(payload: ForgotPasswordRequest): Promise<ForgotPasswordResponse> {
+async function forgotPassword(
+  payload: ForgotPasswordRequest,
+): Promise<ForgotPasswordResponse> {
   const account = findMockAccount(payload.email)
 
   if (!account) {
@@ -78,7 +201,9 @@ async function forgotPassword(payload: ForgotPasswordRequest): Promise<ForgotPas
   return { email: payload.email }
 }
 
-async function verifyResetOtp(payload: VerifyResetOtpRequest): Promise<VerifyResetOtpResponse> {
+async function verifyResetOtp(
+  payload: VerifyResetOtpRequest,
+): Promise<VerifyResetOtpResponse> {
   const account = findMockAccount(payload.email)
 
   if (!account) {
@@ -92,7 +217,9 @@ async function verifyResetOtp(payload: VerifyResetOtpRequest): Promise<VerifyRes
   return { resetToken: mockToken(payload.email, 'access') }
 }
 
-async function resetPassword(payload: ResetPasswordRequest): Promise<ResetPasswordResponse> {
+async function resetPassword(
+  payload: ResetPasswordRequest,
+): Promise<ResetPasswordResponse> {
   const account = findMockAccount(payload.email)
 
   if (!account) {
@@ -104,6 +231,8 @@ async function resetPassword(payload: ResetPasswordRequest): Promise<ResetPasswo
 
 export const authService = {
   login,
+  getMe,
+  changePassword,
   verifyOtp,
   firstLoginReset,
   logout,

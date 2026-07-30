@@ -23,9 +23,12 @@ import { NotificationsWidget } from '@/features/dashboard/components/Notificatio
 import { useDashboardOverview } from '@/features/dashboard/hooks/useDashboardOverview'
 import { useDashboardWidgetsData } from '@/features/dashboard/hooks/useDashboardWidgetsData'
 import { SchemePerformanceChart } from '@/features/dashboard/components/SchemePerformanceChart'
+import { useAppSelector } from '@/app/store/hooks'
+import { selectCurrentUser } from '@/features/auth/slices/authSelectors'
 
 export function DashboardPage() {
   const navigate = useNavigate()
+  const currentUser = useAppSelector(selectCurrentUser)
   const { overview, isLoading: overviewLoading } = useDashboardOverview()
   const { data: widgets, isLoading: widgetsLoading } = useDashboardWidgetsData()
   useRegionTopbarHeader({
@@ -49,7 +52,7 @@ export function DashboardPage() {
   return (
     <>
       <WelcomeBanner
-        userName="Irfan"
+        userName={currentUser?.name ?? 'Admin'}
         statValue="1,284"
         statLabel="Scans today"
         onPrimaryAction={() => navigate('/reports/scan-reports')}

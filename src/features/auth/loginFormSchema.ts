@@ -7,8 +7,7 @@ export const loginFormSchema = z.object({
 
 export type LoginFormValues = z.infer<typeof loginFormSchema>
 
-// TODO: remove prefilled dev credentials once a real backend/login API is wired up.
 export const loginFormDefaults: LoginFormValues = {
-  email: 'superadmin@medtech.in',
-  password: 'test@123',
+  email: '',
+  password: '',
 }

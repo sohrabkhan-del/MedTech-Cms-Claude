@@ -1,4 +1,10 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { Box, Chip, MenuItem, Select, Stack, Typography } from '@mui/material'
 import { CircleCheck } from 'lucide-react'
 import {
@@ -7,8 +13,8 @@ import {
 } from '@/components/common/DateRangeFilter/DateRangeFilter'
 import { useIsMobile } from '@/hooks/useMediaQueryBreakPoint'
 import { radius, transitions } from '@/theme/tokens'
-
-const REGIONS = ['All India', 'North', 'South', 'East', 'West']
+import type { RegionOption } from '@/contexts/RegionFilterContext'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
 
 interface RegionTopbarProps {
   icon: ReactNode
@@ -16,7 +22,7 @@ interface RegionTopbarProps {
   subtitle?: string
   live?: boolean
   region: string
-  onRegionChange: (region: string) => void
+  onRegionChange: (region: RegionOption) => void
   /** Hides the region (All India/North/South/East/West) selector for pages where it doesn't apply. */
   hideRegionSelector?: boolean
   dateRange: DateRange
@@ -37,7 +43,27 @@ export function RegionTopbar({
   const isMobile = useIsMobile()
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
   const [indicator, setIndicator] = useState({ left: 0, width: 0 })
-  const activeIndex = REGIONS.indexOf(region)
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const activeIndex = Math.max(
+    regions.findIndex((option) => option.name === region),
+    0,
+  )
+
+  useEffect(() => {
+    let ignore = false
+
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+
+    return () => {
+      ignore = true
+    }
+  }, [])
 
   useLayoutEffect(() => {
     const updateIndicator = () => {
@@ -162,7 +188,12 @@ export function RegionTopbar({
         {hideRegionSelector ? null : isMobile ? (
           <Select
             value={region}
-            onChange={(e) => onRegionChange(e.target.value)}
+            onChange={(e) => {
+              const selected = regions.find(
+                (option) => option.name === e.target.value,
+              )
+              if (selected) onRegionChange(selected)
+            }}
             size="small"
             renderValue={(value) => (
               <Stack
@@ -184,14 +215,14 @@ export function RegionTopbar({
               '& .MuiOutlinedInput-notchedOutline': { border: 'none' },
             }}
           >
-            {REGIONS.map((r) => (
+            {regions.map((r) => (
               <MenuItem
-                key={r}
-                value={r}
+                key={r.id}
+                value={r.name}
                 sx={{ fontSize: '0.8125rem', gap: 1 }}
               >
-                {r === region && <CircleCheck size={14} />}
-                {r}
+                {r.name === region && <CircleCheck size={14} />}
+                {r.name}
               </MenuItem>
             ))}
           </Select>
@@ -221,11 +252,11 @@ export function RegionTopbar({
                 zIndex: 0,
               }}
             />
-            {REGIONS.map((r, index) => {
-              const active = r === region
+            {regions.map((r, index) => {
+              const active = r.name === region
               return (
                 <Box
-                  key={r}
+                  key={r.id}
                   component="button"
                   type="button"
                   ref={(el: HTMLButtonElement | null) => {
@@ -252,7 +283,7 @@ export function RegionTopbar({
                     transition: `color ${transitions.base}`,
                   }}
                 >
-                  {r}
+                  {r.name}
                 </Box>
               )
             })}

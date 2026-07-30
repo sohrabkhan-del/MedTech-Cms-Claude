@@ -85,10 +85,13 @@ export type FeatureTag = (typeof tagTypes)[number]
  *     Chemists: 'real',
  *   }
  */
-const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {}
+const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
+  Chemists: 'real',
+}
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {
-  if (tag && featureModeOverrides[tag]) return featureModeOverrides[tag] as 'mock' | 'real'
+  if (tag && featureModeOverrides[tag])
+    return featureModeOverrides[tag] as 'mock' | 'real'
   const globalFlag = import.meta.env.VITE_USE_MOCKS
   return globalFlag === 'false' ? 'real' : 'mock'
 }
@@ -122,7 +125,11 @@ export interface MockOrRealError {
  * intentionally simple — it only needs to support GET-like queries and
  * simple mutations, matching what the mock services already do.
  */
-export const mockOrRealBaseQuery: BaseQueryFn<MockOrRealArgs, unknown, MockOrRealError> = async (args) => {
+export const mockOrRealBaseQuery: BaseQueryFn<
+  MockOrRealArgs,
+  unknown,
+  MockOrRealError
+> = async (args) => {
   const mode = resolveMode(args.tag)
 
   if (mode === 'mock') {

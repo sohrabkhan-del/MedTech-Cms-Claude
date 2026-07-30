@@ -27,30 +27,41 @@ import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useChemists } from '@/features/userManagement/hooks/useChemists'
 import type { Chemist } from '@/types/chemist'
-import type { PartnerZone, PartnerStatus } from '@/types/partner'
+import type { PartnerStatus } from '@/types/partner'
 
 interface ChemistFilters extends Record<string, unknown> {
-  zone: PartnerZone | 'all'
   status: PartnerStatus | 'all'
+  territoryId: string
+  assignedMedicalRepresentativeId: string
 }
 
 export function ChemistListPage() {
   const navigate = useNavigate()
-  const { region } = useRegionFilter()
-  const { chemists, kpis, isLoading } = useChemists()
+  const { regionId } = useRegionFilter()
+  const [search, setSearch] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<ChemistFilters>({
+    status: 'all',
+    territoryId: '',
+    assignedMedicalRepresentativeId: '',
+  })
+  const { chemists, kpis, isLoading } = useChemists({
+    page: 1,
+    limit: 10,
+    search,
+    status: appliedFilters.status,
+    regionId: regionId ?? undefined,
+    territoryId: appliedFilters.territoryId,
+    assignedMedicalRepresentativeId:
+      appliedFilters.assignedMedicalRepresentativeId,
+    sortOrder: 'desc',
+  })
   useRegionTopbarHeader({
     icon: <LocalPharmacyIcon size={20} />,
     title: 'Chemists',
     subtitle: 'Registered chemist partners with geo-tagged shops.',
     isLoading,
   })
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<ChemistFilters>({
-    zone: 'all',
-    status: 'all',
-  })
-
-  const regionZone = region === 'All India' ? null : (region as PartnerZone)
 
   const chemistKpis = kpis ?? {
     totalChemists: 0,
@@ -58,16 +69,6 @@ export function ChemistListPage() {
     inactiveChemists: 0,
     pendingApproval: 0,
   }
-
-  const filteredChemists = chemists.filter((chemist) => {
-    const regionMatch = !regionZone || chemist.zone === regionZone
-    const zoneMatch =
-      appliedFilters.zone === 'all' || chemist.zone === appliedFilters.zone
-    const statusMatch =
-      appliedFilters.status === 'all' ||
-      chemist.status === appliedFilters.status
-    return regionMatch && zoneMatch && statusMatch
-  })
 
   const columns: CommonTableColumn<Chemist>[] = [
     {
@@ -237,19 +238,20 @@ export function ChemistListPage() {
       </Grid>
 
       <CommonTable
+        key={`${regionId ?? 'all'}-${search}-${appliedFilters.status}-${appliedFilters.territoryId}-${appliedFilters.assignedMedicalRepresentativeId}`}
         tableKey="chemists-list"
         columns={columns}
-        rows={filteredChemists}
+        rows={chemists}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search chemists…"
-        searchKeys={(row) =>
-          `${row.shopName} ${row.ownerName} ${row.email} ${row.city}`
-        }
+        searchValue={search}
+        onSearchChange={setSearch}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          (appliedFilters.zone !== 'all' ? 1 : 0) +
-          (appliedFilters.status !== 'all' ? 1 : 0)
+          (appliedFilters.status !== 'all' ? 1 : 0) +
+          (appliedFilters.territoryId.trim() ? 1 : 0) +
+          (appliedFilters.assignedMedicalRepresentativeId.trim() ? 1 : 0)
         }
         onExportClick={() => {}}
         onImportClick={() => {}}
@@ -281,23 +283,27 @@ export function ChemistListPage() {
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <TextField
-              select
-              label="Zone"
-              value={draft.zone}
+              label="Territory ID"
+              value={draft.territoryId}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  zone: e.target.value as PartnerZone | 'all',
+                  territoryId: e.target.value,
                 }))
               }
               fullWidth
-            >
-              <MenuItem value="all">All Zones</MenuItem>
-              <MenuItem value="North">North</MenuItem>
-              <MenuItem value="South">South</MenuItem>
-              <MenuItem value="East">East</MenuItem>
-              <MenuItem value="West">West</MenuItem>
-            </TextField>
+            />
+            <TextField
+              label="Assigned MR ID"
+              value={draft.assignedMedicalRepresentativeId}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  assignedMedicalRepresentativeId: e.target.value,
+                }))
+              }
+              fullWidth
+            />
             <TextField
               select
               label="Status"

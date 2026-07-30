@@ -81,6 +81,8 @@ interface CommonTableProps<T> {
   getRowId: (row: T) => string
   loading?: boolean
   searchPlaceholder?: string
+  searchValue?: string
+  onSearchChange?: (value: string) => void
   searchKeys?: (row: T) => string
   actions?: CommonTableAction<T>[]
   onFilterClick?: () => void
@@ -106,6 +108,8 @@ export function CommonTable<T>({
   getRowId,
   loading = false,
   searchPlaceholder = 'Search…',
+  searchValue,
+  onSearchChange,
   searchKeys,
   actions,
   onFilterClick,
@@ -122,6 +126,7 @@ export function CommonTable<T>({
 }: CommonTableProps<T>) {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const activeSearch = searchValue ?? search
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0] ?? 10)
   const [sortBy, setSortBy] = useState<string | undefined>(defaultSortBy)
@@ -149,10 +154,10 @@ export function CommonTable<T>({
   )
 
   const filteredRows = useMemo(() => {
-    if (!search || !searchKeys) return rows
-    const query = search.toLowerCase()
+    if (!activeSearch || !searchKeys) return rows
+    const query = activeSearch.toLowerCase()
     return rows.filter((row) => searchKeys(row).toLowerCase().includes(query))
-  }, [rows, search, searchKeys])
+  }, [rows, activeSearch, searchKeys])
 
   const sortedRows = useMemo(() => {
     if (!sortBy) return filteredRows
@@ -253,9 +258,14 @@ export function CommonTable<T>({
         <TextField
           size="small"
           placeholder={searchPlaceholder}
-          value={search}
+          value={activeSearch}
           onChange={(e) => {
-            setSearch(e.target.value)
+            const nextSearch = e.target.value
+            if (onSearchChange) {
+              onSearchChange(nextSearch)
+            } else {
+              setSearch(nextSearch)
+            }
             setPage(0)
           }}
           sx={{

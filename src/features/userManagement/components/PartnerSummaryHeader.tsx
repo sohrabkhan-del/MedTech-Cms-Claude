@@ -1,7 +1,12 @@
 import { Avatar, Button, Card, Grid, Stack, Typography } from '@mui/material'
 import { CircleCheck, Ban } from 'lucide-react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
+import { useGetMedicalRepDetailQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import type { PartnerBase } from '@/types/partner'
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface PartnerSummaryHeaderProps {
   partner: PartnerBase
@@ -17,6 +22,13 @@ export function PartnerSummaryHeader({
   onDeactivate,
 }: PartnerSummaryHeaderProps) {
   const isActive = partner.status === 'active'
+  const assignedMrIsId = UUID_PATTERN.test(partner.assignedMr)
+  const { data: assignedMrDetail } = useGetMedicalRepDetailQuery(
+    assignedMrIsId ? partner.assignedMr : skipToken,
+  )
+  const assignedMrLabel = assignedMrIsId
+    ? (assignedMrDetail?.name ?? '—')
+    : partner.assignedMr
 
   return (
     <Card sx={{ p: 3, mb: 3 }}>
@@ -48,7 +60,6 @@ export function PartnerSummaryHeader({
               </Typography>
               <StatusBadge status={partner.status} />
             </Stack>
-            <Typography variant="caption">ID: {partner.id}</Typography>
 
             <Grid container spacing={2} sx={{ mt: 0.5 }}>
               <Grid size={{ xs: 6, sm: 4 }}>
@@ -80,7 +91,7 @@ export function PartnerSummaryHeader({
                   Assigned MR
                 </Typography>
                 <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                  {partner.assignedMr}
+                  {assignedMrLabel}
                 </Typography>
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>

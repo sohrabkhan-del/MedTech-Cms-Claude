@@ -5,7 +5,7 @@ export const medicalRepFormSchema = z.object({
   email: z.string().email('Enter a valid email address'),
   phone: z.string().min(10, 'Enter a valid phone number'),
   region: z.enum(['North', 'South', 'East', 'West']),
-  status: z.enum(['active', 'pending', 'inactive']),
+  status: z.enum(['active', 'pending', 'inactive', 'suspended']),
   notes: z.string().optional(),
 })
 

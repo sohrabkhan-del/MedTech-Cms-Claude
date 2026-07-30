@@ -1,20 +1,46 @@
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useFieldArray, useForm } from 'react-hook-form'
-import { Box, Button, Card, Grid, IconButton, MenuItem, Stack, Tooltip, Typography } from '@mui/material'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
+import {
+  Autocomplete,
+  Box,
+  Button,
+  Card,
+  CircularProgress,
+  Grid,
+  IconButton,
+  MenuItem,
+  Stack,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material'
 import { MapPin as PlaceOutlinedIcon, Plus, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { useToast } from '@/contexts/ToastContext'
 import { radius } from '@/theme/tokens'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
+import {
+  getStateNames,
+  getDistrictsForState,
+  getCitiesForDistrict,
+} from '@/constants/indiaLocations'
 import {
   chemistFormDefaults,
   chemistFormSchema,
+  toChemistApiPayload,
   type ChemistFormValues,
 } from '@/features/userManagement/chemistFormSchema'
-import { getChemistById } from '@/features/userManagement/mockChemists'
-import { mrs } from '@/features/userManagement/mockPartnerData'
-
-const zones: ChemistFormValues['zone'][] = ['North', 'South', 'East', 'West']
+import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
+import {
+  useCreateChemistMutation,
+  useUpdateChemistMutation,
+} from '@/features/userManagement/services/chemistApi'
+import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -51,37 +77,97 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 
 export function ChemistFormPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { chemistId } = useParams<{ chemistId: string }>()
   const isEdit = !!chemistId
-  const chemist = isEdit ? getChemistById(chemistId) : undefined
+  const { chemist, isLoading: isChemistLoading } = useChemistDetail(chemistId)
+  const [createChemist, { isLoading: isCreating }] = useCreateChemistMutation()
+  const [updateChemist, { isLoading: isUpdating }] = useUpdateChemistMutation()
+  const [regions, setRegions] = useState<RegionOption[]>(
+    fallbackRegions.filter((region) => region.code !== 'ALL_INDIA'),
+  )
+  const { data: mrOptions = [], isFetching: isMrOptionsLoading } = useGetMedicalRepOptionsQuery()
+  const isSubmitting = isCreating || isUpdating
 
-  const { control, handleSubmit } = useForm<ChemistFormValues>({
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        const regionsOnly = options.filter((region) => region.code !== 'ALL_INDIA')
+        if (!ignore && regionsOnly.length > 0) setRegions(regionsOnly)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const { control, handleSubmit, reset, watch, setValue } = useForm<ChemistFormValues>({
     resolver: zodResolver(chemistFormSchema),
-    defaultValues: chemist
-      ? {
-          shopName: chemist.shopName,
-          ownerName: chemist.ownerName,
-          phone: chemist.phone,
-          email: chemist.email,
-          licenseNumber: chemist.licenseNumber,
-          city: chemist.city,
-          zone: chemist.zone,
-          locations: [
-            {
-              address: chemist.registeredAddress,
-              latitude: String(chemist.geoLock.latitude),
-              longitude: String(chemist.geoLock.longitude),
-              scanRadius: String(chemist.geoLock.allowedRadiusMeters),
-              bufferRadius: String(chemist.geoLock.bufferRadiusMeters),
-            },
-          ],
-          assignedMr: chemist.assignedMr,
-          notes: chemist.notes ?? '',
-        }
-      : chemistFormDefaults,
+    defaultValues: chemistFormDefaults,
   })
 
   const { fields, append, remove } = useFieldArray({ control, name: 'locations' })
+
+  const selectedState = watch('state')
+  const selectedDistrict = watch('district')
+  const stateOptions = useMemo(() => getStateNames(), [])
+  const districtOptions = useMemo(
+    () => (selectedState ? getDistrictsForState(selectedState) : []),
+    [selectedState],
+  )
+  const cityOptions = useMemo(
+    () =>
+      selectedState && selectedDistrict
+        ? getCitiesForDistrict(selectedState, selectedDistrict)
+        : [],
+    [selectedState, selectedDistrict],
+  )
+
+  useEffect(() => {
+    if (!isEdit || !chemist) return
+    reset({
+      businessName: chemist.shopName,
+      ownerFirstName: chemist.ownerName.split(' ')[0] ?? '',
+      ownerLastName: chemist.ownerName.split(' ').slice(1).join(' '),
+      email: chemist.email,
+      phone: chemist.phone,
+      country: '91',
+      gstNumber: chemist.licenseNumber,
+      panNumber: '',
+      drugLicenseNumber: '',
+      drugLicenseExpiry: '',
+      addressLine1: chemist.registeredAddress,
+      addressLine2: '',
+      landmark: '',
+      city: chemist.city,
+      district: '',
+      state: '',
+      pincode: '',
+      regionId: '',
+      assignedMedicalRepresentativeId: chemist.assignedMr,
+      locations: [
+        {
+          address: chemist.registeredAddress,
+          latitude: String(chemist.geoLock.latitude),
+          longitude: String(chemist.geoLock.longitude),
+          scanRadius: String(chemist.geoLock.allowedRadiusMeters),
+          bufferRadius: String(chemist.geoLock.bufferRadiusMeters),
+        },
+      ],
+      notes: chemist.notes ?? '',
+    })
+  }, [isEdit, chemist, reset])
+
+  if (isEdit && isChemistLoading) {
+    return (
+      <Stack sx={{ alignItems: 'center', py: 8 }}>
+        <CircularProgress />
+      </Stack>
+    )
+  }
 
   if (isEdit && !chemist) {
     return (
@@ -96,8 +182,25 @@ export function ChemistFormPage() {
 
   const backTo = isEdit ? `/partners/chemists/${chemistId}` : '/partners/chemists'
 
-  const submit = handleSubmit(() => {
-    navigate(backTo)
+  const submit = handleSubmit(async (values) => {
+    const payload = toChemistApiPayload(values)
+    try {
+      if (isEdit && chemistId) {
+        await updateChemist({ id: chemistId, payload }).unwrap()
+        toast.success('Chemist updated successfully.')
+      } else {
+        await createChemist(payload).unwrap()
+        toast.success('Chemist created successfully.')
+      }
+      navigate(backTo)
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          isEdit ? 'Failed to update chemist.' : 'Failed to create chemist.',
+        ),
+      )
+    }
   })
 
   return (
@@ -111,16 +214,20 @@ export function ChemistFormPage() {
           <Typography sx={sectionTitleSx}>Basic Details</Typography>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Chemist Shop Name</FieldLabel>
-              <FormField name="shopName" control={control} placeholder="e.g. Shree Medical Store" {...fieldLabelProps} />
+              <FieldLabel required>Business / Shop Name</FieldLabel>
+              <FormField name="businessName" control={control} placeholder="e.g. Shree Medical Store" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Owner Name</FieldLabel>
-              <FormField name="ownerName" control={control} placeholder="Full name" {...fieldLabelProps} />
+              <FieldLabel required>Owner First Name</FieldLabel>
+              <FormField name="ownerFirstName" control={control} placeholder="First name" {...fieldLabelProps} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>Owner Last Name</FieldLabel>
+              <FormField name="ownerLastName" control={control} placeholder="Last name" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Contact Number</FieldLabel>
-              <FormField name="phone" control={control} placeholder="98xxx xxxxx" {...fieldLabelProps} />
+              <FormField name="phone" control={control} placeholder="98xxx xxxxx" numeric {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Email</FieldLabel>
@@ -132,23 +239,126 @@ export function ChemistFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>City</FieldLabel>
-              <FormField name="city" control={control} placeholder="e.g. Mumbai" {...fieldLabelProps} />
+          </Grid>
+        </Card>
+
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Typography sx={sectionTitleSx}>Licensing</Typography>
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>GST Number</FieldLabel>
+              <FormField name="gstNumber" control={control} placeholder="e.g. 27ABCDE1234F1Z5" uppercase {...fieldLabelProps} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Region</FieldLabel>
-              <FormField name="zone" control={control} select {...fieldLabelProps}>
-                {zones.map((zone) => (
-                  <MenuItem key={zone} value={zone}>
-                    {zone}
-                  </MenuItem>
-                ))}
-              </FormField>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>PAN Number</FieldLabel>
+              <FormField name="panNumber" control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Drug License Number</FieldLabel>
+              <FormField name="drugLicenseNumber" control={control} placeholder="e.g. MH/MUM/DRUG/2026/45879" {...fieldLabelProps} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Drug License Expiry</FieldLabel>
+              <FormField name="drugLicenseExpiry" control={control} type="date" {...fieldLabelProps} />
+            </Grid>
+          </Grid>
+        </Card>
+
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Typography sx={sectionTitleSx}>Registered Address</Typography>
+          <Grid container spacing={2.5}>
+            <Grid size={12}>
+              <FieldLabel required>Address Line 1</FieldLabel>
+              <FormField name="addressLine1" control={control} placeholder="Shop no., building, street" {...fieldLabelProps} />
             </Grid>
             <Grid size={12}>
-              <FieldLabel required>GSTN Number</FieldLabel>
-              <FormField name="licenseNumber" control={control} placeholder="e.g. 22AAAAA0000A1Z5" {...fieldLabelProps} />
+              <FieldLabel>Address Line 2</FieldLabel>
+              <FormField name="addressLine2" control={control} placeholder="Area, locality" {...fieldLabelProps} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel>Landmark</FieldLabel>
+              <FormField name="landmark" control={control} placeholder="e.g. Near Metro Station" {...fieldLabelProps} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>State</FieldLabel>
+              <Controller
+                name="state"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Autocomplete
+                    options={stateOptions}
+                    value={field.value || null}
+                    onChange={(_, selected) => {
+                      field.onChange(selected ?? '')
+                      setValue('district', '')
+                      setValue('city', '')
+                    }}
+                    size="small"
+                    renderInput={(params) => (
+                      <TextField {...params} placeholder="Select state" error={!!fieldState.error} helperText={fieldState.error?.message} />
+                    )}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>District</FieldLabel>
+              <Controller
+                name="district"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Autocomplete
+                    options={districtOptions}
+                    value={field.value || null}
+                    onChange={(_, selected) => {
+                      field.onChange(selected ?? '')
+                      setValue('city', '')
+                    }}
+                    disabled={!selectedState}
+                    size="small"
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder={selectedState ? 'Select district' : 'Select a state first'}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>City</FieldLabel>
+              <Controller
+                name="city"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Autocomplete
+                    freeSolo
+                    options={cityOptions}
+                    value={field.value || null}
+                    onChange={(_, selected) => field.onChange(selected ?? '')}
+                    onInputChange={(_, inputValue, reason) => {
+                      if (reason === 'input') field.onChange(inputValue)
+                    }}
+                    disabled={!selectedDistrict}
+                    size="small"
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder={selectedDistrict ? 'Select or type a city' : 'Select a district first'}
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Pincode</FieldLabel>
+              <FormField name="pincode" control={control} placeholder="e.g. 400086" numeric {...fieldLabelProps} />
             </Grid>
           </Grid>
         </Card>
@@ -234,18 +444,46 @@ export function ChemistFormPage() {
         <Card sx={{ p: 3, mb: 3 }}>
           <Typography sx={sectionTitleSx}>Assignment</Typography>
           <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel>Assign to MR</FieldLabel>
-              <FormField name="assignedMr" control={control} select {...fieldLabelProps}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>Region</FieldLabel>
+              <FormField name="regionId" control={control} select {...fieldLabelProps}>
                 <MenuItem value="">
-                  <em>Select an MR</em>
+                  <em>Select a region</em>
                 </MenuItem>
-                {mrs.map((mr) => (
-                  <MenuItem key={mr} value={mr}>
-                    {mr}
+                {regions.map((region) => (
+                  <MenuItem key={region.id} value={region.id}>
+                    {region.name}
                   </MenuItem>
                 ))}
               </FormField>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 8 }}>
+              <FieldLabel required>Assigned MR</FieldLabel>
+              <Controller
+                name="assignedMedicalRepresentativeId"
+                control={control}
+                render={({ field, fieldState }) => (
+                  <Autocomplete
+                    options={mrOptions}
+                    loading={isMrOptionsLoading}
+                    getOptionLabel={(option) =>
+                      option.employeeCode ? `${option.name} (${option.employeeCode})` : option.name
+                    }
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    value={mrOptions.find((mr) => mr.id === field.value) ?? null}
+                    onChange={(_, selected) => field.onChange(selected?.id ?? '')}
+                    size="small"
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        placeholder="Search medical representatives…"
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                      />
+                    )}
+                  />
+                )}
+              />
             </Grid>
             <Grid size={12}>
               <FieldLabel>Notes</FieldLabel>
@@ -259,10 +497,10 @@ export function ChemistFormPage() {
           spacing={1.5}
           sx={{ width: '100%', justifyContent: 'flex-end' }}
         >
-          <Button type="submit" variant="contained">
-            {isEdit ? 'Save Changes' : 'Create Chemist'}
+          <Button type="submit" variant="contained" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Chemist'}
           </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)}>
+          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)} disabled={isSubmitting}>
             Cancel
           </Button>
         </Stack>

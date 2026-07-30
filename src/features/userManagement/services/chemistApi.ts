@@ -8,6 +8,7 @@ import type {
   Chemist,
   ChemistKpis,
 } from '@/features/userManagement/types/userManagement.types'
+import type { ChemistApiPayload } from '@/features/userManagement/chemistFormSchema'
 import { mockDelay } from '@/services/mockDelay'
 import type { OnboardedBy, PartnerStatus, PartnerZone } from '@/types/partner'
 
@@ -32,6 +33,11 @@ interface PartnerListApiResponse {
     currentPage: number
     pageSize: number
   }
+}
+
+interface PartnerDetailApiResponse {
+  success: boolean
+  data: PartnerChemistItem
 }
 
 interface PartnerChemistItem {
@@ -69,6 +75,7 @@ function mapStatus(status?: string | null, isBlocked?: boolean): PartnerStatus {
   if (isBlocked) return 'inactive'
   if (status === 'ACTIVE') return 'active'
   if (status === 'PENDING_APPROVAL') return 'pending'
+  if (status === 'SUSPENDED') return 'suspended'
   return 'inactive'
 }
 
@@ -126,9 +133,7 @@ function mapPartnerChemist(item: PartnerChemistItem): Chemist {
     shopName: business?.businessName ?? ownerName,
     ownerName,
     email: item.profile.email ?? '-',
-    phone: item.profile.phone
-      ? `${item.profile.country ?? ''}${item.profile.phone}`
-      : '-',
+    phone: item.profile.phone ?? '-',
     city: business?.city ?? '-',
     zone: inferZone(business?.state),
     status: mapStatus(item.profile.status, item.profile.isBlocked),
@@ -161,6 +166,7 @@ function mapStatusParam(status?: string) {
   if (status === 'active') return 'ACTIVE'
   if (status === 'pending') return 'PENDING_APPROVAL'
   if (status === 'inactive') return 'INACTIVE'
+  if (status === 'suspended') return 'SUSPENDED'
   return status
 }
 
@@ -201,9 +207,13 @@ const chemistApi = baseApi.injectEndpoints({
     getChemistDetail: builder.query<Chemist | undefined, string>({
       query: (id) => ({
         tag: 'Chemists',
-        url: `/chemists/${id}`,
+        url: `/partners/${id}`,
         mockResolver: () => mockDelay(getChemistById(id)),
       }),
+      transformResponse: (response: PartnerDetailApiResponse | Chemist | undefined) =>
+        response && 'data' in response
+          ? mapPartnerChemist(response.data)
+          : response,
       providesTags: (_result, _error, id) => [{ type: 'Chemists', id }],
     }),
 
@@ -215,6 +225,63 @@ const chemistApi = baseApi.injectEndpoints({
       }),
       providesTags: [{ type: 'Chemists', id: 'KPIS' }],
     }),
+
+    activateChemist: builder.mutation<void, string>({
+      query: (id) => ({
+        tag: 'Chemists',
+        url: `/partners/${id}/activate`,
+        method: 'PATCH',
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Chemists', id },
+        { type: 'Chemists', id: 'LIST' },
+        { type: 'Chemists', id: 'KPIS' },
+      ],
+    }),
+
+    deactivateChemist: builder.mutation<void, string>({
+      query: (id) => ({
+        tag: 'Chemists',
+        url: `/partners/${id}/deactivate`,
+        method: 'PATCH',
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Chemists', id },
+        { type: 'Chemists', id: 'LIST' },
+        { type: 'Chemists', id: 'KPIS' },
+      ],
+    }),
+
+    createChemist: builder.mutation<void, ChemistApiPayload>({
+      query: (payload) => ({
+        tag: 'Chemists',
+        url: '/partners/create',
+        method: 'POST',
+        data: payload,
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: [
+        { type: 'Chemists', id: 'LIST' },
+        { type: 'Chemists', id: 'KPIS' },
+      ],
+    }),
+
+    updateChemist: builder.mutation<void, { id: string; payload: ChemistApiPayload }>({
+      query: ({ id, payload }) => ({
+        tag: 'Chemists',
+        url: `/partners/${id}`,
+        method: 'PUT',
+        data: payload,
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Chemists', id },
+        { type: 'Chemists', id: 'LIST' },
+        { type: 'Chemists', id: 'KPIS' },
+      ],
+    }),
   }),
 })
 
@@ -222,4 +289,8 @@ export const {
   useGetChemistsQuery,
   useGetChemistDetailQuery,
   useGetChemistKpisQuery,
+  useActivateChemistMutation,
+  useDeactivateChemistMutation,
+  useCreateChemistMutation,
+  useUpdateChemistMutation,
 } = chemistApi

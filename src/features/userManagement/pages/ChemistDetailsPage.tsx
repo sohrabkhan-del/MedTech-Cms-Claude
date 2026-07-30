@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Grid, Stack, Typography } from '@mui/material'
-import { Pill as LocalPharmacyIcon } from 'lucide-react'
+import { Grid, Stack } from '@mui/material'
 import { PartnerSummaryHeader } from '@/features/userManagement/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/userManagement/components/PartnerStatisticsCards'
@@ -20,8 +19,10 @@ import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemp
 export function ChemistDetailsPage() {
   const { chemistId } = useParams<{ chemistId: string }>()
   const navigate = useNavigate()
-  const { chemist, isLoading } = useChemistDetail(chemistId)
-  const { redemptions, isLoading: isRedemptionsLoading } = useUserRedemptions(chemistId)
+  const { chemist, isLoading, activate, deactivate } =
+    useChemistDetail(chemistId)
+  const { redemptions, isLoading: isRedemptionsLoading } =
+    useUserRedemptions(chemistId)
   const [, forceRerender] = useState(0)
 
   if (isLoading) {
@@ -45,41 +46,17 @@ export function ChemistDetailsPage() {
 
   return (
     <Stack spacing={0}>
-      <Stack
-        direction="row"
-        spacing={1.5}
-        sx={{ alignItems: 'center', mb: 2.5 }}
-      >
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'primary.light',
-            color: 'primary.main',
-          }}
-        >
-          <LocalPharmacyIcon size={20} />
-        </Box>
-        <Box>
-          <Typography variant="h1">{chemist.shopName}</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            {chemist.id} · Chemist
-          </Typography>
-        </Box>
-      </Stack>
-
       <PartnerSummaryHeader
         partner={chemist}
         shopLabel="Chemist Shop Name"
-        onActivate={() => forceRerender((n) => n + 1)}
-        onDeactivate={() => forceRerender((n) => n + 1)}
+        onActivate={activate}
+        onDeactivate={deactivate}
       />
 
-      <PartnerDetailsFieldsCard partner={chemist} shopLabel="Chemist Shop Name" />
+      <PartnerDetailsFieldsCard
+        partner={chemist}
+        shopLabel="Chemist Shop Name"
+      />
 
       <PartnerStatisticsCards partner={chemist} />
 

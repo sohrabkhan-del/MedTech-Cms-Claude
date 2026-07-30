@@ -4,17 +4,19 @@ export type BadgeStatus =
   | 'active'
   | 'pending'
   | 'inactive'
+  | 'suspended'
   | 'approved'
   | 'rejected'
   | 'expired'
   | 'upcoming'
 
-const statusConfig: Record<BadgeStatus, { label: string; color: 'success' | 'warning' | 'error' | 'info' }> = {
+const statusConfig: Record<BadgeStatus, { label: string; color: 'success' | 'warning' | 'error' | 'info' | 'default' }> = {
   active: { label: 'Active', color: 'success' },
   approved: { label: 'Approved', color: 'success' },
   pending: { label: 'Pending', color: 'warning' },
   upcoming: { label: 'Upcoming', color: 'info' },
   inactive: { label: 'Inactive', color: 'error' },
+  suspended: { label: 'Suspended', color: 'default' },
   rejected: { label: 'Rejected', color: 'error' },
   expired: { label: 'Expired', color: 'error' },
 }

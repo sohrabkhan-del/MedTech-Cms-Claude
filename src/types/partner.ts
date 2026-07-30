@@ -1,5 +1,5 @@
 export type PartnerZone = 'North' | 'South' | 'East' | 'West'
-export type PartnerStatus = 'active' | 'pending' | 'inactive'
+export type PartnerStatus = 'active' | 'pending' | 'inactive' | 'suspended'
 export type OnboardedBy = 'Self' | 'MR'
 
 export interface GeoLockDetails {

@@ -69,6 +69,7 @@ export const tagTypes = [
   'Schemes',
   'Admins',
   'MedicalReps',
+  'MedicalRepDetail',
   'Chemists',
   'Partners',
   'Verification',
@@ -87,6 +88,7 @@ export type FeatureTag = (typeof tagTypes)[number]
  */
 const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   Chemists: 'real',
+  MedicalRepDetail: 'real',
 }
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {

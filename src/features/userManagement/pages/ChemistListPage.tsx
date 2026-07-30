@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+  Autocomplete,
   Avatar,
-  Chip,
   Grid,
   MenuItem,
   Stack,
@@ -25,36 +25,83 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useChemists } from '@/features/userManagement/hooks/useChemists'
+import {
+  useActivateChemistMutation,
+  useDeactivateChemistMutation,
+} from '@/features/userManagement/services/chemistApi'
+import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
 import type { Chemist } from '@/types/chemist'
 import type { PartnerStatus } from '@/types/partner'
 
 interface ChemistFilters extends Record<string, unknown> {
   status: PartnerStatus | 'all'
-  territoryId: string
   assignedMedicalRepresentativeId: string
+  regionId: string
+}
+
+// Maps CommonTable column keys to the real GET /partners `sortBy` field
+// names. UNVERIFIED against the backend — best-effort guess based on the
+// API's own request/response field names (businessName, ownerFirstName,
+// city, status). `zone` has no backend equivalent (it's inferred
+// client-side from `state`), so it's omitted and not server-sortable.
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  shopName: 'businessName',
+  ownerName: 'ownerFirstName',
+  city: 'city',
+  status: 'status',
 }
 
 export function ChemistListPage() {
   const navigate = useNavigate()
-  const { regionId } = useRegionFilter()
+  const toast = useToast()
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const [activateChemist] = useActivateChemistMutation()
+  const [deactivateChemist] = useDeactivateChemistMutation()
+  const { data: mrOptions = [] } = useGetMedicalRepOptionsQuery()
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
   const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<ChemistFilters>({
     status: 'all',
-    territoryId: '',
     assignedMedicalRepresentativeId: '',
+    regionId: '',
   })
+  const [sortColumn, setSortColumn] = useState('shopName')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const debouncedSearch = useDebouncedValue(search, 300)
+
   const { chemists, kpis, isLoading } = useChemists({
     page: 1,
     limit: 10,
-    search,
+    search: debouncedSearch,
     status: appliedFilters.status,
-    regionId: regionId ?? undefined,
-    territoryId: appliedFilters.territoryId,
+    regionId: effectiveRegionId,
     assignedMedicalRepresentativeId:
       appliedFilters.assignedMedicalRepresentativeId,
-    sortOrder: 'desc',
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
   })
   useRegionTopbarHeader({
     icon: <LocalPharmacyIcon size={20} />,
@@ -110,12 +157,6 @@ export function ChemistListPage() {
       render: (row) => row.ownerName,
     },
     {
-      key: 'email',
-      header: 'Email Address',
-      sortable: true,
-      render: (row) => row.email,
-    },
-    {
       key: 'phone',
       header: 'Phone Number',
       minWidth: 160,
@@ -127,48 +168,13 @@ export function ChemistListPage() {
       sortable: true,
       render: (row) => row.city,
     },
-    { key: 'zone', header: 'Zone', sortable: true, render: (row) => row.zone },
+    { key: 'zone', header: 'Zone', render: (row) => row.zone },
     {
       key: 'status',
       header: 'Status',
       sortable: true,
       sortValue: (row) => row.status,
       render: (row) => <StatusBadge status={row.status} />,
-    },
-    {
-      key: 'geoLock',
-      header: 'Geo-lock Status',
-      sortable: true,
-      sortValue: (row) => (row.geoLock.active ? 1 : 0),
-      render: (row) => (
-        <Chip
-          label={row.geoLock.active ? 'Locked' : 'Unlocked'}
-          size="small"
-          color={row.geoLock.active ? 'success' : 'warning'}
-          variant="filled"
-        />
-      ),
-    },
-    {
-      key: 'licenseNumber',
-      header: 'GSTN Number',
-      render: (row) => row.licenseNumber,
-    },
-    {
-      key: 'onboardedBy',
-      header: 'Onboarded',
-      sortable: true,
-      align: 'center',
-      render: (row) => row.onboardedBy,
-    },
-    {
-      key: 'availablePoints',
-      header: 'Points Earned',
-      minWidth: 100,
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.availablePoints,
-      render: (row) => row.availablePoints.toLocaleString('en-IN'),
     },
   ]
 
@@ -238,7 +244,11 @@ export function ChemistListPage() {
       </Grid>
 
       <CommonTable
-        key={`${regionId ?? 'all'}-${search}-${appliedFilters.status}-${appliedFilters.territoryId}-${appliedFilters.assignedMedicalRepresentativeId}`}
+        key={`${effectiveRegionId ?? 'all'}-${appliedFilters.status}-${appliedFilters.assignedMedicalRepresentativeId}`}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
         tableKey="chemists-list"
         columns={columns}
         rows={chemists}
@@ -250,13 +260,14 @@ export function ChemistListPage() {
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +
-          (appliedFilters.territoryId.trim() ? 1 : 0) +
-          (appliedFilters.assignedMedicalRepresentativeId.trim() ? 1 : 0)
+          (appliedFilters.assignedMedicalRepresentativeId.trim() ? 1 : 0) +
+          (appliedFilters.regionId.trim() ? 1 : 0)
         }
         onExportClick={() => {}}
         onImportClick={() => {}}
         createAction={{ label: 'Create Chemist', to: '/partners/chemists/new' }}
         defaultSortBy="shopName"
+        defaultSortDir="desc"
         actions={[
           {
             label: 'View Chemist',
@@ -266,8 +277,31 @@ export function ChemistListPage() {
             label: 'Edit Chemist',
             onClick: (row) => navigate(`/partners/chemists/${row.id}/edit`),
           },
-          { label: 'Activate Chemist', onClick: () => {} },
-          { label: 'Deactivate Chemist', onClick: () => {}, danger: true },
+          {
+            label: 'Activate Chemist',
+            hidden: (row) => row.status === 'active',
+            onClick: async (row) => {
+              try {
+                await activateChemist(row.id).unwrap()
+                toast.success('Chemist activated successfully.')
+              } catch (err) {
+                toast.error(getApiErrorMessage(err, 'Failed to activate chemist.'))
+              }
+            },
+          },
+          {
+            label: 'Deactivate Chemist',
+            danger: true,
+            hidden: (row) => row.status !== 'active',
+            onClick: async (row) => {
+              try {
+                await deactivateChemist(row.id).unwrap()
+                toast.success('Chemist deactivated successfully.')
+              } catch (err) {
+                toast.error(getApiErrorMessage(err, 'Failed to deactivate chemist.'))
+              }
+            },
+          },
         ]}
         emptyTitle="No chemists found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -282,28 +316,48 @@ export function ChemistListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
+            <Autocomplete
+              options={mrOptions}
+              getOptionLabel={(option) =>
+                option.employeeCode ? `${option.name} (${option.employeeCode})` : option.name
+              }
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              value={
+                mrOptions.find(
+                  (mr) => mr.id === draft.assignedMedicalRepresentativeId,
+                ) ?? null
+              }
+              onChange={(_, selected) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  assignedMedicalRepresentativeId: selected?.id ?? '',
+                }))
+              }
+              renderInput={(params) => (
+                <TextField {...params} label="Assigned MR" placeholder="Search medical representatives…" />
+              )}
+            />
             <TextField
-              label="Territory ID"
-              value={draft.territoryId}
+              select
+              label="Region"
+              value={draft.regionId}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  territoryId: e.target.value,
+                  regionId: e.target.value,
                 }))
               }
               fullWidth
-            />
-            <TextField
-              label="Assigned MR ID"
-              value={draft.assignedMedicalRepresentativeId}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  assignedMedicalRepresentativeId: e.target.value,
-                }))
-              }
-              fullWidth
-            />
+            >
+              <MenuItem value="">
+                <em>All Regions</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region.id} value={region.id}>
+                  {region.name}
+                </MenuItem>
+              ))}
+            </TextField>
             <TextField
               select
               label="Status"
@@ -320,6 +374,7 @@ export function ChemistListPage() {
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="pending">Pending</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="suspended">Suspended</MenuItem>
             </TextField>
           </Stack>
         )}

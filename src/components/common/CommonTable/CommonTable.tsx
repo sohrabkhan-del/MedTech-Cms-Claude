@@ -99,6 +99,13 @@ interface CommonTableProps<T> {
   rowsPerPageOptions?: number[]
   defaultSortBy?: string
   defaultSortDir?: SortDirection
+  /**
+   * When provided, sorting is delegated to the caller (e.g. an API sort
+   * param) instead of being computed client-side: `rows` are assumed to
+   * already be sorted, and clicking a sortable header calls this with the
+   * new sort key/direction instead of re-sorting locally.
+   */
+  onSortChange?: (sortBy: string, sortDir: SortDirection) => void
 }
 
 export function CommonTable<T>({
@@ -123,6 +130,7 @@ export function CommonTable<T>({
   rowsPerPageOptions = [10, 25, 50],
   defaultSortBy,
   defaultSortDir = 'asc',
+  onSortChange,
 }: CommonTableProps<T>) {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
@@ -160,6 +168,8 @@ export function CommonTable<T>({
   }, [rows, activeSearch, searchKeys])
 
   const sortedRows = useMemo(() => {
+    // Server-sort mode: rows arrive pre-sorted from the caller's API call.
+    if (onSortChange) return filteredRows
     if (!sortBy) return filteredRows
     const column = columns.find((col) => col.key === sortBy)
     if (!column) return filteredRows
@@ -181,7 +191,7 @@ export function CommonTable<T>({
           : String(valueA).localeCompare(String(valueB))
       return sortDir === 'asc' ? comparison : -comparison
     })
-  }, [filteredRows, sortBy, sortDir, columns])
+  }, [filteredRows, sortBy, sortDir, columns, onSortChange])
 
   const pagedRows = useMemo(
     () =>
@@ -190,12 +200,11 @@ export function CommonTable<T>({
   )
 
   const handleSort = (columnKey: string) => {
-    if (sortBy === columnKey) {
-      setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'))
-    } else {
-      setSortBy(columnKey)
-      setSortDir('asc')
-    }
+    const nextDir: SortDirection =
+      sortBy === columnKey ? (sortDir === 'asc' ? 'desc' : 'asc') : 'asc'
+    setSortBy(columnKey)
+    setSortDir(nextDir)
+    onSortChange?.(columnKey, nextDir)
   }
 
   const openActionMenu = (event: React.MouseEvent<HTMLElement>, row: T) => {

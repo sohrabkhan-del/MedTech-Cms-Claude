@@ -13,6 +13,8 @@ interface FormFieldProps<TFieldValues extends FieldValues> extends Omit<
   numeric?: boolean
   /** Restrict input to digits plus a single decimal point (e.g. price, multipliers). */
   decimal?: boolean
+  /** Force input to uppercase as the user types (e.g. GST/PAN numbers). */
+  uppercase?: boolean
 }
 
 function sanitizeNumeric(value: string, decimal: boolean): string {
@@ -31,6 +33,7 @@ export function FormField<TFieldValues extends FieldValues>({
   required,
   numeric,
   decimal,
+  uppercase,
   ...textFieldProps
 }: FormFieldProps<TFieldValues>) {
   const isNumeric = numeric || decimal
@@ -46,7 +49,9 @@ export function FormField<TFieldValues extends FieldValues>({
             isNumeric
               ? (e) =>
                   field.onChange(sanitizeNumeric(e.target.value, !!decimal))
-              : field.onChange
+              : uppercase
+                ? (e) => field.onChange(e.target.value.toUpperCase())
+                : field.onChange
           }
           slotProps={
             isNumeric

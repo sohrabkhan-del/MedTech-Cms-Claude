@@ -4,6 +4,9 @@ import type { Dealer } from '@/types/dealer'
 import type { DealerApiPayload } from '@/features/userManagement/dealerFormSchema'
 import { mockDelay } from '@/services/mockDelay'
 import type { OnboardedBy, PartnerStatus, PartnerZone } from '@/types/partner'
+import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
+
+export type DealerKpis = typeof dealerKpis
 
 export interface DealerQueryParams {
   page?: number
@@ -174,6 +177,29 @@ function mapStatusParam(status?: string) {
   return status
 }
 
+interface PartnerAnalyticsApiResponse {
+  success: boolean
+  data: {
+    type: string
+    totalPartners: number
+    activePartners: number
+    inactivePartners: number
+    pendingApprovalPartners: number
+    newPartnersInRange: number
+    newPartnersChange: number
+  }
+}
+
+function mapPartnerAnalytics(response: PartnerAnalyticsApiResponse): DealerKpis {
+  const data = response.data
+  return {
+    totalDealers: data.totalPartners,
+    activeDealers: data.activePartners,
+    inactiveDealers: data.inactivePartners,
+    pendingApproval: data.pendingApprovalPartners,
+  }
+}
+
 const dealerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getDealers: builder.query<Dealer[], DealerQueryParams | void>({
@@ -227,6 +253,22 @@ const dealerApi = baseApi.injectEndpoints({
         mockResolver: () => mockDelay(dealerKpis),
       }),
       providesTags: [{ type: 'Partners', id: 'KPIS' }],
+    }),
+
+    getDealerAnalytics: builder.query<DealerKpis, AnalyticsDateParams>({
+      query: (params) => ({
+        tag: 'Partners',
+        url: '/analytics-cards/partners/DEALER',
+        params: {
+          preset: params.preset,
+          startDate: params.startDate,
+          endDate: params.endDate,
+        },
+        mockResolver: () => mockDelay(dealerKpis),
+      }),
+      transformResponse: (response: PartnerAnalyticsApiResponse | DealerKpis) =>
+        'data' in response ? mapPartnerAnalytics(response) : response,
+      providesTags: [{ type: 'Partners', id: 'DEALER_ANALYTICS' }],
     }),
 
     activateDealer: builder.mutation<void, string>({
@@ -292,6 +334,7 @@ export const {
   useGetDealersQuery,
   useGetDealerDetailQuery,
   useGetDealerKpisQuery,
+  useGetDealerAnalyticsQuery,
   useActivateDealerMutation,
   useDeactivateDealerMutation,
   useCreateDealerMutation,

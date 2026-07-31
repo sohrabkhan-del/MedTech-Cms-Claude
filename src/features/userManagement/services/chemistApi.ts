@@ -11,6 +11,7 @@ import type {
 import type { ChemistApiPayload } from '@/features/userManagement/chemistFormSchema'
 import { mockDelay } from '@/services/mockDelay'
 import type { OnboardedBy, PartnerStatus, PartnerZone } from '@/types/partner'
+import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
 
 export interface ChemistQueryParams {
   page?: number
@@ -170,6 +171,29 @@ function mapStatusParam(status?: string) {
   return status
 }
 
+interface PartnerAnalyticsApiResponse {
+  success: boolean
+  data: {
+    type: string
+    totalPartners: number
+    activePartners: number
+    inactivePartners: number
+    pendingApprovalPartners: number
+    newPartnersInRange: number
+    newPartnersChange: number
+  }
+}
+
+function mapPartnerAnalytics(response: PartnerAnalyticsApiResponse): ChemistKpis {
+  const data = response.data
+  return {
+    totalChemists: data.totalPartners,
+    activeChemists: data.activePartners,
+    inactiveChemists: data.inactivePartners,
+    pendingApproval: data.pendingApprovalPartners,
+  }
+}
+
 const chemistApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getChemists: builder.query<Chemist[], ChemistQueryParams | void>({
@@ -224,6 +248,22 @@ const chemistApi = baseApi.injectEndpoints({
         mockResolver: () => mockDelay(chemistKpis),
       }),
       providesTags: [{ type: 'Chemists', id: 'KPIS' }],
+    }),
+
+    getChemistAnalytics: builder.query<ChemistKpis, AnalyticsDateParams>({
+      query: (params) => ({
+        tag: 'Chemists',
+        url: '/analytics-cards/partners/CHEMIST',
+        params: {
+          preset: params.preset,
+          startDate: params.startDate,
+          endDate: params.endDate,
+        },
+        mockResolver: () => mockDelay(chemistKpis),
+      }),
+      transformResponse: (response: PartnerAnalyticsApiResponse | ChemistKpis) =>
+        'data' in response ? mapPartnerAnalytics(response) : response,
+      providesTags: [{ type: 'Chemists', id: 'ANALYTICS' }],
     }),
 
     activateChemist: builder.mutation<void, string>({
@@ -289,6 +329,7 @@ export const {
   useGetChemistsQuery,
   useGetChemistDetailQuery,
   useGetChemistKpisQuery,
+  useGetChemistAnalyticsQuery,
   useActivateChemistMutation,
   useDeactivateChemistMutation,
   useCreateChemistMutation,

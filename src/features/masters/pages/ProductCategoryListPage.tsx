@@ -7,6 +7,7 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useProductCategories } from '@/features/masters/hooks/useProductCategories'
 import type {
   ProductCategory,
@@ -15,13 +16,40 @@ import type {
 
 interface CategoryFilters extends Record<string, unknown> {
   status: ProductCategoryStatus | 'all'
-  parent: string | 'all'
   fromDate: string
   toDate: string
 }
 
+// Maps CommonTable column keys to the real GET /categories `sortBy` field
+// names. UNVERIFIED against the backend — best-effort guess based on the
+// API's own response field names (name, code, createdAt).
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  categoryName: 'name',
+  categoryCode: 'code',
+  createdDate: 'createdAt',
+}
+
 export function ProductCategoryListPage() {
-  const { categories, isLoading } = useProductCategories()
+  const [search, setSearch] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<CategoryFilters>({
+    status: 'all',
+    fromDate: '',
+    toDate: '',
+  })
+  const [sortColumn, setSortColumn] = useState('categoryName')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { categories, isLoading } = useProductCategories({
+    page: 1,
+    limit: 10,
+    search: debouncedSearch,
+    status: appliedFilters.status,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
   useRegionTopbarHeader({
     icon: <SlidersHorizontalIcon size={20} />,
     title: 'Product Categories',
@@ -29,24 +57,15 @@ export function ProductCategoryListPage() {
       'Organize MedTech products into categories for reporting, schemes, and analytics.',
     isLoading,
   })
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<CategoryFilters>({
-    status: 'all',
-    parent: 'all',
-    fromDate: '',
-    toDate: '',
-  })
 
   const filteredCategories = categories.filter((category) => {
-    const statusMatch =
-      appliedFilters.status === 'all' ||
-      category.status === appliedFilters.status
-    const parentMatch =
-      appliedFilters.parent === 'all' ||
-      (appliedFilters.parent === 'none'
-        ? !category.parentCategoryId
-        : category.parentCategoryId === appliedFilters.parent)
-    return statusMatch && parentMatch
+    const fromMatch =
+      !appliedFilters.fromDate ||
+      new Date(category.createdDate) >= new Date(appliedFilters.fromDate)
+    const toMatch =
+      !appliedFilters.toDate ||
+      new Date(category.createdDate) <= new Date(appliedFilters.toDate)
+    return fromMatch && toMatch
   })
 
   const columns: CommonTableColumn<ProductCategory>[] = [
@@ -95,22 +114,27 @@ export function ProductCategoryListPage() {
   return (
     <>
       <CommonTable
+        key={appliedFilters.status}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
         tableKey="product-categories-list"
         columns={columns}
         rows={filteredCategories}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search categories…"
-        searchKeys={(row) => `${row.categoryName} ${row.categoryCode}`}
+        searchValue={search}
+        onSearchChange={setSearch}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +
-          (appliedFilters.parent !== 'all' ? 1 : 0) +
           (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
         }
         onExportClick={() => {}}
         defaultSortBy="categoryName"
-
+        defaultSortDir="desc"
         emptyTitle="No categories found"
         emptyDescription="Try adjusting your filters or search terms."
       />
@@ -139,25 +163,6 @@ export function ProductCategoryListPage() {
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="active">Active</MenuItem>
               <MenuItem value="inactive">Inactive</MenuItem>
-            </TextField>
-            <TextField
-              select
-              label="Parent Category"
-              size="small"
-              value={draft.parent}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, parent: e.target.value }))
-              }
-            >
-              <MenuItem value="all">All Categories</MenuItem>
-              <MenuItem value="none">No Parent (Top Level)</MenuItem>
-              {categories
-                .filter((c) => !c.parentCategoryId)
-                .map((c) => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.categoryName}
-                  </MenuItem>
-                ))}
             </TextField>
             <TextField
               type="date"

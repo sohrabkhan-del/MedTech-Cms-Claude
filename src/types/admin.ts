@@ -13,9 +13,12 @@ export interface AdminActivityEntry {
 export interface Admin {
   id: string
   name: string
+  firstName: string
+  lastName: string
   email: string
   phone: string
   regionAccess: AdminRegionAccess
+  regionIds: string[]
   role: AdminRole
   status: AdminStatus
   totalActionsLogged: number

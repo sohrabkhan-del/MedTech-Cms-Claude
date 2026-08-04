@@ -58,12 +58,16 @@ export const mockAdmins: Admin[] = Array.from({ length: 18 }).map(
   (_, index) => {
     const seed = index + 1
     const id = `ADM-${1000 + index}`
+    const [firstName, lastName] = names[index % names.length]!.split(' ') as [string, string]
     return {
       id,
       name: names[index % names.length]!,
+      firstName,
+      lastName,
       email: `${names[index % names.length]!.toLowerCase().replace(' ', '.')}@medtechcms.in`,
       phone: `+91 98${(20000000 + index * 173).toString().slice(0, 8)}`,
       regionAccess: regions[index % regions.length]!,
+      regionIds: [],
       role: index % 5 === 0 ? 'Super Admin' : roles[index % roles.length]!,
       status: statuses[index % statuses.length]!,
       totalActionsLogged: seededNumber(seed, 20, 400),

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Button, Card, Grid, MenuItem, Stack, Typography } from '@mui/material'
+import { Controller, useForm } from 'react-hook-form'
+import { Button, Checkbox, Card, Grid, ListItemText, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { useAdminForm } from '@/features/systemUsers/hooks/useAdminForm'
@@ -44,7 +44,7 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 export function AdminFormPage() {
   const navigate = useNavigate()
   const { adminId } = useParams<{ adminId: string }>()
-  const { isEdit, admin, options, isLoading, isSubmitting, submit } = useAdminForm(adminId)
+  const { isEdit, admin, regions, isLoading, isSubmitting, submit } = useAdminForm(adminId)
 
   const { control, handleSubmit, reset } = useForm<AdminFormValues>({
     resolver: zodResolver(adminFormSchema),
@@ -54,12 +54,11 @@ export function AdminFormPage() {
   useEffect(() => {
     if (!admin) return
     reset({
-      name: admin.name,
+      firstName: admin.firstName,
+      lastName: admin.lastName,
       email: admin.email,
       phone: admin.phone,
-      regionAccess: admin.regionAccess,
-      role: admin.role,
-      status: admin.status,
+      regionIds: admin.regionIds,
     })
   }, [admin, reset])
 
@@ -92,8 +91,12 @@ export function AdminFormPage() {
           <Typography sx={sectionTitleSx}>Admin Information</Typography>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Full Name</FieldLabel>
-              <FormField name="name" control={control} placeholder="Full name" {...fieldLabelProps} />
+              <FieldLabel required>First Name</FieldLabel>
+              <FormField name="firstName" control={control} placeholder="First name" {...fieldLabelProps} />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel required>Last Name</FieldLabel>
+              <FormField name="lastName" control={control} placeholder="Last name" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Email Address</FieldLabel>
@@ -104,34 +107,77 @@ export function AdminFormPage() {
               <FormField name="phone" control={control} placeholder="98xxx xxxxx" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Region Access</FieldLabel>
-              <FormField name="regionAccess" control={control} select {...fieldLabelProps}>
-                {(options?.regionOptions ?? []).map((region) => (
-                  <MenuItem key={region} value={region}>
-                    {region}
-                  </MenuItem>
-                ))}
-              </FormField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Role</FieldLabel>
-              <FormField name="role" control={control} select {...fieldLabelProps}>
-                {(options?.roleOptions ?? []).map((role) => (
-                  <MenuItem key={role} value={role}>
-                    {role}
-                  </MenuItem>
-                ))}
-              </FormField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Status</FieldLabel>
-              <FormField name="status" control={control} select {...fieldLabelProps}>
-                {(options?.statusOptions ?? []).map((status) => (
-                  <MenuItem key={status} value={status}>
-                    {status.charAt(0).toUpperCase() + status.slice(1)}
-                  </MenuItem>
-                ))}
-              </FormField>
+              <FieldLabel required>Region</FieldLabel>
+              <Controller
+                name="regionIds"
+                control={control}
+                render={({ field, fieldState }) => {
+                  const allRegionOption = regions.find((r) => r.code === 'ALL_INDIA')
+                  const specificRegions = regions.filter((r) => r.code !== 'ALL_INDIA')
+                  const isAllSelected = !!allRegionOption && field.value.includes(allRegionOption.id)
+
+                  function handleChange(selectedIds: string[]) {
+                    if (!allRegionOption) {
+                      field.onChange(selectedIds)
+                      return
+                    }
+                    const allJustPicked =
+                      selectedIds.includes(allRegionOption.id) && !isAllSelected
+                    const allJustCleared =
+                      isAllSelected && !selectedIds.includes(allRegionOption.id)
+
+                    if (allJustPicked) {
+                      field.onChange([allRegionOption.id])
+                    } else if (allJustCleared) {
+                      field.onChange([])
+                    } else {
+                      field.onChange(selectedIds.filter((id) => id !== allRegionOption.id))
+                    }
+                  }
+
+                  return (
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      value={field.value}
+                      onChange={(e) =>
+                        handleChange(
+                          typeof e.target.value === 'string'
+                            ? e.target.value.split(',')
+                            : (e.target.value as string[]),
+                        )
+                      }
+                      error={!!fieldState.error}
+                      helperText={fieldState.error?.message}
+                      slotProps={{
+                        select: {
+                          multiple: true,
+                          renderValue: (selected) =>
+                            regions
+                              .filter((r) => (selected as string[]).includes(r.id))
+                              .map((r) => r.name)
+                              .join(', '),
+                        },
+                        inputLabel: { shrink: false, sx: { display: 'none' } },
+                      }}
+                    >
+                      {allRegionOption ? (
+                        <MenuItem value={allRegionOption.id}>
+                          <Checkbox checked={isAllSelected} size="small" />
+                          <ListItemText primary={allRegionOption.name} />
+                        </MenuItem>
+                      ) : null}
+                      {specificRegions.map((region) => (
+                        <MenuItem key={region.id} value={region.id} disabled={isAllSelected}>
+                          <Checkbox checked={field.value.includes(region.id)} size="small" />
+                          <ListItemText primary={region.name} />
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                  )
+                }}
+              />
             </Grid>
           </Grid>
         </Card>

@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
 import {
   useGetAdminDetailQuery,
-  useGetAdminFormOptionsQuery,
   useCreateAdminMutation,
   useUpdateAdminMutation,
 } from '@/features/systemUsers/services/adminsApi'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
 import type { AdminFormValues } from '@/features/systemUsers/types/systemUsers.types'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
@@ -15,18 +16,34 @@ export function useAdminForm(adminId: string | undefined) {
   const toast = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const [regionsLoading, setRegionsLoading] = useState(true)
 
   const adminResult = useGetAdminDetailQuery(adminId ?? skipToken)
-  const optionsResult = useGetAdminFormOptionsQuery()
   const [createAdmin] = useCreateAdminMutation()
   const [updateAdmin] = useUpdateAdminMutation()
 
-  const isLoading = (isEdit && adminResult.isLoading) || optionsResult.isLoading
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+      .finally(() => {
+        if (!ignore) setRegionsLoading(false)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const isLoading = (isEdit && adminResult.isLoading) || regionsLoading
   const loadError = adminResult.error
     ? getApiErrorMessage(adminResult.error, 'Failed to load admin form data.')
-    : optionsResult.error
-      ? getApiErrorMessage(optionsResult.error, 'Failed to load admin form data.')
-      : null
+    : null
 
   async function submit(values: AdminFormValues) {
     setIsSubmitting(true)
@@ -52,7 +69,7 @@ export function useAdminForm(adminId: string | undefined) {
   return {
     isEdit,
     admin: adminResult.data,
-    options: optionsResult.data ?? null,
+    regions,
     isLoading,
     isSubmitting,
     error: loadError ?? submitError,

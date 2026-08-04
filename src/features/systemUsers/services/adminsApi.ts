@@ -1,22 +1,214 @@
-// MOCK MODE — flip VITE_USE_MOCKS=false and confirm this endpoint's real backend path once integration starts.
 import { baseApi } from '@/store/api/baseApi'
 import { mockAdmins, getAdminById, adminKpis } from '@/features/systemUsers/mockAdmins'
 import type { Admin, AdminFormValues, AdminStatus } from '@/features/systemUsers/types/systemUsers.types'
 import { mockDelay } from '@/services/mockDelay'
+import { getRegions, fallbackRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
+import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
 
-export interface AdminFormOptions {
-  regionOptions: Admin['regionAccess'][]
-  roleOptions: Admin['role'][]
-  statusOptions: Admin['status'][]
+export interface AdminKpis {
+  totalAdmins: number
+  activeAdmins: number
+  pendingAdmins: number
+  inactiveAdmins: number
 }
 
-// create/update/setStatus/deleteAdmin are currently no-ops resolving
-// immediately so the UI/hook contract is stable ahead of the real API.
+export interface AdminQueryParams {
+  page?: number
+  limit?: number
+  search?: string
+  role?: string
+  regionId?: string
+  status?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+  preset?: string
+  startDate?: string
+  endDate?: string
+}
+
+interface AdminListApiResponse {
+  success: boolean
+  data: {
+    items: AdminApiItem[]
+    totalItems: number
+    totalPages: number
+    currentPage: number
+    pageSize: number
+  }
+}
+
+interface AdminDetailApiResponse {
+  success: boolean
+  data: AdminApiItem
+}
+
+interface AdminApiItem {
+  id: string
+  firstName?: string | null
+  lastName?: string | null
+  email: string
+  phone?: string | null
+  country?: string | null
+  profileImageUrl?: string | null
+  role: string
+  status: string
+  createdAt?: string
+  totalActionsLogged?: number
+  region?: { id: string; code: string; name: string } | null
+  regions?: Array<{ id: string; code: string; name: string }>
+}
+
+let regionCache: RegionOption[] = fallbackRegions
+
+async function loadRegions(): Promise<RegionOption[]> {
+  try {
+    regionCache = await getRegions()
+  } catch {
+    regionCache = fallbackRegions
+  }
+  return regionCache
+}
+
+function regionNamesToAccess(names: string[]): Admin['regionAccess'] {
+  if (names.length !== 1) return 'Pan India'
+  const normalized = names[0]?.trim().toLowerCase()
+  if (normalized === 'north') return 'North'
+  if (normalized === 'south') return 'South'
+  if (normalized === 'east') return 'East'
+  if (normalized === 'west') return 'West'
+  return 'Pan India'
+}
+
+function mapRole(role: string): Admin['role'] {
+  return role.toUpperCase() === 'SUPER_ADMIN' ? 'Super Admin' : 'Admin'
+}
+
+function mapStatus(status: string): AdminStatus {
+  const normalized = status.toUpperCase()
+  if (normalized === 'ACTIVE') return 'active'
+  if (normalized === 'PENDING') return 'pending'
+  return 'inactive'
+}
+
+interface AdminAnalyticsApiResponse {
+  success: boolean
+  data: {
+    totalAdmins: number
+    totalAdminsChange: number
+    activeAdmins: number
+    activeAdminsChange: number
+    inactiveAdmins: number
+    inactiveAdminsChange: number
+    pendingApprovalAdmins: number
+    pendingApprovalAdminsChange: number
+  }
+}
+
+function mapAdminAnalytics(response: AdminAnalyticsApiResponse): AdminKpis {
+  const data = response.data
+  return {
+    totalAdmins: data.totalAdmins,
+    activeAdmins: data.activeAdmins,
+    pendingAdmins: data.pendingApprovalAdmins,
+    inactiveAdmins: data.inactiveAdmins,
+  }
+}
+
+function mapStatusParam(status?: string) {
+  if (!status || status === 'all') return undefined
+  if (status === 'active') return 'ACTIVE'
+  if (status === 'pending') return 'PENDING'
+  if (status === 'inactive') return 'INACTIVE'
+  return status
+}
+
+function mapAdminItem(item: AdminApiItem): Admin {
+  const firstName = item.firstName?.trim() ?? ''
+  const lastName = item.lastName?.trim() ?? ''
+  const name = [firstName, lastName].filter(Boolean).join(' ').trim() || item.email
+  const regionList = item.regions ?? (item.region ? [item.region] : [])
+
+  return {
+    id: item.id,
+    name,
+    firstName,
+    lastName,
+    email: item.email,
+    phone: item.phone
+      ? `+${item.country ?? '91'} ${item.phone}`
+      : '-',
+    regionAccess: regionNamesToAccess(regionList.map((r) => r.name)),
+    regionIds: regionList.map((r) => r.id),
+    role: mapRole(item.role),
+    status: mapStatus(item.status),
+    totalActionsLogged: item.totalActionsLogged ?? 0,
+    createdDate: item.createdAt
+      ? new Date(item.createdAt).toLocaleDateString('en-IN', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })
+      : '-',
+    recentActivity: [],
+  }
+}
+
+function mapFormValuesToCreatePayload(values: AdminFormValues) {
+  return {
+    firstName: values.firstName,
+    lastName: values.lastName,
+    email: values.email,
+    phone: values.phone,
+    country: '91',
+    profileImageUrl: '',
+    regionIds: values.regionIds,
+    role: 'ADMIN',
+    status: 'ACTIVE',
+  }
+}
+
+function mapFormValuesToUpdatePayload(values: AdminFormValues) {
+  return {
+    firstName: values.firstName,
+    lastName: values.lastName,
+    email: values.email,
+    phone: values.phone,
+    country: '91',
+    profileImageUrl: '',
+    regionIds: values.regionIds,
+  }
+}
+
+// create/update are currently no-ops resolving immediately in mock mode so
+// the UI/hook contract is stable; real mode calls the actual /admins API.
 
 const adminsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAdmins: builder.query<Admin[], void>({
-      query: () => ({ tag: 'Admins', url: '/admins', mockResolver: () => mockDelay(mockAdmins) }),
+    getAdmins: builder.query<Admin[], AdminQueryParams | void>({
+      query: (params) => ({
+        tag: 'Admins',
+        url: '/admins',
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 10,
+          search: params?.search || undefined,
+          role: params?.role || undefined,
+          regionId: params?.regionId || undefined,
+          status: mapStatusParam(params?.status),
+          sortBy: params?.sortBy || 'createdAt',
+          sortOrder: params?.sortOrder ?? 'desc',
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
+        },
+        mockResolver: () => mockDelay(mockAdmins),
+      }),
+      transformResponse: async (response: AdminListApiResponse | Admin[]) => {
+        if (Array.isArray(response)) return response
+        await loadRegions()
+        return response.data.items.map(mapAdminItem)
+      },
       providesTags: (result) =>
         result
           ? [...result.map(({ id }) => ({ type: 'Admins' as const, id })), { type: 'Admins' as const, id: 'LIST' }]
@@ -24,35 +216,41 @@ const adminsApi = baseApi.injectEndpoints({
     }),
 
     getAdminDetail: builder.query<Admin | undefined, string>({
-      query: (id) => ({ tag: 'Admins', url: `/admins/${id}`, mockResolver: () => mockDelay(getAdminById(id)) }),
+      query: (id) => ({
+        tag: 'Admins',
+        url: `/admins/${id}`,
+        mockResolver: () => mockDelay(getAdminById(id)),
+      }),
+      transformResponse: async (response: AdminDetailApiResponse | Admin | undefined) => {
+        if (!response || !('data' in response)) return response
+        await loadRegions()
+        return mapAdminItem(response.data)
+      },
       providesTags: (_result, _error, id) => [{ type: 'Admins', id }],
     }),
 
-    getAdminKpis: builder.query<typeof adminKpis, void>({
-      query: () => ({ tag: 'Admins', url: '/admins/kpis', mockResolver: () => mockDelay(adminKpis) }),
-      providesTags: [{ type: 'Admins', id: 'KPIS' }],
-    }),
-
-    getAdminFormOptions: builder.query<AdminFormOptions, void>({
-      query: () => ({
+    getAdminAnalytics: builder.query<AdminKpis, AnalyticsDateParams>({
+      query: (params) => ({
         tag: 'Admins',
-        url: '/admins/form-options',
-        mockResolver: () =>
-          mockDelay({
-            regionOptions: ['Pan India', 'North', 'South', 'East', 'West'] as Admin['regionAccess'][],
-            roleOptions: ['Super Admin', 'Admin'] as Admin['role'][],
-            statusOptions: ['active', 'pending', 'inactive'] as Admin['status'][],
-          }),
+        url: '/analytics-cards/admins',
+        params: {
+          preset: params.preset,
+          startDate: params.startDate,
+          endDate: params.endDate,
+        },
+        mockResolver: () => mockDelay(adminKpis),
       }),
-      providesTags: [{ type: 'Admins', id: 'FORM_OPTIONS' }],
+      transformResponse: (response: AdminAnalyticsApiResponse | AdminKpis) =>
+        'data' in response ? mapAdminAnalytics(response) : response,
+      providesTags: [{ type: 'Admins', id: 'KPIS' }],
     }),
 
     createAdmin: builder.mutation<void, AdminFormValues>({
       query: (values) => ({
         tag: 'Admins',
-        url: '/admins',
+        url: '/admins/create',
         method: 'POST',
-        data: values,
+        data: mapFormValuesToCreatePayload(values),
         mockResolver: () => Promise.resolve(),
       }),
       invalidatesTags: [{ type: 'Admins', id: 'LIST' }, { type: 'Admins', id: 'KPIS' }],
@@ -63,7 +261,7 @@ const adminsApi = baseApi.injectEndpoints({
         tag: 'Admins',
         url: `/admins/${id}`,
         method: 'PUT',
-        data: values,
+        data: mapFormValuesToUpdatePayload(values),
         mockResolver: () => Promise.resolve(),
       }),
       invalidatesTags: (_result, _error, { id }) => [
@@ -76,9 +274,8 @@ const adminsApi = baseApi.injectEndpoints({
     setAdminStatus: builder.mutation<void, { id: string; status: AdminStatus }>({
       query: ({ id, status }) => ({
         tag: 'Admins',
-        url: `/admins/${id}/status`,
+        url: `/admins/${id}/${status === 'active' ? 'activate' : 'deactivate'}`,
         method: 'PATCH',
-        data: { status },
         mockResolver: () => Promise.resolve(),
       }),
       invalidatesTags: (_result, _error, { id }) => [
@@ -93,8 +290,7 @@ const adminsApi = baseApi.injectEndpoints({
 export const {
   useGetAdminsQuery,
   useGetAdminDetailQuery,
-  useGetAdminKpisQuery,
-  useGetAdminFormOptionsQuery,
+  useGetAdminAnalyticsQuery,
   useCreateAdminMutation,
   useUpdateAdminMutation,
   useSetAdminStatusMutation,

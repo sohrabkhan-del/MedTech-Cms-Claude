@@ -1,11 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Avatar,
   Checkbox,
   FormControlLabel,
   Grid,
+  MenuItem,
   Stack,
+  TextField,
   Typography,
 } from '@mui/material'
 import {
@@ -22,42 +24,76 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useAdmins } from '@/features/systemUsers/hooks/useAdmins'
-import type {
-  Admin,
-  AdminRegionAccess,
-  AdminStatus,
-} from '@/features/systemUsers/types/systemUsers.types'
+import { useSetAdminStatusMutation } from '@/features/systemUsers/services/adminsApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
+import type { Admin, AdminStatus } from '@/features/systemUsers/types/systemUsers.types'
 
 interface AdminFilters extends Record<string, unknown> {
-  regions: AdminRegionAccess[]
-  statuses: AdminStatus[]
+  status: AdminStatus | 'all'
+  regionId: string
 }
 
-const ALL_REGIONS: AdminRegionAccess[] = [
-  'Pan India',
-  'North',
-  'South',
-  'East',
-  'West',
-]
-const ALL_STATUSES: AdminStatus[] = ['active', 'pending', 'inactive']
+// Maps CommonTable column keys to the GET /admins `sortBy` field names.
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  name: 'firstName',
+  email: 'email',
+  status: 'status',
+}
 
 export function AdminListPage() {
   const navigate = useNavigate()
-  const { admins, kpis, isLoading } = useAdmins()
+  const toast = useToast()
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const [setAdminStatus] = useSetAdminStatusMutation()
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const [search, setSearch] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<AdminFilters>({
+    status: 'all',
+    regionId: '',
+  })
+  const [sortColumn, setSortColumn] = useState('name')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { admins, kpis, isLoading } = useAdmins({
+    page: 1,
+    limit: 10,
+    search: debouncedSearch,
+    status: appliedFilters.status,
+    regionId: effectiveRegionId,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
   useRegionTopbarHeader({
     icon: <BadgeCheckIcon size={20} />,
     title: 'Admin Management',
     subtitle:
       'Manage administrator accounts, region access, and account status.',
     isLoading,
-  })
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<AdminFilters>({
-    regions: [],
-    statuses: [],
   })
 
   const adminKpis = kpis ?? {
@@ -67,15 +103,25 @@ export function AdminListPage() {
     inactiveAdmins: 0,
   }
 
-  const filteredAdmins = admins.filter((admin) => {
-    const regionMatch =
-      appliedFilters.regions.length === 0 ||
-      appliedFilters.regions.includes(admin.regionAccess)
-    const statusMatch =
-      appliedFilters.statuses.length === 0 ||
-      appliedFilters.statuses.includes(admin.status)
-    return regionMatch && statusMatch
-  })
+  async function handleSetStatus(admin: Admin, status: AdminStatus) {
+    try {
+      await setAdminStatus({ id: admin.id, status }).unwrap()
+      toast.success(
+        status === 'active'
+          ? 'Admin activated successfully.'
+          : 'Admin deactivated successfully.',
+      )
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          status === 'active'
+            ? 'Failed to activate admin.'
+            : 'Failed to deactivate admin.',
+        ),
+      )
+    }
+  }
 
   const columns: CommonTableColumn<Admin>[] = [
     {
@@ -150,6 +196,9 @@ export function AdminListPage() {
               value={adminKpis.totalAdmins}
               icon={<BadgeCheckIcon size={20} />}
               iconColor="primary"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'all' }))
+              }
             />
           )}
         </Grid>
@@ -162,6 +211,9 @@ export function AdminListPage() {
               value={adminKpis.activeAdmins}
               icon={<UserCheckIcon size={20} />}
               iconColor="success"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'active' }))
+              }
             />
           )}
         </Grid>
@@ -174,6 +226,9 @@ export function AdminListPage() {
               value={adminKpis.pendingAdmins}
               icon={<ClockIcon size={20} />}
               iconColor="warning"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))
+              }
             />
           )}
         </Grid>
@@ -186,22 +241,32 @@ export function AdminListPage() {
               value={adminKpis.inactiveAdmins}
               icon={<UserXIcon size={20} />}
               iconColor="error"
+              onClick={() =>
+                setAppliedFilters((prev) => ({ ...prev, status: 'inactive' }))
+              }
             />
           )}
         </Grid>
       </Grid>
 
       <CommonTable
+        key={`${effectiveRegionId ?? 'all'}-${appliedFilters.status}`}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
         tableKey="admins-list"
         columns={columns}
-        rows={filteredAdmins}
+        rows={admins}
         getRowId={(row) => row.id}
         loading={isLoading}
         searchPlaceholder="Search admins…"
-        searchKeys={(row) => `${row.name} ${row.email} ${row.phone}`}
+        searchValue={search}
+        onSearchChange={setSearch}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          appliedFilters.regions.length + appliedFilters.statuses.length
+          (appliedFilters.status !== 'all' ? 1 : 0) +
+          (appliedFilters.regionId.trim() ? 1 : 0)
         }
         createAction={{ label: 'Create Admin', to: '/system-users/admin/new' }}
         defaultSortBy="name"
@@ -214,8 +279,17 @@ export function AdminListPage() {
             label: 'Edit',
             onClick: (row) => navigate(`/system-users/admin/${row.id}/edit`),
           },
-          { label: 'Activate Admin', onClick: () => {} },
-          { label: 'Deactivate Admin', onClick: () => {}, danger: true },
+          {
+            label: 'Activate Admin',
+            hidden: (row) => row.status === 'active',
+            onClick: (row) => handleSetStatus(row, 'active'),
+          },
+          {
+            label: 'Deactivate Admin',
+            danger: true,
+            hidden: (row) => row.status !== 'active',
+            onClick: (row) => handleSetStatus(row, 'inactive'),
+          },
         ]}
         emptyTitle="No admins found"
         emptyDescription="Try adjusting your filters or search terms."
@@ -230,46 +304,41 @@ export function AdminListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
-            <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                Region Access
-              </Typography>
-              {ALL_REGIONS.map((region) => (
-                <FormControlLabel
-                  key={region}
-                  control={
-                    <Checkbox
-                      checked={draft.regions.includes(region)}
-                      onChange={(e) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          regions: e.target.checked
-                            ? [...prev.regions, region]
-                            : prev.regions.filter((r) => r !== region),
-                        }))
-                      }
-                    />
-                  }
-                  label={region}
-                />
+            <TextField
+              select
+              label="Region"
+              value={draft.regionId}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  regionId: e.target.value,
+                }))
+              }
+              fullWidth
+            >
+              <MenuItem value="">
+                <em>All Regions</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region.id} value={region.id}>
+                  {region.name}
+                </MenuItem>
               ))}
-            </Stack>
+            </TextField>
             <Stack spacing={1}>
               <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
                 Status
               </Typography>
-              {ALL_STATUSES.map((status) => (
+              {(['active', 'pending', 'inactive'] as AdminStatus[]).map((status) => (
                 <FormControlLabel
                   key={status}
                   control={
                     <Checkbox
-                      checked={draft.statuses.includes(status)}
+                      checked={draft.status === status}
                       onChange={(e) =>
                         setDraft((prev) => ({
                           ...prev,
-                          statuses: e.target.checked
-                            ? [...prev.statuses, status]
-                            : prev.statuses.filter((s) => s !== status),
+                          status: e.target.checked ? status : 'all',
                         }))
                       }
                     />

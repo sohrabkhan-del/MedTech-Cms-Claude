@@ -17,13 +17,14 @@ interface FormFieldProps<TFieldValues extends FieldValues> extends Omit<
   uppercase?: boolean
 }
 
-function sanitizeNumeric(value: string, decimal: boolean): string {
+function sanitizeNumeric(value: string, decimal: boolean, maxLength?: number): string {
   const cleaned = decimal
     ? value.replace(/[^0-9.]/g, '')
     : value.replace(/[^0-9]/g, '')
-  if (!decimal) return cleaned
-  const [whole, ...rest] = cleaned.split('.')
-  return rest.length > 0 ? `${whole}.${rest.join('')}` : whole
+  const result = decimal
+    ? (([whole, ...rest]) => (rest.length > 0 ? `${whole}.${rest.join('')}` : whole))(cleaned.split('.'))
+    : cleaned
+  return typeof maxLength === 'number' ? result.slice(0, maxLength) : result
 }
 
 export function FormField<TFieldValues extends FieldValues>({
@@ -48,7 +49,15 @@ export function FormField<TFieldValues extends FieldValues>({
           onChange={
             isNumeric
               ? (e) =>
-                  field.onChange(sanitizeNumeric(e.target.value, !!decimal))
+                  field.onChange(
+                    sanitizeNumeric(
+                      e.target.value,
+                      !!decimal,
+                      typeof textFieldProps.slotProps?.htmlInput === 'object'
+                        ? (textFieldProps.slotProps.htmlInput as { maxLength?: number }).maxLength
+                        : undefined,
+                    ),
+                  )
               : uppercase
                 ? (e) => field.onChange(e.target.value.toUpperCase())
                 : field.onChange

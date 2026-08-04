@@ -1,6 +1,14 @@
 import { baseApi } from '@/store/api/baseApi'
-import { mockAdmins, getAdminById, adminKpis } from '@/features/systemUsers/mockAdmins'
-import type { Admin, AdminFormValues, AdminStatus } from '@/features/systemUsers/types/systemUsers.types'
+import {
+  mockAdmins,
+  getAdminById,
+  adminKpis,
+} from '@/features/systemUsers/mockAdmins'
+import type {
+  Admin,
+  AdminFormValues,
+  AdminStatus,
+} from '@/features/systemUsers/types/systemUsers.types'
 import { mockDelay } from '@/services/mockDelay'
 import { getRegions, fallbackRegions } from '@/services/regionsService'
 import type { RegionOption } from '@/contexts/RegionFilterContext'
@@ -72,13 +80,13 @@ async function loadRegions(): Promise<RegionOption[]> {
 }
 
 function regionNamesToAccess(names: string[]): Admin['regionAccess'] {
-  if (names.length !== 1) return 'Pan India'
+  if (names.length !== 1) return 'All India'
   const normalized = names[0]?.trim().toLowerCase()
   if (normalized === 'north') return 'North'
   if (normalized === 'south') return 'South'
   if (normalized === 'east') return 'East'
   if (normalized === 'west') return 'West'
-  return 'Pan India'
+  return 'All India'
 }
 
 function mapRole(role: string): Admin['role'] {
@@ -124,10 +132,16 @@ function mapStatusParam(status?: string) {
   return status
 }
 
+function normalizePhoneDisplay(phone: string): string {
+  const digitsOnly = phone.replace(/\D/g, '')
+  return digitsOnly.length > 10 ? digitsOnly.slice(-10) : digitsOnly
+}
+
 function mapAdminItem(item: AdminApiItem): Admin {
   const firstName = item.firstName?.trim() ?? ''
   const lastName = item.lastName?.trim() ?? ''
-  const name = [firstName, lastName].filter(Boolean).join(' ').trim() || item.email
+  const name =
+    [firstName, lastName].filter(Boolean).join(' ').trim() || item.email
   const regionList = item.regions ?? (item.region ? [item.region] : [])
 
   return {
@@ -136,9 +150,7 @@ function mapAdminItem(item: AdminApiItem): Admin {
     firstName,
     lastName,
     email: item.email,
-    phone: item.phone
-      ? `+${item.country ?? '91'} ${item.phone}`
-      : '-',
+    phone: item.phone ? normalizePhoneDisplay(item.phone) : '-',
     regionAccess: regionNamesToAccess(regionList.map((r) => r.name)),
     regionIds: regionList.map((r) => r.id),
     role: mapRole(item.role),
@@ -206,7 +218,10 @@ const adminsApi = baseApi.injectEndpoints({
       },
       providesTags: (result) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Admins' as const, id })), { type: 'Admins' as const, id: 'LIST' }]
+          ? [
+              ...result.map(({ id }) => ({ type: 'Admins' as const, id })),
+              { type: 'Admins' as const, id: 'LIST' },
+            ]
           : [{ type: 'Admins' as const, id: 'LIST' }],
     }),
 
@@ -216,7 +231,9 @@ const adminsApi = baseApi.injectEndpoints({
         url: `/admins/${id}`,
         mockResolver: () => mockDelay(getAdminById(id)),
       }),
-      transformResponse: async (response: AdminDetailApiResponse | Admin | undefined) => {
+      transformResponse: async (
+        response: AdminDetailApiResponse | Admin | undefined,
+      ) => {
         if (!response || !('data' in response)) return response
         await loadRegions()
         return mapAdminItem(response.data)
@@ -248,10 +265,16 @@ const adminsApi = baseApi.injectEndpoints({
         data: mapFormValuesToCreatePayload(values),
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: [{ type: 'Admins', id: 'LIST' }, { type: 'Admins', id: 'KPIS' }],
+      invalidatesTags: [
+        { type: 'Admins', id: 'LIST' },
+        { type: 'Admins', id: 'KPIS' },
+      ],
     }),
 
-    updateAdmin: builder.mutation<void, { id: string; values: AdminFormValues }>({
+    updateAdmin: builder.mutation<
+      void,
+      { id: string; values: AdminFormValues }
+    >({
       query: ({ id, values }) => ({
         tag: 'Admins',
         url: `/admins/${id}`,
@@ -266,19 +289,21 @@ const adminsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    setAdminStatus: builder.mutation<void, { id: string; status: AdminStatus }>({
-      query: ({ id, status }) => ({
-        tag: 'Admins',
-        url: `/admins/${id}/${status === 'active' ? 'activate' : 'deactivate'}`,
-        method: 'PATCH',
-        mockResolver: () => Promise.resolve(),
-      }),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: 'Admins', id },
-        { type: 'Admins', id: 'LIST' },
-        { type: 'Admins', id: 'KPIS' },
-      ],
-    }),
+    setAdminStatus: builder.mutation<void, { id: string; status: AdminStatus }>(
+      {
+        query: ({ id, status }) => ({
+          tag: 'Admins',
+          url: `/admins/${id}/${status === 'active' ? 'activate' : 'deactivate'}`,
+          method: 'PATCH',
+          mockResolver: () => Promise.resolve(),
+        }),
+        invalidatesTags: (_result, _error, { id }) => [
+          { type: 'Admins', id },
+          { type: 'Admins', id: 'LIST' },
+          { type: 'Admins', id: 'KPIS' },
+        ],
+      },
+    ),
   }),
 })
 

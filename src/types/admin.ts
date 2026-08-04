@@ -1,5 +1,6 @@
 export type AdminStatus = 'active' | 'pending' | 'inactive'
-export type AdminRegionAccess = 'Pan India' | 'North' | 'South' | 'East' | 'West'
+export type AdminRegionAccess =
+  'All India' | 'North' | 'South' | 'East' | 'West'
 export type AdminRole = 'Super Admin' | 'Admin'
 
 export interface AdminActivityEntry {

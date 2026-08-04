@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Button, Card, Grid, Stack, Typography } from '@mui/material'
+import { Button, Card, Grid, Skeleton, Stack, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { RegionMultiSelectField } from '@/components/common/RegionMultiSelectField/RegionMultiSelectField'
@@ -81,6 +81,33 @@ export function AdminFormPage() {
     if (success) navigate(backTo)
   })
 
+  if (isEdit && isLoading) {
+    return (
+      <>
+        <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="h1">Edit Admin</Typography>
+        </Stack>
+
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Skeleton variant="text" width="25%" height={22} sx={{ mb: 2.5 }} />
+          <Grid container spacing={2.5}>
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Grid key={i} size={{ xs: 12, sm: 6 }}>
+                <Skeleton variant="text" width="35%" height={16} sx={{ mb: 0.75 }} />
+                <Skeleton variant="rounded" height={40} sx={{ borderRadius: '8px' }} />
+              </Grid>
+            ))}
+          </Grid>
+        </Card>
+
+        <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'flex-end' }}>
+          <Skeleton variant="rounded" width={110} height={36} sx={{ borderRadius: '8px' }} />
+          <Skeleton variant="rounded" width={90} height={36} sx={{ borderRadius: '8px' }} />
+        </Stack>
+      </>
+    )
+  }
+
   return (
     <>
       <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -105,7 +132,14 @@ export function AdminFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Phone Number</FieldLabel>
-              <FormField name="phone" control={control} placeholder="98xxx xxxxx" {...fieldLabelProps} />
+              <FormField
+                name="phone"
+                control={control}
+                placeholder="98xxx xxxxx"
+                numeric
+                slotProps={{ htmlInput: { maxLength: 10 } }}
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Region</FieldLabel>

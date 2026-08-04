@@ -45,6 +45,8 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useMedicalRepDetail } from '@/features/systemUsers/hooks/useMedicalRepDetail'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type {
   MrManagedPartner,
   MrPartnerSource,
@@ -105,7 +107,8 @@ function InfoItem({
 export function MedicalRepDetailsPage() {
   const { mrId } = useParams<{ mrId: string }>()
   const navigate = useNavigate()
-  const { mr, replacementOptions, setStatus, remove, isLoading } =
+  const toast = useToast()
+  const { mr, replacementOptions, setStatus, remove, isLoading, isStatusUpdating, isDeleting } =
     useMedicalRepDetail(mrId)
   const [partnerType, setPartnerType] = useState<'All' | MrPartnerType>('All')
   const [source, setSource] = useState<'All' | MrPartnerSource>('All')
@@ -192,10 +195,21 @@ export function MedicalRepDetailsPage() {
     },
   ]
 
-  const handleDelete = () => {
-    remove(replacementMrId)
-    setDeleteOpen(false)
-    navigate('/system-users/medical-representatives')
+  const handleDelete = async () => {
+    const success = await remove(replacementMrId)
+    if (success) {
+      setDeleteOpen(false)
+      navigate('/system-users/medical-representatives')
+    }
+  }
+
+  async function handleSetStatus(status: 'active' | 'inactive') {
+    try {
+      await setStatus(status)
+      toast.success(status === 'active' ? 'MR activated successfully.' : 'MR deactivated successfully.')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, status === 'active' ? 'Failed to activate MR.' : 'Failed to deactivate MR.'))
+    }
   }
 
   return (
@@ -251,7 +265,8 @@ export function MedicalRepDetailsPage() {
               variant="contained"
               color="primary"
               startIcon={<CircleCheck size={18} />}
-              onClick={() => setStatus('active')}
+              onClick={() => handleSetStatus('active')}
+              loading={isStatusUpdating}
               sx={{ fontSize: '0.8125rem' }}
             >
               Activate MR
@@ -261,7 +276,8 @@ export function MedicalRepDetailsPage() {
               variant="contained"
               color="error"
               startIcon={<Ban size={18} />}
-              onClick={() => setStatus('inactive')}
+              onClick={() => handleSetStatus('inactive')}
+              loading={isStatusUpdating}
               sx={{ fontSize: '0.8125rem' }}
             >
               Deactivate MR
@@ -623,6 +639,7 @@ export function MedicalRepDetailsPage() {
         primaryActionLabel="Confirm Delete & Reassign"
         primaryActionColor="error"
         onPrimaryAction={replacementMrId ? handleDelete : undefined}
+        loading={isDeleting}
       >
         {replacementOptions.length === 0 ? (
           <Typography variant="body1" sx={{ color: 'error.main' }}>

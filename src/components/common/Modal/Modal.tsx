@@ -100,7 +100,7 @@ export function Modal({
               variant="contained"
               color={primaryActionColor}
               onClick={onPrimaryAction}
-              disabled={loading}
+              loading={loading}
             >
               {primaryActionLabel}
             </Button>

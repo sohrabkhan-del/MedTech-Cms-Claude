@@ -57,7 +57,13 @@ const fieldLabelProps = {
   },
 } as const
 
-function FieldLabel({ children, required }: { children: string; required?: boolean }) {
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: string
+  required?: boolean
+}) {
   return (
     <Typography
       sx={{
@@ -86,14 +92,17 @@ export function DealerFormPage() {
   const [regions, setRegions] = useState<RegionOption[]>(
     fallbackRegions.filter((region) => region.code !== 'ALL_INDIA'),
   )
-  const { data: mrOptions = [], isFetching: isMrOptionsLoading } = useGetMedicalRepOptionsQuery()
+  const { data: mrOptions = [], isFetching: isMrOptionsLoading } =
+    useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
 
   useEffect(() => {
     let ignore = false
     getRegions()
       .then((options) => {
-        const regionsOnly = options.filter((region) => region.code !== 'ALL_INDIA')
+        const regionsOnly = options.filter(
+          (region) => region.code !== 'ALL_INDIA',
+        )
         if (!ignore && regionsOnly.length > 0) setRegions(regionsOnly)
       })
       .catch((error) => {
@@ -104,12 +113,16 @@ export function DealerFormPage() {
     }
   }, [])
 
-  const { control, handleSubmit, reset, watch, setValue } = useForm<DealerFormValues>({
-    resolver: zodResolver(dealerFormSchema),
-    defaultValues: dealerFormDefaults,
-  })
+  const { control, handleSubmit, reset, watch, setValue } =
+    useForm<DealerFormValues>({
+      resolver: zodResolver(dealerFormSchema),
+      defaultValues: dealerFormDefaults,
+    })
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'locations' })
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'locations',
+  })
 
   const selectedState = watch('state')
   const selectedDistrict = watch('district')
@@ -214,8 +227,17 @@ export function DealerFormPage() {
 
   return (
     <>
-      <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h1">{isEdit ? 'Edit Dealer' : 'Add New Dealer'}</Typography>
+      <Stack
+        sx={{
+          mb: 3,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h1">
+          {isEdit ? 'Edit Dealer' : 'Add New Dealer'}
+        </Typography>
       </Stack>
 
       <form onSubmit={submit} noValidate>
@@ -224,19 +246,41 @@ export function DealerFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Business / Shop Name</FieldLabel>
-              <FormField name="businessName" control={control} placeholder="e.g. Shree Pharma Agency" {...fieldLabelProps} />
+              <FormField
+                name="businessName"
+                control={control}
+                placeholder="e.g. Shree Pharma Agency"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Owner First Name</FieldLabel>
-              <FormField name="ownerFirstName" control={control} placeholder="First name" {...fieldLabelProps} />
+              <FormField
+                name="ownerFirstName"
+                control={control}
+                placeholder="First name"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Owner Last Name</FieldLabel>
-              <FormField name="ownerLastName" control={control} placeholder="Last name" {...fieldLabelProps} />
+              <FormField
+                name="ownerLastName"
+                control={control}
+                placeholder="Last name"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Contact Number</FieldLabel>
-              <FormField name="phone" control={control} placeholder="98xxx xxxxx" numeric {...fieldLabelProps} />
+              <FormField
+                name="phone"
+                control={control}
+                placeholder="98xxx xxxxx"
+                numeric
+                slotProps={{ htmlInput: { maxLength: 10 } }}
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Email</FieldLabel>
@@ -256,19 +300,41 @@ export function DealerFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>GST Number</FieldLabel>
-              <FormField name="gstNumber" control={control} placeholder="e.g. 27ABCDE1234F1Z5" uppercase {...fieldLabelProps} />
+              <FormField
+                name="gstNumber"
+                control={control}
+                placeholder="e.g. 27ABCDE1234F1Z5"
+                uppercase
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>PAN Number</FieldLabel>
-              <FormField name="panNumber" control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
+              <FormField
+                name="panNumber"
+                control={control}
+                placeholder="e.g. ABCDE1234F"
+                uppercase
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Drug License Number</FieldLabel>
-              <FormField name="drugLicenseNumber" control={control} placeholder="e.g. MH/MUM/DRUG/2026/45879" {...fieldLabelProps} />
+              <FormField
+                name="drugLicenseNumber"
+                control={control}
+                placeholder="e.g. MH/MUM/DRUG/2026/45879"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Drug License Expiry</FieldLabel>
-              <FormField name="drugLicenseExpiry" control={control} type="date" {...fieldLabelProps} />
+              <FormField
+                name="drugLicenseExpiry"
+                control={control}
+                type="date"
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -278,15 +344,30 @@ export function DealerFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={12}>
               <FieldLabel required>Address Line 1</FieldLabel>
-              <FormField name="addressLine1" control={control} placeholder="Shop no., building, street" {...fieldLabelProps} />
+              <FormField
+                name="addressLine1"
+                control={control}
+                placeholder="Shop no., building, street"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={12}>
               <FieldLabel>Address Line 2</FieldLabel>
-              <FormField name="addressLine2" control={control} placeholder="Area, locality" {...fieldLabelProps} />
+              <FormField
+                name="addressLine2"
+                control={control}
+                placeholder="Area, locality"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel>Landmark</FieldLabel>
-              <FormField name="landmark" control={control} placeholder="e.g. Near Metro Station" {...fieldLabelProps} />
+              <FormField
+                name="landmark"
+                control={control}
+                placeholder="e.g. Near Metro Station"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>State</FieldLabel>
@@ -304,7 +385,12 @@ export function DealerFormPage() {
                     }}
                     size="small"
                     renderInput={(params) => (
-                      <TextField {...params} placeholder="Select state" error={!!fieldState.error} helperText={fieldState.error?.message} />
+                      <TextField
+                        {...params}
+                        placeholder="Select state"
+                        error={!!fieldState.error}
+                        helperText={fieldState.error?.message}
+                      />
                     )}
                   />
                 )}
@@ -328,7 +414,11 @@ export function DealerFormPage() {
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        placeholder={selectedState ? 'Select district' : 'Select a state first'}
+                        placeholder={
+                          selectedState
+                            ? 'Select district'
+                            : 'Select a state first'
+                        }
                         error={!!fieldState.error}
                         helperText={fieldState.error?.message}
                       />
@@ -356,7 +446,11 @@ export function DealerFormPage() {
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        placeholder={selectedDistrict ? 'Select or type a city' : 'Select a district first'}
+                        placeholder={
+                          selectedDistrict
+                            ? 'Select or type a city'
+                            : 'Select a district first'
+                        }
                         error={!!fieldState.error}
                         helperText={fieldState.error?.message}
                       />
@@ -367,13 +461,21 @@ export function DealerFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Pincode</FieldLabel>
-              <FormField name="pincode" control={control} placeholder="e.g. 400086" numeric {...fieldLabelProps} />
+              <FormField
+                name="pincode"
+                control={control}
+                placeholder="e.g. 400086"
+                numeric
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Geo-tagging &amp; Scanning Range</Typography>
+          <Typography sx={sectionTitleSx}>
+            Geo-tagging &amp; Scanning Range
+          </Typography>
           <Stack spacing={2.5}>
             {fields.map((field, index) => (
               <Box
@@ -385,13 +487,25 @@ export function DealerFormPage() {
                   borderColor: 'divider',
                 }}
               >
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Stack
+                  direction="row"
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mb: 1.5,
+                  }}
+                >
                   <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
                     Godown Location {index + 1}
                   </Typography>
                   {fields.length > 1 && (
                     <Tooltip title="Remove location">
-                      <IconButton size="small" color="error" onClick={() => remove(index)} aria-label="Remove location">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => remove(index)}
+                        aria-label="Remove location"
+                      >
                         <Trash2 size={18} />
                       </IconButton>
                     </Tooltip>
@@ -411,13 +525,26 @@ export function DealerFormPage() {
                   </Grid>
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Latitude</FieldLabel>
-                    <FormField name={`locations.${index}.latitude`} control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
+                    <FormField
+                      name={`locations.${index}.latitude`}
+                      control={control}
+                      placeholder="e.g. 19.0760"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Longitude</FieldLabel>
-                    <FormField name={`locations.${index}.longitude`} control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
+                    <FormField
+                      name={`locations.${index}.longitude`}
+                      control={control}
+                      placeholder="e.g. 72.8777"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <Grid
+                    size={{ xs: 12, sm: 2 }}
+                    sx={{ display: 'flex', alignItems: 'flex-end' }}
+                  >
                     <Button
                       fullWidth
                       variant="outlined"
@@ -430,11 +557,21 @@ export function DealerFormPage() {
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel>Scan Radius</FieldLabel>
-                    <FormField name={`locations.${index}.scanRadius`} control={control} placeholder="e.g. 200" {...fieldLabelProps} />
+                    <FormField
+                      name={`locations.${index}.scanRadius`}
+                      control={control}
+                      placeholder="e.g. 200"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel>Buffer Radius (in meters)</FieldLabel>
-                    <FormField name={`locations.${index}.bufferRadius`} control={control} placeholder="e.g. 50" {...fieldLabelProps} />
+                    <FormField
+                      name={`locations.${index}.bufferRadius`}
+                      control={control}
+                      placeholder="e.g. 50"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                 </Grid>
               </Box>
@@ -443,7 +580,15 @@ export function DealerFormPage() {
               variant="outlined"
               startIcon={<Plus size={18} />}
               sx={{ alignSelf: 'flex-start', fontSize: '0.75rem' }}
-              onClick={() => append({ address: '', latitude: '', longitude: '', scanRadius: '', bufferRadius: '' })}
+              onClick={() =>
+                append({
+                  address: '',
+                  latitude: '',
+                  longitude: '',
+                  scanRadius: '',
+                  bufferRadius: '',
+                })
+              }
             >
               Add Another Location
             </Button>
@@ -455,7 +600,12 @@ export function DealerFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Region</FieldLabel>
-              <FormField name="regionId" control={control} select {...fieldLabelProps}>
+              <FormField
+                name="regionId"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
                 <MenuItem value="">
                   <em>Select a region</em>
                 </MenuItem>
@@ -476,11 +626,19 @@ export function DealerFormPage() {
                     options={mrOptions}
                     loading={isMrOptionsLoading}
                     getOptionLabel={(option) =>
-                      option.employeeCode ? `${option.name} (${option.employeeCode})` : option.name
+                      option.employeeCode
+                        ? `${option.name} (${option.employeeCode})`
+                        : option.name
                     }
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    value={mrOptions.find((mr) => mr.id === field.value) ?? null}
-                    onChange={(_, selected) => field.onChange(selected?.id ?? '')}
+                    isOptionEqualToValue={(option, value) =>
+                      option.id === value.id
+                    }
+                    value={
+                      mrOptions.find((mr) => mr.id === field.value) ?? null
+                    }
+                    onChange={(_, selected) =>
+                      field.onChange(selected?.id ?? '')
+                    }
                     size="small"
                     renderInput={(params) => (
                       <TextField
@@ -496,7 +654,13 @@ export function DealerFormPage() {
             </Grid>
             <Grid size={12}>
               <FieldLabel>Notes</FieldLabel>
-              <FormField name="notes" control={control} multiline minRows={3} {...fieldLabelProps} />
+              <FormField
+                name="notes"
+                control={control}
+                multiline
+                minRows={3}
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -507,9 +671,18 @@ export function DealerFormPage() {
           sx={{ width: '100%', justifyContent: 'flex-end' }}
         >
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Dealer'}
+            {isSubmitting
+              ? 'Saving…'
+              : isEdit
+                ? 'Save Changes'
+                : 'Create Dealer'}
           </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)} disabled={isSubmitting}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate(backTo)}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
         </Stack>

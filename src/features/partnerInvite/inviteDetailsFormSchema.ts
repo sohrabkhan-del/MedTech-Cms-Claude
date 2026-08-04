@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const inviteDetailsFormSchema = z.object({
   name: z.string().min(2, 'Full name is required'),
   email: z.string().email('Enter a valid email address'),
-  phone: z.string().min(10, 'Enter a valid 10-digit phone number'),
+  phone: z.string().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
 })
 
 export type InviteDetailsFormValues = z.infer<typeof inviteDetailsFormSchema>

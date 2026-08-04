@@ -5,7 +5,7 @@ import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useAdminDetail(adminId: string | undefined) {
   const { data: admin, isLoading, error: queryError } = useGetAdminDetailQuery(adminId ?? skipToken)
-  const [setStatusMutation] = useSetAdminStatusMutation()
+  const [setStatusMutation, { isLoading: isStatusUpdating }] = useSetAdminStatusMutation()
 
   const error = queryError ? getApiErrorMessage(queryError, 'Failed to load admin.') : null
 
@@ -14,5 +14,5 @@ export function useAdminDetail(adminId: string | undefined) {
     await setStatusMutation({ id: adminId, status }).unwrap()
   }
 
-  return { admin, isLoading, error, setStatus }
+  return { admin, isLoading, isStatusUpdating, error, setStatus }
 }

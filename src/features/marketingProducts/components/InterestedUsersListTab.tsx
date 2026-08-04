@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import {
   Chip,
   Grid,
@@ -21,8 +21,6 @@ import { useInterestedUsers } from '@/features/marketingProducts/hooks/useIntere
 import { LeadActionDialog } from '@/features/marketingProducts/components/LeadActionDialog'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
-import { fallbackRegions, getRegions } from '@/services/regionsService'
-import type { RegionOption } from '@/contexts/RegionFilterContext'
 import type {
   InterestedUserLead,
   LeadStatus,
@@ -41,9 +39,6 @@ const leadStatusConfig: Record<
 interface LeadFilters extends Record<string, unknown> {
   leadStatus: LeadStatus | 'all'
   userType: LeadUserType | 'all'
-  regionId: string
-  requestedFrom: string
-  requestedTo: string
 }
 
 // Maps CommonTable column keys to GET /showcase-products/interests `sortBy` field names.
@@ -60,36 +55,17 @@ export function InterestedUsersListTab({
 }: InterestedUsersListTabProps) {
   const toast = useToast()
   const { regionId: topbarRegionId } = useRegionFilter()
-  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
   const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<LeadFilters>({
     leadStatus: 'all',
     userType: 'all',
-    regionId: '',
-    requestedFrom: '',
-    requestedTo: '',
   })
   const [sortColumn, setSortColumn] = useState('requestedDate')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [actionDialog, setActionDialog] = useState<{ mode: 'follow-up' | 'close'; leadId: string } | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
-  useEffect(() => {
-    let ignore = false
-    getRegions()
-      .then((options) => {
-        if (!ignore && options.length > 0) setRegions(options)
-      })
-      .catch((error) => {
-        console.warn('[regions] failed to load regions, using fallback', error)
-      })
-    return () => {
-      ignore = true
-    }
-  }, [])
-
-  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
   const debouncedSearch = useDebouncedValue(search, 300)
 
   const { leads, kpis, isLoading, isKpisLoading, followUp, close, remove } = useInterestedUsers({
@@ -98,9 +74,7 @@ export function InterestedUsersListTab({
     search: debouncedSearch,
     status: appliedFilters.leadStatus,
     userType: appliedFilters.userType,
-    regionId: effectiveRegionId,
-    requestedFrom: appliedFilters.requestedFrom || undefined,
-    requestedTo: appliedFilters.requestedTo || undefined,
+    regionId: topbarRegionId || undefined,
     sortBy: SORT_FIELD_MAP[sortColumn],
     sortOrder,
   })
@@ -239,7 +213,7 @@ export function InterestedUsersListTab({
       </Grid>
 
       <CommonTable
-        key={`${effectiveRegionId ?? 'all'}-${appliedFilters.leadStatus}-${appliedFilters.userType}`}
+        key={`${topbarRegionId ?? 'all'}-${appliedFilters.leadStatus}-${appliedFilters.userType}`}
         onSortChange={(columnKey, dir) => {
           setSortColumn(columnKey)
           setSortOrder(dir)
@@ -255,9 +229,7 @@ export function InterestedUsersListTab({
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.leadStatus !== 'all' ? 1 : 0) +
-          (appliedFilters.userType !== 'all' ? 1 : 0) +
-          (appliedFilters.regionId.trim() ? 1 : 0) +
-          (appliedFilters.requestedFrom || appliedFilters.requestedTo ? 1 : 0)
+          (appliedFilters.userType !== 'all' ? 1 : 0)
         }
         onExportClick={() => {}}
         defaultSortBy="requestedDate"
@@ -326,44 +298,6 @@ export function InterestedUsersListTab({
               <MenuItem value="Dealer">Dealer</MenuItem>
               <MenuItem value="Chemist">Chemist</MenuItem>
             </TextField>
-            <TextField
-              select
-              label="Region"
-              size="small"
-              value={draft.regionId}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, regionId: e.target.value }))
-              }
-            >
-              <MenuItem value="">
-                <em>All Regions</em>
-              </MenuItem>
-              {regions.map((region) => (
-                <MenuItem key={region.id} value={region.id}>
-                  {region.name}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              type="date"
-              label="Requested From"
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              value={draft.requestedFrom}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, requestedFrom: e.target.value }))
-              }
-            />
-            <TextField
-              type="date"
-              label="Requested To"
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              value={draft.requestedTo}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, requestedTo: e.target.value }))
-              }
-            />
           </Stack>
         )}
       </FilterDrawer>

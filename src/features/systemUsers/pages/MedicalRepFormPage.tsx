@@ -166,7 +166,14 @@ export function MedicalRepFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Phone Number</FieldLabel>
-              <FormField name="phone" control={control} placeholder="98xxx xxxxx" numeric {...fieldLabelProps} />
+              <FormField
+                name="phone"
+                control={control}
+                placeholder="98xxx xxxxx"
+                numeric
+                slotProps={{ htmlInput: { maxLength: 10 } }}
+                {...fieldLabelProps}
+              />
             </Grid>
             {!isEdit && (
               <Grid size={{ xs: 12, sm: 6 }}>

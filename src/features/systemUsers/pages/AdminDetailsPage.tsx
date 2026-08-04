@@ -20,6 +20,8 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useAdminDetail } from '@/features/systemUsers/hooks/useAdminDetail'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 const infoItemSx = {
   display: 'flex',
@@ -58,7 +60,19 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
 export function AdminDetailsPage() {
   const { adminId } = useParams<{ adminId: string }>()
   const navigate = useNavigate()
-  const { admin, setStatus, isLoading } = useAdminDetail(adminId)
+  const toast = useToast()
+  const { admin, setStatus, isLoading, isStatusUpdating } = useAdminDetail(adminId)
+
+  async function handleSetStatus(status: 'active' | 'inactive') {
+    try {
+      await setStatus(status)
+      toast.success(status === 'active' ? 'Admin activated successfully.' : 'Admin deactivated successfully.')
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(err, status === 'active' ? 'Failed to activate admin.' : 'Failed to deactivate admin.'),
+      )
+    }
+  }
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={2} />
@@ -116,7 +130,8 @@ export function AdminDetailsPage() {
               variant="contained"
               color="primary"
               startIcon={<CircleCheck size={18} />}
-              onClick={() => setStatus('active')}
+              onClick={() => handleSetStatus('active')}
+              loading={isStatusUpdating}
               sx={{ fontSize: '0.8125rem' }}
             >
               Activate Admin
@@ -126,7 +141,8 @@ export function AdminDetailsPage() {
               variant="contained"
               color="error"
               startIcon={<Ban size={18} />}
-              onClick={() => setStatus('inactive')}
+              onClick={() => handleSetStatus('inactive')}
+              loading={isStatusUpdating}
               sx={{ fontSize: '0.8125rem' }}
             >
               Deactivate Admin

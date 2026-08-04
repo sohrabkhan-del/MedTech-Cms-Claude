@@ -79,14 +79,9 @@ export function UserFooterCard({
               fontSize: '0.8rem',
               flexShrink: 0,
               overflow: 'hidden',
-              backgroundImage: user.avatarUrl
-                ? `url(${user.avatarUrl})`
-                : 'none',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
             }}
           >
-            {!user.avatarUrl && user.avatarInitial}
+            {user.avatarInitial}
           </Box>
         </Badge>
         {!railMode && (

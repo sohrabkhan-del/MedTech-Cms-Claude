@@ -4,6 +4,7 @@ import {
   Button,
   Card,
   Checkbox,
+  CircularProgress,
   IconButton,
   InputAdornment,
   ListItemText,
@@ -85,6 +86,8 @@ interface CommonTableProps<T> {
   onSearchChange?: (value: string) => void
   searchKeys?: (row: T) => string
   actions?: CommonTableAction<T>[]
+  /** When it returns true for a row, its row-actions menu button is replaced with a spinner and disabled. */
+  isRowActionLoading?: (row: T) => boolean
   onFilterClick?: () => void
   filterCount?: number
   /** Shows the Export button. Downloads the currently visible columns/rows as CSV; pass a function to run extra logic after the download starts. */
@@ -119,6 +122,7 @@ export function CommonTable<T>({
   onSearchChange,
   searchKeys,
   actions,
+  isRowActionLoading,
   onFilterClick,
   filterCount = 0,
   onExportClick,
@@ -496,16 +500,20 @@ export function CommonTable<T>({
                       ))}
                       {actions && actions.length > 0 && (
                         <TableCell align="right">
-                          <IconButton
-                            size="small"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              openActionMenu(e, row)
-                            }}
-                            aria-label="Row actions"
-                          >
-                            <MoreVertical size={20} />
-                          </IconButton>
+                          {isRowActionLoading?.(row) ? (
+                            <CircularProgress size={18} sx={{ mx: 1 }} />
+                          ) : (
+                            <IconButton
+                              size="small"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openActionMenu(e, row)
+                              }}
+                              aria-label="Row actions"
+                            >
+                              <MoreVertical size={20} />
+                            </IconButton>
+                          )}
                         </TableCell>
                       )}
                     </TableRow>

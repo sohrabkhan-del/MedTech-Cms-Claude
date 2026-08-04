@@ -16,8 +16,8 @@ export function useMedicalRepDetail(mrId: string | undefined) {
   const { data: replacementOptions, isLoading: isReplacementLoading } = useGetReplacementMrsQuery(
     mr ? { region: mr.region, excludeId: mr.id } : skipToken,
   )
-  const [setStatusMutation] = useSetMedicalRepStatusMutation()
-  const [deleteMrMutation] = useDeleteMedicalRepMutation()
+  const [setStatusMutation, { isLoading: isStatusUpdating }] = useSetMedicalRepStatusMutation()
+  const [deleteMrMutation, { isLoading: isDeleting }] = useDeleteMedicalRepMutation()
 
   const isLoading = isMrLoading || (!!mr && isReplacementLoading)
   const error = mrQueryError ? getApiErrorMessage(mrQueryError, 'Failed to load medical representative.') : null
@@ -27,16 +27,27 @@ export function useMedicalRepDetail(mrId: string | undefined) {
     await setStatusMutation({ id: mrId, status }).unwrap()
   }
 
-  async function remove(replacementMrId: string) {
-    if (!mrId) return
+  async function remove(replacementMrId: string): Promise<boolean> {
+    if (!mrId) return false
     try {
       await deleteMrMutation({ id: mrId, replacementMrId }).unwrap()
       toast.success('Medical rep deleted successfully.')
+      return true
     } catch (err) {
       const message = getApiErrorMessage(err, 'Failed to delete medical representative.')
       toast.error(message)
+      return false
     }
   }
 
-  return { mr, replacementOptions: replacementOptions ?? [], isLoading, error, setStatus, remove }
+  return {
+    mr,
+    replacementOptions: replacementOptions ?? [],
+    isLoading,
+    isStatusUpdating,
+    isDeleting,
+    error,
+    setStatus,
+    remove,
+  }
 }

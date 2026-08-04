@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import {
+  Alert,
   Avatar,
   Box,
   Button,
@@ -11,7 +12,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { UserCircle, Pencil } from 'lucide-react'
+import { ShieldCheck, Pencil } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -25,7 +26,7 @@ import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
 import type { RegionOption } from '@/contexts/RegionFilterContext'
 import {
-  profileFormSchema,
+  createProfileFormSchema,
   type ProfileFormValues,
 } from '@/features/settings/profileFormSchema'
 
@@ -44,6 +45,7 @@ export function ProfileSettingsPage() {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const isSuperAdmin = user?.role === 'super_admin'
 
   useEffect(() => {
     let ignore = false
@@ -60,7 +62,7 @@ export function ProfileSettingsPage() {
   }, [])
 
   const { control, handleSubmit, reset } = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileFormSchema),
+    resolver: zodResolver(createProfileFormSchema(!isSuperAdmin)),
     defaultValues: {
       firstName: user?.firstName ?? '',
       lastName: user?.lastName ?? '',
@@ -149,7 +151,7 @@ export function ProfileSettingsPage() {
         <SectionCard
           title="Personal Information"
           action={
-            !isEditing ? (
+            !isEditing && !isSuperAdmin ? (
               <Button
                 variant="outlined"
                 size="small"
@@ -199,27 +201,31 @@ export function ProfileSettingsPage() {
                     control={control}
                     label="Phone Number"
                     required
+                    numeric
+                    slotProps={{ htmlInput: { maxLength: 10 } }}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, sm: 6 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'text.secondary',
-                      textTransform: 'uppercase',
-                      letterSpacing: '0.04em',
-                      mb: 0.75,
-                      display: 'block',
-                    }}
-                  >
-                    Region Access *
-                  </Typography>
-                  <RegionMultiSelectField
-                    name="regionIds"
-                    control={control}
-                    regions={regions}
-                  />
-                </Grid>
+                {!isSuperAdmin && (
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                        mb: 0.75,
+                        display: 'block',
+                      }}
+                    >
+                      Region Access *
+                    </Typography>
+                    <RegionMultiSelectField
+                      name="regionIds"
+                      control={control}
+                      regions={regions}
+                    />
+                  </Grid>
+                )}
               </Grid>
 
               <Stack direction="row" spacing={1.5}>
@@ -244,7 +250,14 @@ export function ProfileSettingsPage() {
             <Stack spacing={2.5}>
               <DetailFieldGrid
                 fields={[
-                  { label: 'Reference ID', value: user.referenceId ?? '-' },
+                  ...(isSuperAdmin
+                    ? []
+                    : [
+                        {
+                          label: 'Reference ID',
+                          value: user.referenceId ?? '-',
+                        },
+                      ]),
                   { label: 'Full Name', value: user.name },
                   { label: 'Email', value: user.email },
                   { label: 'Phone Number', value: user.phone ?? '-' },
@@ -288,38 +301,50 @@ export function ProfileSettingsPage() {
                 ]}
               />
 
-              <Box>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    color: 'text.secondary',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
-                    mb: 1,
-                    display: 'block',
-                  }}
+              {isSuperAdmin ? (
+                <Alert
+                  icon={<ShieldCheck size={20} />}
+                  severity="info"
+                  variant="outlined"
+                  sx={{ alignItems: 'center' }}
                 >
-                  Region Access
-                </Typography>
-                {user.regions && user.regions.length > 0 ? (
-                  <Stack
-                    direction="row"
-                    spacing={1}
-                    sx={{ flexWrap: 'wrap', gap: 1 }}
+                  Super Admin has unrestricted access to all regions and
+                  actions across the platform.
+                </Alert>
+              ) : (
+                <Box>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      mb: 1,
+                      display: 'block',
+                    }}
                   >
-                    {user.regions.map((region) => (
-                      <Chip
-                        key={region.id}
-                        label={region.name}
-                        size="small"
-                        variant="outlined"
-                      />
-                    ))}
-                  </Stack>
-                ) : (
-                  <TextField value="-" disabled fullWidth size="small" />
-                )}
-              </Box>
+                    Region Access
+                  </Typography>
+                  {user.regions && user.regions.length > 0 ? (
+                    <Stack
+                      direction="row"
+                      spacing={1}
+                      sx={{ flexWrap: 'wrap', gap: 1 }}
+                    >
+                      {user.regions.map((region) => (
+                        <Chip
+                          key={region.id}
+                          label={region.name}
+                          size="small"
+                          variant="outlined"
+                        />
+                      ))}
+                    </Stack>
+                  ) : (
+                    <TextField value="-" disabled fullWidth size="small" />
+                  )}
+                </Box>
+              )}
             </Stack>
           )}
         </SectionCard>

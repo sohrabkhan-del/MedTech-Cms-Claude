@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Avatar,
-  Checkbox,
-  FormControlLabel,
   Grid,
   MenuItem,
   Stack,
@@ -31,9 +29,10 @@ import { useAdmins } from '@/features/systemUsers/hooks/useAdmins'
 import { useSetAdminStatusMutation } from '@/features/systemUsers/services/adminsApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
-import { fallbackRegions, getRegions } from '@/services/regionsService'
-import type { RegionOption } from '@/contexts/RegionFilterContext'
-import type { Admin, AdminStatus } from '@/features/systemUsers/types/systemUsers.types'
+import type {
+  Admin,
+  AdminStatus,
+} from '@/features/systemUsers/types/systemUsers.types'
 
 interface AdminFilters extends Record<string, unknown> {
   status: AdminStatus | 'all'
@@ -47,12 +46,29 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
   status: 'status',
 }
 
+function formatPhoneNumber(phone?: string | null) {
+  if (!phone) return '—'
+
+  const digitsOnly = phone.replace(/\D/g, '')
+  if (!digitsOnly) return phone
+
+  if (/^91\d{10,}$/.test(digitsOnly)) {
+    return digitsOnly.slice(2)
+  }
+
+  if (/^1\d{10,}$/.test(digitsOnly)) {
+    return digitsOnly.slice(1)
+  }
+
+  return digitsOnly
+}
+
 export function AdminListPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const { regionId: topbarRegionId } = useRegionFilter()
   const [setAdminStatus] = useSetAdminStatusMutation()
-  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const [pendingAdminId, setPendingAdminId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<AdminFilters>({
@@ -62,21 +78,8 @@ export function AdminListPage() {
   const [sortColumn, setSortColumn] = useState('name')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
-  useEffect(() => {
-    let ignore = false
-    getRegions()
-      .then((options) => {
-        if (!ignore && options.length > 0) setRegions(options)
-      })
-      .catch((error) => {
-        console.warn('[regions] failed to load regions, using fallback', error)
-      })
-    return () => {
-      ignore = true
-    }
-  }, [])
-
-  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const effectiveRegionId =
+    appliedFilters.regionId || topbarRegionId || undefined
   const debouncedSearch = useDebouncedValue(search, 300)
 
   const { admins, kpis, isLoading } = useAdmins({
@@ -104,6 +107,7 @@ export function AdminListPage() {
   }
 
   async function handleSetStatus(admin: Admin, status: AdminStatus) {
+    setPendingAdminId(admin.id)
     try {
       await setAdminStatus({ id: admin.id, status }).unwrap()
       toast.success(
@@ -120,6 +124,8 @@ export function AdminListPage() {
             : 'Failed to deactivate admin.',
         ),
       )
+    } finally {
+      setPendingAdminId(null)
     }
   }
 
@@ -167,7 +173,7 @@ export function AdminListPage() {
       key: 'phone',
       header: 'Phone Number',
       minWidth: 160,
-      render: (row) => row.phone,
+      render: (row) => formatPhoneNumber(row.phone),
     },
     {
       key: 'regionAccess',
@@ -260,6 +266,7 @@ export function AdminListPage() {
         rows={admins}
         getRowId={(row) => row.id}
         loading={isLoading}
+        isRowActionLoading={(row) => row.id === pendingAdminId}
         searchPlaceholder="Search admins…"
         searchValue={search}
         onSearchChange={setSearch}
@@ -301,52 +308,29 @@ export function AdminListPage() {
         title="Filter Admins"
         value={appliedFilters}
         onApply={setAppliedFilters}
+        onReset={() => {
+          setAppliedFilters({ status: 'all', regionId: '' })
+          setFilterOpen(false)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <TextField
               select
-              label="Region"
-              value={draft.regionId}
+              label="Status"
+              value={draft.status}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  regionId: e.target.value,
+                  status: e.target.value as AdminStatus | 'all',
                 }))
               }
               fullWidth
             >
-              <MenuItem value="">
-                <em>All Regions</em>
-              </MenuItem>
-              {regions.map((region) => (
-                <MenuItem key={region.id} value={region.id}>
-                  {region.name}
-                </MenuItem>
-              ))}
+              <MenuItem value="all">All</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>
-            <Stack spacing={1}>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                Status
-              </Typography>
-              {(['active', 'pending', 'inactive'] as AdminStatus[]).map((status) => (
-                <FormControlLabel
-                  key={status}
-                  control={
-                    <Checkbox
-                      checked={draft.status === status}
-                      onChange={(e) =>
-                        setDraft((prev) => ({
-                          ...prev,
-                          status: e.target.checked ? status : 'all',
-                        }))
-                      }
-                    />
-                  }
-                  label={status.charAt(0).toUpperCase() + status.slice(1)}
-                />
-              ))}
-            </Stack>
           </Stack>
         )}
       </FilterDrawer>

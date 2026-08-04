@@ -227,7 +227,14 @@ export function ChemistFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Contact Number</FieldLabel>
-              <FormField name="phone" control={control} placeholder="98xxx xxxxx" numeric {...fieldLabelProps} />
+              <FormField
+                name="phone"
+                control={control}
+                placeholder="98xxx xxxxx"
+                numeric
+                slotProps={{ htmlInput: { maxLength: 10 } }}
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Email</FieldLabel>

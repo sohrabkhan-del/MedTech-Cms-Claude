@@ -5,6 +5,7 @@ import { mockDelay } from '@/services/mockDelay'
 import { getRegions, fallbackRegions } from '@/services/regionsService'
 import type { RegionOption } from '@/contexts/RegionFilterContext'
 import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
+import { formatDate } from '@/utils/formatDate'
 
 export interface AdminKpis {
   totalAdmins: number
@@ -143,13 +144,7 @@ function mapAdminItem(item: AdminApiItem): Admin {
     role: mapRole(item.role),
     status: mapStatus(item.status),
     totalActionsLogged: item.totalActionsLogged ?? 0,
-    createdDate: item.createdAt
-      ? new Date(item.createdAt).toLocaleDateString('en-IN', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        })
-      : '-',
+    createdDate: formatDate(item.createdAt),
     recentActivity: [],
   }
 }

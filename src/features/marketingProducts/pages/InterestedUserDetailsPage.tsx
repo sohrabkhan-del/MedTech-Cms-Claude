@@ -1,29 +1,54 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Grid, LinearProgress, Stack, Typography } from '@mui/material'
-import { ArrowLeft as ArrowBackOutlined, User, Sparkles, Clock3, CheckCheck, Users, Trash2 as DeleteOutlined } from 'lucide-react'
+import {
+  Box,
+  Button,
+  Chip,
+  LinearProgress,
+  Stack,
+  Typography,
+} from '@mui/material'
+import {
+  ArrowLeft as ArrowBackOutlined,
+  User,
+  Trash2 as DeleteOutlined,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
-import { StatCard } from '@/components/common/StatCard/StatCard'
 import { Modal } from '@/components/common/Modal/Modal'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useInterestedUserDetail } from '@/features/marketingProducts/hooks/useInterestedUserDetail'
-import { useInterestedUsers } from '@/features/marketingProducts/hooks/useInterestedUsers'
+import { LeadActionDialog } from '@/features/marketingProducts/components/LeadActionDialog'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type { LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
 
-const leadStatusConfig: Record<LeadStatus, { label: string; color: 'info' | 'warning' | 'success' }> = {
+const leadStatusConfig: Record<
+  LeadStatus,
+  { label: string; color: 'info' | 'warning' | 'success' }
+> = {
   new: { label: 'New', color: 'info' },
-  in_progress: { label: 'In Progress', color: 'warning' },
+  followed_up: { label: 'Followed Up', color: 'warning' },
   closed: { label: 'Closed', color: 'success' },
+}
+
+const leadProgress: Record<LeadStatus, number> = {
+  new: 33,
+  followed_up: 66,
+  closed: 100,
 }
 
 export function InterestedUserDetailsPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { leadId } = useParams<{ leadId: string }>()
-  const { lead, setStatus, remove, isLoading } = useInterestedUserDetail(leadId)
-  const { kpis } = useInterestedUsers()
+  const { lead, isLoading, followUp, isFollowingUp, close, isClosing, remove } =
+    useInterestedUserDetail(leadId)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [actionMode, setActionMode] = useState<'follow-up' | 'close' | null>(
+    null,
+  )
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={4} />
@@ -32,26 +57,52 @@ export function InterestedUserDetailsPage() {
   if (!lead) {
     return (
       <EmptyState
-        title="Lead not found"
-        description="This lead may have been removed."
+        title="Interest not found"
+        description="This interest may have been removed."
         actionLabel="Back to Interested Users"
         onAction={() => navigate('/marketing-products/interested-users')}
       />
     )
   }
 
-  const interestedUserKpis = kpis ?? { totalInterestedUsers: 0, newLeads: 0, inProgressLeads: 0, closedLeads: 0 }
-  const progress = lead.leadStatus === 'closed' ? 100 : lead.progressPercentage
+  const confirmDelete = async () => {
+    try {
+      await remove()
+      setDeleteOpen(false)
+      toast.success('Interest deleted successfully.')
+      navigate('/marketing-products/interested-users')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to delete interest.'))
+    }
+  }
 
-  const confirmDelete = () => {
-    remove()
-    setDeleteOpen(false)
-    navigate('/marketing-products/interested-users')
+  async function handleActionSubmit(note: string) {
+    try {
+      if (actionMode === 'follow-up') {
+        await followUp(note)
+        toast.success('Interest marked as followed up.')
+      } else if (actionMode === 'close') {
+        await close(note)
+        toast.success('Interest marked as closed.')
+      }
+      setActionMode(null)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to update interest.'))
+    }
   }
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -70,24 +121,50 @@ export function InterestedUserDetailsPage() {
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
               <Typography variant="h1">{lead.userName}</Typography>
-              <Chip size="small" label={leadStatusConfig[lead.leadStatus].label} color={leadStatusConfig[lead.leadStatus].color} />
+              <Chip
+                size="small"
+                label={leadStatusConfig[lead.leadStatus].label}
+                color={leadStatusConfig[lead.leadStatus].color}
+              />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {lead.id} · {lead.userType}
+              {lead.userType}
             </Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5}>
-          <Button variant="outlined" disabled={lead.leadStatus === 'in_progress' || lead.leadStatus === 'closed'} onClick={() => setStatus('in_progress')} sx={{ fontSize: '0.75rem' }}>
-            Mark as In Progress
+          <Button
+            variant="outlined"
+            disabled={lead.leadStatus !== 'new'}
+            onClick={() => setActionMode('follow-up')}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            Mark as Followed Up
           </Button>
-          <Button variant="outlined" color="success" disabled={lead.leadStatus === 'closed'} onClick={() => setStatus('closed')} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            color="success"
+            disabled={lead.leadStatus === 'closed'}
+            onClick={() => setActionMode('close')}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Mark as Closed
           </Button>
-          <Button variant="outlined" color="error" startIcon={<DeleteOutlined size={20} />} onClick={() => setDeleteOpen(true)} sx={{ fontSize: '0.75rem' }}>
-            Delete Lead
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<DeleteOutlined size={20} />}
+            onClick={() => setDeleteOpen(true)}
+            sx={{ fontSize: '0.75rem' }}
+          >
+            Delete Interest
           </Button>
-          <Button variant="outlined" startIcon={<ArrowBackOutlined size={20} />} onClick={() => navigate('/marketing-products/interested-users')} sx={{ fontSize: '0.75rem' }}>
+          <Button
+            variant="outlined"
+            startIcon={<ArrowBackOutlined size={20} />}
+            onClick={() => navigate('/marketing-products/interested-users')}
+            sx={{ fontSize: '0.75rem' }}
+          >
             Back to List
           </Button>
         </Stack>
@@ -97,84 +174,92 @@ export function InterestedUserDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Lead ID', value: lead.id },
               { label: 'User Name', value: lead.userName },
+              { label: 'Business Name', value: lead.businessName },
               { label: 'Interested Product', value: lead.interestedProduct },
-              { label: 'Current Lead Status', value: <Chip size="small" label={leadStatusConfig[lead.leadStatus].label} color={leadStatusConfig[lead.leadStatus].color} /> },
+              {
+                label: 'Current Interest Status',
+                value: (
+                  <Chip
+                    size="small"
+                    label={leadStatusConfig[lead.leadStatus].label}
+                    color={leadStatusConfig[lead.leadStatus].color}
+                  />
+                ),
+              },
               { label: 'Requested Date', value: lead.requestedDate },
-              { label: 'Assigned Executive', value: lead.handledBy },
+              { label: 'Assigned Executive', value: lead.handledBy || '-' },
             ]}
           />
         </SectionCard>
 
-        <SectionCard title="Lead Information">
+        <SectionCard title="Interest Information">
           <DetailFieldGrid
             fields={[
               { label: 'Customer Name', value: lead.userName },
+              { label: 'Mobile Number', value: lead.mobile },
               { label: 'Product of Interest', value: lead.interestedProduct },
+              { label: 'Product Category', value: lead.productCategory },
+              {
+                label: 'Quantity Requested',
+                value: `${lead.quantityRequested} ${lead.stockUnit}`,
+              },
+              { label: 'Region', value: lead.region || '-' },
+              { label: 'Note', value: lead.note || '-' },
               { label: 'Requested Date', value: lead.requestedDate },
-              { label: 'Lead Source', value: lead.leadSource },
-              { label: 'Assigned To', value: lead.handledBy },
-              { label: 'Current Status', value: leadStatusConfig[lead.leadStatus].label },
             ]}
           />
         </SectionCard>
 
-        <SectionCard title="Lead Progress">
+        <SectionCard title="Follow-up & Closure">
           <Stack spacing={2}>
+            <Box>
+              <Stack
+                direction="row"
+                sx={{ justifyContent: 'space-between', mb: 0.5 }}
+              >
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  Interest Progress
+                </Typography>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+                  {leadProgress[lead.leadStatus]}%
+                </Typography>
+              </Stack>
+              <LinearProgress
+                variant="determinate"
+                value={leadProgress[lead.leadStatus]}
+                color={leadStatusConfig[lead.leadStatus].color}
+                sx={{ height: 8, borderRadius: 4 }}
+              />
+            </Box>
             <DetailFieldGrid
               fields={[
-                { label: 'Current Stage', value: leadStatusConfig[lead.leadStatus].label },
-                { label: 'Assigned Executive', value: lead.handledBy },
-                { label: 'Last Activity', value: lead.lastActivity },
-                { label: 'Follow-up Status', value: lead.followUpStatus },
+                {
+                  label: 'Current Status',
+                  value: leadStatusConfig[lead.leadStatus].label,
+                },
+                { label: 'Assigned Executive', value: lead.handledBy || '-' },
+                { label: 'Followed Up At', value: lead.followedUpAt || '-' },
+                { label: 'Follow-up Note', value: lead.followUpNote || '-' },
+                { label: 'Close Reason', value: lead.closeReason || '-' },
               ]}
             />
-            <Box>
-              <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                  Progress Percentage
-                </Typography>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>{progress}%</Typography>
-              </Stack>
-              <LinearProgress variant="determinate" value={progress} sx={{ height: 8, borderRadius: 4 }} />
-            </Box>
           </Stack>
-        </SectionCard>
-
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Total Interested Users" value={interestedUserKpis.totalInterestedUsers} icon={<Users size={20} />} iconColor="primary" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="New Leads" value={interestedUserKpis.newLeads} icon={<Sparkles size={20} />} iconColor="info" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="In Progress Leads" value={interestedUserKpis.inProgressLeads} icon={<Clock3 size={20} />} iconColor="warning" />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard label="Converted Leads" value={interestedUserKpis.closedLeads} icon={<CheckCheck size={20} />} iconColor="success" />
-          </Grid>
-        </Grid>
-
-        <SectionCard title="Record Summary">
-          <DetailFieldGrid
-            fields={[
-              { label: 'User Name', value: lead.userName },
-              { label: 'Interested Product', value: lead.interestedProduct },
-              { label: 'Lead Status', value: leadStatusConfig[lead.leadStatus].label },
-              { label: 'Requested Date', value: lead.requestedDate },
-              { label: 'Assigned Executive', value: lead.handledBy },
-            ]}
-          />
         </SectionCard>
       </Stack>
 
       <Modal
         open={deleteOpen}
         onClose={() => setDeleteOpen(false)}
-        title="Delete Lead"
-        description={`Are you sure you want to permanently delete this lead for ${lead.userName}? This action cannot be undone.`}
+        title="Delete Interest"
+        description={`Are you sure you want to permanently delete this interest for ${lead.userName}? This action cannot be undone.`}
         primaryActionLabel="Delete"
         primaryActionColor="error"
         onPrimaryAction={confirmDelete}
@@ -183,6 +268,14 @@ export function InterestedUserDetailsPage() {
           {lead.userName} · {lead.interestedProduct}
         </Typography>
       </Modal>
+
+      <LeadActionDialog
+        open={actionMode !== null}
+        mode={actionMode ?? 'follow-up'}
+        onClose={() => setActionMode(null)}
+        onSubmit={handleActionSubmit}
+        loading={actionMode === 'follow-up' ? isFollowingUp : isClosing}
+      />
     </>
   )
 }

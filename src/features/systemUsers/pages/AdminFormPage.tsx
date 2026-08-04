@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Controller, useForm } from 'react-hook-form'
-import { Button, Checkbox, Card, Grid, ListItemText, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { useForm } from 'react-hook-form'
+import { Button, Card, Grid, Stack, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { RegionMultiSelectField } from '@/components/common/RegionMultiSelectField/RegionMultiSelectField'
 import { useAdminForm } from '@/features/systemUsers/hooks/useAdminForm'
 import { adminFormDefaults, adminFormSchema, type AdminFormValues } from '@/features/systemUsers/types/systemUsers.types'
 
@@ -108,76 +109,7 @@ export function AdminFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Region</FieldLabel>
-              <Controller
-                name="regionIds"
-                control={control}
-                render={({ field, fieldState }) => {
-                  const allRegionOption = regions.find((r) => r.code === 'ALL_INDIA')
-                  const specificRegions = regions.filter((r) => r.code !== 'ALL_INDIA')
-                  const isAllSelected = !!allRegionOption && field.value.includes(allRegionOption.id)
-
-                  function handleChange(selectedIds: string[]) {
-                    if (!allRegionOption) {
-                      field.onChange(selectedIds)
-                      return
-                    }
-                    const allJustPicked =
-                      selectedIds.includes(allRegionOption.id) && !isAllSelected
-                    const allJustCleared =
-                      isAllSelected && !selectedIds.includes(allRegionOption.id)
-
-                    if (allJustPicked) {
-                      field.onChange([allRegionOption.id])
-                    } else if (allJustCleared) {
-                      field.onChange([])
-                    } else {
-                      field.onChange(selectedIds.filter((id) => id !== allRegionOption.id))
-                    }
-                  }
-
-                  return (
-                    <TextField
-                      select
-                      fullWidth
-                      size="small"
-                      value={field.value}
-                      onChange={(e) =>
-                        handleChange(
-                          typeof e.target.value === 'string'
-                            ? e.target.value.split(',')
-                            : (e.target.value as string[]),
-                        )
-                      }
-                      error={!!fieldState.error}
-                      helperText={fieldState.error?.message}
-                      slotProps={{
-                        select: {
-                          multiple: true,
-                          renderValue: (selected) =>
-                            regions
-                              .filter((r) => (selected as string[]).includes(r.id))
-                              .map((r) => r.name)
-                              .join(', '),
-                        },
-                        inputLabel: { shrink: false, sx: { display: 'none' } },
-                      }}
-                    >
-                      {allRegionOption ? (
-                        <MenuItem value={allRegionOption.id}>
-                          <Checkbox checked={isAllSelected} size="small" />
-                          <ListItemText primary={allRegionOption.name} />
-                        </MenuItem>
-                      ) : null}
-                      {specificRegions.map((region) => (
-                        <MenuItem key={region.id} value={region.id} disabled={isAllSelected}>
-                          <Checkbox checked={field.value.includes(region.id)} size="small" />
-                          <ListItemText primary={region.name} />
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  )
-                }}
-              />
+              <RegionMultiSelectField name="regionIds" control={control} regions={regions} />
             </Grid>
           </Grid>
         </Card>

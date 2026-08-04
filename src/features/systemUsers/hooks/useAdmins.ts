@@ -23,7 +23,7 @@ export function useAdmins(params?: AdminQueryParams) {
   })
   const kpisResult = useGetAdminAnalyticsQuery(analyticsParams)
 
-  const isLoading = adminsResult.isLoading || kpisResult.isLoading
+  const isLoading = adminsResult.isFetching || kpisResult.isFetching
   const error = adminsResult.error
     ? getApiErrorMessage(adminsResult.error, 'Failed to load admins.')
     : kpisResult.error

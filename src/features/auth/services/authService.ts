@@ -27,8 +27,16 @@ interface AdminLoginData {
   refreshToken: string
 }
 
+interface AdminProfileRegion {
+  id: string
+  code: string
+  name: string
+  isActive: boolean
+}
+
 interface AdminProfileData {
   id: string
+  referenceId?: string
   email: string
   country?: string | null
   phone?: string | null
@@ -40,6 +48,15 @@ interface AdminProfileData {
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
   region?: string | null
+  regions?: AdminProfileRegion[]
+}
+
+interface UpdateOwnProfileRequest {
+  firstName: string
+  lastName: string
+  phone: string
+  email: string
+  regionIds: string[]
 }
 
 interface ChangePasswordRequest {
@@ -58,6 +75,14 @@ function mapRole(role: string): UserRole {
   return 'admin'
 }
 
+function mapStatus(status?: string): AuthUser['status'] {
+  if (!status) return undefined
+  const normalized = status.toLowerCase()
+  if (normalized === 'active') return 'active'
+  if (normalized === 'pending') return 'pending'
+  return 'inactive'
+}
+
 function mapAdminProfile(profile: AdminProfileData): AuthUser {
   const firstName = profile.firstName?.trim() ?? ''
   const lastName = profile.lastName?.trim() ?? ''
@@ -65,15 +90,22 @@ function mapAdminProfile(profile: AdminProfileData): AuthUser {
 
   return {
     id: profile.id,
+    referenceId: profile.referenceId,
     name,
+    firstName: profile.firstName ?? undefined,
+    lastName: profile.lastName ?? undefined,
     email: profile.email,
     role: mapRole(profile.role),
+    status: mapStatus(profile.status),
+    isEmailVerified: profile.isEmailVerified,
+    isPhoneVerified: profile.isPhoneVerified,
     avatarInitial: name.charAt(0).toUpperCase(),
     avatarUrl: profile.profileImageUrl ?? undefined,
     phone: profile.phone
       ? `${profile.country ?? ''}${profile.phone}`
       : undefined,
     location: profile.region ?? undefined,
+    regions: profile.regions,
   }
 }
 
@@ -120,6 +152,19 @@ async function getMe(): Promise<AuthUser> {
   const response =
     await apiClient.get<ApiResponse<AdminProfileData>>('/admins/me')
   console.info('[auth] me response', response.data.data)
+  return mapAdminProfile(response.data.data)
+}
+
+async function updateOwnProfile(
+  id: string,
+  payload: UpdateOwnProfileRequest,
+): Promise<AuthUser> {
+  console.info('[auth] update-profile request', { id })
+  const response = await apiClient.put<ApiResponse<AdminProfileData>>(
+    `/admins/${id}`,
+    payload,
+  )
+  console.info('[auth] update-profile response', response.data.data)
   return mapAdminProfile(response.data.data)
 }
 
@@ -232,6 +277,7 @@ async function resetPassword(
 export const authService = {
   login,
   getMe,
+  updateOwnProfile,
   changePassword,
   verifyOtp,
   firstLoginReset,

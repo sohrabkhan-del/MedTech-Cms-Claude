@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Chip,
   Grid,
@@ -16,29 +16,39 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useInterestedUsers } from '@/features/marketingProducts/hooks/useInterestedUsers'
+import { LeadActionDialog } from '@/features/marketingProducts/components/LeadActionDialog'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
 import type {
   InterestedUserLead,
   LeadStatus,
   LeadUserType,
 } from '@/features/marketingProducts/types/marketingProducts.types'
-import type { PartnerZone } from '@/types/partner'
 
 const leadStatusConfig: Record<
   LeadStatus,
   { label: string; color: 'info' | 'warning' | 'success' }
 > = {
   new: { label: 'New', color: 'info' },
-  in_progress: { label: 'In Progress', color: 'warning' },
+  followed_up: { label: 'Followed Up', color: 'warning' },
   closed: { label: 'Closed', color: 'success' },
 }
 
 interface LeadFilters extends Record<string, unknown> {
   leadStatus: LeadStatus | 'all'
   userType: LeadUserType | 'all'
-  handledBy: string | 'all'
-  fromDate: string
-  toDate: string
+  regionId: string
+  requestedFrom: string
+  requestedTo: string
+}
+
+// Maps CommonTable column keys to GET /showcase-products/interests `sortBy` field names.
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  requestedDate: 'createdAt',
 }
 
 interface InterestedUsersListTabProps {
@@ -48,39 +58,78 @@ interface InterestedUsersListTabProps {
 export function InterestedUsersListTab({
   onViewLead,
 }: InterestedUsersListTabProps) {
-  const { region } = useRegionFilter()
-  const regionZone = region === 'All India' ? null : (region as PartnerZone)
-  const { leads, kpis, handlerOptions, isLoading, setStatus, remove } =
-    useInterestedUsers()
+  const toast = useToast()
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<LeadFilters>({
     leadStatus: 'all',
     userType: 'all',
-    handledBy: 'all',
-    fromDate: '',
-    toDate: '',
+    regionId: '',
+    requestedFrom: '',
+    requestedTo: '',
   })
+  const [sortColumn, setSortColumn] = useState('requestedDate')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [actionDialog, setActionDialog] = useState<{ mode: 'follow-up' | 'close'; leadId: string } | null>(null)
+  const [actionLoading, setActionLoading] = useState(false)
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { leads, kpis, isLoading, isKpisLoading, followUp, close, remove } = useInterestedUsers({
+    page: 1,
+    limit: 10,
+    search: debouncedSearch,
+    status: appliedFilters.leadStatus,
+    userType: appliedFilters.userType,
+    regionId: effectiveRegionId,
+    requestedFrom: appliedFilters.requestedFrom || undefined,
+    requestedTo: appliedFilters.requestedTo || undefined,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
+
+  async function handleActionSubmit(note: string) {
+    if (!actionDialog) return
+    setActionLoading(true)
+    try {
+      if (actionDialog.mode === 'follow-up') {
+        await followUp(actionDialog.leadId, note)
+        toast.success('Interest marked as followed up.')
+      } else {
+        await close(actionDialog.leadId, note)
+        toast.success('Interest marked as closed.')
+      }
+      setActionDialog(null)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to update interest.'))
+    } finally {
+      setActionLoading(false)
+    }
+  }
 
   const interestedUserKpis = kpis ?? {
     totalInterestedUsers: 0,
     newLeads: 0,
-    inProgressLeads: 0,
-    closedLeads: 0,
+    leadsInProgress: 0,
+    closedConvertedLeads: 0,
   }
-
-  const filteredLeads = leads.filter((lead) => {
-    const regionMatch = !regionZone || lead.region === regionZone
-    const statusMatch =
-      appliedFilters.leadStatus === 'all' ||
-      lead.leadStatus === appliedFilters.leadStatus
-    const userTypeMatch =
-      appliedFilters.userType === 'all' ||
-      lead.userType === appliedFilters.userType
-    const handledByMatch =
-      appliedFilters.handledBy === 'all' ||
-      lead.handledBy === appliedFilters.handledBy
-    return regionMatch && statusMatch && userTypeMatch && handledByMatch
-  })
 
   const columns: CommonTableColumn<InterestedUserLead>[] = [
     {
@@ -111,7 +160,7 @@ export function InterestedUsersListTab({
     },
     {
       key: 'leadStatus',
-      header: 'Lead Status',
+      header: 'Interest Status',
       minWidth: 120,
       render: (row) => (
         <Chip
@@ -132,7 +181,7 @@ export function InterestedUsersListTab({
       key: 'handledBy',
       header: 'Handled By',
       minWidth: 140,
-      render: (row) => row.handledBy,
+      render: (row) => row.handledBy || '-',
     },
   ]
 
@@ -140,7 +189,7 @@ export function InterestedUsersListTab({
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isKpisLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -152,7 +201,7 @@ export function InterestedUsersListTab({
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isKpisLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -164,24 +213,24 @@ export function InterestedUsersListTab({
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isKpisLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
               label="Leads In Progress"
-              value={interestedUserKpis.inProgressLeads}
+              value={interestedUserKpis.leadsInProgress}
               icon={<Clock3 size={20} />}
               iconColor="warning"
             />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isKpisLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
               label="Closed / Converted Leads"
-              value={interestedUserKpis.closedLeads}
+              value={interestedUserKpis.closedConvertedLeads}
               icon={<CheckCheck size={20} />}
               iconColor="success"
             />
@@ -190,28 +239,43 @@ export function InterestedUsersListTab({
       </Grid>
 
       <CommonTable
+        key={`${effectiveRegionId ?? 'all'}-${appliedFilters.leadStatus}-${appliedFilters.userType}`}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
         tableKey="interested-users-list"
         columns={columns}
-        rows={filteredLeads}
+        rows={leads}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search by user name or product…"
-        searchKeys={(row) => `${row.userName} ${row.interestedProduct}`}
+        searchValue={search}
+        onSearchChange={setSearch}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.leadStatus !== 'all' ? 1 : 0) +
           (appliedFilters.userType !== 'all' ? 1 : 0) +
-          (appliedFilters.handledBy !== 'all' ? 1 : 0) +
-          (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
+          (appliedFilters.regionId.trim() ? 1 : 0) +
+          (appliedFilters.requestedFrom || appliedFilters.requestedTo ? 1 : 0)
         }
         onExportClick={() => {}}
         defaultSortBy="requestedDate"
         defaultSortDir="desc"
         actions={[
           { label: 'View Details', onClick: (row) => onViewLead(row) },
-          { label: 'Approve ', onClick: (row) => setStatus(row.id, 'closed') },
           {
-            label: 'Delete Lead',
+            label: 'Mark as Followed Up',
+            hidden: (row) => row.leadStatus !== 'new',
+            onClick: (row) => setActionDialog({ mode: 'follow-up', leadId: row.id }),
+          },
+          {
+            label: 'Mark as Closed',
+            hidden: (row) => row.leadStatus === 'closed',
+            onClick: (row) => setActionDialog({ mode: 'close', leadId: row.id }),
+          },
+          {
+            label: 'Delete Interest',
             onClick: (row) => remove(row.id),
             danger: true,
           },
@@ -231,7 +295,7 @@ export function InterestedUsersListTab({
           <Stack spacing={3}>
             <TextField
               select
-              label="Lead Status"
+              label="Interest Status"
               size="small"
               value={draft.leadStatus}
               onChange={(e) =>
@@ -243,7 +307,7 @@ export function InterestedUsersListTab({
             >
               <MenuItem value="all">All Statuses</MenuItem>
               <MenuItem value="new">New</MenuItem>
-              <MenuItem value="in_progress">In Progress</MenuItem>
+              <MenuItem value="followed_up">Followed Up</MenuItem>
               <MenuItem value="closed">Closed</MenuItem>
             </TextField>
             <TextField
@@ -264,17 +328,19 @@ export function InterestedUsersListTab({
             </TextField>
             <TextField
               select
-              label="Handled By"
+              label="Region"
               size="small"
-              value={draft.handledBy}
+              value={draft.regionId}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, handledBy: e.target.value }))
+                setDraft((prev) => ({ ...prev, regionId: e.target.value }))
               }
             >
-              <MenuItem value="all">All Executives</MenuItem>
-              {handlerOptions.map((mr) => (
-                <MenuItem key={mr} value={mr}>
-                  {mr}
+              <MenuItem value="">
+                <em>All Regions</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region.id} value={region.id}>
+                  {region.name}
                 </MenuItem>
               ))}
             </TextField>
@@ -283,9 +349,9 @@ export function InterestedUsersListTab({
               label="Requested From"
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
-              value={draft.fromDate}
+              value={draft.requestedFrom}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
+                setDraft((prev) => ({ ...prev, requestedFrom: e.target.value }))
               }
             />
             <TextField
@@ -293,14 +359,22 @@ export function InterestedUsersListTab({
               label="Requested To"
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
-              value={draft.toDate}
+              value={draft.requestedTo}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
+                setDraft((prev) => ({ ...prev, requestedTo: e.target.value }))
               }
             />
           </Stack>
         )}
       </FilterDrawer>
+
+      <LeadActionDialog
+        open={!!actionDialog}
+        mode={actionDialog?.mode ?? 'follow-up'}
+        onClose={() => setActionDialog(null)}
+        onSubmit={handleActionSubmit}
+        loading={actionLoading}
+      />
     </>
   )
 }

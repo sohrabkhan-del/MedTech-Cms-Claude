@@ -3,9 +3,9 @@ import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
 import { mrs } from '@/features/userManagement/mockPartnerData'
 import { mockShowcaseProducts } from '@/features/marketingProducts/mockShowcaseProducts'
+import { formatDate } from '@/utils/formatDate'
 
-const leadSources = ['Showcase Enquiry', 'MR Referral', 'Mobile App Browse', 'Promotional Campaign']
-const followUpStatuses = ['On Track', 'Awaiting Response', 'Follow-up Scheduled', 'No Response Yet']
+const stockUnits = ['boxes', 'strips', 'units', 'cartons']
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -19,20 +19,14 @@ function pad(n: number): string {
 
 function dateFromSeed(seed: number, month = 'Jul'): string {
   const day = (seed % 27) + 1
-  return `${pad(day)} ${month} 2026`
+  return `2026-${month}-${pad(day)}`
 }
 
 function resolveLeadStatus(seed: number): LeadStatus {
   const roll = seed % 5
   if (roll < 2) return 'new'
-  if (roll < 4) return 'in_progress'
+  if (roll < 4) return 'followed_up'
   return 'closed'
-}
-
-function progressForStatus(status: LeadStatus, seed: number): number {
-  if (status === 'new') return seededNumber(seed, 0, 20)
-  if (status === 'in_progress') return seededNumber(seed, 25, 80)
-  return 100
 }
 
 function buildLead(seed: number): InterestedUserLead {
@@ -40,21 +34,31 @@ function buildLead(seed: number): InterestedUserLead {
   const partner = userType === 'Dealer' ? mockDealers[seed % mockDealers.length]! : mockChemists[seed % mockChemists.length]!
   const product = mockShowcaseProducts[seed % mockShowcaseProducts.length]!
   const leadStatus = resolveLeadStatus(seed)
+  const createdAt = dateFromSeed(seed, '07')
 
   return {
     id: `lead-${seed}`,
-    userId: partner.id,
-    userName: partner.shopName,
-    userType,
-    region: partner.zone,
+    showcaseProductId: product.id,
     interestedProduct: product.productName,
+    productCategory: product.category ?? 'Medicines',
+    userId: partner.id,
+    userName: partner.ownerName ?? partner.shopName,
+    businessName: partner.shopName,
+    userType,
+    mobile: partner.phone,
+    regionId: null,
+    region: partner.zone,
+    quantityRequested: seededNumber(seed, 5, 50),
+    stockUnit: stockUnits[seed % stockUnits.length]!,
+    note: 'Please deliver within 3 business days.',
     leadStatus,
-    requestedDate: dateFromSeed(seed, 'Jul'),
-    handledBy: mrs[seed % mrs.length]!,
-    leadSource: leadSources[seed % leadSources.length]!,
-    progressPercentage: progressForStatus(leadStatus, seed),
-    lastActivity: dateFromSeed(seed + 2, 'Jul'),
-    followUpStatus: leadStatus === 'closed' ? 'Converted' : followUpStatuses[seed % followUpStatuses.length]!,
+    requestedDate: formatDate(createdAt),
+    followedUpAt: leadStatus === 'new' ? null : formatDate(dateFromSeed(seed + 2, '07')),
+    handledBy: leadStatus === 'new' ? '' : mrs[seed % mrs.length]!,
+    followUpNote: leadStatus === 'followed_up' ? 'Followed up with the customer.' : '',
+    closeReason: leadStatus === 'closed' ? 'order_placed' : '',
+    createdAt,
+    updatedAt: leadStatus === 'new' ? createdAt : dateFromSeed(seed + 2, '07'),
   }
 }
 
@@ -67,6 +71,6 @@ export function getInterestedUserById(id: string): InterestedUserLead | undefine
 export const interestedUserKpis = {
   totalInterestedUsers: mockInterestedUsers.length,
   newLeads: mockInterestedUsers.filter((l) => l.leadStatus === 'new').length,
-  inProgressLeads: mockInterestedUsers.filter((l) => l.leadStatus === 'in_progress').length,
-  closedLeads: mockInterestedUsers.filter((l) => l.leadStatus === 'closed').length,
+  leadsInProgress: mockInterestedUsers.filter((l) => l.leadStatus === 'followed_up').length,
+  closedConvertedLeads: mockInterestedUsers.filter((l) => l.leadStatus === 'closed').length,
 }

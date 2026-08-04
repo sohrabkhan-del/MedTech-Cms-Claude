@@ -89,6 +89,7 @@ export type FeatureTag = (typeof tagTypes)[number]
 const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   Admins: 'real',
   Chemists: 'real',
+  InterestedUsers: 'real',
   MedicalRepDetail: 'real',
   Partners: 'real',
   ProductCategories: 'real',

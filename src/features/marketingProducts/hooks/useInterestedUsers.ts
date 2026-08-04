@@ -1,54 +1,74 @@
-import { useState } from 'react'
 import {
   useGetInterestedUsersQuery,
-  useGetInterestedUserKpisQuery,
+  useGetInterestedUserAnalyticsQuery,
   useGetHandlerOptionsQuery,
-  useSetLeadStatusMutation,
+  useFollowUpLeadMutation,
+  useCloseLeadMutation,
   useDeleteLeadMutation,
+  type InterestedUserQueryParams,
 } from '@/features/marketingProducts/services/interestedUsersApi'
-import type { LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useInterestedUsers() {
-  const [statusOverrides, setStatusOverrides] = useState<Record<string, LeadStatus>>({})
-  const [deletedIds, setDeletedIds] = useState<Set<string>>(new Set())
+export function useInterestedUsers(params?: InterestedUserQueryParams) {
+  const { regionId: topbarRegionId, dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const { preset, startDate, endDate } = analyticsParams
 
-  const leadsResult = useGetInterestedUsersQuery()
-  const kpisResult = useGetInterestedUserKpisQuery()
+  const effectiveRegionId = params?.regionId || topbarRegionId || undefined
+
+  const leadsResult = useGetInterestedUsersQuery({
+    ...params,
+    regionId: effectiveRegionId,
+    preset,
+    startDate,
+    endDate,
+  })
+  const kpisResult = useGetInterestedUserAnalyticsQuery(analyticsParams)
   const handlerOptionsResult = useGetHandlerOptionsQuery()
-  const [setLeadStatusMutation] = useSetLeadStatusMutation()
+  const [followUpLeadMutation] = useFollowUpLeadMutation()
+  const [closeLeadMutation] = useCloseLeadMutation()
   const [deleteLeadMutation] = useDeleteLeadMutation()
 
-  const isLoading = leadsResult.isLoading || kpisResult.isLoading || handlerOptionsResult.isLoading
+  const isLoading = leadsResult.isFetching || handlerOptionsResult.isFetching
+  const isKpisLoading = kpisResult.isLoading
   const error = leadsResult.error
     ? getApiErrorMessage(leadsResult.error, 'Failed to load interested users.')
     : kpisResult.error
       ? getApiErrorMessage(kpisResult.error, 'Failed to load interested users.')
       : handlerOptionsResult.error
-        ? getApiErrorMessage(handlerOptionsResult.error, 'Failed to load interested users.')
+        ? getApiErrorMessage(
+            handlerOptionsResult.error,
+            'Failed to load interested users.',
+          )
         : null
 
-  async function setStatus(id: string, status: LeadStatus) {
-    await setLeadStatusMutation({ id, status }).unwrap()
-    setStatusOverrides((prev) => ({ ...prev, [id]: status }))
+  async function followUp(
+    id: string,
+    followUpNote: string,
+    closeReason?: string,
+  ) {
+    await followUpLeadMutation({ id, followUpNote, closeReason }).unwrap()
+  }
+
+  async function close(id: string, closeReason: string) {
+    await closeLeadMutation({ id, closeReason }).unwrap()
   }
 
   async function remove(id: string) {
     await deleteLeadMutation(id).unwrap()
-    setDeletedIds((prev) => new Set(prev).add(id))
   }
 
-  const leads = (leadsResult.data ?? [])
-    .filter((lead) => !deletedIds.has(lead.id))
-    .map((lead) => ({ ...lead, leadStatus: statusOverrides[lead.id] ?? lead.leadStatus }))
-
   return {
-    leads,
+    leads: leadsResult.data ?? [],
     kpis: kpisResult.data ?? null,
     handlerOptions: handlerOptionsResult.data ?? [],
     isLoading,
+    isKpisLoading,
     error,
-    setStatus,
+    followUp,
+    close,
     remove,
   }
 }

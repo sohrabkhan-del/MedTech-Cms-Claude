@@ -1,14 +1,29 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { Alert, Box, Button, Chip, Grid, Stack, TextField, Typography } from '@mui/material'
-import { UserCircle } from 'lucide-react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Grid,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
+import { UserCircle, Pencil } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
-import { AvatarUpload } from '@/components/common/AvatarUpload/AvatarUpload'
+import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
+import { RegionMultiSelectField } from '@/components/common/RegionMultiSelectField/RegionMultiSelectField'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useAppDispatch } from '@/app/store/hooks'
 import { updateUser } from '@/features/auth/slices/authSlice'
+import { authService } from '@/features/auth/services/authService'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
 import {
   profileFormSchema,
   type ProfileFormValues,
@@ -18,125 +33,295 @@ function formatRole(role: string) {
   return role.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
 }
 
+function formatStatus(status: string) {
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
 export function ProfileSettingsPage() {
   const { user } = useAuth()
   const dispatch = useAppDispatch()
-  const [saved, setSaved] = useState(false)
+  const toast = useToast()
+  const [isEditing, setIsEditing] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
 
-  const { control, handleSubmit, formState } = useForm<ProfileFormValues>({
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const { control, handleSubmit, reset } = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      name: user?.name ?? '',
+      firstName: user?.firstName ?? '',
+      lastName: user?.lastName ?? '',
+      email: user?.email ?? '',
       phone: user?.phone ?? '',
-      designation: user?.designation ?? '',
-      department: user?.department ?? '',
-      location: user?.location ?? '',
+      regionIds: user?.regions?.map((r) => r.id) ?? [],
     },
   })
 
+  useEffect(() => {
+    if (!user) return
+    reset({
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      email: user.email,
+      phone: user.phone ?? '',
+      regionIds: user.regions?.map((r) => r.id) ?? [],
+    })
+  }, [user, reset])
+
   if (!user) return null
 
-  function onSubmit(values: ProfileFormValues) {
-    dispatch(updateUser(values))
-    setSaved(true)
+  function startEditing() {
+    if (!user) return
+    reset({
+      firstName: user.firstName ?? '',
+      lastName: user.lastName ?? '',
+      email: user.email,
+      phone: user.phone ?? '',
+      regionIds: user.regions?.map((r) => r.id) ?? [],
+    })
+    setIsEditing(true)
   }
 
-  function handleAvatarChange(dataUrl: string) {
-    dispatch(updateUser({ avatarUrl: dataUrl }))
+  async function onSubmit(values: ProfileFormValues) {
+    setIsSubmitting(true)
+    try {
+      const updated = await authService.updateOwnProfile(user!.id, values)
+      dispatch(updateUser(updated))
+      toast.success('Profile updated successfully.')
+      setIsEditing(false)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to update profile.'))
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <>
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            backgroundColor: 'primary.light',
-            color: 'primary.main',
-          }}
-        >
-          <UserCircle size={20} />
-        </Box>
-        <Box>
-          <Typography variant="h1">Profile</Typography>
-          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Manage your personal information and profile photo.
-          </Typography>
-        </Box>
-      </Stack>
-
+   
       <Stack spacing={3}>
-        <SectionCard title="Profile Photo">
+        <SectionCard title="Profile">
           <Stack direction="row" spacing={3} sx={{ alignItems: 'center' }}>
-            <AvatarUpload
-              imageUrl={user.avatarUrl}
-              fallbackText={user.avatarInitial}
-              onChange={handleAvatarChange}
-            />
+            <Avatar
+              sx={{
+                width: 96,
+                height: 96,
+                bgcolor: 'secondary.main',
+                fontSize: 34,
+                fontWeight: 700,
+              }}
+            >
+              {user.avatarInitial}
+            </Avatar>
             <Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem' }}>{user.name}</Typography>
-              <Typography variant="body1" sx={{ color: 'text.secondary', mb: 1 }}>
+              <Typography sx={{ fontWeight: 700, fontSize: '0.9375rem' }}>
+                {user.name}
+              </Typography>
+              <Typography
+                variant="body1"
+                sx={{ color: 'text.secondary', mb: 1 }}
+              >
                 {user.email}
               </Typography>
-              <Chip label={formatRole(user.role)} size="small" color="primary" variant="outlined" />
+              <Chip
+                label={formatRole(user.role)}
+                size="small"
+                color="primary"
+                variant="outlined"
+              />
             </Box>
           </Stack>
         </SectionCard>
 
-        <SectionCard title="Personal Information">
-          <Stack component="form" spacing={2.5} onSubmit={handleSubmit(onSubmit)}>
-            {saved && <Alert severity="success">Profile updated successfully.</Alert>}
-
-            <Grid container spacing={2}>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FormField name="name" control={control} label="Full Name" required />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField label="Email" value={user.email} disabled fullWidth size="small" />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FormField name="phone" control={control} label="Phone Number" />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <TextField label="Role" value={formatRole(user.role)} disabled fullWidth size="small" />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FormField name="designation" control={control} label="Designation" />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FormField name="department" control={control} label="Department" />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FormField name="location" control={control} label="Location" />
-              </Grid>
-              {user.joinedOn && (
+        <SectionCard
+          title="Personal Information"
+          action={
+            !isEditing ? (
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<Pencil size={16} />}
+                onClick={startEditing}
+              >
+                Edit
+              </Button>
+            ) : undefined
+          }
+        >
+          {isEditing ? (
+            <Stack
+              component="form"
+              spacing={2.5}
+              onSubmit={handleSubmit(onSubmit)}
+            >
+              <Grid container spacing={2}>
                 <Grid size={{ xs: 12, sm: 6 }}>
-                  <TextField
-                    label="Joined On"
-                    value={new Date(user.joinedOn).toLocaleDateString('en-IN', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                    disabled
-                    fullWidth
-                    size="small"
+                  <FormField
+                    name="firstName"
+                    control={control}
+                    label="First Name"
+                    required
                   />
                 </Grid>
-              )}
-            </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormField
+                    name="lastName"
+                    control={control}
+                    label="Last Name"
+                    required
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormField
+                    name="email"
+                    control={control}
+                    type="email"
+                    label="Email"
+                    required
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <FormField
+                    name="phone"
+                    control={control}
+                    label="Phone Number"
+                    required
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: 'text.secondary',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      mb: 0.75,
+                      display: 'block',
+                    }}
+                  >
+                    Region Access *
+                  </Typography>
+                  <RegionMultiSelectField
+                    name="regionIds"
+                    control={control}
+                    regions={regions}
+                  />
+                </Grid>
+              </Grid>
 
-            <Box>
-              <Button type="submit" variant="contained" loading={formState.isSubmitting}>
-                Save Changes
-              </Button>
-            </Box>
-          </Stack>
+              <Stack direction="row" spacing={1.5}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  loading={isSubmitting}
+                >
+                  Save Changes
+                </Button>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  disabled={isSubmitting}
+                  onClick={() => setIsEditing(false)}
+                >
+                  Cancel
+                </Button>
+              </Stack>
+            </Stack>
+          ) : (
+            <Stack spacing={2.5}>
+              <DetailFieldGrid
+                fields={[
+                  { label: 'Reference ID', value: user.referenceId ?? '-' },
+                  { label: 'Full Name', value: user.name },
+                  { label: 'Email', value: user.email },
+                  { label: 'Phone Number', value: user.phone ?? '-' },
+                  { label: 'Role', value: formatRole(user.role) },
+                  {
+                    label: 'Status',
+                    value: user.status ? (
+                      <Chip
+                        size="small"
+                        label={formatStatus(user.status)}
+                        color={user.status === 'active' ? 'success' : 'default'}
+                      />
+                    ) : (
+                      '-'
+                    ),
+                  },
+                  {
+                    label: 'Email Verified',
+                    value: (
+                      <Chip
+                        size="small"
+                        label={
+                          user.isEmailVerified ? 'Verified' : 'Not Verified'
+                        }
+                        color={user.isEmailVerified ? 'success' : 'warning'}
+                      />
+                    ),
+                  },
+                  {
+                    label: 'Phone Verified',
+                    value: (
+                      <Chip
+                        size="small"
+                        label={
+                          user.isPhoneVerified ? 'Verified' : 'Not Verified'
+                        }
+                        color={user.isPhoneVerified ? 'success' : 'warning'}
+                      />
+                    ),
+                  },
+                ]}
+              />
+
+              <Box>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.04em',
+                    mb: 1,
+                    display: 'block',
+                  }}
+                >
+                  Region Access
+                </Typography>
+                {user.regions && user.regions.length > 0 ? (
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ flexWrap: 'wrap', gap: 1 }}
+                  >
+                    {user.regions.map((region) => (
+                      <Chip
+                        key={region.id}
+                        label={region.name}
+                        size="small"
+                        variant="outlined"
+                      />
+                    ))}
+                  </Stack>
+                ) : (
+                  <TextField value="-" disabled fullWidth size="small" />
+                )}
+              </Box>
+            </Stack>
+          )}
         </SectionCard>
       </Stack>
     </>

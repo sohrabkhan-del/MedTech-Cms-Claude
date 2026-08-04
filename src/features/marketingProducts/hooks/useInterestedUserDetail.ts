@@ -1,26 +1,28 @@
-import { useState } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import {
   useGetInterestedUserDetailQuery,
-  useSetLeadStatusMutation,
+  useFollowUpLeadMutation,
+  useCloseLeadMutation,
   useDeleteLeadMutation,
 } from '@/features/marketingProducts/services/interestedUsersApi'
-import type { LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useInterestedUserDetail(leadId: string | undefined) {
-  const [statusOverride, setStatusOverride] = useState<LeadStatus | null>(null)
-
-  const { data: fetchedLead, isLoading, error: queryError } = useGetInterestedUserDetailQuery(leadId ?? skipToken)
-  const [setLeadStatusMutation] = useSetLeadStatusMutation()
+  const { data: lead, isFetching: isLoading, error: queryError } = useGetInterestedUserDetailQuery(leadId ?? skipToken)
+  const [followUpLeadMutation, followUpState] = useFollowUpLeadMutation()
+  const [closeLeadMutation, closeState] = useCloseLeadMutation()
   const [deleteLeadMutation] = useDeleteLeadMutation()
 
   const error = queryError ? getApiErrorMessage(queryError, 'Failed to load lead.') : null
 
-  async function setStatus(status: LeadStatus) {
+  async function followUp(followUpNote: string, closeReason?: string) {
     if (!leadId) return
-    await setLeadStatusMutation({ id: leadId, status }).unwrap()
-    setStatusOverride(status)
+    await followUpLeadMutation({ id: leadId, followUpNote, closeReason }).unwrap()
+  }
+
+  async function close(closeReason: string) {
+    if (!leadId) return
+    await closeLeadMutation({ id: leadId, closeReason }).unwrap()
   }
 
   async function remove() {
@@ -28,7 +30,14 @@ export function useInterestedUserDetail(leadId: string | undefined) {
     await deleteLeadMutation(leadId).unwrap()
   }
 
-  const lead = fetchedLead && statusOverride ? { ...fetchedLead, leadStatus: statusOverride } : fetchedLead
-
-  return { lead, isLoading, error, setStatus, remove }
+  return {
+    lead,
+    isLoading,
+    error,
+    followUp,
+    isFollowingUp: followUpState.isLoading,
+    close,
+    isClosing: closeState.isLoading,
+    remove,
+  }
 }

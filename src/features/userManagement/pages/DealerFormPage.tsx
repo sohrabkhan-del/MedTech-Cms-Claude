@@ -19,6 +19,7 @@ import {
 import { MapPin as PlaceOutlinedIcon, Plus, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { LocationMapPicker } from '@/components/common/LocationMapPicker/LocationMapPicker'
 import { useToast } from '@/contexts/ToastContext'
 import { radius } from '@/theme/tokens'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
@@ -29,6 +30,7 @@ import {
   getCitiesForDistrict,
 } from '@/constants/indiaLocations'
 import {
+  dealerBusinessDefaults,
   dealerFormDefaults,
   dealerFormSchema,
   toDealerApiPayload,
@@ -81,6 +83,115 @@ function FieldLabel({
   )
 }
 
+function BusinessAddressFields({
+  control,
+  setValue,
+  watch,
+  index,
+}: {
+  control: ReturnType<typeof useForm<DealerFormValues>>['control']
+  setValue: ReturnType<typeof useForm<DealerFormValues>>['setValue']
+  watch: ReturnType<typeof useForm<DealerFormValues>>['watch']
+  index: number
+}) {
+  const selectedState = watch(`businesses.${index}.state`)
+  const selectedDistrict = watch(`businesses.${index}.district`)
+  const stateOptions = useMemo(() => getStateNames(), [])
+  const districtOptions = useMemo(
+    () => (selectedState ? getDistrictsForState(selectedState) : []),
+    [selectedState],
+  )
+  const cityOptions = useMemo(
+    () =>
+      selectedState && selectedDistrict
+        ? getCitiesForDistrict(selectedState, selectedDistrict)
+        : [],
+    [selectedState, selectedDistrict],
+  )
+
+  return (
+    <>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <FieldLabel required>State</FieldLabel>
+        <Controller
+          name={`businesses.${index}.state`}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Autocomplete
+              options={stateOptions}
+              value={field.value || null}
+              onChange={(_, selected) => {
+                field.onChange(selected ?? '')
+                setValue(`businesses.${index}.district`, '')
+                setValue(`businesses.${index}.city`, '')
+              }}
+              size="small"
+              renderInput={(params) => (
+                <TextField {...params} placeholder="Select state" error={!!fieldState.error} helperText={fieldState.error?.message} />
+              )}
+            />
+          )}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <FieldLabel required>District</FieldLabel>
+        <Controller
+          name={`businesses.${index}.district`}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Autocomplete
+              options={districtOptions}
+              value={field.value || null}
+              onChange={(_, selected) => {
+                field.onChange(selected ?? '')
+                setValue(`businesses.${index}.city`, '')
+              }}
+              disabled={!selectedState}
+              size="small"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={selectedState ? 'Select district' : 'Select a state first'}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
+              )}
+            />
+          )}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <FieldLabel required>City</FieldLabel>
+        <Controller
+          name={`businesses.${index}.city`}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Autocomplete
+              freeSolo
+              options={cityOptions}
+              value={field.value || null}
+              onChange={(_, selected) => field.onChange(selected ?? '')}
+              onInputChange={(_, inputValue, reason) => {
+                if (reason === 'input') field.onChange(inputValue)
+              }}
+              disabled={!selectedDistrict}
+              size="small"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={selectedDistrict ? 'Select or type a city' : 'Select a district first'}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
+              )}
+            />
+          )}
+        />
+      </Grid>
+    </>
+  )
+}
+
 export function DealerFormPage() {
   const navigate = useNavigate()
   const toast = useToast()
@@ -95,6 +206,7 @@ export function DealerFormPage() {
   const { data: mrOptions = [], isFetching: isMrOptionsLoading } =
     useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
+  const [mapPickerIndex, setMapPickerIndex] = useState<number | null>(null)
 
   useEffect(() => {
     let ignore = false
@@ -121,23 +233,8 @@ export function DealerFormPage() {
 
   const { fields, append, remove } = useFieldArray({
     control,
-    name: 'locations',
+    name: 'businesses',
   })
-
-  const selectedState = watch('state')
-  const selectedDistrict = watch('district')
-  const stateOptions = useMemo(() => getStateNames(), [])
-  const districtOptions = useMemo(
-    () => (selectedState ? getDistrictsForState(selectedState) : []),
-    [selectedState],
-  )
-  const cityOptions = useMemo(
-    () =>
-      selectedState && selectedDistrict
-        ? getCitiesForDistrict(selectedState, selectedDistrict)
-        : [],
-    [selectedState, selectedDistrict],
-  )
 
   useEffect(() => {
     if (!isEdit || !dealer) return
@@ -149,37 +246,49 @@ export function DealerFormPage() {
       phone: dealer.phone,
       country: '91',
       gstNumber: dealer.licenseNumber,
-      panNumber: '',
-      drugLicenseNumber: '',
-      drugLicenseExpiry: '',
-      addressLine1: dealer.registeredAddress,
-      addressLine2: '',
-      landmark: '',
-      city: dealer.city,
-      district: '',
-      state: '',
-      pincode: '',
       regionId: '',
       assignedMedicalRepresentativeId: dealer.assignedMr,
-      locations:
+      notes: dealer.notes ?? '',
+      businesses:
         dealer.godowns.length > 0
           ? dealer.godowns.map((godown) => ({
-              address: godown.address,
+              outletName: godown.name,
+              userName: '',
+              panNumber: dealer.panNumber ?? '',
+              drugLicenseNumber: dealer.drugLicenseNumber ?? '',
+              drugLicenseExpiry: dealer.drugLicenseExpiry ?? '',
+              addressType: 'GODOWN' as const,
+              addressLine1: godown.address,
+              addressLine2: '',
+              landmark: '',
+              city: dealer.city,
+              district: '',
+              state: '',
+              pincode: '',
               latitude: String(godown.geoLock.latitude),
               longitude: String(godown.geoLock.longitude),
-              scanRadius: String(godown.geoLock.allowedRadiusMeters),
-              bufferRadius: String(godown.geoLock.bufferRadiusMeters),
+              notes: dealer.notes ?? '',
             }))
           : [
               {
-                address: dealer.registeredAddress,
+                outletName: dealer.shopName,
+                userName: '',
+                panNumber: dealer.panNumber ?? '',
+                drugLicenseNumber: dealer.drugLicenseNumber ?? '',
+                drugLicenseExpiry: dealer.drugLicenseExpiry ?? '',
+                addressType: 'GODOWN' as const,
+                addressLine1: dealer.registeredAddress,
+                addressLine2: '',
+                landmark: '',
+                city: dealer.city,
+                district: '',
+                state: '',
+                pincode: '',
                 latitude: String(dealer.geoLock.latitude),
                 longitude: String(dealer.geoLock.longitude),
-                scanRadius: String(dealer.geoLock.allowedRadiusMeters),
-                bufferRadius: String(dealer.geoLock.bufferRadiusMeters),
+                notes: dealer.notes ?? '',
               },
             ],
-      notes: dealer.notes ?? '',
     })
   }, [isEdit, dealer, reset])
 
@@ -245,7 +354,7 @@ export function DealerFormPage() {
           <Typography sx={sectionTitleSx}>Basic Details</Typography>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Business / Shop Name</FieldLabel>
+              <FieldLabel required>Business Name</FieldLabel>
               <FormField
                 name="businessName"
                 control={control}
@@ -292,13 +401,7 @@ export function DealerFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Licensing</Typography>
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>GST Number</FieldLabel>
               <FormField
                 name="gstNumber"
@@ -308,180 +411,17 @@ export function DealerFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>PAN Number</FieldLabel>
-              <FormField
-                name="panNumber"
-                control={control}
-                placeholder="e.g. ABCDE1234F"
-                uppercase
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Drug License Number</FieldLabel>
-              <FormField
-                name="drugLicenseNumber"
-                control={control}
-                placeholder="e.g. MH/MUM/DRUG/2026/45879"
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Drug License Expiry</FieldLabel>
-              <FormField
-                name="drugLicenseExpiry"
-                control={control}
-                type="date"
-                {...fieldLabelProps}
-              />
-            </Grid>
           </Grid>
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Registered Address</Typography>
-          <Grid container spacing={2.5}>
-            <Grid size={12}>
-              <FieldLabel required>Address Line 1</FieldLabel>
-              <FormField
-                name="addressLine1"
-                control={control}
-                placeholder="Shop no., building, street"
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={12}>
-              <FieldLabel>Address Line 2</FieldLabel>
-              <FormField
-                name="addressLine2"
-                control={control}
-                placeholder="Area, locality"
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel>Landmark</FieldLabel>
-              <FormField
-                name="landmark"
-                control={control}
-                placeholder="e.g. Near Metro Station"
-                {...fieldLabelProps}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>State</FieldLabel>
-              <Controller
-                name="state"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Autocomplete
-                    options={stateOptions}
-                    value={field.value || null}
-                    onChange={(_, selected) => {
-                      field.onChange(selected ?? '')
-                      setValue('district', '')
-                      setValue('city', '')
-                    }}
-                    size="small"
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder="Select state"
-                        error={!!fieldState.error}
-                        helperText={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>District</FieldLabel>
-              <Controller
-                name="district"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Autocomplete
-                    options={districtOptions}
-                    value={field.value || null}
-                    onChange={(_, selected) => {
-                      field.onChange(selected ?? '')
-                      setValue('city', '')
-                    }}
-                    disabled={!selectedState}
-                    size="small"
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder={
-                          selectedState
-                            ? 'Select district'
-                            : 'Select a state first'
-                        }
-                        error={!!fieldState.error}
-                        helperText={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>City</FieldLabel>
-              <Controller
-                name="city"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Autocomplete
-                    freeSolo
-                    options={cityOptions}
-                    value={field.value || null}
-                    onChange={(_, selected) => field.onChange(selected ?? '')}
-                    onInputChange={(_, inputValue, reason) => {
-                      if (reason === 'input') field.onChange(inputValue)
-                    }}
-                    disabled={!selectedDistrict}
-                    size="small"
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder={
-                          selectedDistrict
-                            ? 'Select or type a city'
-                            : 'Select a district first'
-                        }
-                        error={!!fieldState.error}
-                        helperText={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Pincode</FieldLabel>
-              <FormField
-                name="pincode"
-                control={control}
-                placeholder="e.g. 400086"
-                numeric
-                {...fieldLabelProps}
-              />
-            </Grid>
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>
-            Geo-tagging &amp; Scanning Range
-          </Typography>
+          <Typography sx={sectionTitleSx}>Business / Godowns</Typography>
           <Stack spacing={2.5}>
             {fields.map((field, index) => (
               <Box
                 key={field.id}
                 sx={{
-                  p: 2,
+                  p: 2.5,
                   borderRadius: `${radius.lg}px`,
                   border: '1px solid',
                   borderColor: 'divider',
@@ -492,54 +432,75 @@ export function DealerFormPage() {
                   sx={{
                     alignItems: 'center',
                     justifyContent: 'space-between',
-                    mb: 1.5,
+                    mb: 2,
                   }}
                 >
                   <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                    Godown Location {index + 1}
+                    Godown {index + 1}
                   </Typography>
                   {fields.length > 1 && (
-                    <Tooltip title="Remove location">
+                    <Tooltip title="Remove godown">
                       <IconButton
                         size="small"
                         color="error"
                         onClick={() => remove(index)}
-                        aria-label="Remove location"
+                        aria-label="Remove godown"
                       >
                         <Trash2 size={18} />
                       </IconButton>
                     </Tooltip>
                   )}
                 </Stack>
+
                 <Grid container spacing={2.5}>
-                  <Grid size={12}>
-                    <FieldLabel required>Godown Address</FieldLabel>
-                    <FormField
-                      name={`locations.${index}.address`}
-                      control={control}
-                      placeholder="Full address including landmark"
-                      multiline
-                      minRows={2}
-                      {...fieldLabelProps}
-                    />
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FieldLabel required>Godown Name</FieldLabel>
+                    <FormField name={`businesses.${index}.outletName`} control={control} placeholder={`e.g. Godown ${index + 1}`} {...fieldLabelProps} />
                   </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FieldLabel>Godown Manager / User Name</FieldLabel>
+                    <FormField name={`businesses.${index}.userName`} control={control} placeholder="Person handling this godown" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel required>PAN Number</FieldLabel>
+                    <FormField name={`businesses.${index}.panNumber`} control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel required>Drug License Number</FieldLabel>
+                    <FormField name={`businesses.${index}.drugLicenseNumber`} control={control} placeholder="e.g. MH/MUM/DRUG/2026/45879" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel required>Drug License Expiry</FieldLabel>
+                    <FormField name={`businesses.${index}.drugLicenseExpiry`} control={control} type="date" {...fieldLabelProps} />
+                  </Grid>
+
+                  <Grid size={12}>
+                    <FieldLabel required>Address Line 1</FieldLabel>
+                    <FormField name={`businesses.${index}.addressLine1`} control={control} placeholder="Godown no., building, street" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={12}>
+                    <FieldLabel>Address Line 2</FieldLabel>
+                    <FormField name={`businesses.${index}.addressLine2`} control={control} placeholder="Area, locality" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Landmark</FieldLabel>
+                    <FormField name={`businesses.${index}.landmark`} control={control} placeholder="e.g. Near Metro Station" {...fieldLabelProps} />
+                  </Grid>
+
+                  <BusinessAddressFields control={control} setValue={setValue} watch={watch} index={index} />
+
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FieldLabel required>Pincode</FieldLabel>
+                    <FormField name={`businesses.${index}.pincode`} control={control} placeholder="e.g. 400086" numeric {...fieldLabelProps} />
+                  </Grid>
+
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Latitude</FieldLabel>
-                    <FormField
-                      name={`locations.${index}.latitude`}
-                      control={control}
-                      placeholder="e.g. 19.0760"
-                      {...fieldLabelProps}
-                    />
+                    <FormField name={`businesses.${index}.latitude`} control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Longitude</FieldLabel>
-                    <FormField
-                      name={`locations.${index}.longitude`}
-                      control={control}
-                      placeholder="e.g. 72.8777"
-                      {...fieldLabelProps}
-                    />
+                    <FormField name={`businesses.${index}.longitude`} control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
                   </Grid>
                   <Grid
                     size={{ xs: 12, sm: 2 }}
@@ -550,30 +511,28 @@ export function DealerFormPage() {
                       variant="outlined"
                       startIcon={<PlaceOutlinedIcon size={20} />}
                       sx={{ height: 40, fontSize: '0.75rem' }}
-                      onClick={() => {}}
+                      onClick={() => setMapPickerIndex(index)}
                     >
-                      Open in Maps
+                      Pick on Map
                     </Button>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FieldLabel>Scan Radius</FieldLabel>
-                    <FormField
-                      name={`locations.${index}.scanRadius`}
-                      control={control}
-                      placeholder="e.g. 200"
-                      {...fieldLabelProps}
-                    />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FieldLabel>Buffer Radius (in meters)</FieldLabel>
-                    <FormField
-                      name={`locations.${index}.bufferRadius`}
-                      control={control}
-                      placeholder="e.g. 50"
-                      {...fieldLabelProps}
-                    />
+
+                  <Grid size={12}>
+                    <FieldLabel>Godown Notes</FieldLabel>
+                    <FormField name={`businesses.${index}.notes`} control={control} multiline minRows={2} {...fieldLabelProps} />
                   </Grid>
                 </Grid>
+
+                <LocationMapPicker
+                  open={mapPickerIndex === index}
+                  latitude={watch(`businesses.${index}.latitude`)}
+                  longitude={watch(`businesses.${index}.longitude`)}
+                  onChange={(lat, lng) => {
+                    setValue(`businesses.${index}.latitude`, lat)
+                    setValue(`businesses.${index}.longitude`, lng)
+                  }}
+                  onClose={() => setMapPickerIndex(null)}
+                />
               </Box>
             ))}
             <Button
@@ -582,15 +541,12 @@ export function DealerFormPage() {
               sx={{ alignSelf: 'flex-start', fontSize: '0.75rem' }}
               onClick={() =>
                 append({
-                  address: '',
-                  latitude: '',
-                  longitude: '',
-                  scanRadius: '',
-                  bufferRadius: '',
+                  ...dealerBusinessDefaults,
+                  outletName: `Godown ${fields.length + 1}`,
                 })
               }
             >
-              Add Another Location
+              Add Another Godown
             </Button>
           </Stack>
         </Card>

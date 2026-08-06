@@ -19,6 +19,7 @@ import {
 import { MapPin as PlaceOutlinedIcon, Plus, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { LocationMapPicker } from '@/components/common/LocationMapPicker/LocationMapPicker'
 import { useToast } from '@/contexts/ToastContext'
 import { radius } from '@/theme/tokens'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
@@ -29,6 +30,7 @@ import {
   getCitiesForDistrict,
 } from '@/constants/indiaLocations'
 import {
+  chemistBusinessDefaults,
   chemistFormDefaults,
   chemistFormSchema,
   toChemistApiPayload,
@@ -75,6 +77,115 @@ function FieldLabel({ children, required }: { children: string; required?: boole
   )
 }
 
+function BusinessAddressFields({
+  control,
+  setValue,
+  watch,
+  index,
+}: {
+  control: ReturnType<typeof useForm<ChemistFormValues>>['control']
+  setValue: ReturnType<typeof useForm<ChemistFormValues>>['setValue']
+  watch: ReturnType<typeof useForm<ChemistFormValues>>['watch']
+  index: number
+}) {
+  const selectedState = watch(`businesses.${index}.state`)
+  const selectedDistrict = watch(`businesses.${index}.district`)
+  const stateOptions = useMemo(() => getStateNames(), [])
+  const districtOptions = useMemo(
+    () => (selectedState ? getDistrictsForState(selectedState) : []),
+    [selectedState],
+  )
+  const cityOptions = useMemo(
+    () =>
+      selectedState && selectedDistrict
+        ? getCitiesForDistrict(selectedState, selectedDistrict)
+        : [],
+    [selectedState, selectedDistrict],
+  )
+
+  return (
+    <>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <FieldLabel required>State</FieldLabel>
+        <Controller
+          name={`businesses.${index}.state`}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Autocomplete
+              options={stateOptions}
+              value={field.value || null}
+              onChange={(_, selected) => {
+                field.onChange(selected ?? '')
+                setValue(`businesses.${index}.district`, '')
+                setValue(`businesses.${index}.city`, '')
+              }}
+              size="small"
+              renderInput={(params) => (
+                <TextField {...params} placeholder="Select state" error={!!fieldState.error} helperText={fieldState.error?.message} />
+              )}
+            />
+          )}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <FieldLabel required>District</FieldLabel>
+        <Controller
+          name={`businesses.${index}.district`}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Autocomplete
+              options={districtOptions}
+              value={field.value || null}
+              onChange={(_, selected) => {
+                field.onChange(selected ?? '')
+                setValue(`businesses.${index}.city`, '')
+              }}
+              disabled={!selectedState}
+              size="small"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={selectedState ? 'Select district' : 'Select a state first'}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
+              )}
+            />
+          )}
+        />
+      </Grid>
+      <Grid size={{ xs: 12, sm: 4 }}>
+        <FieldLabel required>City</FieldLabel>
+        <Controller
+          name={`businesses.${index}.city`}
+          control={control}
+          render={({ field, fieldState }) => (
+            <Autocomplete
+              freeSolo
+              options={cityOptions}
+              value={field.value || null}
+              onChange={(_, selected) => field.onChange(selected ?? '')}
+              onInputChange={(_, inputValue, reason) => {
+                if (reason === 'input') field.onChange(inputValue)
+              }}
+              disabled={!selectedDistrict}
+              size="small"
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  placeholder={selectedDistrict ? 'Select or type a city' : 'Select a district first'}
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
+              )}
+            />
+          )}
+        />
+      </Grid>
+    </>
+  )
+}
+
 export function ChemistFormPage() {
   const navigate = useNavigate()
   const toast = useToast()
@@ -88,6 +199,7 @@ export function ChemistFormPage() {
   )
   const { data: mrOptions = [], isFetching: isMrOptionsLoading } = useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
+  const [mapPickerIndex, setMapPickerIndex] = useState<number | null>(null)
 
   useEffect(() => {
     let ignore = false
@@ -109,22 +221,7 @@ export function ChemistFormPage() {
     defaultValues: chemistFormDefaults,
   })
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'locations' })
-
-  const selectedState = watch('state')
-  const selectedDistrict = watch('district')
-  const stateOptions = useMemo(() => getStateNames(), [])
-  const districtOptions = useMemo(
-    () => (selectedState ? getDistrictsForState(selectedState) : []),
-    [selectedState],
-  )
-  const cityOptions = useMemo(
-    () =>
-      selectedState && selectedDistrict
-        ? getCitiesForDistrict(selectedState, selectedDistrict)
-        : [],
-    [selectedState, selectedDistrict],
-  )
+  const { fields, append, remove } = useFieldArray({ control, name: 'businesses' })
 
   useEffect(() => {
     if (!isEdit || !chemist) return
@@ -136,28 +233,29 @@ export function ChemistFormPage() {
       phone: chemist.phone,
       country: '91',
       gstNumber: chemist.licenseNumber,
-      panNumber: '',
-      drugLicenseNumber: '',
-      drugLicenseExpiry: '',
-      addressLine1: chemist.registeredAddress,
-      addressLine2: '',
-      landmark: '',
-      city: chemist.city,
-      district: '',
-      state: '',
-      pincode: '',
       regionId: '',
       assignedMedicalRepresentativeId: chemist.assignedMr,
-      locations: [
+      notes: chemist.notes ?? '',
+      businesses: [
         {
-          address: chemist.registeredAddress,
+          outletName: chemist.shopName,
+          userName: '',
+          panNumber: chemist.panNumber ?? '',
+          drugLicenseNumber: chemist.drugLicenseNumber ?? '',
+          drugLicenseExpiry: chemist.drugLicenseExpiry ?? '',
+          addressType: 'SHOP',
+          addressLine1: chemist.registeredAddress,
+          addressLine2: '',
+          landmark: '',
+          city: chemist.city,
+          district: '',
+          state: '',
+          pincode: '',
           latitude: String(chemist.geoLock.latitude),
           longitude: String(chemist.geoLock.longitude),
-          scanRadius: String(chemist.geoLock.allowedRadiusMeters),
-          bufferRadius: String(chemist.geoLock.bufferRadiusMeters),
+          notes: chemist.notes ?? '',
         },
       ],
-      notes: chemist.notes ?? '',
     })
   }, [isEdit, chemist, reset])
 
@@ -214,7 +312,7 @@ export function ChemistFormPage() {
           <Typography sx={sectionTitleSx}>Basic Details</Typography>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>Business / Shop Name</FieldLabel>
+              <FieldLabel required>Business Name</FieldLabel>
               <FormField name="businessName" control={control} placeholder="e.g. Shree Medical Store" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
@@ -246,174 +344,88 @@ export function ChemistFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Licensing</Typography>
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>GST Number</FieldLabel>
               <FormField name="gstNumber" control={control} placeholder="e.g. 27ABCDE1234F1Z5" uppercase {...fieldLabelProps} />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>PAN Number</FieldLabel>
-              <FormField name="panNumber" control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Drug License Number</FieldLabel>
-              <FormField name="drugLicenseNumber" control={control} placeholder="e.g. MH/MUM/DRUG/2026/45879" {...fieldLabelProps} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Drug License Expiry</FieldLabel>
-              <FormField name="drugLicenseExpiry" control={control} type="date" {...fieldLabelProps} />
-            </Grid>
           </Grid>
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Registered Address</Typography>
-          <Grid container spacing={2.5}>
-            <Grid size={12}>
-              <FieldLabel required>Address Line 1</FieldLabel>
-              <FormField name="addressLine1" control={control} placeholder="Shop no., building, street" {...fieldLabelProps} />
-            </Grid>
-            <Grid size={12}>
-              <FieldLabel>Address Line 2</FieldLabel>
-              <FormField name="addressLine2" control={control} placeholder="Area, locality" {...fieldLabelProps} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel>Landmark</FieldLabel>
-              <FormField name="landmark" control={control} placeholder="e.g. Near Metro Station" {...fieldLabelProps} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>State</FieldLabel>
-              <Controller
-                name="state"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Autocomplete
-                    options={stateOptions}
-                    value={field.value || null}
-                    onChange={(_, selected) => {
-                      field.onChange(selected ?? '')
-                      setValue('district', '')
-                      setValue('city', '')
-                    }}
-                    size="small"
-                    renderInput={(params) => (
-                      <TextField {...params} placeholder="Select state" error={!!fieldState.error} helperText={fieldState.error?.message} />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>District</FieldLabel>
-              <Controller
-                name="district"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Autocomplete
-                    options={districtOptions}
-                    value={field.value || null}
-                    onChange={(_, selected) => {
-                      field.onChange(selected ?? '')
-                      setValue('city', '')
-                    }}
-                    disabled={!selectedState}
-                    size="small"
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder={selectedState ? 'Select district' : 'Select a state first'}
-                        error={!!fieldState.error}
-                        helperText={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel required>City</FieldLabel>
-              <Controller
-                name="city"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Autocomplete
-                    freeSolo
-                    options={cityOptions}
-                    value={field.value || null}
-                    onChange={(_, selected) => field.onChange(selected ?? '')}
-                    onInputChange={(_, inputValue, reason) => {
-                      if (reason === 'input') field.onChange(inputValue)
-                    }}
-                    disabled={!selectedDistrict}
-                    size="small"
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        placeholder={selectedDistrict ? 'Select or type a city' : 'Select a district first'}
-                        error={!!fieldState.error}
-                        helperText={fieldState.error?.message}
-                      />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Pincode</FieldLabel>
-              <FormField name="pincode" control={control} placeholder="e.g. 400086" numeric {...fieldLabelProps} />
-            </Grid>
-          </Grid>
-        </Card>
-
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Geo-tagging &amp; Scanning Range</Typography>
+          <Typography sx={sectionTitleSx}>Business / Outlets</Typography>
           <Stack spacing={2.5}>
             {fields.map((field, index) => (
               <Box
                 key={field.id}
                 sx={{
-                  p: 2,
+                  p: 2.5,
                   borderRadius: `${radius.lg}px`,
                   border: '1px solid',
                   borderColor: 'divider',
                 }}
               >
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
                   <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-                    Shop Location {index + 1}
+                    Outlet {index + 1}
                   </Typography>
                   {fields.length > 1 && (
-                    <Tooltip title="Remove location">
-                      <IconButton size="small" color="error" onClick={() => remove(index)} aria-label="Remove location">
+                    <Tooltip title="Remove outlet">
+                      <IconButton size="small" color="error" onClick={() => remove(index)} aria-label="Remove outlet">
                         <Trash2 size={18} />
                       </IconButton>
                     </Tooltip>
                   )}
                 </Stack>
+
                 <Grid container spacing={2.5}>
-                  <Grid size={12}>
-                    <FieldLabel required>Shop Address</FieldLabel>
-                    <FormField
-                      name={`locations.${index}.address`}
-                      control={control}
-                      placeholder="Full address including landmark"
-                      multiline
-                      minRows={2}
-                      {...fieldLabelProps}
-                    />
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FieldLabel required>Outlet Name</FieldLabel>
+                    <FormField name={`businesses.${index}.outletName`} control={control} placeholder="e.g. Shree Medical Store" {...fieldLabelProps} />
                   </Grid>
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FieldLabel>Outlet Manager / User Name</FieldLabel>
+                    <FormField name={`businesses.${index}.userName`} control={control} placeholder="Person handling this outlet" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel required>PAN Number</FieldLabel>
+                    <FormField name={`businesses.${index}.panNumber`} control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel required>Drug License Number</FieldLabel>
+                    <FormField name={`businesses.${index}.drugLicenseNumber`} control={control} placeholder="e.g. MH/MUM/DRUG/2026/45879" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel required>Drug License Expiry</FieldLabel>
+                    <FormField name={`businesses.${index}.drugLicenseExpiry`} control={control} type="date" {...fieldLabelProps} />
+                  </Grid>
+
+                  <Grid size={12}>
+                    <FieldLabel required>Address Line 1</FieldLabel>
+                    <FormField name={`businesses.${index}.addressLine1`} control={control} placeholder="Shop no., building, street" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={12}>
+                    <FieldLabel>Address Line 2</FieldLabel>
+                    <FormField name={`businesses.${index}.addressLine2`} control={control} placeholder="Area, locality" {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Landmark</FieldLabel>
+                    <FormField name={`businesses.${index}.landmark`} control={control} placeholder="e.g. Near Metro Station" {...fieldLabelProps} />
+                  </Grid>
+
+                  <BusinessAddressFields control={control} setValue={setValue} watch={watch} index={index} />
+
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <FieldLabel required>Pincode</FieldLabel>
+                    <FormField name={`businesses.${index}.pincode`} control={control} placeholder="e.g. 400086" numeric {...fieldLabelProps} />
+                  </Grid>
+
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Latitude</FieldLabel>
-                    <FormField name={`locations.${index}.latitude`} control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
+                    <FormField name={`businesses.${index}.latitude`} control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Longitude</FieldLabel>
-                    <FormField name={`locations.${index}.longitude`} control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
+                    <FormField name={`businesses.${index}.longitude`} control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', alignItems: 'flex-end' }}>
                     <Button
@@ -421,29 +433,37 @@ export function ChemistFormPage() {
                       variant="outlined"
                       startIcon={<PlaceOutlinedIcon size={20} />}
                       sx={{ height: 40, fontSize: '0.75rem' }}
-                      onClick={() => {}}
+                      onClick={() => setMapPickerIndex(index)}
                     >
-                      Open in Maps
+                      Pick on Map
                     </Button>
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FieldLabel>Scan Radius</FieldLabel>
-                    <FormField name={`locations.${index}.scanRadius`} control={control} placeholder="e.g. 200" {...fieldLabelProps} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <FieldLabel>Buffer Radius (in meters)</FieldLabel>
-                    <FormField name={`locations.${index}.bufferRadius`} control={control} placeholder="e.g. 50" {...fieldLabelProps} />
+
+                  <Grid size={12}>
+                    <FieldLabel>Outlet Notes</FieldLabel>
+                    <FormField name={`businesses.${index}.notes`} control={control} multiline minRows={2} {...fieldLabelProps} />
                   </Grid>
                 </Grid>
+
+                <LocationMapPicker
+                  open={mapPickerIndex === index}
+                  latitude={watch(`businesses.${index}.latitude`)}
+                  longitude={watch(`businesses.${index}.longitude`)}
+                  onChange={(lat, lng) => {
+                    setValue(`businesses.${index}.latitude`, lat)
+                    setValue(`businesses.${index}.longitude`, lng)
+                  }}
+                  onClose={() => setMapPickerIndex(null)}
+                />
               </Box>
             ))}
             <Button
               variant="outlined"
               startIcon={<Plus size={18} />}
               sx={{ alignSelf: 'flex-start', fontSize: '0.75rem' }}
-              onClick={() => append({ address: '', latitude: '', longitude: '', scanRadius: '', bufferRadius: '' })}
+              onClick={() => append(chemistBusinessDefaults)}
             >
-              Add Another Location
+              Add Another Outlet
             </Button>
           </Stack>
         </Card>

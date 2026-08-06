@@ -1,22 +1,55 @@
 import { z } from 'zod'
+import type {
+  PartnerBusinessPayload,
+  PartnerProfileImagePayload,
+} from '@/features/userManagement/chemistFormSchema'
 
 const uuidMessage = 'Enter a valid UUID'
 
-export const dealerLocationSchema = z.object({
-  address: z.string().min(5, 'Godown address is required'),
+export const dealerBusinessSchema = z.object({
+  outletName: z.string().min(2, 'Godown/outlet name is required'),
+  userName: z.string().optional(),
+  panNumber: z
+    .string()
+    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Enter a valid PAN number'),
+  drugLicenseNumber: z.string().min(1, 'Drug license number is required'),
+  drugLicenseExpiry: z.string().min(1, 'Drug license expiry is required'),
+  addressType: z.enum(['SHOP', 'GODOWN', 'OTHER']),
+  addressLine1: z.string().min(1, 'Address line 1 is required'),
+  addressLine2: z.string().optional(),
+  landmark: z.string().optional(),
+  city: z.string().min(2, 'City is required'),
+  district: z.string().min(1, 'District is required'),
+  state: z.string().min(1, 'State is required'),
+  pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
-  scanRadius: z.string().optional(),
-  bufferRadius: z.string().optional(),
+  notes: z.string().optional(),
 })
 
-export type DealerLocationValues = z.infer<typeof dealerLocationSchema>
+export type DealerBusinessValues = z.infer<typeof dealerBusinessSchema>
+
+export const dealerBusinessDefaults: DealerBusinessValues = {
+  outletName: '',
+  userName: '',
+  panNumber: '',
+  drugLicenseNumber: '',
+  drugLicenseExpiry: '',
+  addressType: 'GODOWN',
+  addressLine1: '',
+  addressLine2: '',
+  landmark: '',
+  city: '',
+  district: '',
+  state: '',
+  pincode: '',
+  latitude: '',
+  longitude: '',
+  notes: '',
+}
 
 // Fields marked "API" map 1:1 to POST /partners/create's body (type: 'DEALER')
-// and are sent on submit. Fields marked "UI only" stay in the form because
-// they were already part of it, but the create/update API has no matching
-// field for them yet — they are kept in local UI state only and NOT sent to
-// the API.
+// and are sent on submit.
 export const dealerFormSchema = z.object({
   // --- API: identity / business ---
   businessName: z.string().min(2, 'Business/shop name is required'),
@@ -30,30 +63,16 @@ export const dealerFormSchema = z.object({
   gstNumber: z
     .string()
     .regex(/^[0-9A-Z]{15}$/, 'Enter a valid 15-character GST number'),
-  panNumber: z
-    .string()
-    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Enter a valid PAN number'),
-  drugLicenseNumber: z.string().min(1, 'Drug license number is required'),
-  drugLicenseExpiry: z.string().min(1, 'Drug license expiry is required'),
-
-  // --- API: address ---
-  addressLine1: z.string().min(1, 'Address line 1 is required'),
-  addressLine2: z.string().optional(),
-  landmark: z.string().optional(),
-  city: z.string().min(2, 'City is required'),
-  district: z.string().min(1, 'District is required'),
-  state: z.string().min(1, 'State is required'),
-  pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
 
   // --- API: assignment ---
   regionId: z.string().uuid(uuidMessage),
   assignedMedicalRepresentativeId: z.string().uuid('Assign a medical representative'),
-
-  // --- UI only: not sent to POST /partners/create / PUT /partners/:id ---
-  locations: z
-    .array(dealerLocationSchema)
-    .min(1, 'Add at least one godown location'),
   notes: z.string().optional(),
+
+  // --- API: outlets, one per business/godown location ---
+  businesses: z
+    .array(dealerBusinessSchema)
+    .min(1, 'Add at least one business/godown'),
 })
 
 export type DealerFormValues = z.infer<typeof dealerFormSchema>
@@ -66,70 +85,57 @@ export const dealerFormDefaults: DealerFormValues = {
   phone: '',
   country: '91',
   gstNumber: '',
-  panNumber: '',
-  drugLicenseNumber: '',
-  drugLicenseExpiry: '',
-  addressLine1: '',
-  addressLine2: '',
-  landmark: '',
-  city: '',
-  district: '',
-  state: '',
-  pincode: '',
   regionId: '',
   assignedMedicalRepresentativeId: '',
-  locations: [
-    { address: '', latitude: '', longitude: '', scanRadius: '', bufferRadius: '' },
-  ],
   notes: '',
+  businesses: [{ ...dealerBusinessDefaults, outletName: 'Godown 1' }],
 }
 
 /** Fields accepted by POST /partners/create and PUT /partners/:id (type: 'DEALER'). */
 export interface DealerApiPayload {
   type: 'DEALER'
   businessName: string
-  ownerFirstName: string
-  ownerLastName: string
+  ownerName: string
+  profileImage?: PartnerProfileImagePayload
   email: string
   phone: string
   country: string
   gstNumber: string
-  panNumber: string
-  drugLicenseNumber: string
-  drugLicenseExpiry: string
-  addressLine1: string
-  addressLine2?: string
-  landmark?: string
-  city: string
-  district: string
-  state: string
-  pincode: string
   regionId: string
   assignedMedicalRepresentativeId: string
+  notes?: string
+  businesses: PartnerBusinessPayload[]
 }
 
-/** Strips UI-only fields (locations, notes) before sending to the API. */
 export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
   return {
     type: 'DEALER',
     businessName: values.businessName,
-    ownerFirstName: values.ownerFirstName,
-    ownerLastName: values.ownerLastName,
+    ownerName: [values.ownerFirstName, values.ownerLastName].filter(Boolean).join(' '),
     email: values.email,
     phone: values.phone,
     country: values.country,
     gstNumber: values.gstNumber,
-    panNumber: values.panNumber,
-    drugLicenseNumber: values.drugLicenseNumber,
-    drugLicenseExpiry: values.drugLicenseExpiry,
-    addressLine1: values.addressLine1,
-    addressLine2: values.addressLine2,
-    landmark: values.landmark,
-    city: values.city,
-    district: values.district,
-    state: values.state,
-    pincode: values.pincode,
     regionId: values.regionId,
     assignedMedicalRepresentativeId: values.assignedMedicalRepresentativeId,
+    notes: values.notes,
+    businesses: values.businesses.map((business) => ({
+      outletName: business.outletName,
+      userName: business.userName || undefined,
+      panNumber: business.panNumber,
+      drugLicenseNumber: business.drugLicenseNumber,
+      drugLicenseExpiry: business.drugLicenseExpiry,
+      addressType: business.addressType,
+      addressLine1: business.addressLine1,
+      addressLine2: business.addressLine2,
+      landmark: business.landmark,
+      city: business.city,
+      district: business.district,
+      state: business.state,
+      pincode: business.pincode,
+      latitude: business.latitude ? Number(business.latitude) : undefined,
+      longitude: business.longitude ? Number(business.longitude) : undefined,
+      notes: business.notes,
+    })),
   }
 }

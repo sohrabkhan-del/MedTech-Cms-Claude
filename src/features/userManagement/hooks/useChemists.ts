@@ -14,6 +14,7 @@ export function useChemists(params?: ChemistQueryParams) {
 
   const chemistsResult = useGetChemistsQuery({
     ...params,
+    ...analyticsParams,
     regionId: effectiveRegionId,
   })
   const analyticsResult = useGetChemistAnalyticsQuery({
@@ -22,7 +23,7 @@ export function useChemists(params?: ChemistQueryParams) {
   })
   const chemists = chemistsResult.data ?? []
 
-  const isLoading = chemistsResult.isLoading || analyticsResult.isLoading
+  const isLoading = chemistsResult.isFetching || analyticsResult.isFetching
   const error = chemistsResult.error
     ? getApiErrorMessage(chemistsResult.error, 'Failed to load chemists.')
     : analyticsResult.error

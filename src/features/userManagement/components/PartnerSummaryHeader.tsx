@@ -1,4 +1,4 @@
-import { Avatar, Button, Card, Grid, Stack, Typography } from '@mui/material'
+import { Avatar, Button, Card, Grid, Stack, Tooltip, Typography } from '@mui/material'
 import { CircleCheck, Ban } from 'lucide-react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
@@ -29,6 +29,12 @@ export function PartnerSummaryHeader({
   const assignedMrLabel = assignedMrIsId
     ? (assignedMrDetail?.name ?? '—')
     : partner.assignedMr
+  const assignedMrMeta = [
+    assignedMrDetail?.employeeCode,
+    assignedMrDetail?.region,
+  ]
+    .filter(Boolean)
+    .join(' · ')
 
   return (
     <Card sx={{ p: 3, mb: 3 }}>
@@ -90,9 +96,25 @@ export function PartnerSummaryHeader({
                 <Typography variant="caption" sx={{ display: 'block' }}>
                   Assigned MR
                 </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                  {assignedMrLabel}
-                </Typography>
+                <Tooltip
+                  title={
+                    assignedMrDetail
+                      ? `${assignedMrDetail.email} · ${assignedMrDetail.phone} · ${assignedMrDetail.totalDealersOnboarded} dealers, ${assignedMrDetail.totalChemistsOnboarded} chemists onboarded`
+                      : ''
+                  }
+                >
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                    {assignedMrLabel}
+                  </Typography>
+                </Tooltip>
+                {assignedMrMeta && (
+                  <Typography
+                    variant="caption"
+                    sx={{ display: 'block', color: 'text.secondary' }}
+                  >
+                    {assignedMrMeta}
+                  </Typography>
+                )}
               </Grid>
               <Grid size={{ xs: 6, sm: 4 }}>
                 <Typography variant="caption" sx={{ display: 'block' }}>

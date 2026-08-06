@@ -14,6 +14,8 @@ export interface DocumentGridItem {
   uploadDate: string
   verificationStatus?: 'verified' | 'pending' | 'rejected'
   expiryDate?: string
+  /** Direct URL to the uploaded file. When present, Download/preview link to this instead of a generated text summary. */
+  fileUrl?: string
 }
 
 const statusChipColor: Record<
@@ -33,6 +35,16 @@ function documentIcon(documentName: string) {
 }
 
 function downloadDocument(doc: DocumentGridItem) {
+  if (doc.fileUrl) {
+    const link = document.createElement('a')
+    link.href = doc.fileUrl
+    link.download = doc.documentName
+    link.target = '_blank'
+    link.rel = 'noopener noreferrer'
+    link.click()
+    return
+  }
+
   const content = [
     doc.documentName,
     doc.verificationStatus ? `Status: ${doc.verificationStatus}` : null,
@@ -166,46 +178,63 @@ export function DocumentGridCard<T extends DocumentGridItem>({
                 Update Document
               </Button>
             )}
-            <Box
-              sx={{
-                borderRadius: `${radius.lg}px`,
-                border: '1px dashed',
-                borderColor: 'divider',
-                backgroundColor: 'background.default',
-                py: 6,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 1.5,
-              }}
-            >
-              {(() => {
-                const Icon = documentIcon(previewDoc.documentName)
-                return (
-                  <Box
-                    sx={{
-                      width: 56,
-                      height: 56,
-                      borderRadius: `${radius.md}px`,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: 'primary.light',
-                      color: 'primary.main',
-                    }}
-                  >
-                    <Icon size={28} />
-                  </Box>
-                )
-              })()}
-              <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                {previewDoc.documentName}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                Preview not available for this file type — use Download to
-                save a copy.
-              </Typography>
-            </Box>
+            {previewDoc.fileUrl && /\.(png|jpe?g|gif|webp)$/i.test(previewDoc.fileUrl) ? (
+              <Box
+                component="img"
+                src={previewDoc.fileUrl}
+                alt={previewDoc.documentName}
+                sx={{
+                  width: '100%',
+                  maxHeight: 320,
+                  objectFit: 'contain',
+                  borderRadius: `${radius.lg}px`,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.default',
+                }}
+              />
+            ) : (
+              <Box
+                sx={{
+                  borderRadius: `${radius.lg}px`,
+                  border: '1px dashed',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.default',
+                  py: 6,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 1.5,
+                }}
+              >
+                {(() => {
+                  const Icon = documentIcon(previewDoc.documentName)
+                  return (
+                    <Box
+                      sx={{
+                        width: 56,
+                        height: 56,
+                        borderRadius: `${radius.md}px`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'primary.light',
+                        color: 'primary.main',
+                      }}
+                    >
+                      <Icon size={28} />
+                    </Box>
+                  )
+                })()}
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {previewDoc.documentName}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  Preview not available for this file type — use Download to
+                  save a copy.
+                </Typography>
+              </Box>
+            )}
 
             {showMetadata && (
               <Stack

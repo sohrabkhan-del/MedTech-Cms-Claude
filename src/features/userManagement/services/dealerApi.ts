@@ -3,7 +3,12 @@ import { mockDealers, dealerKpis, getDealerById } from '@/features/userManagemen
 import type { Dealer } from '@/types/dealer'
 import type { DealerApiPayload } from '@/features/userManagement/dealerFormSchema'
 import { mockDelay } from '@/services/mockDelay'
-import type { OnboardedBy, PartnerStatus, PartnerZone } from '@/types/partner'
+import type {
+  LicenseDocument,
+  OnboardedBy,
+  PartnerStatus,
+  PartnerZone,
+} from '@/types/partner'
 import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
 
 export type DealerKpis = typeof dealerKpis
@@ -17,6 +22,9 @@ export interface DealerQueryParams {
   status?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  preset?: string
+  startDate?: string
+  endDate?: string
 }
 
 interface PartnerListApiResponse {
@@ -35,25 +43,39 @@ interface PartnerDetailApiResponse {
   data: PartnerDealerItem
 }
 
+interface PartnerDocumentApiItem {
+  id: string
+  name: string
+  size?: number
+  path: string
+  type?: string
+}
+
 interface PartnerDealerItem {
-  profile: {
-    id: string
-    type: string
-    ownerFirstName?: string | null
-    ownerLastName?: string | null
-    email?: string | null
-    phone?: string | null
-    country?: string | null
-    status?: string | null
-    isBlocked?: boolean
-  }
+  id: string
+  referenceId?: string | null
+  businessName?: string | null
+  ownerName?: string | null
+  profileImage?: PartnerDocumentApiItem | null
+  email?: string | null
+  phone?: string | null
+  country?: string | null
+  gstNumber?: string | null
+  regionId?: string | null
+  assignedMedicalRepresentativeId?: string | null
+  notes?: string | null
+  status?: string | null
+  approvalStatus?: string | null
+  isBlocked?: boolean
   business?: Array<{
     id: string
-    businessName?: string | null
-    gstNumber?: string | null
+    outletName?: string | null
+    panNumber?: string | null
     drugLicenseNumber?: string | null
+    drugLicenseExpiry?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
+    landmark?: string | null
     city?: string | null
     district?: string | null
     state?: string | null
@@ -61,9 +83,21 @@ interface PartnerDealerItem {
     latitude?: number | null
     longitude?: number | null
     regionId?: string | null
-    assignedMedicalRepresentativeId?: string | null
     onboardedByType?: string | null
+    documents?: PartnerDocumentApiItem[]
   }>
+}
+
+function mapPartnerDocuments(documents?: PartnerDocumentApiItem[]): LicenseDocument[] {
+  if (!documents) return []
+  return documents.map((doc) => ({
+    id: doc.id,
+    documentName: doc.name,
+    uploadDate: '-',
+    verificationStatus: 'pending',
+    expiryDate: '-',
+    fileUrl: doc.path,
+  }))
 }
 
 function mapStatus(status?: string | null, isBlocked?: boolean): PartnerStatus {
@@ -107,14 +141,11 @@ function mapOnboardedBy(value?: string | null): OnboardedBy {
 
 function mapPartnerDealer(item: PartnerDealerItem): Dealer {
   const business = item.business?.[0]
-  const ownerName =
-    [item.profile.ownerFirstName, item.profile.ownerLastName]
-      .filter(Boolean)
-      .join(' ')
-      .trim() || 'Unknown'
+  const ownerName = item.ownerName?.trim() || 'Unknown'
   const address = [
     business?.addressLine1,
     business?.addressLine2,
+    business?.landmark,
     business?.city,
     business?.district,
     business?.state,
@@ -133,25 +164,31 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
   }
 
   return {
-    id: item.profile.id,
-    shopName: business?.businessName ?? ownerName,
+    id: item.id,
+    referenceId: item.referenceId ?? undefined,
+    shopName: item.businessName ?? business?.outletName ?? ownerName,
     ownerName,
-    email: item.profile.email ?? '-',
-    phone: item.profile.phone ?? '-',
+    email: item.email ?? '-',
+    phone: item.phone ?? '-',
     city: business?.city ?? '-',
     zone: inferZone(business?.state),
-    status: mapStatus(item.profile.status, item.profile.isBlocked),
-    licenseNumber: business?.gstNumber ?? business?.drugLicenseNumber ?? '-',
+    status: mapStatus(item.status, item.isBlocked),
+    approvalStatus: item.approvalStatus ?? undefined,
+    licenseNumber: item.gstNumber ?? business?.drugLicenseNumber ?? '-',
+    panNumber: business?.panNumber ?? undefined,
+    drugLicenseNumber: business?.drugLicenseNumber ?? undefined,
+    drugLicenseExpiry: business?.drugLicenseExpiry ?? undefined,
     onboardedBy: mapOnboardedBy(business?.onboardedByType),
     availablePoints: 0,
-    assignedMr: business?.assignedMedicalRepresentativeId ?? '-',
+    assignedMr: item.assignedMedicalRepresentativeId ?? '-',
+    notes: item.notes ?? undefined,
     registeredAddress: address || '-',
     totalScans: 0,
     totalRedemptions: 0,
     scanHistory: [],
     PointsHistory: [],
     interestedProducts: [],
-    documents: [],
+    documents: mapPartnerDocuments(business?.documents),
     geoLock,
     activeOrders: 0,
     liveDeliveries: false,
@@ -159,7 +196,7 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
       ? [
           {
             id: business.id,
-            name: business.businessName ?? 'Godown',
+            name: business.outletName ?? 'Godown',
             address: address || '-',
             geoLock,
           },
@@ -217,6 +254,9 @@ const dealerApi = baseApi.injectEndpoints({
           status: mapStatusParam(params?.status),
           sortBy: params?.sortBy || undefined,
           sortOrder: params?.sortOrder ?? 'desc',
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
         },
         mockResolver: () => mockDelay(mockDealers),
       }),

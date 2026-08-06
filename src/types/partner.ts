@@ -44,10 +44,12 @@ export interface LicenseDocument {
   uploadDate: string
   verificationStatus: 'verified' | 'pending' | 'rejected'
   expiryDate: string
+  fileUrl?: string
 }
 
 export interface PartnerBase {
   id: string
+  referenceId?: string
   shopName: string
   ownerName: string
   email: string
@@ -55,7 +57,11 @@ export interface PartnerBase {
   city: string
   zone: PartnerZone
   status: PartnerStatus
+  approvalStatus?: string
   licenseNumber: string
+  panNumber?: string
+  drugLicenseNumber?: string
+  drugLicenseExpiry?: string
   onboardedBy: OnboardedBy
   availablePoints: number
   assignedMr: string

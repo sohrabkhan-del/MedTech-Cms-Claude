@@ -14,6 +14,7 @@ export function useDealers(params?: DealerQueryParams) {
 
   const dealersResult = useGetDealersQuery({
     ...params,
+    ...analyticsParams,
     regionId: effectiveRegionId,
   })
   const analyticsResult = useGetDealerAnalyticsQuery({
@@ -22,7 +23,7 @@ export function useDealers(params?: DealerQueryParams) {
   })
   const dealers = dealersResult.data ?? []
 
-  const isLoading = dealersResult.isLoading || analyticsResult.isLoading
+  const isLoading = dealersResult.isFetching || analyticsResult.isFetching
   const error = dealersResult.error
     ? getApiErrorMessage(dealersResult.error, 'Failed to load dealers.')
     : analyticsResult.error

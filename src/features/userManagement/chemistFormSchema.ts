@@ -20,6 +20,9 @@ export const chemistBusinessSchema = z.object({
   pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+  scanRadius: z.string().optional(),
+  bufferRadius: z.string().optional(),
+  geoAccuracy: z.string().optional(),
   notes: z.string().optional(),
 })
 
@@ -41,6 +44,9 @@ export const chemistBusinessDefaults: ChemistBusinessValues = {
   pincode: '',
   latitude: '',
   longitude: '',
+  scanRadius: '',
+  bufferRadius: '',
+  geoAccuracy: '',
   notes: '',
 }
 
@@ -59,6 +65,9 @@ export const chemistFormSchema = z.object({
   gstNumber: z
     .string()
     .regex(/^[0-9A-Z]{15}$/, 'Enter a valid 15-character GST number'),
+
+  // --- API: profile ---
+  profileImageUrl: z.string().optional(),
 
   // --- API: assignment ---
   regionId: z.string().uuid(uuidMessage),
@@ -81,6 +90,7 @@ export const chemistFormDefaults: ChemistFormValues = {
   phone: '',
   country: '91',
   gstNumber: '',
+  profileImageUrl: '',
   regionId: '',
   assignedMedicalRepresentativeId: '',
   notes: '',
@@ -108,11 +118,17 @@ export interface PartnerBusinessPayload {
   city: string
   district: string
   state: string
+  country: string
   pincode: string
   latitude?: number
   longitude?: number
+  scanRadius?: number
+  bufferRadius?: number
+  geoAccuracy?: number
+  geoTagImage?: PartnerDocumentPayload | null
+  regionId: string
   notes?: string
-  documents?: PartnerDocumentPayload[]
+  documents: PartnerDocumentPayload[]
 }
 
 export interface PartnerProfileImagePayload {
@@ -121,6 +137,27 @@ export interface PartnerProfileImagePayload {
   size?: number
   path: string
   type?: string
+}
+
+/** Builds a profileImage payload from a plain URL — there's no file-upload API yet, so `path` is the URL as typed. */
+export function toProfileImagePayload(url?: string): PartnerProfileImagePayload | undefined {
+  const trimmed = url?.trim()
+  if (!trimmed) return undefined
+  const fileName = trimmed.split('/').pop() || 'profile-image'
+  const extension = fileName.split('.').pop()?.toLowerCase()
+  const mimeByExtension: Record<string, string> = {
+    png: 'image/png',
+    jpg: 'image/jpeg',
+    jpeg: 'image/jpeg',
+    webp: 'image/webp',
+    gif: 'image/gif',
+  }
+  return {
+    id: crypto.randomUUID(),
+    name: fileName,
+    path: trimmed,
+    type: extension ? mimeByExtension[extension] : undefined,
+  }
 }
 
 /** Fields accepted by POST /partners/create and PUT /partners/:id. */
@@ -144,6 +181,7 @@ export function toChemistApiPayload(values: ChemistFormValues): ChemistApiPayloa
     type: 'CHEMIST',
     businessName: values.businessName,
     ownerName: [values.ownerFirstName, values.ownerLastName].filter(Boolean).join(' '),
+    profileImage: toProfileImagePayload(values.profileImageUrl),
     email: values.email,
     phone: values.phone,
     country: values.country,
@@ -164,10 +202,17 @@ export function toChemistApiPayload(values: ChemistFormValues): ChemistApiPayloa
       city: business.city,
       district: business.district,
       state: business.state,
+      country: 'India',
       pincode: business.pincode,
       latitude: business.latitude ? Number(business.latitude) : undefined,
       longitude: business.longitude ? Number(business.longitude) : undefined,
+      scanRadius: business.scanRadius ? Number(business.scanRadius) : undefined,
+      bufferRadius: business.bufferRadius ? Number(business.bufferRadius) : undefined,
+      geoAccuracy: business.geoAccuracy ? Number(business.geoAccuracy) : undefined,
+      geoTagImage: null,
+      regionId: values.regionId,
       notes: business.notes,
+      documents: [],
     })),
   }
 }

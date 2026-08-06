@@ -1,7 +1,8 @@
 import { z } from 'zod'
-import type {
-  PartnerBusinessPayload,
-  PartnerProfileImagePayload,
+import {
+  toProfileImagePayload,
+  type PartnerBusinessPayload,
+  type PartnerProfileImagePayload,
 } from '@/features/userManagement/chemistFormSchema'
 
 const uuidMessage = 'Enter a valid UUID'
@@ -24,6 +25,9 @@ export const dealerBusinessSchema = z.object({
   pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
+  scanRadius: z.string().optional(),
+  bufferRadius: z.string().optional(),
+  geoAccuracy: z.string().optional(),
   notes: z.string().optional(),
 })
 
@@ -45,6 +49,9 @@ export const dealerBusinessDefaults: DealerBusinessValues = {
   pincode: '',
   latitude: '',
   longitude: '',
+  scanRadius: '',
+  bufferRadius: '',
+  geoAccuracy: '',
   notes: '',
 }
 
@@ -63,6 +70,9 @@ export const dealerFormSchema = z.object({
   gstNumber: z
     .string()
     .regex(/^[0-9A-Z]{15}$/, 'Enter a valid 15-character GST number'),
+
+  // --- API: profile ---
+  profileImageUrl: z.string().optional(),
 
   // --- API: assignment ---
   regionId: z.string().uuid(uuidMessage),
@@ -85,6 +95,7 @@ export const dealerFormDefaults: DealerFormValues = {
   phone: '',
   country: '91',
   gstNumber: '',
+  profileImageUrl: '',
   regionId: '',
   assignedMedicalRepresentativeId: '',
   notes: '',
@@ -112,6 +123,7 @@ export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
     type: 'DEALER',
     businessName: values.businessName,
     ownerName: [values.ownerFirstName, values.ownerLastName].filter(Boolean).join(' '),
+    profileImage: toProfileImagePayload(values.profileImageUrl),
     email: values.email,
     phone: values.phone,
     country: values.country,
@@ -132,10 +144,17 @@ export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
       city: business.city,
       district: business.district,
       state: business.state,
+      country: 'India',
       pincode: business.pincode,
       latitude: business.latitude ? Number(business.latitude) : undefined,
       longitude: business.longitude ? Number(business.longitude) : undefined,
+      scanRadius: business.scanRadius ? Number(business.scanRadius) : undefined,
+      bufferRadius: business.bufferRadius ? Number(business.bufferRadius) : undefined,
+      geoAccuracy: business.geoAccuracy ? Number(business.geoAccuracy) : undefined,
+      geoTagImage: null,
+      regionId: values.regionId,
       notes: business.notes,
+      documents: [],
     })),
   }
 }

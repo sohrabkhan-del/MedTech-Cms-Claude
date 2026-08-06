@@ -233,29 +233,34 @@ export function ChemistFormPage() {
       phone: chemist.phone,
       country: '91',
       gstNumber: chemist.licenseNumber,
-      regionId: '',
+      profileImageUrl: chemist.profileImageUrl ?? '',
+      regionId: chemist.regionId ?? '',
       assignedMedicalRepresentativeId: chemist.assignedMr,
       notes: chemist.notes ?? '',
-      businesses: [
-        {
-          outletName: chemist.shopName,
-          userName: '',
-          panNumber: chemist.panNumber ?? '',
-          drugLicenseNumber: chemist.drugLicenseNumber ?? '',
-          drugLicenseExpiry: chemist.drugLicenseExpiry ?? '',
-          addressType: 'SHOP',
-          addressLine1: chemist.registeredAddress,
-          addressLine2: '',
-          landmark: '',
-          city: chemist.city,
-          district: '',
-          state: '',
-          pincode: '',
-          latitude: String(chemist.geoLock.latitude),
-          longitude: String(chemist.geoLock.longitude),
-          notes: chemist.notes ?? '',
-        },
-      ],
+      businesses:
+        chemist.businesses.length > 0
+          ? chemist.businesses.map((business) => ({
+              outletName: business.outletName,
+              userName: business.userName ?? '',
+              panNumber: business.panNumber ?? '',
+              drugLicenseNumber: business.drugLicenseNumber ?? '',
+              drugLicenseExpiry: business.drugLicenseExpiry ?? '',
+              addressType: business.addressType ?? 'SHOP',
+              addressLine1: business.addressLine1 ?? '',
+              addressLine2: business.addressLine2 ?? '',
+              landmark: business.landmark ?? '',
+              city: business.city ?? '',
+              district: business.district ?? '',
+              state: business.state ?? '',
+              pincode: business.pincode ?? '',
+              latitude: business.latitude ? String(business.latitude) : '',
+              longitude: business.longitude ? String(business.longitude) : '',
+              scanRadius: business.scanRadius ? String(business.scanRadius) : '',
+              bufferRadius: business.bufferRadius ? String(business.bufferRadius) : '',
+              geoAccuracy: business.geoAccuracy ? String(business.geoAccuracy) : '',
+              notes: business.notes ?? '',
+            }))
+          : [chemistBusinessDefaults],
     })
   }, [isEdit, chemist, reset])
 
@@ -348,6 +353,10 @@ export function ChemistFormPage() {
               <FieldLabel required>GST Number</FieldLabel>
               <FormField name="gstNumber" control={control} placeholder="e.g. 27ABCDE1234F1Z5" uppercase {...fieldLabelProps} />
             </Grid>
+            <Grid size={{ xs: 12, sm: 8 }}>
+              <FieldLabel>Profile Image URL</FieldLabel>
+              <FormField name="profileImageUrl" control={control} placeholder="https://…" {...fieldLabelProps} />
+            </Grid>
           </Grid>
         </Card>
 
@@ -383,10 +392,6 @@ export function ChemistFormPage() {
                     <FormField name={`businesses.${index}.outletName`} control={control} placeholder="e.g. Shree Medical Store" {...fieldLabelProps} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <FieldLabel>Outlet Manager / User Name</FieldLabel>
-                    <FormField name={`businesses.${index}.userName`} control={control} placeholder="Person handling this outlet" {...fieldLabelProps} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel required>PAN Number</FieldLabel>
                     <FormField name={`businesses.${index}.panNumber`} control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
                   </Grid>
@@ -437,6 +442,19 @@ export function ChemistFormPage() {
                     >
                       Pick on Map
                     </Button>
+                  </Grid>
+
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Scan Radius (m)</FieldLabel>
+                    <FormField name={`businesses.${index}.scanRadius`} control={control} placeholder="e.g. 50" numeric {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Buffer Radius (m)</FieldLabel>
+                    <FormField name={`businesses.${index}.bufferRadius`} control={control} placeholder="e.g. 20" numeric {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Geo Accuracy (m)</FieldLabel>
+                    <FormField name={`businesses.${index}.geoAccuracy`} control={control} placeholder="e.g. 10" numeric {...fieldLabelProps} />
                   </Grid>
 
                   <Grid size={12}>

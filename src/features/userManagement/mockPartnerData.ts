@@ -195,5 +195,22 @@ export function generatePartnerBase(
     PointsHistory: buildPointsHistory(seed, shopName, availablePoints),
     interestedProducts: buildInterestedProducts(seed, shopName),
     documents: buildDocuments(seed, shopName),
+    businesses: [
+      {
+        outletName: shopName,
+        panNumber: `ABCDE${1000 + index}F`,
+        drugLicenseNumber: `DL-${2026000 + index * 11}`,
+        drugLicenseExpiry: '2029-12-31',
+        addressType: 'SHOP',
+        addressLine1: `${seed * 12}, ${shopName} Complex`,
+        city: cities[index % cities.length]!,
+        state: 'Maharashtra',
+        district: 'Mumbai Suburban',
+        pincode: '400001',
+        latitude: buildGeoLock(seed).latitude,
+        longitude: buildGeoLock(seed).longitude,
+        bufferRadius: buildGeoLock(seed).bufferRadiusMeters,
+      },
+    ],
   }
 }

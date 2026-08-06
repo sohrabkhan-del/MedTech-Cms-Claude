@@ -246,49 +246,34 @@ export function DealerFormPage() {
       phone: dealer.phone,
       country: '91',
       gstNumber: dealer.licenseNumber,
-      regionId: '',
+      profileImageUrl: dealer.profileImageUrl ?? '',
+      regionId: dealer.regionId ?? '',
       assignedMedicalRepresentativeId: dealer.assignedMr,
       notes: dealer.notes ?? '',
       businesses:
-        dealer.godowns.length > 0
-          ? dealer.godowns.map((godown) => ({
-              outletName: godown.name,
-              userName: '',
-              panNumber: dealer.panNumber ?? '',
-              drugLicenseNumber: dealer.drugLicenseNumber ?? '',
-              drugLicenseExpiry: dealer.drugLicenseExpiry ?? '',
-              addressType: 'GODOWN' as const,
-              addressLine1: godown.address,
-              addressLine2: '',
-              landmark: '',
-              city: dealer.city,
-              district: '',
-              state: '',
-              pincode: '',
-              latitude: String(godown.geoLock.latitude),
-              longitude: String(godown.geoLock.longitude),
-              notes: dealer.notes ?? '',
+        dealer.businesses.length > 0
+          ? dealer.businesses.map((business) => ({
+              outletName: business.outletName,
+              userName: business.userName ?? '',
+              panNumber: business.panNumber ?? '',
+              drugLicenseNumber: business.drugLicenseNumber ?? '',
+              drugLicenseExpiry: business.drugLicenseExpiry ?? '',
+              addressType: business.addressType ?? 'GODOWN',
+              addressLine1: business.addressLine1 ?? '',
+              addressLine2: business.addressLine2 ?? '',
+              landmark: business.landmark ?? '',
+              city: business.city ?? '',
+              district: business.district ?? '',
+              state: business.state ?? '',
+              pincode: business.pincode ?? '',
+              latitude: business.latitude ? String(business.latitude) : '',
+              longitude: business.longitude ? String(business.longitude) : '',
+              scanRadius: business.scanRadius ? String(business.scanRadius) : '',
+              bufferRadius: business.bufferRadius ? String(business.bufferRadius) : '',
+              geoAccuracy: business.geoAccuracy ? String(business.geoAccuracy) : '',
+              notes: business.notes ?? '',
             }))
-          : [
-              {
-                outletName: dealer.shopName,
-                userName: '',
-                panNumber: dealer.panNumber ?? '',
-                drugLicenseNumber: dealer.drugLicenseNumber ?? '',
-                drugLicenseExpiry: dealer.drugLicenseExpiry ?? '',
-                addressType: 'GODOWN' as const,
-                addressLine1: dealer.registeredAddress,
-                addressLine2: '',
-                landmark: '',
-                city: dealer.city,
-                district: '',
-                state: '',
-                pincode: '',
-                latitude: String(dealer.geoLock.latitude),
-                longitude: String(dealer.geoLock.longitude),
-                notes: dealer.notes ?? '',
-              },
-            ],
+          : [{ ...dealerBusinessDefaults, outletName: 'Godown 1' }],
     })
   }, [isEdit, dealer, reset])
 
@@ -411,6 +396,10 @@ export function DealerFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
+            <Grid size={{ xs: 12, sm: 8 }}>
+              <FieldLabel>Profile Image URL</FieldLabel>
+              <FormField name="profileImageUrl" control={control} placeholder="https://…" {...fieldLabelProps} />
+            </Grid>
           </Grid>
         </Card>
 
@@ -458,10 +447,6 @@ export function DealerFormPage() {
                     <FormField name={`businesses.${index}.outletName`} control={control} placeholder={`e.g. Godown ${index + 1}`} {...fieldLabelProps} />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
-                    <FieldLabel>Godown Manager / User Name</FieldLabel>
-                    <FormField name={`businesses.${index}.userName`} control={control} placeholder="Person handling this godown" {...fieldLabelProps} />
-                  </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel required>PAN Number</FieldLabel>
                     <FormField name={`businesses.${index}.panNumber`} control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
                   </Grid>
@@ -515,6 +500,19 @@ export function DealerFormPage() {
                     >
                       Pick on Map
                     </Button>
+                  </Grid>
+
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Scan Radius (m)</FieldLabel>
+                    <FormField name={`businesses.${index}.scanRadius`} control={control} placeholder="e.g. 50" numeric {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Buffer Radius (m)</FieldLabel>
+                    <FormField name={`businesses.${index}.bufferRadius`} control={control} placeholder="e.g. 20" numeric {...fieldLabelProps} />
+                  </Grid>
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <FieldLabel>Geo Accuracy (m)</FieldLabel>
+                    <FormField name={`businesses.${index}.geoAccuracy`} control={control} placeholder="e.g. 10" numeric {...fieldLabelProps} />
                   </Grid>
 
                   <Grid size={12}>

@@ -47,6 +47,29 @@ export interface LicenseDocument {
   fileUrl?: string
 }
 
+export interface PartnerBusinessDetail {
+  outletName: string
+  userName?: string
+  panNumber?: string
+  drugLicenseNumber?: string
+  drugLicenseExpiry?: string
+  addressType?: 'SHOP' | 'GODOWN' | 'OTHER'
+  addressLine1?: string
+  addressLine2?: string
+  landmark?: string
+  city?: string
+  district?: string
+  state?: string
+  pincode?: string
+  latitude?: number
+  longitude?: number
+  scanRadius?: number
+  bufferRadius?: number
+  geoAccuracy?: number
+  regionId?: string
+  notes?: string
+}
+
 export interface PartnerBase {
   id: string
   referenceId?: string
@@ -58,10 +81,12 @@ export interface PartnerBase {
   zone: PartnerZone
   status: PartnerStatus
   approvalStatus?: string
+  profileImageUrl?: string
   licenseNumber: string
   panNumber?: string
   drugLicenseNumber?: string
   drugLicenseExpiry?: string
+  regionId?: string
   onboardedBy: OnboardedBy
   availablePoints: number
   assignedMr: string
@@ -74,4 +99,6 @@ export interface PartnerBase {
   PointsHistory: PointsHistoryEntry[]
   interestedProducts: InterestedProductEntry[]
   documents: LicenseDocument[]
+  /** Raw per-outlet business records from the API, used to rebuild the create/edit form's businesses[] array with each outlet's own discrete address fields. */
+  businesses: PartnerBusinessDetail[]
 }

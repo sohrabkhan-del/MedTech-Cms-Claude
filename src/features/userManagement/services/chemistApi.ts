@@ -13,6 +13,7 @@ import { mockDelay } from '@/services/mockDelay'
 import type {
   LicenseDocument,
   OnboardedBy,
+  PartnerBusinessDetail,
   PartnerStatus,
   PartnerZone,
 } from '@/types/partner'
@@ -76,9 +77,11 @@ interface PartnerChemistItem {
   business?: Array<{
     id: string
     outletName?: string | null
+    userName?: string | null
     panNumber?: string | null
     drugLicenseNumber?: string | null
     drugLicenseExpiry?: string | null
+    addressType?: string | null
     addressLine1?: string | null
     addressLine2?: string | null
     landmark?: string | null
@@ -88,8 +91,12 @@ interface PartnerChemistItem {
     pincode?: string | null
     latitude?: number | null
     longitude?: number | null
+    scanRadius?: number | null
+    bufferRadius?: number | null
+    geoAccuracy?: number | null
     regionId?: string | null
     onboardedByType?: string | null
+    notes?: string | null
     documents?: PartnerDocumentApiItem[]
   }>
 }
@@ -145,6 +152,37 @@ function mapOnboardedBy(value?: string | null): OnboardedBy {
   return value === 'MR' ? 'MR' : 'Self'
 }
 
+function mapPartnerBusinesses(
+  business: PartnerChemistItem['business'],
+): PartnerBusinessDetail[] {
+  if (!business) return []
+  return business.map((b) => ({
+    outletName: b.outletName ?? '',
+    userName: b.userName ?? undefined,
+    panNumber: b.panNumber ?? undefined,
+    drugLicenseNumber: b.drugLicenseNumber ?? undefined,
+    drugLicenseExpiry: b.drugLicenseExpiry ?? undefined,
+    addressType:
+      b.addressType === 'SHOP' || b.addressType === 'GODOWN' || b.addressType === 'OTHER'
+        ? b.addressType
+        : undefined,
+    addressLine1: b.addressLine1 ?? undefined,
+    addressLine2: b.addressLine2 ?? undefined,
+    landmark: b.landmark ?? undefined,
+    city: b.city ?? undefined,
+    district: b.district ?? undefined,
+    state: b.state ?? undefined,
+    pincode: b.pincode ?? undefined,
+    latitude: b.latitude ?? undefined,
+    longitude: b.longitude ?? undefined,
+    scanRadius: b.scanRadius ?? undefined,
+    bufferRadius: b.bufferRadius ?? undefined,
+    geoAccuracy: b.geoAccuracy ?? undefined,
+    regionId: b.regionId ?? undefined,
+    notes: b.notes ?? undefined,
+  }))
+}
+
 function mapPartnerChemist(item: PartnerChemistItem): Chemist {
   const business = item.business?.[0]
   const ownerName = item.ownerName?.trim() || 'Unknown'
@@ -171,10 +209,12 @@ function mapPartnerChemist(item: PartnerChemistItem): Chemist {
     zone: inferZone(business?.state),
     status: mapStatus(item.status, item.isBlocked),
     approvalStatus: item.approvalStatus ?? undefined,
+    profileImageUrl: item.profileImage?.path ?? undefined,
     licenseNumber: item.gstNumber ?? business?.drugLicenseNumber ?? '-',
     panNumber: business?.panNumber ?? undefined,
     drugLicenseNumber: business?.drugLicenseNumber ?? undefined,
     drugLicenseExpiry: business?.drugLicenseExpiry ?? undefined,
+    regionId: item.regionId ?? undefined,
     onboardedBy: mapOnboardedBy(business?.onboardedByType),
     availablePoints: 0,
     assignedMr: item.assignedMedicalRepresentativeId ?? '-',
@@ -186,6 +226,7 @@ function mapPartnerChemist(item: PartnerChemistItem): Chemist {
     PointsHistory: [],
     interestedProducts: [],
     documents: mapPartnerDocuments(business?.documents),
+    businesses: mapPartnerBusinesses(item.business),
     geoLock: {
       active: Boolean(business?.latitude && business?.longitude),
       latitude: business?.latitude ?? 0,

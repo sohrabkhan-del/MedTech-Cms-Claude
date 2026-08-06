@@ -1,13 +1,12 @@
-import type { DeliveryStatus, EnquiryStatus, ProductEnquiry, ShowcaseProduct, ShowcaseUserType } from '@/types/showcaseProduct'
-import { mockDealers } from '@/features/userManagement/mockDealers'
-import { mockChemists } from '@/features/userManagement/mockChemists'
+import type { ShowcaseProduct } from '@/types/showcaseProduct'
 
-export const showcaseCategoryOptions = ['Cardiac Care', 'Neuro Care', 'Immunity', 'Diabetes Care', 'Pain Relief']
-const regions = ['North', 'South', 'East', 'West']
-const productNames = ['CardioCare Wellness Kit', 'NeuroPlus Care Combo', 'ImmunoBoost Family Pack', 'GlucoBalance Starter Kit', 'PainRelief Comfort Set']
+export const showcaseCategoryOptions = ['Medicines', 'Cardiac Care', 'Neuro Care', 'Immunity', 'Diabetes Care', 'Pain Relief']
+const brands = ['MediCure Labs', 'Cipla', 'Sun Pharma', 'Dr. Reddy\'s', 'Zydus']
+const productNames = ['Ibuprofen 400mg Tablets', 'Paracetamol 500mg Tablets', 'Amoxicillin 250mg Capsules', 'Vitamin D3 Sachets', 'Antacid Chewable Tablets']
 
 /** Real stock photo per showcase category (Unsplash direct CDN — stable, hotlink-safe URLs). */
 const showcaseCategoryImages: Record<string, string> = {
+  Medicines: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&h=600&q=80',
   'Cardiac Care': 'https://images.unsplash.com/photo-1628595351029-c2bf17511435?auto=format&fit=crop&w=600&h=600&q=80',
   'Neuro Care': 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=600&h=600&q=80',
   Immunity: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?auto=format&fit=crop&w=600&h=600&q=80',
@@ -21,73 +20,33 @@ function seededNumber(seed: number, min: number, max: number): number {
   return Math.floor(min + frac * (max - min))
 }
 
-function pad(n: number): string {
-  return n < 10 ? `0${n}` : `${n}`
-}
-
-function dateFromSeed(seed: number, month = 'Jul'): string {
-  const day = (seed % 27) + 1
-  return `${pad(day)} ${month} 2026`
-}
-
-function resolveEnquiryStatus(seed: number): EnquiryStatus {
-  return seed % 3 === 0 ? 'responded' : 'pending'
-}
-
-function resolveDeliveryStatus(seed: number, enquiryStatus: EnquiryStatus): DeliveryStatus {
-  if (enquiryStatus === 'pending') return 'pending'
-  const statuses: DeliveryStatus[] = ['packed', 'shipped', 'out_for_delivery', 'delivered', 'delivered', 'cancelled']
-  return statuses[seed % statuses.length]!
-}
-
-function buildEnquiries(seed: number, productId: string): ProductEnquiry[] {
-  const count = seededNumber(seed, 3, 8)
-  return Array.from({ length: count }).map((_, i) => {
-    const localSeed = seed * 13 + i
-    const userType: ShowcaseUserType = localSeed % 2 === 0 ? 'Dealer' : 'Chemist'
-    const partner = userType === 'Dealer' ? mockDealers[localSeed % mockDealers.length]! : mockChemists[localSeed % mockChemists.length]!
-    const enquiryStatus = resolveEnquiryStatus(localSeed)
-
-    return {
-      id: `${productId}-enq-${i}`,
-      userId: partner.id,
-      userName: partner.shopName,
-      userType,
-      interestedDate: dateFromSeed(localSeed, 'Jul'),
-      enquiryStatus,
-      deliveryStatus: resolveDeliveryStatus(localSeed, enquiryStatus),
-      email: partner.email,
-      mobileNumber: partner.phone,
-    }
-  })
-}
-
 function buildShowcaseProduct(seed: number): ShowcaseProduct {
   const id = `showcase-${seed}`
   const name = productNames[seed % productNames.length]!
-  const category = showcaseCategoryOptions[seed % showcaseCategoryOptions.length]!
-  const enquiries = buildEnquiries(seed, id)
-  const responded = enquiries.filter((e) => e.enquiryStatus === 'responded').length
-  const delivered = enquiries.filter((e) => e.deliveryStatus === 'delivered').length
+  const categoryName = showcaseCategoryOptions[seed % showcaseCategoryOptions.length]!
+  const mrp = seededNumber(seed, 199, 2499)
+  const dealerPrice = Math.round(mrp * 0.8)
+  const chemistPrice = Math.round(mrp * 0.88)
 
   return {
     id,
-    productName: name,
-    sku: `SKU-SC-${100000 + seed * 17}`,
-    category,
-    price: seededNumber(seed, 199, 2499),
-
+    productCode: `PRD${1000 + seed}`,
+    name,
     description: `${name} is a promotional showcase item highlighted to Dealers and Chemists as part of ongoing marketing campaigns.`,
-    productImage: showcaseCategoryImages[category]!,
-    featuredProduct: seed % 5 === 0,
-    region: regions[seed % regions.length]!,
-
-    totalInterestedUsers: enquiries.length,
-    totalProductViews: seededNumber(seed, 200, 5000),
-    productsDelivered: delivered,
-
-    enquiries,
-    internalNotes: responded > 0 ? 'Follow-up in progress with responded enquiries.' : 'Awaiting initial response from marketing team.',
+    categoryId: categoryName,
+    category: { id: categoryName, code: categoryName.toUpperCase().replace(/\s+/g, '_'), name: categoryName },
+    brand: brands[seed % brands.length]!,
+    images: [{ url: showcaseCategoryImages[categoryName]!, isPrimary: true }],
+    mrp,
+    dealerPrice,
+    chemistPrice,
+    availableStock: seededNumber(seed, 20, 500),
+    stockUnit: 'boxes',
+    lowStockThreshold: 50,
+    isActive: seed % 7 !== 0,
+    visibleTo: seed % 3 === 0 ? ['dealer'] : seed % 3 === 1 ? ['chemist'] : ['dealer', 'chemist'],
+    createdAt: new Date(2026, 6, (seed % 27) + 1).toISOString(),
+    updatedAt: new Date(2026, 6, (seed % 27) + 1).toISOString(),
   }
 }
 
@@ -97,11 +56,9 @@ export function getShowcaseProductById(id: string): ShowcaseProduct | undefined 
   return mockShowcaseProducts.find((product) => product.id === id)
 }
 
-const allEnquiries = mockShowcaseProducts.flatMap((product) => product.enquiries)
-
 export const showcaseProductKpis = {
-  totalEnquiries: allEnquiries.length,
-  pendingEnquiries: allEnquiries.filter((e) => e.enquiryStatus === 'pending').length,
-  respondedEnquiries: allEnquiries.filter((e) => e.enquiryStatus === 'responded').length,
-  productsDelivered: allEnquiries.filter((e) => e.deliveryStatus === 'delivered').length,
+  totalProducts: mockShowcaseProducts.length,
+  activeProducts: mockShowcaseProducts.filter((p) => p.isActive).length,
+  productsEnquiredFor: 0,
+  totalPendingEnquiries: 0,
 }

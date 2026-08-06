@@ -39,8 +39,8 @@ function buildLead(seed: number): InterestedUserLead {
   return {
     id: `lead-${seed}`,
     showcaseProductId: product.id,
-    interestedProduct: product.productName,
-    productCategory: product.category ?? 'Medicines',
+    interestedProduct: product.name,
+    productCategory: product.category?.name ?? 'Medicines',
     userId: partner.id,
     userName: partner.ownerName ?? partner.shopName,
     businessName: partner.shopName,

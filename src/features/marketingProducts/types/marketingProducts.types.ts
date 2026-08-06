@@ -1,9 +1,7 @@
 export type {
   ShowcaseProduct,
-  ShowcaseUserType,
-  EnquiryStatus,
-  DeliveryStatus,
-  ProductEnquiry,
+  ShowcaseProductImage,
+  ShowcaseVisibility,
 } from '@/types/showcaseProduct'
 export type { InterestedUserLead, LeadStatus, LeadUserType } from '@/types/interestedUser'
 export {

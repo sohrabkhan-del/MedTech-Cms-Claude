@@ -1,5 +1,13 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
+import {
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Grid,
+  Stack,
+  Typography,
+} from '@mui/material'
 import {
   BadgeCheck as BadgeCheckIcon,
   CircleCheck,
@@ -29,7 +37,15 @@ const infoItemSx = {
   gap: 1.25,
 }
 
-function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) {
+function InfoItem({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
+  label: string
+  value: React.ReactNode
+}) {
   return (
     <Stack direction="row" sx={infoItemSx}>
       <Box
@@ -51,7 +67,15 @@ function InfoItem({ icon, label, value }: { icon: React.ReactNode; label: string
         <Typography variant="caption" sx={{ display: 'block' }}>
           {label}
         </Typography>
-        <Typography sx={{ fontWeight: 600, fontSize: '0.875rem', wordBreak: 'break-word' }}>{value}</Typography>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.875rem',
+            wordBreak: 'break-word',
+          }}
+        >
+          {value}
+        </Typography>
       </Box>
     </Stack>
   )
@@ -61,15 +85,25 @@ export function AdminDetailsPage() {
   const { adminId } = useParams<{ adminId: string }>()
   const navigate = useNavigate()
   const toast = useToast()
-  const { admin, setStatus, isLoading, isStatusUpdating } = useAdminDetail(adminId)
+  const { admin, setStatus, isLoading, isStatusUpdating } =
+    useAdminDetail(adminId)
 
   async function handleSetStatus(status: 'active' | 'inactive') {
     try {
       await setStatus(status)
-      toast.success(status === 'active' ? 'Admin activated successfully.' : 'Admin deactivated successfully.')
+      toast.success(
+        status === 'active'
+          ? 'Admin activated successfully.'
+          : 'Admin deactivated successfully.',
+      )
     } catch (err) {
       toast.error(
-        getApiErrorMessage(err, status === 'active' ? 'Failed to activate admin.' : 'Failed to deactivate admin.'),
+        getApiErrorMessage(
+          err,
+          status === 'active'
+            ? 'Failed to activate admin.'
+            : 'Failed to deactivate admin.',
+        ),
       )
     }
   }
@@ -95,7 +129,13 @@ export function AdminDetailsPage() {
     <>
       <Stack
         direction="row"
-        sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
       >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
@@ -114,12 +154,16 @@ export function AdminDetailsPage() {
             <BadgeCheckIcon size={18} />
           </Box>
           <Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+            >
               <Typography variant="h1">{admin.name}</Typography>
               <StatusBadge status={admin.status} />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {admin.id} · {admin.role}
+              {admin.role}
             </Typography>
           </Box>
         </Stack>
@@ -172,10 +216,28 @@ export function AdminDetailsPage() {
       <Stack spacing={3}>
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Region Access" value={admin.regionAccess} icon={<MapPin size={20} />} iconColor="primary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Region Access"
+                value={admin.regionAccess}
+                icon={<MapPin size={20} />}
+                iconColor="primary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? <StatCardSkeleton /> : <StatCard label="Assigned Role" value={admin.role} icon={<ShieldCheck size={20} />} iconColor="secondary" />}
+            {isLoading ? (
+              <StatCardSkeleton />
+            ) : (
+              <StatCard
+                label="Assigned Role"
+                value={admin.role}
+                icon={<ShieldCheck size={20} />}
+                iconColor="secondary"
+              />
+            )}
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
             {isLoading ? (
@@ -195,7 +257,9 @@ export function AdminDetailsPage() {
             ) : (
               <StatCard
                 label="Current Status"
-                value={admin.status.charAt(0).toUpperCase() + admin.status.slice(1)}
+                value={
+                  admin.status.charAt(0).toUpperCase() + admin.status.slice(1)
+                }
                 icon={isActive ? <CircleCheck size={20} /> : <Ban size={20} />}
                 iconColor={isActive ? 'success' : 'error'}
               />
@@ -203,23 +267,27 @@ export function AdminDetailsPage() {
           </Grid>
         </Grid>
 
-        <SectionCard
-          title="Profile Summary"
-          action={
-            <Chip
-              size="small"
-              label={`Admin ID: ${admin.id}`}
-              variant="outlined"
-              sx={{ fontWeight: 600, fontSize: '0.75rem' }}
-            />
-          }
-        >
-          <Stack direction="row" spacing={2.5} sx={{ mb: 3, alignItems: 'center' }}>
-            <Avatar sx={{ width: 56, height: 56, bgcolor: 'primary.main', fontSize: '1.25rem', fontWeight: 700 }}>
+        <SectionCard title="Profile Summary">
+          <Stack
+            direction="row"
+            spacing={2.5}
+            sx={{ mb: 3, alignItems: 'center' }}
+          >
+            <Avatar
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: 'primary.main',
+                fontSize: '1.25rem',
+                fontWeight: 700,
+              }}
+            >
               {admin.name.slice(0, 1)}
             </Avatar>
             <Box>
-              <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>{admin.name}</Typography>
+              <Typography sx={{ fontWeight: 700, fontSize: '1.0625rem' }}>
+                {admin.name}
+              </Typography>
               <Typography variant="body1" sx={{ color: 'text.secondary' }}>
                 Created {admin.createdDate}
               </Typography>
@@ -228,16 +296,32 @@ export function AdminDetailsPage() {
 
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Mail size={16} />} label="Email Address" value={admin.email} />
+              <InfoItem
+                icon={<Mail size={16} />}
+                label="Email Address"
+                value={admin.email}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<Phone size={16} />} label="Phone Number" value={admin.phone} />
+              <InfoItem
+                icon={<Phone size={16} />}
+                label="Phone Number"
+                value={admin.phone}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<ShieldCheck size={16} />} label="Assigned Role" value={admin.role} />
+              <InfoItem
+                icon={<ShieldCheck size={16} />}
+                label="Assigned Role"
+                value={admin.role}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem icon={<MapPin size={16} />} label="Region Access" value={admin.regionAccess} />
+              <InfoItem
+                icon={<MapPin size={16} />}
+                label="Region Access"
+                value={admin.regionAccess}
+              />
             </Grid>
           </Grid>
         </SectionCard>

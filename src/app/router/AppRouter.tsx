@@ -231,7 +231,7 @@ registerDetailRoute({
 })
 registerDetailRoute({
   parentPath: '/marketing-products/products-catelog',
-  resolveEntityName: (id) => getShowcaseProductById(id)?.productName,
+  resolveEntityName: (id) => getShowcaseProductById(id)?.name,
 })
 registerDetailRoute({
   parentPath: '/marketing-products/interested-users',

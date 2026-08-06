@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   Chip,
   Grid,
@@ -54,6 +55,7 @@ export function InterestedUsersListTab({
   onViewLead,
 }: InterestedUsersListTabProps) {
   const toast = useToast()
+  const navigate = useNavigate()
   const { regionId: topbarRegionId } = useRegionFilter()
   const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -63,21 +65,25 @@ export function InterestedUsersListTab({
   })
   const [sortColumn, setSortColumn] = useState('requestedDate')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  const [actionDialog, setActionDialog] = useState<{ mode: 'follow-up' | 'close'; leadId: string } | null>(null)
+  const [actionDialog, setActionDialog] = useState<{
+    mode: 'follow-up' | 'close'
+    leadId: string
+  } | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
 
   const debouncedSearch = useDebouncedValue(search, 300)
 
-  const { leads, kpis, isLoading, isKpisLoading, followUp, close, remove } = useInterestedUsers({
-    page: 1,
-    limit: 10,
-    search: debouncedSearch,
-    status: appliedFilters.leadStatus,
-    userType: appliedFilters.userType,
-    regionId: topbarRegionId || undefined,
-    sortBy: SORT_FIELD_MAP[sortColumn],
-    sortOrder,
-  })
+  const { leads, kpis, isLoading, isKpisLoading, followUp, close, remove } =
+    useInterestedUsers({
+      page: 1,
+      limit: 10,
+      search: debouncedSearch,
+      status: appliedFilters.leadStatus,
+      userType: appliedFilters.userType,
+      regionId: topbarRegionId || undefined,
+      sortBy: SORT_FIELD_MAP[sortColumn],
+      sortOrder,
+    })
 
   async function handleActionSubmit(note: string) {
     if (!actionDialog) return
@@ -130,7 +136,23 @@ export function InterestedUsersListTab({
       key: 'interestedProduct',
       header: 'Interested Product',
       minWidth: 190,
-      render: (row) => row.interestedProduct,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() =>
+            navigate(
+              `/marketing-products/products-catelog/${row.showcaseProductId}`
+            )
+          }
+        >
+          {row.interestedProduct}
+        </Typography>
+      ),
     },
     {
       key: 'leadStatus',
@@ -239,12 +261,14 @@ export function InterestedUsersListTab({
           {
             label: 'Mark as Followed Up',
             hidden: (row) => row.leadStatus !== 'new',
-            onClick: (row) => setActionDialog({ mode: 'follow-up', leadId: row.id }),
+            onClick: (row) =>
+              setActionDialog({ mode: 'follow-up', leadId: row.id }),
           },
           {
             label: 'Mark as Closed',
             hidden: (row) => row.leadStatus === 'closed',
-            onClick: (row) => setActionDialog({ mode: 'close', leadId: row.id }),
+            onClick: (row) =>
+              setActionDialog({ mode: 'close', leadId: row.id }),
           },
           {
             label: 'Delete Interest',

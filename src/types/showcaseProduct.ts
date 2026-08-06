@@ -1,35 +1,34 @@
-export type ShowcaseUserType = 'Dealer' | 'Chemist'
-export type EnquiryStatus = 'pending' | 'responded'
-export type DeliveryStatus = 'pending' | 'packed' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled'
+export type ShowcaseVisibility = 'dealer' | 'chemist'
 
-export interface ProductEnquiry {
+export interface ShowcaseProductImage {
+  url: string
+  alt?: string
+  isPrimary?: boolean
+}
+
+export interface ShowcaseProductCategory {
   id: string
-  userId: string
-  userName: string
-  userType: ShowcaseUserType
-  interestedDate: string
-  enquiryStatus: EnquiryStatus
-  deliveryStatus: DeliveryStatus
-  email: string
-  mobileNumber: string
+  code: string
+  name: string
 }
 
 export interface ShowcaseProduct {
   id: string
-  productName: string
-  sku: string
-  category: string
-  price: number
-
+  productCode: string
+  name: string
   description: string
-  productImage: string
-  featuredProduct: boolean
-  region: string
-
-  totalInterestedUsers: number
-  totalProductViews: number
-  productsDelivered: number
-
-  enquiries: ProductEnquiry[]
-  internalNotes: string
+  categoryId: string | null
+  category: ShowcaseProductCategory | null
+  brand: string
+  images: ShowcaseProductImage[]
+  mrp: number
+  dealerPrice: number
+  chemistPrice: number
+  availableStock?: number
+  stockUnit?: string
+  lowStockThreshold?: number
+  isActive: boolean
+  visibleTo: ShowcaseVisibility[]
+  createdAt: string
+  updatedAt: string
 }

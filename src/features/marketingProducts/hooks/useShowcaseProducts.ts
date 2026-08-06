@@ -1,46 +1,46 @@
-import { useState } from 'react'
 import {
   useGetShowcaseProductsQuery,
   useGetShowcaseProductKpisQuery,
-  useMarkEnquiryRespondedMutation,
+  useDeleteShowcaseProductMutation,
+  type ShowcaseProductQueryParams,
 } from '@/features/marketingProducts/services/showcaseProductsApi'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-/** List + flattened enquiries for the Products Catalog enquiries table. */
-export function useShowcaseProducts() {
-  const [respondedIds, setRespondedIds] = useState<Set<string>>(new Set())
+/** Product list + KPIs for the Products Catalog page. */
+export function useShowcaseProducts(params?: ShowcaseProductQueryParams) {
+  const { dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const { preset, startDate, endDate } = analyticsParams
 
-  const productsResult = useGetShowcaseProductsQuery()
-  const kpisResult = useGetShowcaseProductKpisQuery()
-  const [markEnquiryRespondedMutation] = useMarkEnquiryRespondedMutation()
+  const productsResult = useGetShowcaseProductsQuery({
+    ...params,
+    preset,
+    startDate,
+    endDate,
+  })
+  const kpisResult = useGetShowcaseProductKpisQuery(analyticsParams)
+  const [deleteShowcaseProductMutation] = useDeleteShowcaseProductMutation()
 
-  const isLoading = productsResult.isLoading || kpisResult.isLoading
+  const isLoading = productsResult.isFetching
+  const isKpisLoading = kpisResult.isLoading
   const error = productsResult.error
     ? getApiErrorMessage(productsResult.error, 'Failed to load showcase products.')
     : kpisResult.error
       ? getApiErrorMessage(kpisResult.error, 'Failed to load showcase products.')
       : null
 
-  async function markEnquiryResponded(enquiryId: string) {
-    await markEnquiryRespondedMutation(enquiryId).unwrap()
-    setRespondedIds((prev) => new Set(prev).add(enquiryId))
+  async function deleteProduct(id: string) {
+    await deleteShowcaseProductMutation(id).unwrap()
   }
 
-  const products = productsResult.data ?? []
-  const enquiries = products.flatMap((product) =>
-    product.enquiries.map((enquiry) => ({
-      ...enquiry,
-      enquiryStatus: respondedIds.has(enquiry.id) ? ('responded' as const) : enquiry.enquiryStatus,
-      product,
-    })),
-  )
-
   return {
-    products,
+    products: productsResult.data ?? [],
     kpis: kpisResult.data ?? null,
     isLoading,
+    isKpisLoading,
     error,
-    enquiries,
-    markEnquiryResponded,
+    deleteProduct,
   }
 }

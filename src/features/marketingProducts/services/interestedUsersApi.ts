@@ -97,6 +97,52 @@ interface InterestedUserApiItem {
   updatedAt: string
 }
 
+interface ProductInterestedUserListApiResponse {
+  success: boolean
+  data: {
+    items: ProductInterestedUserApiItem[]
+    totalItems: number
+    totalPages: number
+    currentPage: number
+    pageSize: number
+  }
+}
+
+interface ProductInterestedUserApiItem {
+  id: string
+  showcaseProductId: string
+  productSnapshot: {
+    showcaseProductId: string
+    name: string
+    categoryId?: string | null
+  }
+  partnerId: string
+  partnerSnapshot: {
+    userId: string
+    name: string
+    businessName: string
+    role: string
+    mobile: string
+  }
+  regionDetails?: { id: string; code: string; name: string } | null
+  quantityRequested: number
+  stockUnit?: string
+  note: string
+  status: string
+  followedUpAt: string | null
+  followedUpBy: string | null
+  followedUpByDetails: {
+    id: string
+    name: string
+    email: string
+    role: string
+  } | null
+  followUpNote: string
+  closeReason: string | null
+  createdAt: string
+  updatedAt: string
+}
+
 interface InterestedUserAnalyticsApiResponse {
   success: boolean
   data: {
@@ -180,6 +226,35 @@ function mapInterestedUserItem(
     handledBy: item.followedUpByDetails?.name ?? '',
     followUpNote: item.followUpNote,
     closeReason: item.closeReason,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  }
+}
+
+function mapProductInterestedUserItem(
+  item: ProductInterestedUserApiItem,
+): InterestedUserLead {
+  return {
+    id: item.id,
+    showcaseProductId: item.showcaseProductId,
+    interestedProduct: item.productSnapshot.name,
+    productCategory: '',
+    userId: item.partnerId,
+    userName: item.partnerSnapshot.name,
+    businessName: item.partnerSnapshot.businessName,
+    userType: mapUserType(item.partnerSnapshot.role),
+    mobile: item.partnerSnapshot.mobile,
+    regionId: item.regionDetails?.id ?? null,
+    region: item.regionDetails?.name ?? '',
+    quantityRequested: item.quantityRequested,
+    stockUnit: item.stockUnit ?? '',
+    note: item.note,
+    leadStatus: mapStatus(item.status),
+    requestedDate: formatDate(item.createdAt),
+    followedUpAt: item.followedUpAt ? formatDate(item.followedUpAt) : null,
+    handledBy: item.followedUpByDetails?.name ?? '',
+    followUpNote: item.followUpNote,
+    closeReason: item.closeReason ?? '',
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
   }
@@ -310,6 +385,41 @@ const interestedUsersApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'InterestedUsers', id }],
     }),
 
+    /** Interested users scoped to a single product, for the product details page. */
+    getShowcaseProductInterestedUsers: builder.query<
+      InterestedUserLead[],
+      { showcaseProductId: string; page?: number; limit?: number }
+    >({
+      query: ({ showcaseProductId, page, limit }) => ({
+        tag: 'InterestedUsers',
+        url: `/showcase-products/${showcaseProductId}/interested-users`,
+        params: { page: page ?? 1, limit: limit ?? 10 },
+        mockResolver: () =>
+          mockDelay(
+            mockInterestedUsers.filter(
+              (lead) => lead.showcaseProductId === showcaseProductId,
+            ),
+          ),
+      }),
+      transformResponse: async (
+        response: ProductInterestedUserListApiResponse | InterestedUserLead[],
+      ) => {
+        if (Array.isArray(response)) return response
+        await loadRegions()
+        return response.data.items.map(mapProductInterestedUserItem)
+      },
+      providesTags: (result, _error, { showcaseProductId }) =>
+        result
+          ? [
+              ...result.map(({ id }) => ({
+                type: 'InterestedUsers' as const,
+                id,
+              })),
+              { type: 'InterestedUsers' as const, id: `PRODUCT_${showcaseProductId}` },
+            ]
+          : [{ type: 'InterestedUsers' as const, id: `PRODUCT_${showcaseProductId}` }],
+    }),
+
     getInterestedUserAnalytics: builder.query<
       InterestedUserKpis,
       AnalyticsDateParams
@@ -407,6 +517,7 @@ const interestedUsersApi = baseApi.injectEndpoints({
 export const {
   useGetInterestedUsersQuery,
   useGetInterestedUserDetailQuery,
+  useGetShowcaseProductInterestedUsersQuery,
   useGetInterestedUserAnalyticsQuery,
   useGetHandlerOptionsQuery,
   useFollowUpLeadMutation,

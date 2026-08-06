@@ -1,17 +1,29 @@
 import { useEffect } from 'react'
-import { Controller, useForm } from 'react-hook-form'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Button, Card, FormControlLabel, Grid, MenuItem, Stack, Switch, Typography } from '@mui/material'
-import { Image as ImageOutlined } from 'lucide-react'
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  FormControlLabel,
+  Grid,
+  IconButton,
+  Stack,
+  Switch,
+  Typography,
+} from '@mui/material'
+import { Image as ImageOutlined, Plus, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
+import { CategoryAutocompleteField } from '@/components/common/CategoryAutocompleteField/CategoryAutocompleteField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { useShowcaseProductForm } from '@/features/marketingProducts/hooks/useShowcaseProductForm'
 import {
   showcaseProductFormDefaults,
   showcaseProductFormSchema,
   type ShowcaseProductFormValues,
-} from '@/features/marketingProducts/types/marketingProducts.types'
+} from '@/features/marketingProducts/showcaseProductFormSchema'
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -26,9 +38,24 @@ const fieldLabelProps = {
   slotProps: { inputLabel: { shrink: false, sx: { display: 'none' } } },
 } as const
 
-function FieldLabel({ children, required }: { children: string; required?: boolean }) {
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: string
+  required?: boolean
+}) {
   return (
-    <Typography sx={{ fontWeight: 700, fontSize: '0.6875rem', letterSpacing: '0.04em', textTransform: 'uppercase', color: 'primary.main', mb: 0.75 }}>
+    <Typography
+      sx={{
+        fontWeight: 700,
+        fontSize: '0.6875rem',
+        letterSpacing: '0.04em',
+        textTransform: 'uppercase',
+        color: 'primary.main',
+        mb: 0.75,
+      }}
+    >
       {children}
       {required ? ' *' : ''}
     </Typography>
@@ -38,25 +65,46 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 export function ProductCatalogFormPage() {
   const navigate = useNavigate()
   const { productId } = useParams<{ productId: string }>()
-  const { isEdit, product, categoryOptions, isLoading, isSubmitting, submit } = useShowcaseProductForm(productId)
+  const { isEdit, product, isLoading, isSubmitting, submit } =
+    useShowcaseProductForm(productId)
 
-  const { control, handleSubmit, watch, reset } = useForm<ShowcaseProductFormValues>({
-    resolver: zodResolver(showcaseProductFormSchema),
-    defaultValues: showcaseProductFormDefaults,
+  const { control, handleSubmit, watch, setValue, reset } =
+    useForm<ShowcaseProductFormValues>({
+      resolver: zodResolver(showcaseProductFormSchema),
+      defaultValues: showcaseProductFormDefaults,
+    })
+
+  const {
+    fields: imageFields,
+    append: appendImage,
+    remove: removeImage,
+  } = useFieldArray({
+    control,
+    name: 'images',
   })
 
-  const imageUrl = watch('productImage')
+  const images = watch('images')
 
   useEffect(() => {
     if (!product) return
     reset({
-      productName: product.productName,
-      sku: product.sku,
-      price: String(product.price),
-      category: product.category,
-      featuredProduct: product.featuredProduct,
-      productImage: product.productImage,
+      productCode: product.productCode,
+      name: product.name,
       description: product.description,
+      categoryId: product.categoryId ?? '',
+      categoryName: product.category?.name ?? '',
+
+      mrp: String(product.mrp),
+      dealerPrice: String(product.dealerPrice),
+      chemistPrice: String(product.chemistPrice),
+
+      visibleToDealer: product.visibleTo.includes('dealer'),
+      visibleToChemist: product.visibleTo.includes('chemist'),
+      isActive: product.isActive,
+      images: product.images.map((img) => ({
+        url: img.url,
+        alt: img.alt ?? '',
+      })),
     })
   }, [product, reset])
 
@@ -80,8 +128,17 @@ export function ProductCatalogFormPage() {
 
   return (
     <>
-      <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h1">{isEdit ? 'Edit Product' : 'Create Product'}</Typography>
+      <Stack
+        sx={{
+          mb: 3,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h1">
+          {isEdit ? 'Edit Product' : 'Create Product'}
+        </Typography>
       </Stack>
 
       <form onSubmit={onSubmit} noValidate>
@@ -90,40 +147,128 @@ export function ProductCatalogFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Product Name</FieldLabel>
-              <FormField name="productName" control={control} placeholder="e.g. CardioCare Wellness Kit" {...fieldLabelProps} />
+              <FormField
+                name="name"
+                control={control}
+                placeholder="e.g. Ibuprofen 400mg Tablets"
+                {...fieldLabelProps}
+              />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>SKU</FieldLabel>
-              <FormField name="sku" control={control} placeholder="e.g. SKU-SC-100017" {...fieldLabelProps} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Price (₹) / MRP (₹)</FieldLabel>
-              <FormField name="price" control={control} placeholder="e.g. 599" {...fieldLabelProps} />
-            </Grid>
+            {isEdit && (
+              <Grid size={{ xs: 12, sm: 6 }}>
+                <FieldLabel>Product Code</FieldLabel>
+                <FormField
+                  name="productCode"
+                  control={control}
+                  slotProps={{
+                    ...fieldLabelProps.slotProps,
+                    htmlInput: { readOnly: true },
+                  }}
+                  helperText="Auto-generated by the system"
+                />
+              </Grid>
+            )}
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Category</FieldLabel>
-              <FormField name="category" control={control} select {...fieldLabelProps}>
-                {categoryOptions.map((category) => (
-                  <MenuItem key={category} value={category}>
-                    {category}
-                  </MenuItem>
-                ))}
-              </FormField>
+              <CategoryAutocompleteField
+                name="categoryId"
+                nameField="categoryName"
+                control={control}
+                setValue={setValue}
+                placeholder="Select category"
+              />
             </Grid>
           </Grid>
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Product Settings</Typography>
+          <Typography sx={sectionTitleSx}>Pricing & Stock</Typography>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
-              <FieldLabel>Featured Product</FieldLabel>
+              <FieldLabel required>MRP (₹)</FieldLabel>
+              <FormField
+                name="mrp"
+                control={control}
+                placeholder="e.g. 380"
+                numeric
+                {...fieldLabelProps}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>Dealer Price (₹)</FieldLabel>
+              <FormField
+                name="dealerPrice"
+                control={control}
+                placeholder="e.g. 345"
+                numeric
+                {...fieldLabelProps}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel required>Chemist Price (₹)</FieldLabel>
+              <FormField
+                name="chemistPrice"
+                control={control}
+                placeholder="e.g. 360"
+                numeric
+                {...fieldLabelProps}
+              />
+            </Grid>
+          </Grid>
+        </Card>
+
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Typography sx={sectionTitleSx}>Visibility</Typography>
+          <Grid container spacing={2.5}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel>Visible to Dealer</FieldLabel>
               <Controller
-                name="featuredProduct"
+                name="visibleToDealer"
                 control={control}
                 render={({ field }) => (
                   <FormControlLabel
-                    control={<Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />}
+                    control={
+                      <Switch
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                      />
+                    }
+                    label={field.value ? 'Yes' : 'No'}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel>Visible to Chemist</FieldLabel>
+              <Controller
+                name="visibleToChemist"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                      />
+                    }
+                    label={field.value ? 'Yes' : 'No'}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FieldLabel>Active</FieldLabel>
+              <Controller
+                name="isActive"
+                control={control}
+                render={({ field }) => (
+                  <FormControlLabel
+                    control={
+                      <Switch
+                        checked={field.value}
+                        onChange={(e) => field.onChange(e.target.checked)}
+                      />
+                    }
                     label={field.value ? 'Yes' : 'No'}
                   />
                 )}
@@ -133,28 +278,92 @@ export function ProductCatalogFormPage() {
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Media</Typography>
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'flex-end' }}>
-            <Avatar
-              src={imageUrl || undefined}
-              variant="rounded"
-              sx={{ width: 56, height: 56, flexShrink: 0, bgcolor: 'background.default', border: '1px solid', borderColor: 'divider', color: 'text.disabled' }}
+          <Stack
+            direction="row"
+            sx={{
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 2.5,
+            }}
+          >
+            <Typography sx={{ ...sectionTitleSx, mb: 0 }}>Media</Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<Plus size={16} />}
+              onClick={() => appendImage({ url: '', alt: '' })}
             >
-              <ImageOutlined size={20} />
-            </Avatar>
-            <Box sx={{ flexGrow: 1 }}>
-              <FieldLabel>Product Image URL</FieldLabel>
-              <FormField name="productImage" control={control} placeholder="https://example.com/product-image.jpg" {...fieldLabelProps} />
-            </Box>
+              Add Image
+            </Button>
+          </Stack>
+          <Stack spacing={2}>
+            {imageFields.length === 0 && (
+              <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                No images added yet.
+              </Typography>
+            )}
+            {imageFields.map((field, index) => (
+              <Stack key={field.id} direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                <Avatar
+                  src={images?.[index]?.url || undefined}
+                  variant="rounded"
+                  sx={{
+                    width: 56,
+                    height: 56,
+                    flexShrink: 0,
+                    bgcolor: 'background.default',
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    color: 'text.disabled',
+                  }}
+                >
+                  <ImageOutlined size={20} />
+                </Avatar>
+                <Box sx={{ flexGrow: 1 }}>
+                  <FieldLabel>Image URL</FieldLabel>
+                  <Box sx={{ position: 'relative' }}>
+                    <FormField
+                      name={`images.${index}.url`}
+                      control={control}
+                      placeholder="https://example.com/product-image.jpg"
+                      {...fieldLabelProps}
+                    />
+                    <IconButton
+                      onClick={() => removeImage(index)}
+                      aria-label="Remove image"
+                      size="small"
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        right: 0,
+                        transform: 'translate(35%, -35%)',
+                        color: 'error.main',
+                        bgcolor: 'background.paper',
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        '&:hover': { bgcolor: 'background.paper' },
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </Stack>
+            ))}
           </Stack>
         </Card>
 
         <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Product Details</Typography>
+          <Typography sx={sectionTitleSx}>Product Description</Typography>
           <Grid container spacing={2.5}>
             <Grid size={12}>
-              <FieldLabel>Product Description</FieldLabel>
-              <FormField name="description" control={control} multiline minRows={3} {...fieldLabelProps} />
+              <FormField
+                name="description"
+                control={control}
+                multiline
+                minRows={3}
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -167,7 +376,11 @@ export function ProductCatalogFormPage() {
           <Button type="submit" variant="contained" loading={isSubmitting}>
             {isEdit ? 'Save Changes' : 'Create Product'}
           </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate(backTo)}
+          >
             Cancel
           </Button>
         </Stack>

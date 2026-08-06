@@ -3,11 +3,13 @@ import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
 import {
   useGetShowcaseProductDetailQuery,
-  useGetShowcaseCategoryOptionsQuery,
   useCreateShowcaseProductMutation,
   useUpdateShowcaseProductMutation,
 } from '@/features/marketingProducts/services/showcaseProductsApi'
-import type { ShowcaseProductFormValues } from '@/features/marketingProducts/types/marketingProducts.types'
+import {
+  toShowcaseProductApiPayload,
+  type ShowcaseProductFormValues,
+} from '@/features/marketingProducts/showcaseProductFormSchema'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useShowcaseProductForm(productId: string | undefined) {
@@ -17,25 +19,23 @@ export function useShowcaseProductForm(productId: string | undefined) {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const productResult = useGetShowcaseProductDetailQuery(productId ?? skipToken)
-  const categoryOptionsResult = useGetShowcaseCategoryOptionsQuery()
   const [createShowcaseProduct] = useCreateShowcaseProductMutation()
   const [updateShowcaseProduct] = useUpdateShowcaseProductMutation()
 
-  const isLoading = (isEdit && productResult.isLoading) || categoryOptionsResult.isLoading
+  const isLoading = isEdit && productResult.isLoading
   const loadError = productResult.error
     ? getApiErrorMessage(productResult.error, 'Failed to load product form data.')
-    : categoryOptionsResult.error
-      ? getApiErrorMessage(categoryOptionsResult.error, 'Failed to load product form data.')
-      : null
+    : null
 
   async function submit(values: ShowcaseProductFormValues) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
+      const payload = toShowcaseProductApiPayload(values, isEdit)
       if (isEdit && productId) {
-        await updateShowcaseProduct({ id: productId, values }).unwrap()
+        await updateShowcaseProduct({ id: productId, payload }).unwrap()
       } else {
-        await createShowcaseProduct(values).unwrap()
+        await createShowcaseProduct(payload).unwrap()
       }
       toast.success(isEdit ? 'Product updated successfully.' : 'Product created successfully.')
       return true
@@ -52,7 +52,6 @@ export function useShowcaseProductForm(productId: string | undefined) {
   return {
     isEdit,
     product: productResult.data,
-    categoryOptions: categoryOptionsResult.data ?? [],
     isLoading,
     isSubmitting,
     error: loadError ?? submitError,

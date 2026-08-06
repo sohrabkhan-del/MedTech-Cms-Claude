@@ -28,12 +28,12 @@ interface MrFilters extends Record<string, unknown> {
   regionId: string
 }
 
-// Maps CommonTable column keys to the real GET /medical-representatives
-// `sortBy` field names. UNVERIFIED against the backend — best-effort guess
-// based on the API's own request/response field names (firstName, status).
+// Maps CommonTable column keys to GET /medical-representatives `sortBy`
+// field names.
 const SORT_FIELD_MAP: Partial<Record<string, string>> = {
-  name: 'firstName',
+  name: 'fullName',
   status: 'status',
+  createdAt: 'createdAt',
 }
 
 export function MedicalRepListPage() {
@@ -45,7 +45,7 @@ export function MedicalRepListPage() {
     status: 'all',
     regionId: '',
   })
-  const [sortColumn, setSortColumn] = useState('name')
+  const [sortColumn, setSortColumn] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
@@ -226,7 +226,7 @@ export function MedicalRepListPage() {
           label: 'Create MR',
           to: '/system-users/medical-representatives/new',
         }}
-        defaultSortBy="name"
+        defaultSortBy="createdAt"
         defaultSortDir="desc"
         actions={[
           {

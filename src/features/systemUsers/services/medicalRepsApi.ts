@@ -25,17 +25,21 @@ export interface MedicalRepQueryParams {
 
 interface MedicalRepApiItem {
   id: string
+  referenceId?: string
   employeeCode?: string
   email: string
   country?: string
   phone: string
-  firstName: string
-  lastName: string
+  fullName: string
+  note?: string
   profileImageUrl?: string | null
   status?: string
   dealerCount?: number
   chemistCount?: number
+  isEmailVerified?: boolean
+  isPhoneVerified?: boolean
   isBlocked?: boolean
+  blockedReason?: string
   region?: { id: string; code: string; name: string } | null
 }
 
@@ -65,7 +69,7 @@ export interface MedicalRepOption {
 function mapMedicalRepOption(item: MedicalRepApiItem): MedicalRepOption {
   return {
     id: item.id,
-    name: [item.firstName, item.lastName].filter(Boolean).join(' ').trim() || 'Unknown',
+    name: item.fullName || 'Unknown',
     employeeCode: item.employeeCode,
   }
 }
@@ -96,9 +100,10 @@ function mapMrRegion(region?: { name: string } | null): PartnerZone {
 function mapMedicalRepDetail(data: MedicalRepDetailApiResponse['data']): MedicalRepresentative {
   return {
     id: data.id,
-    name: [data.firstName, data.lastName].filter(Boolean).join(' ').trim() || 'Unknown',
-    firstName: data.firstName,
-    lastName: data.lastName,
+    referenceId: data.referenceId,
+    employeeCode: data.employeeCode,
+    name: data.fullName || 'Unknown',
+    fullName: data.fullName,
     email: data.email,
     phone: data.phone,
     country: data.country ?? '91',
@@ -106,10 +111,15 @@ function mapMedicalRepDetail(data: MedicalRepDetailApiResponse['data']): Medical
     regionId: data.region?.id,
     status: mapMrStatus(data.status, data.isBlocked),
     lastLogin: '-',
+    notes: data.note,
+    isEmailVerified: data.isEmailVerified,
+    isPhoneVerified: data.isPhoneVerified,
+    isBlocked: data.isBlocked,
+    blockedReason: data.blockedReason,
+    profileImageUrl: data.profileImageUrl ?? undefined,
     totalDealersOnboarded: data.dealerCount ?? 0,
     totalChemistsOnboarded: data.chemistCount ?? 0,
     totalPartnersManaged: (data.dealerCount ?? 0) + (data.chemistCount ?? 0),
-    managedPartners: [],
   }
 }
 

@@ -91,16 +91,12 @@ export function MedicalRepFormPage() {
   useEffect(() => {
     if (!isEdit || !mr) return
     reset({
-      firstName: mr.firstName ?? mr.name.split(' ')[0] ?? '',
-      lastName: mr.lastName ?? mr.name.split(' ').slice(1).join(' '),
+      fullName: mr.fullName ?? mr.name,
+      lastName: mr.lastName ?? '',
       email: mr.email,
-      password: '',
       phone: mr.phone,
       country: mr.country ?? '91',
-      profileImageUrl: '',
       regionId: mr.regionId ?? '',
-      status: mr.status,
-      notes: mr.notes ?? '',
     })
   }, [isEdit, mr, reset])
 
@@ -153,8 +149,8 @@ export function MedicalRepFormPage() {
           <Typography sx={sectionTitleSx}>MR Information</Typography>
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>First Name</FieldLabel>
-              <FormField name="firstName" control={control} placeholder="First name" {...fieldLabelProps} />
+              <FieldLabel required>Full Name</FieldLabel>
+              <FormField name="fullName" control={control} placeholder="Full name" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Last Name</FieldLabel>
@@ -175,16 +171,6 @@ export function MedicalRepFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-            {!isEdit && (
-              <Grid size={{ xs: 12, sm: 6 }}>
-                <FieldLabel required>Password</FieldLabel>
-                <FormField name="password" control={control} type="password" placeholder="Minimum 8 characters" {...fieldLabelProps} />
-              </Grid>
-            )}
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel>Profile Image URL</FieldLabel>
-              <FormField name="profileImageUrl" control={control} placeholder="https://…" {...fieldLabelProps} />
-            </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Region</FieldLabel>
               <FormField name="regionId" control={control} select {...fieldLabelProps}>
@@ -197,19 +183,6 @@ export function MedicalRepFormPage() {
                   </MenuItem>
                 ))}
               </FormField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Status</FieldLabel>
-              <FormField name="status" control={control} select {...fieldLabelProps}>
-                <MenuItem value="active">Active</MenuItem>
-                <MenuItem value="pending">Pending</MenuItem>
-                <MenuItem value="inactive">Inactive</MenuItem>
-                <MenuItem value="suspended">Suspended</MenuItem>
-              </FormField>
-            </Grid>
-            <Grid size={12}>
-              <FieldLabel>Notes</FieldLabel>
-              <FormField name="notes" control={control} multiline minRows={3} {...fieldLabelProps} />
             </Grid>
           </Grid>
         </Card>

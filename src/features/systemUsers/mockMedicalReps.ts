@@ -1,4 +1,4 @@
-import type { MedicalRepresentative, MrManagedPartner } from '@/types/medicalRep'
+import type { MedicalRepresentative } from '@/types/medicalRep'
 import type { PartnerStatus, PartnerZone } from '@/types/partner'
 
 const names = [
@@ -7,8 +7,6 @@ const names = [
 ]
 const regions: PartnerZone[] = ['North', 'South', 'East', 'West']
 const statuses: PartnerStatus[] = ['active', 'pending', 'inactive']
-const cities = ['Delhi', 'Mumbai', 'Chennai', 'Kolkata', 'Pune', 'Ahmedabad', 'Jaipur', 'Lucknow', 'Bengaluru', 'Hyderabad']
-const partnerShopNames = ['Om Medical', 'Sunrise Pharma', 'Care Plus Chemist', 'Wellness Godown', 'City Drug Store', 'Apollo Pharma', 'Sri Sai Medical', 'National Chemist', 'Metro Godown', 'United Pharma']
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -16,30 +14,17 @@ function seededNumber(seed: number, min: number, max: number): number {
   return Math.floor(min + frac * (max - min))
 }
 
-function buildManagedPartners(seed: number, region: PartnerZone, mrId: string): MrManagedPartner[] {
-  const count = seededNumber(seed, 4, 10)
-  return Array.from({ length: count }).map((_, i) => ({
-    id: `${mrId}-partner-${i}`,
-    partnerName: `${partnerShopNames[(seed + i) % partnerShopNames.length]} ${i + 1}`,
-    partnerType: (seed + i) % 2 === 0 ? 'Dealer' : 'Chemist',
-    city: cities[(seed + i) % cities.length]!,
-    region,
-    source: (seed + i) % 3 === 0 ? 'Assigned' : 'Onboarded',
-    status: statuses[(seed + i) % statuses.length]!,
-  }))
-}
-
 export const mockMedicalReps: MedicalRepresentative[] = Array.from({ length: 14 }).map((_, index) => {
   const seed = index + 1
   const id = `MR-${1000 + index}`
   const region = regions[index % regions.length]!
-  const managedPartners = buildManagedPartners(seed, region, id)
-  const dealers = managedPartners.filter((p) => p.partnerType === 'Dealer').length
-  const chemists = managedPartners.filter((p) => p.partnerType === 'Chemist').length
+  const dealers = seededNumber(seed, 0, 6)
+  const chemists = seededNumber(seed + 1, 0, 6)
 
   return {
     id,
     name: names[index % names.length]!,
+    fullName: names[index % names.length]!,
     email: `${names[index % names.length]!.toLowerCase().replace(' ', '.')}@medtechcms.in`,
     phone: `+91 97${(30000000 + index * 191).toString().slice(0, 8)}`,
     region,
@@ -48,8 +33,7 @@ export const mockMedicalReps: MedicalRepresentative[] = Array.from({ length: 14 
     notes: index % 3 === 0 ? 'Consistently strong onboarding performance in assigned territory.' : undefined,
     totalDealersOnboarded: dealers,
     totalChemistsOnboarded: chemists,
-    totalPartnersManaged: managedPartners.length,
-    managedPartners,
+    totalPartnersManaged: dealers + chemists,
   }
 })
 

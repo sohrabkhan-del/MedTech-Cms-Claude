@@ -4,16 +4,12 @@ import {
   Avatar,
   Box,
   Button,
-  Checkbox,
   Chip,
   Divider,
-  FormControlLabel,
   Grid,
   MenuItem,
   Stack,
   TextField,
-  ToggleButton,
-  ToggleButtonGroup,
   Typography,
 } from '@mui/material'
 import {
@@ -23,7 +19,6 @@ import {
   Trash2,
   Store as StoreIcon,
   Pill as PillIcon,
-  UserCheck as UserCheckIcon,
   Pencil,
   ArrowLeft as ArrowLeftIcon,
   Mail,
@@ -32,7 +27,10 @@ import {
   Clock,
   Users as UsersIcon,
 } from 'lucide-react'
-import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
+import {
+  StatusBadge,
+  type BadgeStatus,
+} from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -40,25 +38,41 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
-import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useMedicalRepDetail } from '@/features/systemUsers/hooks/useMedicalRepDetail'
+import {
+  useGetMrPartnersQuery,
+  type MrPartnerRow,
+} from '@/features/systemUsers/services/mrPartnersApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
-import type {
-  MrManagedPartner,
-  MrPartnerSource,
-  MrPartnerType,
-  PartnerStatus,
-} from '@/features/systemUsers/types/systemUsers.types'
 
-interface PartnerTableFilters extends Record<string, unknown> {
-  statuses: PartnerStatus[]
+type PartnerTab = 'CHEMIST' | 'DEALER'
+
+const PARTNER_TABS: { label: string; value: PartnerTab }[] = [
+  { label: 'Chemists', value: 'CHEMIST' },
+  { label: 'Dealers', value: 'DEALER' },
+]
+
+function partnerBadgeStatus(status: string): BadgeStatus {
+  const normalized = status.toLowerCase() as BadgeStatus
+  const known: BadgeStatus[] = [
+    'active',
+    'pending',
+    'inactive',
+    'suspended',
+    'approved',
+    'rejected',
+    're_rejected',
+    'pending_approval',
+    'expired',
+    'upcoming',
+  ]
+  return known.includes(normalized) ? normalized : 'inactive'
 }
-
-const ALL_PARTNER_STATUSES: PartnerStatus[] = ['active', 'pending', 'inactive']
 
 function InfoItem({
   icon,
@@ -108,15 +122,33 @@ export function MedicalRepDetailsPage() {
   const { mrId } = useParams<{ mrId: string }>()
   const navigate = useNavigate()
   const toast = useToast()
-  const { mr, replacementOptions, setStatus, remove, isLoading, isStatusUpdating, isDeleting } =
-    useMedicalRepDetail(mrId)
-  const [partnerType, setPartnerType] = useState<'All' | MrPartnerType>('All')
-  const [source, setSource] = useState<'All' | MrPartnerSource>('All')
+  const {
+    mr,
+    replacementOptions,
+    setStatus,
+    remove,
+    isLoading,
+    isStatusUpdating,
+    isDeleting,
+  } = useMedicalRepDetail(mrId)
+  const [partnerTab, setPartnerTab] = useState<PartnerTab>('CHEMIST')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [replacementMrId, setReplacementMrId] = useState('')
-  const [partnerFilterOpen, setPartnerFilterOpen] = useState(false)
-  const [appliedPartnerFilters, setAppliedPartnerFilters] =
-    useState<PartnerTableFilters>({ statuses: [] })
+
+  const { data: partnersResult, isFetching: isPartnersLoading } =
+    useGetMrPartnersQuery(
+      mrId
+        ? {
+            assignedMedicalRepresentativeId: mrId,
+            type: partnerTab,
+            page: 1,
+            limit: 100,
+            sortOrder: 'desc',
+          }
+        : { assignedMedicalRepresentativeId: '', type: partnerTab },
+      { skip: !mrId },
+    )
+  const partners = partnersResult?.items ?? []
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={3} />
@@ -135,63 +167,34 @@ export function MedicalRepDetailsPage() {
 
   const isActive = mr.status === 'active'
 
-  const filteredPartners = mr.managedPartners.filter((partner) => {
-    const typeMatch =
-      partnerType === 'All' || partner.partnerType === partnerType
-    const sourceMatch = source === 'All' || partner.source === source
-    const statusMatch =
-      appliedPartnerFilters.statuses.length === 0 ||
-      appliedPartnerFilters.statuses.includes(partner.status)
-    return typeMatch && sourceMatch && statusMatch
-  })
-
-  const dealerCount = mr.managedPartners.filter(
-    (p) => p.partnerType === 'Dealer',
-  ).length
-  const chemistCount = mr.managedPartners.filter(
-    (p) => p.partnerType === 'Chemist',
-  ).length
-  const onboardedCount = mr.managedPartners.filter(
-    (p) => p.source === 'Onboarded',
-  ).length
-  const assignedCount = mr.managedPartners.filter(
-    (p) => p.source === 'Assigned',
-  ).length
-
-  const partnerColumns: CommonTableColumn<MrManagedPartner>[] = [
+  const partnerColumns: CommonTableColumn<MrPartnerRow>[] = [
     {
-      key: 'partnerName',
-      header: 'Partner Name',
+      key: 'businessName',
+      header: 'Outlet / Business Name',
       minWidth: 200,
       sortable: true,
-      sortValue: (row) => row.partnerName,
-      render: (row) => row.partnerName,
+      sortValue: (row) => row.businessName,
+      render: (row) => row.businessName,
     },
     {
-      key: 'partnerType',
-      header: 'Partner Type',
+      key: 'ownerName',
+      header: 'Owner Name',
       sortable: true,
-      render: (row) => row.partnerType,
+      sortValue: (row) => row.ownerName,
+      render: (row) => row.ownerName,
     },
     { key: 'city', header: 'City', sortable: true, render: (row) => row.city },
     {
-      key: 'region',
-      header: 'Region',
-      sortable: true,
-      render: (row) => row.region,
-    },
-    {
-      key: 'source',
-      header: 'Source',
-      sortable: true,
-      render: (row) => row.source,
+      key: 'phone',
+      header: 'Phone',
+      render: (row) => row.phone,
     },
     {
       key: 'status',
       header: 'Current Status',
       sortable: true,
       sortValue: (row) => row.status,
-      render: (row) => <StatusBadge status={row.status} />,
+      render: (row) => <StatusBadge status={partnerBadgeStatus(row.status)} />,
     },
   ]
 
@@ -206,9 +209,20 @@ export function MedicalRepDetailsPage() {
   async function handleSetStatus(status: 'active' | 'inactive') {
     try {
       await setStatus(status)
-      toast.success(status === 'active' ? 'MR activated successfully.' : 'MR deactivated successfully.')
+      toast.success(
+        status === 'active'
+          ? 'MR activated successfully.'
+          : 'MR deactivated successfully.',
+      )
     } catch (err) {
-      toast.error(getApiErrorMessage(err, status === 'active' ? 'Failed to activate MR.' : 'Failed to deactivate MR.'))
+      toast.error(
+        getApiErrorMessage(
+          err,
+          status === 'active'
+            ? 'Failed to activate MR.'
+            : 'Failed to deactivate MR.',
+        ),
+      )
     }
   }
 
@@ -367,17 +381,7 @@ export function MedicalRepDetailsPage() {
           </Grid>
         </Grid>
 
-        <SectionCard
-          title="Summary"
-          action={
-            <Chip
-              size="small"
-              label={`MR ID: ${mr.id}`}
-              variant="outlined"
-              sx={{ fontWeight: 600, fontSize: '0.75rem' }}
-            />
-          }
-        >
+        <SectionCard title="Summary">
           <Stack
             direction="row"
             spacing={2.5}
@@ -462,7 +466,7 @@ export function MedicalRepDetailsPage() {
               ) : (
                 <StatCard
                   label="Dealers"
-                  value={dealerCount}
+                  value={mr.totalDealersOnboarded}
                   icon={<StoreIcon size={20} />}
                   iconColor="primary"
                 />
@@ -474,33 +478,9 @@ export function MedicalRepDetailsPage() {
               ) : (
                 <StatCard
                   label="Chemists"
-                  value={chemistCount}
+                  value={mr.totalChemistsOnboarded}
                   icon={<PillIcon size={20} />}
                   iconColor="secondary"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Onboarded"
-                  value={onboardedCount}
-                  icon={<UserCheckIcon size={20} />}
-                  iconColor="success"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 6, sm: 3 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Assigned"
-                  value={assignedCount}
-                  icon={<UserRoundIcon size={20} />}
-                  iconColor="warning"
                 />
               )}
             </Grid>
@@ -508,128 +488,36 @@ export function MedicalRepDetailsPage() {
 
           <Divider sx={{ mb: 2.5 }} />
 
-          <Stack
-            direction={{ xs: 'column', sm: 'row' }}
-            spacing={{ xs: 2, sm: 4 }}
-            sx={{ mb: 2.5, flexWrap: 'wrap', rowGap: 2 }}
-          >
-            <Stack spacing={0.75}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  color: 'text.secondary',
-                }}
-              >
-                Partner Type
-              </Typography>
-              <ToggleButtonGroup
-                size="small"
-                exclusive
-                value={partnerType}
-                onChange={(_, value) => value && setPartnerType(value)}
-                sx={{
-                  '& .MuiToggleButton-root': {
-                    fontSize: '0.75rem',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 2,
-                    height: 34,
-                  },
-                }}
-              >
-                <ToggleButton value="All">All</ToggleButton>
-                <ToggleButton value="Dealer">Dealers</ToggleButton>
-                <ToggleButton value="Chemist">Chemists</ToggleButton>
-              </ToggleButtonGroup>
-            </Stack>
-
-            <Stack spacing={0.75}>
-              <Typography
-                sx={{
-                  fontWeight: 700,
-                  fontSize: '0.6875rem',
-                  letterSpacing: '0.04em',
-                  textTransform: 'uppercase',
-                  color: 'text.secondary',
-                }}
-              >
-                Source
-              </Typography>
-              <ToggleButtonGroup
-                size="small"
-                exclusive
-                value={source}
-                onChange={(_, value) => value && setSource(value)}
-                sx={{
-                  '& .MuiToggleButton-root': {
-                    fontSize: '0.75rem',
-                    textTransform: 'none',
-                    fontWeight: 600,
-                    px: 2,
-                    height: 34,
-                  },
-                }}
-              >
-                <ToggleButton value="All">All</ToggleButton>
-                <ToggleButton value="Onboarded">Onboarded</ToggleButton>
-                <ToggleButton value="Assigned">Assigned</ToggleButton>
-              </ToggleButtonGroup>
-            </Stack>
-          </Stack>
+          <Box sx={{ mb: 2.5 }}>
+            <ModularTabs
+              tabs={PARTNER_TABS}
+              value={partnerTab}
+              onChange={setPartnerTab}
+            />
+          </Box>
 
           <CommonTable
+            key={partnerTab}
             tableKey="mr-partner-management"
             columns={partnerColumns}
-            rows={filteredPartners}
+            rows={partners}
             getRowId={(row) => row.id}
-            loading={isLoading}
-            searchPlaceholder="Search partners…"
-            searchKeys={(row) => `${row.partnerName} ${row.city}`}
-            onFilterClick={() => setPartnerFilterOpen(true)}
-            filterCount={appliedPartnerFilters.statuses.length}
-            emptyTitle="No partners found"
-            emptyDescription="Try adjusting the filters above."
+            loading={isPartnersLoading}
+            searchPlaceholder={
+              partnerTab === 'CHEMIST' ? 'Search chemists…' : 'Search dealers…'
+            }
+            searchKeys={(row) =>
+              `${row.businessName} ${row.ownerName} ${row.city}`
+            }
+            emptyTitle={
+              partnerTab === 'CHEMIST'
+                ? 'No chemists found'
+                : 'No dealers found'
+            }
+            emptyDescription="This MR has no partners of this type yet."
           />
         </SectionCard>
       </Stack>
-
-      <FilterDrawer<PartnerTableFilters>
-        open={partnerFilterOpen}
-        onClose={() => setPartnerFilterOpen(false)}
-        title="Filter Partners"
-        value={appliedPartnerFilters}
-        onApply={setAppliedPartnerFilters}
-      >
-        {(draft, setDraft) => (
-          <Stack spacing={1}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
-              Current Status
-            </Typography>
-            {ALL_PARTNER_STATUSES.map((status) => (
-              <FormControlLabel
-                key={status}
-                control={
-                  <Checkbox
-                    checked={draft.statuses.includes(status)}
-                    onChange={(e) =>
-                      setDraft((prev) => ({
-                        ...prev,
-                        statuses: e.target.checked
-                          ? [...prev.statuses, status]
-                          : prev.statuses.filter((s) => s !== status),
-                      }))
-                    }
-                  />
-                }
-                label={status.charAt(0).toUpperCase() + status.slice(1)}
-              />
-            ))}
-          </Stack>
-        )}
-      </FilterDrawer>
 
       <Modal
         open={deleteOpen}

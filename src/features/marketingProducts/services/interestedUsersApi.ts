@@ -8,7 +8,6 @@ import {
   getInterestedUserById,
   interestedUserKpis,
 } from '@/features/marketingProducts/mockInterestedUsers'
-import { mrs } from '@/features/userManagement/mockPartnerData'
 import type {
   InterestedUserLead,
   LeadStatus,
@@ -388,17 +387,36 @@ const interestedUsersApi = baseApi.injectEndpoints({
     /** Interested users scoped to a single product, for the product details page. */
     getShowcaseProductInterestedUsers: builder.query<
       InterestedUserLead[],
-      { showcaseProductId: string; page?: number; limit?: number }
+      {
+        showcaseProductId: string
+        page?: number
+        limit?: number
+        search?: string
+        userType?: LeadUserType | 'all'
+      }
     >({
-      query: ({ showcaseProductId, page, limit }) => ({
+      query: ({ showcaseProductId, page, limit, search, userType }) => ({
         tag: 'InterestedUsers',
         url: `/showcase-products/${showcaseProductId}/interested-users`,
-        params: { page: page ?? 1, limit: limit ?? 10 },
+        params: {
+          page: page ?? 1,
+          limit: limit ?? 10,
+          search: search || undefined,
+          userType: mapUserTypeParam(userType),
+        },
         mockResolver: () =>
           mockDelay(
-            mockInterestedUsers.filter(
-              (lead) => lead.showcaseProductId === showcaseProductId,
-            ),
+            mockInterestedUsers.filter((lead) => {
+              const matchesProduct = lead.showcaseProductId === showcaseProductId
+              const matchesUserType =
+                !userType || userType === 'all' || lead.userType === userType
+              const query = search?.trim().toLowerCase()
+              const matchesSearch =
+                !query ||
+                lead.userName.toLowerCase().includes(query) ||
+                lead.businessName.toLowerCase().includes(query)
+              return matchesProduct && matchesUserType && matchesSearch
+            }),
           ),
       }),
       transformResponse: async (
@@ -422,7 +440,7 @@ const interestedUsersApi = baseApi.injectEndpoints({
 
     getInterestedUserAnalytics: builder.query<
       InterestedUserKpis,
-      AnalyticsDateParams
+      AnalyticsDateParams & { regionId?: string }
     >({
       query: (params) => ({
         tag: 'InterestedUsers',
@@ -431,6 +449,7 @@ const interestedUsersApi = baseApi.injectEndpoints({
           preset: params.preset,
           startDate: params.startDate,
           endDate: params.endDate,
+          regionId: params.regionId || undefined,
         },
         mockResolver: () => mockDelay(interestedUserKpis),
       }),
@@ -438,15 +457,6 @@ const interestedUsersApi = baseApi.injectEndpoints({
         response: InterestedUserAnalyticsApiResponse | InterestedUserKpis,
       ) => ('data' in response ? mapAnalytics(response) : response),
       providesTags: [{ type: 'InterestedUsers', id: 'KPIS' }],
-    }),
-
-    getHandlerOptions: builder.query<string[], void>({
-      query: () => ({
-        tag: 'InterestedUsers',
-        url: '/interested-users/handler-options',
-        mockResolver: () => mockDelay(mrs),
-      }),
-      providesTags: [{ type: 'InterestedUsers', id: 'HANDLER_OPTIONS' }],
     }),
 
     followUpLead: builder.mutation<
@@ -519,7 +529,6 @@ export const {
   useGetInterestedUserDetailQuery,
   useGetShowcaseProductInterestedUsersQuery,
   useGetInterestedUserAnalyticsQuery,
-  useGetHandlerOptionsQuery,
   useFollowUpLeadMutation,
   useCloseLeadMutation,
   useDeleteLeadMutation,

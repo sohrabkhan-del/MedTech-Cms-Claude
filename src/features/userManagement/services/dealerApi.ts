@@ -255,7 +255,10 @@ const dealerApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Partners', id: 'KPIS' }],
     }),
 
-    getDealerAnalytics: builder.query<DealerKpis, AnalyticsDateParams>({
+    getDealerAnalytics: builder.query<
+      DealerKpis,
+      AnalyticsDateParams & { regionId?: string }
+    >({
       query: (params) => ({
         tag: 'Partners',
         url: '/analytics-cards/partners/DEALER',
@@ -263,6 +266,7 @@ const dealerApi = baseApi.injectEndpoints({
           preset: params.preset,
           startDate: params.startDate,
           endDate: params.endDate,
+          regionId: params.regionId || undefined,
         },
         mockResolver: () => mockDelay(dealerKpis),
       }),

@@ -58,6 +58,7 @@ export interface ShowcaseProductApiPayload {
   stockUnit?: string
   lowStockThreshold?: number
   visibleTo: ('dealer' | 'chemist')[]
+  isActive: boolean
 }
 
 /** `productCode` is backend-generated on create; only sent back on update, where it's read-only in the UI. */
@@ -84,5 +85,6 @@ export function toShowcaseProductApiPayload(
     stockUnit: values.stockUnit || undefined,
     lowStockThreshold: values.lowStockThreshold ? Number(values.lowStockThreshold) : undefined,
     visibleTo,
+    isActive: values.isActive,
   }
 }

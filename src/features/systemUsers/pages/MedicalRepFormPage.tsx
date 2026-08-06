@@ -92,7 +92,6 @@ export function MedicalRepFormPage() {
     if (!isEdit || !mr) return
     reset({
       fullName: mr.fullName ?? mr.name,
-      lastName: mr.lastName ?? '',
       email: mr.email,
       phone: mr.phone,
       country: mr.country ?? '91',
@@ -153,10 +152,6 @@ export function MedicalRepFormPage() {
               <FormField name="fullName" control={control} placeholder="Full name" {...fieldLabelProps} />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Last Name</FieldLabel>
-              <FormField name="lastName" control={control} placeholder="Last name" {...fieldLabelProps} />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Email Address</FieldLabel>
               <FormField name="email" control={control} type="email" placeholder="name@example.com" {...fieldLabelProps} />
             </Grid>
@@ -167,8 +162,10 @@ export function MedicalRepFormPage() {
                 control={control}
                 placeholder="98xxx xxxxx"
                 numeric
-                slotProps={{ htmlInput: { maxLength: 10 } }}
-                {...fieldLabelProps}
+                slotProps={{
+                  ...fieldLabelProps.slotProps,
+                  htmlInput: { maxLength: 10 },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
@@ -193,10 +190,7 @@ export function MedicalRepFormPage() {
           sx={{ width: '100%', justifyContent: 'flex-end' }}
         >
           <Button type="submit" variant="contained" loading={isSubmitting}>
-            {isEdit ? 'Save MR' : 'Save MR'}
-          </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)}>
-            Back
+            Save
           </Button>
           <Button variant="text" color="primary" onClick={() => navigate(backTo)}>
             Cancel

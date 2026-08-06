@@ -1,7 +1,6 @@
 import {
   useGetInterestedUsersQuery,
   useGetInterestedUserAnalyticsQuery,
-  useGetHandlerOptionsQuery,
   useFollowUpLeadMutation,
   useCloseLeadMutation,
   useDeleteLeadMutation,
@@ -25,24 +24,21 @@ export function useInterestedUsers(params?: InterestedUserQueryParams) {
     startDate,
     endDate,
   })
-  const kpisResult = useGetInterestedUserAnalyticsQuery(analyticsParams)
-  const handlerOptionsResult = useGetHandlerOptionsQuery()
+  const kpisResult = useGetInterestedUserAnalyticsQuery({
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  })
   const [followUpLeadMutation] = useFollowUpLeadMutation()
   const [closeLeadMutation] = useCloseLeadMutation()
   const [deleteLeadMutation] = useDeleteLeadMutation()
 
-  const isLoading = leadsResult.isFetching || handlerOptionsResult.isFetching
-  const isKpisLoading = kpisResult.isLoading
+  const isLoading = leadsResult.isFetching
+  const isKpisLoading = kpisResult.isFetching
   const error = leadsResult.error
     ? getApiErrorMessage(leadsResult.error, 'Failed to load interested users.')
     : kpisResult.error
       ? getApiErrorMessage(kpisResult.error, 'Failed to load interested users.')
-      : handlerOptionsResult.error
-        ? getApiErrorMessage(
-            handlerOptionsResult.error,
-            'Failed to load interested users.',
-          )
-        : null
+      : null
 
   async function followUp(
     id: string,
@@ -63,7 +59,6 @@ export function useInterestedUsers(params?: InterestedUserQueryParams) {
   return {
     leads: leadsResult.data ?? [],
     kpis: kpisResult.data ?? null,
-    handlerOptions: handlerOptionsResult.data ?? [],
     isLoading,
     isKpisLoading,
     error,

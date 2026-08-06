@@ -4,7 +4,6 @@ import {
   Avatar,
   Box,
   Button,
-  Chip,
   Divider,
   Grid,
   MenuItem,
@@ -24,7 +23,6 @@ import {
   Mail,
   Phone,
   MapPin,
-  Clock,
   Users as UsersIcon,
 } from 'lucide-react'
 import {
@@ -47,6 +45,7 @@ import {
   useGetMrPartnersQuery,
   type MrPartnerRow,
 } from '@/features/systemUsers/services/mrPartnersApi'
+import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
@@ -124,7 +123,6 @@ export function MedicalRepDetailsPage() {
   const toast = useToast()
   const {
     mr,
-    replacementOptions,
     setStatus,
     remove,
     isLoading,
@@ -134,6 +132,8 @@ export function MedicalRepDetailsPage() {
   const [partnerTab, setPartnerTab] = useState<PartnerTab>('CHEMIST')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [replacementMrId, setReplacementMrId] = useState('')
+  const { data: mrOptions = [], isFetching: isMrOptionsLoading } =
+    useGetMedicalRepOptionsQuery(undefined, { skip: !deleteOpen })
 
   const { data: partnersResult, isFetching: isPartnersLoading } =
     useGetMrPartnersQuery(
@@ -149,6 +149,7 @@ export function MedicalRepDetailsPage() {
       { skip: !mrId },
     )
   const partners = partnersResult?.items ?? []
+  const replacementOptions = mrOptions.filter((option) => option.id !== mrId)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={3} />
@@ -202,8 +203,14 @@ export function MedicalRepDetailsPage() {
     const success = await remove(replacementMrId)
     if (success) {
       setDeleteOpen(false)
+      setReplacementMrId('')
       navigate('/system-users/medical-representatives')
     }
+  }
+
+  function handleDeleteModalClose() {
+    setDeleteOpen(false)
+    setReplacementMrId('')
   }
 
   async function handleSetStatus(status: 'active' | 'inactive') {
@@ -409,32 +416,25 @@ export function MedicalRepDetailsPage() {
           </Stack>
 
           <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <InfoItem
                 icon={<Mail size={16} />}
                 label="Email Address"
                 value={mr.email}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <InfoItem
                 icon={<Phone size={16} />}
                 label="Contact Number"
                 value={mr.phone}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <InfoItem
                 icon={<MapPin size={16} />}
                 label="Region"
                 value={mr.region}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <InfoItem
-                icon={<Clock size={16} />}
-                label="Last Login"
-                value={mr.lastLogin}
               />
             </Grid>
           </Grid>
@@ -521,7 +521,7 @@ export function MedicalRepDetailsPage() {
 
       <Modal
         open={deleteOpen}
-        onClose={() => setDeleteOpen(false)}
+        onClose={handleDeleteModalClose}
         title="Delete Medical Representative"
         description="All dealers, chemists, and active locations managed by this MR must be reassigned to another MR from the same region before deletion."
         primaryActionLabel="Confirm Delete & Reassign"
@@ -529,10 +529,14 @@ export function MedicalRepDetailsPage() {
         onPrimaryAction={replacementMrId ? handleDelete : undefined}
         loading={isDeleting}
       >
-        {replacementOptions.length === 0 ? (
+        {isMrOptionsLoading ? (
+          <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+            Loading medical representatives...
+          </Typography>
+        ) : replacementOptions.length === 0 ? (
           <Typography variant="body1" sx={{ color: 'error.main' }}>
-            No other MR is available in the {mr.region} region. Deletion is
-            blocked until a replacement MR exists.
+            No other MR is available. Deletion is blocked until a replacement
+            MR exists.
           </Typography>
         ) : (
           <Stack spacing={2}>
@@ -551,7 +555,7 @@ export function MedicalRepDetailsPage() {
             >
               {replacementOptions.map((option) => (
                 <MenuItem key={option.id} value={option.id}>
-                  {option.name} ({option.region})
+                  {option.name}
                 </MenuItem>
               ))}
             </TextField>

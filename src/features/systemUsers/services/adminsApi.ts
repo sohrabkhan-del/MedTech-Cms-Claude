@@ -241,7 +241,10 @@ const adminsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'Admins', id }],
     }),
 
-    getAdminAnalytics: builder.query<AdminKpis, AnalyticsDateParams>({
+    getAdminAnalytics: builder.query<
+      AdminKpis,
+      AnalyticsDateParams & { regionId?: string }
+    >({
       query: (params) => ({
         tag: 'Admins',
         url: '/analytics-cards/admins',
@@ -249,6 +252,7 @@ const adminsApi = baseApi.injectEndpoints({
           preset: params.preset,
           startDate: params.startDate,
           endDate: params.endDate,
+          regionId: params.regionId || undefined,
         },
         mockResolver: () => mockDelay(adminKpis),
       }),
@@ -297,11 +301,38 @@ const adminsApi = baseApi.injectEndpoints({
           method: 'PATCH',
           mockResolver: () => Promise.resolve(),
         }),
-        invalidatesTags: (_result, _error, { id }) => [
-          { type: 'Admins', id },
-          { type: 'Admins', id: 'LIST' },
-          { type: 'Admins', id: 'KPIS' },
-        ],
+        onQueryStarted: async ({ id, status }, { dispatch, getState, queryFulfilled }) => {
+          const patches = [
+            dispatch(
+              adminsApi.util.updateQueryData('getAdminDetail', id, (draft) => {
+                if (draft) draft.status = status
+              }),
+            ),
+          ]
+
+          const listArgsList = adminsApi.util.selectCachedArgsForQuery(
+            getState(),
+            'getAdmins',
+          )
+
+          for (const listArgs of listArgsList) {
+            patches.push(
+              dispatch(
+                adminsApi.util.updateQueryData('getAdmins', listArgs, (draft) => {
+                  const admin = draft.find((item) => item.id === id)
+                  if (admin) admin.status = status
+                }),
+              ),
+            )
+          }
+
+          try {
+            await queryFulfilled
+          } catch {
+            patches.forEach((patch) => patch.undo())
+          }
+        },
+        invalidatesTags: [{ type: 'Admins', id: 'KPIS' }],
       },
     ),
   }),

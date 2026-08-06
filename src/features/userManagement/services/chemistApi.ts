@@ -250,7 +250,10 @@ const chemistApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Chemists', id: 'KPIS' }],
     }),
 
-    getChemistAnalytics: builder.query<ChemistKpis, AnalyticsDateParams>({
+    getChemistAnalytics: builder.query<
+      ChemistKpis,
+      AnalyticsDateParams & { regionId?: string }
+    >({
       query: (params) => ({
         tag: 'Chemists',
         url: '/analytics-cards/partners/CHEMIST',
@@ -258,6 +261,7 @@ const chemistApi = baseApi.injectEndpoints({
           preset: params.preset,
           startDate: params.startDate,
           endDate: params.endDate,
+          regionId: params.regionId || undefined,
         },
         mockResolver: () => mockDelay(chemistKpis),
       }),

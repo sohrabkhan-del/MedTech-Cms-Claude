@@ -209,18 +209,65 @@ const medicalRepsApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'MedicalReps', id: 'LIST' }],
     }),
 
-    // updateMedicalRep/setMedicalRepStatus/deleteMedicalRep: real endpoints
-    // not yet confirmed (unlike create, list, and detail above) — still
-    // pointing at the old placeholder /medical-reps path and resolving as
-    // mock no-ops until the real PUT/PATCH/DELETE shapes are confirmed.
     updateMedicalRep: builder.mutation<void, { id: string; values: MedicalRepApiPayload }>({
       query: ({ id, values }) => ({
-        tag: 'MedicalReps',
-        url: `/medical-reps/${id}`,
+        tag: 'MedicalRepDetail',
+        url: `/medical-representatives/${id}`,
         method: 'PUT',
         data: values,
         mockResolver: () => Promise.resolve(),
       }),
+      onQueryStarted: async ({ id, values }, { dispatch, getState, queryFulfilled }) => {
+        const patches = [
+          dispatch(
+            medicalRepsApi.util.updateQueryData(
+              'getMedicalRepDetail',
+              id,
+              (draft) => {
+                if (!draft) return
+                draft.fullName = values.fullName
+                draft.name = values.fullName
+                draft.email = values.email
+                draft.phone = values.phone
+                draft.country = values.country
+                draft.regionId = values.regionId
+              },
+            ),
+          ),
+        ]
+
+        const listArgsList = medicalRepsApi.util.selectCachedArgsForQuery(
+          getState(),
+          'getMedicalReps',
+        )
+
+        for (const listArgs of listArgsList) {
+          patches.push(
+            dispatch(
+              medicalRepsApi.util.updateQueryData(
+                'getMedicalReps',
+                listArgs,
+                (draft) => {
+                  const mr = draft.find((item) => item.id === id)
+                  if (!mr) return
+                  mr.fullName = values.fullName
+                  mr.name = values.fullName
+                  mr.email = values.email
+                  mr.phone = values.phone
+                  mr.country = values.country
+                  mr.regionId = values.regionId
+                },
+              ),
+            ),
+          )
+        }
+
+        try {
+          await queryFulfilled
+        } catch {
+          patches.forEach((patch) => patch.undo())
+        }
+      },
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'MedicalReps', id },
         { type: 'MedicalReps', id: 'LIST' },
@@ -229,12 +276,50 @@ const medicalRepsApi = baseApi.injectEndpoints({
 
     setMedicalRepStatus: builder.mutation<void, { id: string; status: PartnerStatus }>({
       query: ({ id, status }) => ({
-        tag: 'MedicalReps',
-        url: `/medical-reps/${id}/status`,
+        tag: 'MedicalRepDetail',
+        url: `/medical-representatives/${id}/${status === 'active' ? 'active' : 'inactive'}`,
         method: 'PATCH',
-        data: { status },
         mockResolver: () => Promise.resolve(),
       }),
+      onQueryStarted: async ({ id, status }, { dispatch, getState, queryFulfilled }) => {
+        const patches = [
+          dispatch(
+            medicalRepsApi.util.updateQueryData(
+              'getMedicalRepDetail',
+              id,
+              (draft) => {
+                if (draft) draft.status = status
+              },
+            ),
+          ),
+        ]
+
+        const listArgsList = medicalRepsApi.util.selectCachedArgsForQuery(
+          getState(),
+          'getMedicalReps',
+        )
+
+        for (const listArgs of listArgsList) {
+          patches.push(
+            dispatch(
+              medicalRepsApi.util.updateQueryData(
+                'getMedicalReps',
+                listArgs,
+                (draft) => {
+                  const mr = draft.find((item) => item.id === id)
+                  if (mr) mr.status = status
+                },
+              ),
+            ),
+          )
+        }
+
+        try {
+          await queryFulfilled
+        } catch {
+          patches.forEach((patch) => patch.undo())
+        }
+      },
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'MedicalReps', id },
         { type: 'MedicalReps', id: 'LIST' },
@@ -243,10 +328,13 @@ const medicalRepsApi = baseApi.injectEndpoints({
 
     deleteMedicalRep: builder.mutation<void, { id: string; replacementMrId: string }>({
       query: ({ id, replacementMrId }) => ({
-        tag: 'MedicalReps',
-        url: `/medical-reps/${id}`,
+        tag: 'MedicalRepDetail',
+        url: `/medical-representatives/${id}`,
         method: 'DELETE',
-        data: { replacementMrId },
+        data: {
+          replacementMrId,
+          assignedMedicalRepresentativeId: replacementMrId,
+        },
         mockResolver: () => Promise.resolve(),
       }),
       invalidatesTags: (_result, _error, { id }) => [

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Outlet, useLocation } from 'react-router-dom'
 import { Box } from '@mui/material'
 import { Sidebar } from '@/components/layout/Sidebar/Sidebar'
@@ -12,6 +12,8 @@ import {
   RegionFilterProvider,
   useRegionFilter,
 } from '@/contexts/RegionFilterContext'
+import { useAppDispatch } from '@/app/store/hooks'
+import { baseApi } from '@/store/api/baseApi'
 
 function GlobalRegionTopbar() {
   const location = useLocation()
@@ -35,6 +37,17 @@ function GlobalRegionTopbar() {
       onDateRangeChange={setDateRange}
     />
   )
+}
+
+function RegionQueryResetter() {
+  const dispatch = useAppDispatch()
+  const { regionId, dateRange } = useRegionFilter()
+
+  useEffect(() => {
+    dispatch(baseApi.util.resetApiState())
+  }, [dispatch, regionId, dateRange])
+
+  return null
 }
 
 function GlobalLastUpdatedBadge() {
@@ -105,6 +118,7 @@ export function DashboardLayout() {
               <Breadcrumbs />
               <GlobalLastUpdatedBadge />
             </Box>
+            <RegionQueryResetter />
             <GlobalRegionTopbar />
             <Outlet />
           </Box>

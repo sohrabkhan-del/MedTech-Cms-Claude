@@ -8,11 +8,18 @@ import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useDealers(params?: DealerQueryParams) {
-  const { dateRange } = useRegionFilter()
-  const dealersResult = useGetDealersQuery(params)
-  const analyticsResult = useGetDealerAnalyticsQuery(
-    dateRangeToAnalyticsParams(dateRange),
-  )
+  const { regionId: topbarRegionId, dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const effectiveRegionId = params?.regionId || topbarRegionId || undefined
+
+  const dealersResult = useGetDealersQuery({
+    ...params,
+    regionId: effectiveRegionId,
+  })
+  const analyticsResult = useGetDealerAnalyticsQuery({
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  })
   const dealers = dealersResult.data ?? []
 
   const isLoading = dealersResult.isLoading || analyticsResult.isLoading

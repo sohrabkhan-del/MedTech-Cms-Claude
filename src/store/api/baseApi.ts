@@ -179,5 +179,9 @@ export const baseApi = createApi({
   reducerPath: 'api',
   baseQuery: mockOrRealBaseQuery,
   tagTypes,
+  keepUnusedDataFor: 0,
+  refetchOnMountOrArgChange: true,
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   endpoints: () => ({}),
 })

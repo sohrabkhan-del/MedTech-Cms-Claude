@@ -2,7 +2,6 @@ import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
 import {
   useGetMedicalRepDetailQuery,
-  useGetReplacementMrsQuery,
   useSetMedicalRepStatusMutation,
   useDeleteMedicalRepMutation,
 } from '@/features/systemUsers/services/medicalRepsApi'
@@ -13,13 +12,10 @@ export function useMedicalRepDetail(mrId: string | undefined) {
   const toast = useToast()
 
   const { data: mr, isLoading: isMrLoading, error: mrQueryError } = useGetMedicalRepDetailQuery(mrId ?? skipToken)
-  const { data: replacementOptions, isLoading: isReplacementLoading } = useGetReplacementMrsQuery(
-    mr ? { region: mr.region, excludeId: mr.id } : skipToken,
-  )
   const [setStatusMutation, { isLoading: isStatusUpdating }] = useSetMedicalRepStatusMutation()
   const [deleteMrMutation, { isLoading: isDeleting }] = useDeleteMedicalRepMutation()
 
-  const isLoading = isMrLoading || (!!mr && isReplacementLoading)
+  const isLoading = isMrLoading
   const error = mrQueryError ? getApiErrorMessage(mrQueryError, 'Failed to load medical representative.') : null
 
   async function setStatus(status: PartnerStatus) {
@@ -42,7 +38,6 @@ export function useMedicalRepDetail(mrId: string | undefined) {
 
   return {
     mr,
-    replacementOptions: replacementOptions ?? [],
     isLoading,
     isStatusUpdating,
     isDeleting,

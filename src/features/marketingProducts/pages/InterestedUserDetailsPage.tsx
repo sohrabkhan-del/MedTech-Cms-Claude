@@ -159,14 +159,6 @@ export function InterestedUserDetailsPage() {
           >
             Delete Interest
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackOutlined size={20} />}
-            onClick={() => navigate('/marketing-products/interested-users')}
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Back to List
-          </Button>
         </Stack>
       </Stack>
 

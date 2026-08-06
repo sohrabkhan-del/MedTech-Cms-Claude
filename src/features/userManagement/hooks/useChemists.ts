@@ -8,11 +8,18 @@ import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useChemists(params?: ChemistQueryParams) {
-  const { dateRange } = useRegionFilter()
-  const chemistsResult = useGetChemistsQuery(params)
-  const analyticsResult = useGetChemistAnalyticsQuery(
-    dateRangeToAnalyticsParams(dateRange),
-  )
+  const { regionId: topbarRegionId, dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const effectiveRegionId = params?.regionId || topbarRegionId || undefined
+
+  const chemistsResult = useGetChemistsQuery({
+    ...params,
+    regionId: effectiveRegionId,
+  })
+  const analyticsResult = useGetChemistAnalyticsQuery({
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  })
   const chemists = chemistsResult.data ?? []
 
   const isLoading = chemistsResult.isLoading || analyticsResult.isLoading

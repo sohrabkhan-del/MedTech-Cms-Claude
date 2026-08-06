@@ -21,7 +21,10 @@ export function useAdmins(params?: AdminQueryParams) {
     startDate,
     endDate,
   })
-  const kpisResult = useGetAdminAnalyticsQuery(analyticsParams)
+  const kpisResult = useGetAdminAnalyticsQuery({
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  })
 
   const isLoading = adminsResult.isFetching || kpisResult.isFetching
   const error = adminsResult.error

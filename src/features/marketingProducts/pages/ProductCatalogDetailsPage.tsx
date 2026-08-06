@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Avatar,
@@ -6,20 +7,30 @@ import {
   Chip,
   Grid,
   Stack,
+  Tooltip,
   Typography,
 } from '@mui/material'
-import { ArrowLeft as ArrowBackOutlined, Megaphone } from 'lucide-react'
+import {
+  ArrowLeft as ArrowBackOutlined,
+  Ban,
+  CircleCheck,
+  Megaphone,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { ImageGallery } from '@/components/common/ImageGallery/ImageGallery'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { useShowcaseProductDetail } from '@/features/marketingProducts/hooks/useShowcaseProductDetail'
 import { useGetShowcaseProductInterestedUsersQuery } from '@/features/marketingProducts/services/interestedUsersApi'
+import { useToast } from '@/contexts/ToastContext'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type {
   InterestedUserLead,
   LeadStatus,
@@ -34,15 +45,60 @@ const leadStatusConfig: Record<
   closed: { label: 'Closed', color: 'success' },
 }
 
+type InterestedUserTab = 'ALL' | 'CHEMIST' | 'DEALER'
+
 export function ProductCatalogDetailsPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { productId } = useParams<{ productId: string }>()
-  const { product, isLoading } = useShowcaseProductDetail(productId)
+  const { product, isLoading, setActive, isStatusUpdating } =
+    useShowcaseProductDetail(productId)
+  const [interestedUserTab, setInterestedUserTab] =
+    useState<InterestedUserTab>('ALL')
+  const [interestedUserSearch, setInterestedUserSearch] = useState('')
+  const debouncedInterestedUserSearch = useDebouncedValue(
+    interestedUserSearch,
+    300,
+  )
+
+  const interestedUserTypeParam =
+    interestedUserTab === 'ALL'
+      ? undefined
+      : interestedUserTab === 'CHEMIST'
+        ? 'Chemist'
+        : 'Dealer'
+
   const { data: interestedUsers = [], isFetching: isInterestedUsersLoading } =
+    useGetShowcaseProductInterestedUsersQuery(
+      {
+        showcaseProductId: productId ?? '',
+        search: debouncedInterestedUserSearch,
+        userType: interestedUserTypeParam,
+      },
+      { skip: !productId },
+    )
+  const { data: allInterestedUsers = [] } =
     useGetShowcaseProductInterestedUsersQuery(
       { showcaseProductId: productId ?? '' },
       { skip: !productId },
     )
+
+  const interestedUserTabs = useMemo(
+    () => [
+      { label: 'All', value: 'ALL' as const, count: allInterestedUsers.length },
+      {
+        label: 'Chemists',
+        value: 'CHEMIST' as const,
+        count: allInterestedUsers.filter((row) => row.userType === 'Chemist').length,
+      },
+      {
+        label: 'Dealers',
+        value: 'DEALER' as const,
+        count: allInterestedUsers.filter((row) => row.userType === 'Dealer').length,
+      },
+    ],
+    [allInterestedUsers],
+  )
 
   const interestedUserColumns: CommonTableColumn<InterestedUserLead>[] = [
     {
@@ -111,6 +167,26 @@ export function ProductCatalogDetailsPage() {
     .sort((a, b) => (b.isPrimary ? 1 : 0) - (a.isPrimary ? 1 : 0))
     .map((image) => image.url)
 
+  async function handleSetActive(isActive: boolean) {
+    try {
+      await setActive(isActive)
+      toast.success(
+        isActive
+          ? 'Product activated successfully.'
+          : 'Product deactivated successfully.',
+      )
+    } catch (err) {
+      toast.error(
+        getApiErrorMessage(
+          err,
+          isActive
+            ? 'Failed to activate product.'
+            : 'Failed to deactivate product.',
+        ),
+      )
+    }
+  }
+
   return (
     <>
       <Stack
@@ -133,7 +209,19 @@ export function ProductCatalogDetailsPage() {
           </Avatar>
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Typography variant="h1">{product.name}</Typography>
+              <Tooltip title={product.name}>
+                <Typography
+                  variant="h1"
+                  sx={{
+                    maxWidth: 500,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {product.name}
+                </Typography>
+              </Tooltip>
               <Chip
                 size="small"
                 label={product.isActive ? 'Active' : 'Inactive'}
@@ -147,6 +235,29 @@ export function ProductCatalogDetailsPage() {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5}>
+          {product.isActive ? (
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<Ban size={18} />}
+              onClick={() => handleSetActive(false)}
+              loading={isStatusUpdating}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Deactivate Product
+            </Button>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<CircleCheck size={18} />}
+              onClick={() => handleSetActive(true)}
+              loading={isStatusUpdating}
+              sx={{ fontSize: '0.75rem' }}
+            >
+              Activate Product
+            </Button>
+          )}
           <Button
             variant="outlined"
             onClick={() =>
@@ -157,14 +268,6 @@ export function ProductCatalogDetailsPage() {
             sx={{ fontSize: '0.75rem' }}
           >
             Edit Product
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackOutlined size={20} />}
-            onClick={() => navigate('/marketing-products/products-catelog')}
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Back to Products
           </Button>
         </Stack>
       </Stack>
@@ -243,12 +346,24 @@ export function ProductCatalogDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Interested Users">
+          <Box sx={{ mb: 2 }}>
+            <ModularTabs
+              tabs={interestedUserTabs}
+              value={interestedUserTab}
+              onChange={setInterestedUserTab}
+            />
+          </Box>
+
           <CommonTable
+            key={interestedUserTab}
             tableKey="showcase-product-interested-users"
             columns={interestedUserColumns}
             rows={interestedUsers}
             loading={isInterestedUsersLoading}
             getRowId={(row) => row.id}
+            searchPlaceholder="Search by user name or business name…"
+            searchValue={interestedUserSearch}
+            onSearchChange={setInterestedUserSearch}
             emptyTitle="No interested users yet"
             emptyDescription="No one has expressed interest in this product yet."
           />

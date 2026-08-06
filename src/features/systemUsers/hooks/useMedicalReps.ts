@@ -2,10 +2,17 @@ import {
   useGetMedicalRepsQuery,
   type MedicalRepQueryParams,
 } from '@/features/systemUsers/services/medicalRepsApi'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useMedicalReps(params?: MedicalRepQueryParams) {
-  const medicalRepsResult = useGetMedicalRepsQuery(params)
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const effectiveRegionId = params?.regionId || topbarRegionId || undefined
+
+  const medicalRepsResult = useGetMedicalRepsQuery({
+    ...params,
+    regionId: effectiveRegionId,
+  })
   const medicalReps = medicalRepsResult.data ?? []
 
   const isLoading = medicalRepsResult.isLoading

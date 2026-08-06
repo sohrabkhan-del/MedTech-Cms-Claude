@@ -15,6 +15,7 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useMedicalReps } from '@/features/systemUsers/hooks/useMedicalReps'
@@ -38,6 +39,7 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
 
 export function MedicalRepListPage() {
   const navigate = useNavigate()
+  const { regionId: topbarRegionId } = useRegionFilter()
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
   const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
@@ -63,13 +65,14 @@ export function MedicalRepListPage() {
   }, [])
 
   const debouncedSearch = useDebouncedValue(search, 300)
+  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
 
   const { medicalReps, kpis, isLoading } = useMedicalReps({
     page: 1,
     limit: 10,
     search: debouncedSearch,
     status: appliedFilters.status,
-    regionId: appliedFilters.regionId || undefined,
+    regionId: effectiveRegionId,
     sortBy: SORT_FIELD_MAP[sortColumn],
     sortOrder,
   })

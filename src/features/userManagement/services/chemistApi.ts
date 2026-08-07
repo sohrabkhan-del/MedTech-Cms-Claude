@@ -195,6 +195,7 @@ function mapPartnerBusinesses(
 ): PartnerBusinessDetail[] {
   if (!business) return []
   return business.map((b) => ({
+    id: b.id,
     outletName: b.outletName ?? '',
     userName: b.userName ?? undefined,
     panNumber: b.panNumber ?? undefined,
@@ -549,6 +550,21 @@ const chemistApi = baseApi.injectEndpoints({
         { type: 'Chemists', id: 'KPIS' },
       ],
     }),
+
+    deleteChemistBusiness: builder.mutation<
+      void,
+      { id: string; businessId: string }
+    >({
+      query: ({ id, businessId }) => ({
+        tag: 'Chemists',
+        url: `/partners/${id}/business/${businessId}`,
+        method: 'DELETE',
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Chemists', id },
+      ],
+    }),
   }),
 })
 
@@ -562,4 +578,5 @@ export const {
   useCreateChemistMutation,
   useUpdateChemistMutation,
   useDeleteChemistMutation,
+  useDeleteChemistBusinessMutation,
 } = chemistApi

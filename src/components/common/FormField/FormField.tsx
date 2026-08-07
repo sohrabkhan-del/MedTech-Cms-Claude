@@ -17,6 +17,12 @@ interface FormFieldProps<TFieldValues extends FieldValues> extends Omit<
   uppercase?: boolean
 }
 
+function toDateInputValue(value: unknown): string {
+  if (typeof value !== 'string' || !value) return typeof value === 'string' ? value : ''
+  const match = value.match(/^\d{4}-\d{2}-\d{2}/)
+  return match ? match[0] : value
+}
+
 function sanitizeNumeric(value: string, decimal: boolean, maxLength?: number): string {
   const cleaned = decimal
     ? value.replace(/[^0-9.]/g, '')
@@ -46,6 +52,9 @@ export function FormField<TFieldValues extends FieldValues>({
         <TextField
           {...field}
           {...textFieldProps}
+          value={
+            textFieldProps.type === 'date' ? toDateInputValue(field.value) : field.value
+          }
           onChange={
             isNumeric
               ? (e) =>

@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Box, Card, Chip, Grid, Link, Stack, Typography } from '@mui/material'
-import { Store, Warehouse, MapPin } from 'lucide-react'
+import { Box, Card, Chip, Collapse, Grid, Link, Stack, Typography } from '@mui/material'
+import { Store, Warehouse, MapPin, ChevronDown } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { OutletLocationCard } from '@/features/userManagement/components/OutletLocationCard'
 import { DocumentGridCard } from '@/components/common/DocumentGridCard/DocumentGridCard'
@@ -111,6 +111,148 @@ function FieldRow({ label, value }: { label: string; value: ReactNode }) {
         {normalizeDisplayValue(value)}
       </Typography>
     </Grid>
+  )
+}
+
+function OutletCard({
+  business,
+  index,
+  defaultOpen,
+}: {
+  business: PartnerBusinessDetail
+  index: number
+  defaultOpen: boolean
+}) {
+  const [open, setOpen] = useState(defaultOpen)
+  const typeInfo = getOutletTypeInfo(business.addressType)
+  const TypeIcon = typeInfo.icon
+
+  return (
+    <Box
+      sx={{
+        border: '1px solid',
+        borderColor: 'divider',
+        borderRadius: 3,
+        overflow: 'hidden',
+        bgcolor: 'background.paper',
+      }}
+    >
+      <Stack
+        direction="row"
+        spacing={1.5}
+        onClick={() => setOpen((prev) => !prev)}
+        sx={{
+          alignItems: 'center',
+          px: 2.5,
+          py: 1.75,
+          bgcolor: 'background.default',
+          borderBottom: open ? '1px solid' : 'none',
+          borderColor: 'divider',
+          cursor: 'pointer',
+          userSelect: 'none',
+        }}
+      >
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            flexShrink: 0,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            bgcolor: 'primary.main',
+            color: 'primary.contrastText',
+          }}
+        >
+          <TypeIcon size={17} />
+        </Box>
+        <Typography
+          sx={{
+            fontWeight: 700,
+            fontSize: '0.9rem',
+            flex: 1,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {business.outletName || `Outlet ${index + 1}`}
+        </Typography>
+        {business.addressType && (
+          <Chip
+            label={typeInfo.label}
+            size="small"
+            variant="outlined"
+            sx={{ fontWeight: 600, fontSize: '0.6875rem' }}
+          />
+        )}
+        <ChevronDown
+          size={18}
+          style={{
+            flexShrink: 0,
+            transition: 'transform 150ms',
+            transform: open ? 'rotate(180deg)' : 'rotate(0deg)',
+          }}
+        />
+      </Stack>
+
+      <Collapse in={open}>
+        <Box sx={{ p: 2.5 }}>
+          <Grid container spacing={2}>
+            {business.panNumber && (
+              <FieldRow label="PAN Number" value={business.panNumber} />
+            )}
+            {business.drugLicenseNumber && (
+              <FieldRow
+                label="Drug License Number"
+                value={business.drugLicenseNumber}
+              />
+            )}
+            {business.drugLicenseExpiry && (
+              <FieldRow
+                label="Drug License Expiry"
+                value={formatDisplayDate(business.drugLicenseExpiry)}
+              />
+            )}
+            {typeof business.scanRadius === 'number' && (
+              <FieldRow
+                label="Scan Radius"
+                value={`${business.scanRadius} m`}
+              />
+            )}
+            {typeof business.bufferRadius === 'number' && (
+              <FieldRow
+                label="Buffer Radius"
+                value={`${business.bufferRadius} m`}
+              />
+            )}
+            {typeof business.geoAccuracy === 'number' && (
+              <FieldRow
+                label="Geo Accuracy"
+                value={`${business.geoAccuracy} m`}
+              />
+            )}
+            {business.notes && <ExpandableNote value={business.notes} />}
+          </Grid>
+
+          <Box sx={{ mt: 2.25 }}>
+            <OutletLocationCard business={business} index={index} />
+          </Box>
+
+          {business.documents.length > 0 && (
+            <Box sx={{ mt: 2.25 }}>
+              <DocumentGridCard
+                title="Documents"
+                documents={business.documents}
+                showMetadata={false}
+              />
+            </Box>
+          )}
+        </Box>
+      </Collapse>
+    </Box>
   )
 }
 
@@ -238,133 +380,14 @@ export function PartnerDetailsFieldsCard({
           </Stack>
 
           <Stack spacing={2.5}>
-            {partner.businesses.map((business, index) => {
-              const typeInfo = getOutletTypeInfo(business.addressType)
-              const TypeIcon = typeInfo.icon
-
-              return (
-                <Box
-                  key={`${business.outletName || 'outlet'}-${index}`}
-                  sx={{
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    borderRadius: 3,
-                    overflow: 'hidden',
-                    bgcolor: 'background.paper',
-                  }}
-                >
-                  <Stack
-                    direction="row"
-                    spacing={1.5}
-                    sx={{
-                      alignItems: 'center',
-                      px: 2.5,
-                      py: 1.75,
-                      bgcolor: 'background.default',
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 34,
-                        height: 34,
-                        flexShrink: 0,
-                        borderRadius: 2,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        bgcolor: 'primary.main',
-                        color: 'primary.contrastText',
-                      }}
-                    >
-                      <TypeIcon size={17} />
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontWeight: 700,
-                        fontSize: '0.9rem',
-                        flex: 1,
-                        minWidth: 0,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {business.outletName || `Outlet ${index + 1}`}
-                    </Typography>
-                    {business.addressType && (
-                      <Chip
-                        label={typeInfo.label}
-                        size="small"
-                        variant="outlined"
-                        sx={{ fontWeight: 600, fontSize: '0.6875rem' }}
-                      />
-                    )}
-                  </Stack>
-
-                  <Box sx={{ p: 2.5 }}>
-                    <Grid container spacing={2}>
-                      {business.panNumber && (
-                        <FieldRow
-                          label="PAN Number"
-                          value={business.panNumber}
-                        />
-                      )}
-                      {business.drugLicenseNumber && (
-                        <FieldRow
-                          label="Drug License Number"
-                          value={business.drugLicenseNumber}
-                        />
-                      )}
-                      {business.drugLicenseExpiry && (
-                        <FieldRow
-                          label="Drug License Expiry"
-                          value={formatDisplayDate(
-                            business.drugLicenseExpiry,
-                          )}
-                        />
-                      )}
-                      {typeof business.scanRadius === 'number' && (
-                        <FieldRow
-                          label="Scan Radius"
-                          value={`${business.scanRadius} m`}
-                        />
-                      )}
-                      {typeof business.bufferRadius === 'number' && (
-                        <FieldRow
-                          label="Buffer Radius"
-                          value={`${business.bufferRadius} m`}
-                        />
-                      )}
-                      {typeof business.geoAccuracy === 'number' && (
-                        <FieldRow
-                          label="Geo Accuracy"
-                          value={`${business.geoAccuracy} m`}
-                        />
-                      )}
-                      {business.notes && (
-                        <ExpandableNote value={business.notes} />
-                      )}
-                    </Grid>
-
-                    <Box sx={{ mt: 2.25 }}>
-                      <OutletLocationCard business={business} index={index} />
-                    </Box>
-
-                    {business.documents.length > 0 && (
-                      <Box sx={{ mt: 2.25 }}>
-                        <DocumentGridCard
-                          title="Documents"
-                          documents={business.documents}
-                          showMetadata={false}
-                        />
-                      </Box>
-                    )}
-                  </Box>
-                </Box>
-              )
-            })}
+            {partner.businesses.map((business, index) => (
+              <OutletCard
+                key={`${business.outletName || 'outlet'}-${index}`}
+                business={business}
+                index={index}
+                defaultOpen={index === 0}
+              />
+            ))}
           </Stack>
         </Box>
       )}

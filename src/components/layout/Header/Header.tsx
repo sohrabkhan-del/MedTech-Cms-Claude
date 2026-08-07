@@ -2,8 +2,7 @@ import { useState } from 'react'
 import { Badge, Box, IconButton, Menu, Stack } from '@mui/material'
 import { Menu as MenuIcon, Bell, Maximize, Minimize } from 'lucide-react'
 import { layout, radius, shadows } from '@/theme/tokens'
-import { useAppSelector } from '@/app/store/hooks'
-import { selectUnreadNotificationCount } from '@/features/notifications/slices/notificationsSelectors'
+import { useGetNotificationStatsQuery } from '@/features/notifications/services/notificationsApi'
 import { NotificationsMenuContent } from '@/features/notifications/components/NotificationsMenuContent'
 
 interface HeaderProps {
@@ -11,7 +10,8 @@ interface HeaderProps {
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
-  const unreadCount = useAppSelector(selectUnreadNotificationCount)
+  const { data: notificationStats } = useGetNotificationStatsQuery()
+  const unreadCount = notificationStats?.unread ?? 0
   const [notifAnchor, setNotifAnchor] = useState<HTMLElement | null>(null)
   const [isFullscreen, setIsFullscreen] = useState(false)
 

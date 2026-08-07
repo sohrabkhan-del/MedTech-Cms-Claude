@@ -10,14 +10,9 @@ import {
   Typography,
 } from '@mui/material'
 import { CircleCheck, Ban, Pencil, Trash2 } from 'lucide-react'
-import { skipToken } from '@reduxjs/toolkit/query/react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { Modal } from '@/components/common/Modal/Modal'
-import { useGetMedicalRepDetailQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import type { PartnerBase } from '@/types/partner'
-
-const UUID_PATTERN =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface PartnerSummaryHeaderProps {
   partner: PartnerBase
@@ -43,17 +38,8 @@ export function PartnerSummaryHeader({
   const navigate = useNavigate()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const isActive = partner.status === 'active'
-  const assignedMrIsId = UUID_PATTERN.test(partner.assignedMr)
-  const { data: assignedMrDetail } = useGetMedicalRepDetailQuery(
-    assignedMrIsId ? partner.assignedMr : skipToken,
-  )
-  const assignedMrLabel = assignedMrIsId
-    ? (assignedMrDetail?.name ?? '—')
-    : partner.assignedMr
-  const assignedMrMeta = [
-    assignedMrDetail?.employeeCode,
-    assignedMrDetail?.region,
-  ]
+  const assignedMrLabel = partner.assignedMrName ?? partner.assignedMr
+  const assignedMrMeta = [partner.assignedMrCode, partner.assignedMrPhone]
     .filter(Boolean)
     .join(' · ')
 
@@ -175,13 +161,7 @@ export function PartnerSummaryHeader({
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     Assigned MR
                   </Typography>
-                  <Tooltip
-                    title={
-                      assignedMrDetail
-                        ? `${assignedMrDetail.email} · ${assignedMrDetail.phone} · ${assignedMrDetail.totalDealersOnboarded} dealers, ${assignedMrDetail.totalChemistsOnboarded} chemists onboarded`
-                        : ''
-                    }
-                  >
+                  <Tooltip title={partner.assignedMrEmail ?? ''}>
                     <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                       {assignedMrLabel}
                     </Typography>

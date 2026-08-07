@@ -20,6 +20,7 @@ import { MapPin as PlaceOutlinedIcon, Plus, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { LocationMapPicker } from '@/components/common/LocationMapPicker/LocationMapPicker'
+import { Modal } from '@/components/common/Modal/Modal'
 import { useToast } from '@/contexts/ToastContext'
 import { radius } from '@/theme/tokens'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
@@ -40,6 +41,7 @@ import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDeta
 import {
   useCreateChemistMutation,
   useUpdateChemistMutation,
+  useDeleteChemistBusinessMutation,
 } from '@/features/userManagement/services/chemistApi'
 import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
@@ -194,12 +196,15 @@ export function ChemistFormPage() {
   const { chemist, isLoading: isChemistLoading } = useChemistDetail(chemistId)
   const [createChemist, { isLoading: isCreating }] = useCreateChemistMutation()
   const [updateChemist, { isLoading: isUpdating }] = useUpdateChemistMutation()
+  const [deleteChemistBusiness, { isLoading: isDeletingBusiness }] =
+    useDeleteChemistBusinessMutation()
   const [regions, setRegions] = useState<RegionOption[]>(
     fallbackRegions.filter((region) => region.code !== 'ALL_INDIA'),
   )
   const { data: mrOptions = [], isFetching: isMrOptionsLoading } = useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
   const [mapPickerIndex, setMapPickerIndex] = useState<number | null>(null)
+  const [removeTargetIndex, setRemoveTargetIndex] = useState<number | null>(null)
 
   useEffect(() => {
     let ignore = false
@@ -235,11 +240,12 @@ export function ChemistFormPage() {
       gstNumber: chemist.licenseNumber,
       profileImageUrl: chemist.profileImageUrl ?? '',
       regionId: chemist.regionId ?? '',
-      assignedMedicalRepresentativeId: chemist.assignedMr,
+      assignedMedicalRepresentativeId: chemist.assignedMrId ?? '',
       notes: chemist.notes ?? '',
       businesses:
         chemist.businesses.length > 0
           ? chemist.businesses.map((business) => ({
+              id: business.id,
               outletName: business.outletName,
               userName: business.userName ?? '',
               panNumber: business.panNumber ?? '',
@@ -284,6 +290,26 @@ export function ChemistFormPage() {
   }
 
   const backTo = isEdit ? `/partners/chemists/${chemistId}` : '/partners/chemists'
+
+  const requestRemoveBusiness = (index: number) => {
+    setRemoveTargetIndex(index)
+  }
+
+  const confirmRemoveBusiness = async () => {
+    if (removeTargetIndex === null) return
+    const businessId = watch(`businesses.${removeTargetIndex}.id`)
+    try {
+      if (isEdit && chemistId && businessId) {
+        await deleteChemistBusiness({ id: chemistId, businessId }).unwrap()
+        toast.success('Outlet removed successfully.')
+      }
+      remove(removeTargetIndex)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to remove outlet.'))
+    } finally {
+      setRemoveTargetIndex(null)
+    }
+  }
 
   const submit = handleSubmit(async (values) => {
     const payload = toChemistApiPayload(values)
@@ -379,7 +405,7 @@ export function ChemistFormPage() {
                   </Typography>
                   {fields.length > 1 && (
                     <Tooltip title="Remove outlet">
-                      <IconButton size="small" color="error" onClick={() => remove(index)} aria-label="Remove outlet">
+                      <IconButton size="small" color="error" onClick={() => requestRemoveBusiness(index)} aria-label="Remove outlet">
                         <Trash2 size={18} />
                       </IconButton>
                     </Tooltip>
@@ -550,6 +576,19 @@ export function ChemistFormPage() {
           </Button>
         </Stack>
       </form>
+
+      <Modal
+        open={removeTargetIndex !== null}
+        onClose={() => setRemoveTargetIndex(null)}
+        title="Remove outlet"
+        description="This action cannot be undone. Are you sure you want to remove this outlet?"
+        primaryActionLabel="Remove"
+        primaryActionColor="error"
+        onPrimaryAction={confirmRemoveBusiness}
+        loading={isDeletingBusiness}
+      >
+        <></>
+      </Modal>
     </>
   )
 }

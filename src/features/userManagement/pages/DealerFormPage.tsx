@@ -20,6 +20,7 @@ import { MapPin as PlaceOutlinedIcon, Plus, Trash2 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { LocationMapPicker } from '@/components/common/LocationMapPicker/LocationMapPicker'
+import { Modal } from '@/components/common/Modal/Modal'
 import { useToast } from '@/contexts/ToastContext'
 import { radius } from '@/theme/tokens'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
@@ -40,6 +41,7 @@ import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail
 import {
   useCreateDealerMutation,
   useUpdateDealerMutation,
+  useDeleteDealerBusinessMutation,
 } from '@/features/userManagement/services/dealerApi'
 import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
@@ -200,6 +202,8 @@ export function DealerFormPage() {
   const { dealer, isLoading: isDealerLoading } = useDealerDetail(dealerId)
   const [createDealer, { isLoading: isCreating }] = useCreateDealerMutation()
   const [updateDealer, { isLoading: isUpdating }] = useUpdateDealerMutation()
+  const [deleteDealerBusiness, { isLoading: isDeletingBusiness }] =
+    useDeleteDealerBusinessMutation()
   const [regions, setRegions] = useState<RegionOption[]>(
     fallbackRegions.filter((region) => region.code !== 'ALL_INDIA'),
   )
@@ -207,6 +211,7 @@ export function DealerFormPage() {
     useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
   const [mapPickerIndex, setMapPickerIndex] = useState<number | null>(null)
+  const [removeTargetIndex, setRemoveTargetIndex] = useState<number | null>(null)
 
   useEffect(() => {
     let ignore = false
@@ -248,11 +253,12 @@ export function DealerFormPage() {
       gstNumber: dealer.licenseNumber,
       profileImageUrl: dealer.profileImageUrl ?? '',
       regionId: dealer.regionId ?? '',
-      assignedMedicalRepresentativeId: dealer.assignedMr,
+      assignedMedicalRepresentativeId: dealer.assignedMrId ?? '',
       notes: dealer.notes ?? '',
       businesses:
         dealer.businesses.length > 0
           ? dealer.businesses.map((business) => ({
+              id: business.id,
               outletName: business.outletName,
               userName: business.userName ?? '',
               panNumber: business.panNumber ?? '',
@@ -297,6 +303,26 @@ export function DealerFormPage() {
   }
 
   const backTo = isEdit ? `/partners/dealers/${dealerId}` : '/partners/dealers'
+
+  const requestRemoveBusiness = (index: number) => {
+    setRemoveTargetIndex(index)
+  }
+
+  const confirmRemoveBusiness = async () => {
+    if (removeTargetIndex === null) return
+    const businessId = watch(`businesses.${removeTargetIndex}.id`)
+    try {
+      if (isEdit && dealerId && businessId) {
+        await deleteDealerBusiness({ id: dealerId, businessId }).unwrap()
+        toast.success('Godown removed successfully.')
+      }
+      remove(removeTargetIndex)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to remove godown.'))
+    } finally {
+      setRemoveTargetIndex(null)
+    }
+  }
 
   const submit = handleSubmit(async (values) => {
     const payload = toDealerApiPayload(values)
@@ -432,7 +458,7 @@ export function DealerFormPage() {
                       <IconButton
                         size="small"
                         color="error"
-                        onClick={() => remove(index)}
+                        onClick={() => requestRemoveBusiness(index)}
                         aria-label="Remove godown"
                       >
                         <Trash2 size={18} />
@@ -641,6 +667,19 @@ export function DealerFormPage() {
           </Button>
         </Stack>
       </form>
+
+      <Modal
+        open={removeTargetIndex !== null}
+        onClose={() => setRemoveTargetIndex(null)}
+        title="Remove godown"
+        description="This action cannot be undone. Are you sure you want to remove this godown?"
+        primaryActionLabel="Remove"
+        primaryActionColor="error"
+        onPrimaryAction={confirmRemoveBusiness}
+        loading={isDeletingBusiness}
+      >
+        <></>
+      </Modal>
     </>
   )
 }

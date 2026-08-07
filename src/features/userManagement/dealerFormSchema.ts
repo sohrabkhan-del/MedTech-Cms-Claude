@@ -8,6 +8,7 @@ import {
 const uuidMessage = 'Enter a valid UUID'
 
 export const dealerBusinessSchema = z.object({
+  id: z.string().optional(),
   outletName: z.string().min(2, 'Godown/outlet name is required'),
   userName: z.string().optional(),
   panNumber: z

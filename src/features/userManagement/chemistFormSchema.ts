@@ -3,6 +3,7 @@ import { z } from 'zod'
 const uuidMessage = 'Enter a valid UUID'
 
 export const chemistBusinessSchema = z.object({
+  id: z.string().optional(),
   outletName: z.string().min(2, 'Outlet name is required'),
   userName: z.string().optional(),
   panNumber: z

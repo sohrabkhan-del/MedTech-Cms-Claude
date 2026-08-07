@@ -73,6 +73,7 @@ export const tagTypes = [
   'Chemists',
   'Partners',
   'Verification',
+  'Notifications',
 ] as const
 
 export type FeatureTag = (typeof tagTypes)[number]

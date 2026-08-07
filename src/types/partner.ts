@@ -48,6 +48,7 @@ export interface LicenseDocument {
 }
 
 export interface PartnerBusinessDetail {
+  id?: string
   outletName: string
   userName?: string
   panNumber?: string

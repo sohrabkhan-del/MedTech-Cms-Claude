@@ -60,6 +60,7 @@ export interface PartnerBusinessDetail {
   city?: string
   district?: string
   state?: string
+  country?: string
   pincode?: string
   latitude?: number
   longitude?: number
@@ -77,6 +78,7 @@ export interface PartnerBase {
   ownerName: string
   email: string
   phone: string
+  country?: string
   city: string
   zone: PartnerZone
   status: PartnerStatus

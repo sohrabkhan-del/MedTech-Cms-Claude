@@ -1,7 +1,18 @@
-import { Avatar, Button, Card, Grid, Stack, Tooltip, Typography } from '@mui/material'
-import { CircleCheck, Ban } from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Avatar,
+  Button,
+  Card,
+  Grid,
+  Stack,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import { CircleCheck, Ban, Pencil, Trash2 } from 'lucide-react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
+import { Modal } from '@/components/common/Modal/Modal'
 import { useGetMedicalRepDetailQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import type { PartnerBase } from '@/types/partner'
 
@@ -13,6 +24,10 @@ interface PartnerSummaryHeaderProps {
   shopLabel?: string
   onActivate: () => void
   onDeactivate: () => void
+  isUpdatingStatus?: boolean
+  onDelete?: () => Promise<boolean | void> | boolean | void
+  isDeleting?: boolean
+  editPath?: string
 }
 
 export function PartnerSummaryHeader({
@@ -20,7 +35,13 @@ export function PartnerSummaryHeader({
   shopLabel = 'Shop Name',
   onActivate,
   onDeactivate,
+  isUpdatingStatus = false,
+  onDelete,
+  isDeleting = false,
+  editPath,
 }: PartnerSummaryHeaderProps) {
+  const navigate = useNavigate()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const isActive = partner.status === 'active'
   const assignedMrIsId = UUID_PATTERN.test(partner.assignedMr)
   const { data: assignedMrDetail } = useGetMedicalRepDetailQuery(
@@ -37,142 +58,194 @@ export function PartnerSummaryHeader({
     .join(' · ')
 
   return (
-    <Card sx={{ p: 3, mb: 3 }}>
+    <>
       <Stack
         direction={{ xs: 'column', md: 'row' }}
-        spacing={3}
-        sx={{ justifyContent: 'space-between' }}
+        spacing={2}
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: { md: 'center' },
+          mb: 2,
+        }}
       >
-        <Stack direction="row" spacing={2}>
-          <Avatar
-            sx={{
-              width: 56,
-              height: 56,
-              bgcolor: 'primary.main',
-              fontSize: '1.25rem',
-              fontWeight: 700,
-            }}
-          >
-            {partner.shopName.slice(0, 1)}
-          </Avatar>
-          <Stack spacing={1.5}>
-            <Stack
-              direction="row"
-              spacing={1.5}
-              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
-            >
-              <Typography sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
-                {partner.shopName}
-              </Typography>
-              <StatusBadge status={partner.status} />
-            </Stack>
-
-            <Grid container spacing={2} sx={{ mt: 0.5 }}>
-              <Grid size={{ xs: 6, sm: 4 }}>
-                <Typography variant="caption" sx={{ display: 'block' }}>
-                  {shopLabel}
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                  {partner.shopName}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 4 }}>
-                <Typography variant="caption" sx={{ display: 'block' }}>
-                  City / Region
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                  {partner.city} · {partner.zone}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 4 }}>
-                <Typography variant="caption" sx={{ display: 'block' }}>
-                  Contact Number
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                  {partner.phone}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 4 }}>
-                <Typography variant="caption" sx={{ display: 'block' }}>
-                  Assigned MR
-                </Typography>
-                <Tooltip
-                  title={
-                    assignedMrDetail
-                      ? `${assignedMrDetail.email} · ${assignedMrDetail.phone} · ${assignedMrDetail.totalDealersOnboarded} dealers, ${assignedMrDetail.totalChemistsOnboarded} chemists onboarded`
-                      : ''
-                  }
-                >
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                    {assignedMrLabel}
-                  </Typography>
-                </Tooltip>
-                {assignedMrMeta && (
-                  <Typography
-                    variant="caption"
-                    sx={{ display: 'block', color: 'text.secondary' }}
-                  >
-                    {assignedMrMeta}
-                  </Typography>
-                )}
-              </Grid>
-              <Grid size={{ xs: 6, sm: 4 }}>
-                <Typography variant="caption" sx={{ display: 'block' }}>
-                  Geo-tag Status
-                </Typography>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                  {partner.geoLock.active ? 'Tagged' : 'Pending'}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 4 }}>
-                <Typography variant="caption" sx={{ display: 'block' }}>
-                  Points Earned
-                </Typography>
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: '0.875rem',
-                    color: 'primary.main',
-                  }}
-                >
-                  {partner.availablePoints.toLocaleString('en-IN')}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Stack>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '1.25rem' }}>
+            {partner.shopName}
+          </Typography>
+          <StatusBadge status={partner.status} />
         </Stack>
 
-        <Stack spacing={1} sx={{ minWidth: 220 }}>
-          <Typography
-            variant="caption"
-            sx={{ textTransform: 'uppercase', fontWeight: 700 }}
-          >
-            Account Actions
-          </Typography>
-          <Stack direction="row" spacing={1.5}>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ flexWrap: 'nowrap', flexShrink: 0 }}
+        >
+          {isActive ? (
             <Button
-              variant={isActive ? 'outlined' : 'contained'}
-              color="primary"
-              startIcon={<CircleCheck />}
-              onClick={onActivate}
-              disabled={isActive}
-              fullWidth
-            >
-              Activate
-            </Button>
-            <Button
-              variant={isActive ? 'contained' : 'outlined'}
+              variant="contained"
               color="error"
-              startIcon={<Ban />}
+              startIcon={<Ban size={18} />}
               onClick={onDeactivate}
-              disabled={!isActive}
-              fullWidth
+              loading={isUpdatingStatus}
+              sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
             >
               Deactivate
             </Button>
-          </Stack>
+          ) : (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<CircleCheck size={18} />}
+              onClick={onActivate}
+              loading={isUpdatingStatus}
+              sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              Activate
+            </Button>
+          )}
+          {editPath && (
+            <Button
+              variant="outlined"
+              startIcon={<Pencil size={16} />}
+              onClick={() => navigate(editPath)}
+              sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              Edit
+            </Button>
+          )}
+          {onDelete && (
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<Trash2 size={16} />}
+              onClick={() => setDeleteDialogOpen(true)}
+              sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}
+            >
+              Delete
+            </Button>
+          )}
         </Stack>
       </Stack>
-    </Card>
+
+      <Card sx={{ p: 3, mb: 3 }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={3}
+          sx={{ justifyContent: 'space-between', alignItems: { md: 'center' } }}
+        >
+          <Stack direction="row" spacing={2}>
+            <Avatar
+              sx={{
+                width: 56,
+                height: 56,
+                bgcolor: 'primary.main',
+                fontSize: '1.25rem',
+                fontWeight: 700,
+              }}
+            >
+              {partner.shopName.slice(0, 1)}
+            </Avatar>
+            <Stack spacing={1.5} sx={{ justifyContent: 'center' }}>
+              <Grid
+                container
+                spacing={2}
+                sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <Typography variant="caption" sx={{ display: 'block' }}>
+                    {shopLabel}
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                    {partner.shopName}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <Typography variant="caption" sx={{ display: 'block' }}>
+                    City / Region
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                    {partner.city} · {partner.zone}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <Typography variant="caption" sx={{ display: 'block' }}>
+                    Contact Number
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                    {partner.phone}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <Typography variant="caption" sx={{ display: 'block' }}>
+                    Assigned MR
+                  </Typography>
+                  <Tooltip
+                    title={
+                      assignedMrDetail
+                        ? `${assignedMrDetail.email} · ${assignedMrDetail.phone} · ${assignedMrDetail.totalDealersOnboarded} dealers, ${assignedMrDetail.totalChemistsOnboarded} chemists onboarded`
+                        : ''
+                    }
+                  >
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                      {assignedMrLabel}
+                    </Typography>
+                  </Tooltip>
+                  {assignedMrMeta && (
+                    <Typography
+                      variant="caption"
+                      sx={{ display: 'block', color: 'text.secondary' }}
+                    >
+                      {assignedMrMeta}
+                    </Typography>
+                  )}
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <Typography variant="caption" sx={{ display: 'block' }}>
+                    Geo-tag Status
+                  </Typography>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                    {partner.geoLock.active ? 'Tagged' : 'Pending'}
+                  </Typography>
+                </Grid>
+                <Grid size={{ xs: 6, sm: 4 }}>
+                  <Typography variant="caption" sx={{ display: 'block' }}>
+                    Points Earned
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontWeight: 700,
+                      fontSize: '0.875rem',
+                      color: 'primary.main',
+                    }}
+                  >
+                    {partner.availablePoints.toLocaleString('en-IN')}
+                  </Typography>
+                </Grid>
+              </Grid>
+            </Stack>
+          </Stack>
+        </Stack>
+      </Card>
+
+      {onDelete && (
+        <Modal
+          open={deleteDialogOpen}
+          onClose={() => setDeleteDialogOpen(false)}
+          title="Delete Partner"
+          description={`Are you sure you want to delete "${partner.shopName}"? This action cannot be undone.`}
+          primaryActionLabel="Delete"
+          primaryActionColor="error"
+          loading={isDeleting}
+          onPrimaryAction={async () => {
+            const result = await onDelete()
+            if (result !== false) {
+              setDeleteDialogOpen(false)
+            }
+          }}
+        >
+          <span />
+        </Modal>
+      )}
+    </>
   )
 }

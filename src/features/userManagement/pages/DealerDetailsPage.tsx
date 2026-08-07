@@ -18,7 +18,8 @@ import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemp
 export function DealerDetailsPage() {
   const { dealerId } = useParams<{ dealerId: string }>()
   const navigate = useNavigate()
-  const { dealer, isLoading, activate, deactivate } = useDealerDetail(dealerId)
+  const { dealer, isLoading, activate, deactivate, remove, isUpdatingStatus, isDeleting } =
+    useDealerDetail(dealerId)
   const { redemptions, isLoading: isRedemptionsLoading } =
     useUserRedemptions(dealerId)
 
@@ -44,6 +45,16 @@ export function DealerDetailsPage() {
         shopLabel="Business Name"
         onActivate={activate}
         onDeactivate={deactivate}
+        isUpdatingStatus={isUpdatingStatus}
+        editPath={`/partners/dealers/${dealerId}/edit`}
+        onDelete={async () => {
+          const success = await remove()
+          if (success) {
+            navigate('/partners/dealers')
+          }
+          return success
+        }}
+        isDeleting={isDeleting}
       />
 
       <PartnerDetailsFieldsCard partner={dealer} shopLabel="Business Name" />

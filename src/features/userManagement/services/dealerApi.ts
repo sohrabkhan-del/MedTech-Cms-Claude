@@ -1,5 +1,9 @@
 import { baseApi } from '@/store/api/baseApi'
-import { mockDealers, dealerKpis, getDealerById } from '@/features/userManagement/mockDealers'
+import {
+  mockDealers,
+  dealerKpis,
+  getDealerById,
+} from '@/features/userManagement/mockDealers'
 import type { Dealer } from '@/types/dealer'
 import type { DealerApiPayload } from '@/features/userManagement/dealerFormSchema'
 import { mockDelay } from '@/services/mockDelay'
@@ -95,16 +99,23 @@ interface PartnerDealerItem {
   }>
 }
 
-function mapPartnerDocuments(documents?: PartnerDocumentApiItem[]): LicenseDocument[] {
-  if (!documents) return []
-  return documents.map((doc) => ({
-    id: doc.id,
-    documentName: doc.name,
-    uploadDate: '-',
-    verificationStatus: 'pending',
-    expiryDate: '-',
-    fileUrl: doc.path,
-  }))
+function mapPartnerDocuments(
+  businesses?: PartnerDealerItem['business'],
+): LicenseDocument[] {
+  if (!businesses) return []
+  return businesses.flatMap((b) =>
+    (b.documents ?? []).map((doc) => ({
+      id: doc.id,
+      documentName:
+        businesses.length > 1 && b.outletName
+          ? `${b.outletName} · ${doc.name}`
+          : doc.name,
+      uploadDate: '-',
+      verificationStatus: 'pending' as const,
+      expiryDate: '-',
+      fileUrl: doc.path,
+    })),
+  )
 }
 
 function mapStatus(status?: string | null, isBlocked?: boolean): PartnerStatus {
@@ -157,7 +168,9 @@ function mapPartnerBusinesses(
     drugLicenseNumber: b.drugLicenseNumber ?? undefined,
     drugLicenseExpiry: b.drugLicenseExpiry ?? undefined,
     addressType:
-      b.addressType === 'SHOP' || b.addressType === 'GODOWN' || b.addressType === 'OTHER'
+      b.addressType === 'SHOP' ||
+      b.addressType === 'GODOWN' ||
+      b.addressType === 'OTHER'
         ? b.addressType
         : undefined,
     addressLine1: b.addressLine1 ?? undefined,
@@ -228,7 +241,7 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
     scanHistory: [],
     PointsHistory: [],
     interestedProducts: [],
-    documents: mapPartnerDocuments(business?.documents),
+    documents: mapPartnerDocuments(item.business),
     businesses: mapPartnerBusinesses(item.business),
     geoLock,
     activeOrders: 0,
@@ -268,7 +281,9 @@ interface PartnerAnalyticsApiResponse {
   }
 }
 
-function mapPartnerAnalytics(response: PartnerAnalyticsApiResponse): DealerKpis {
+function mapPartnerAnalytics(
+  response: PartnerAnalyticsApiResponse,
+): DealerKpis {
   const data = response.data
   return {
     totalDealers: data.totalPartners,
@@ -320,7 +335,9 @@ const dealerApi = baseApi.injectEndpoints({
         url: `/partners/${id}`,
         mockResolver: () => mockDelay(getDealerById(id)),
       }),
-      transformResponse: (response: PartnerDetailApiResponse | Dealer | undefined) =>
+      transformResponse: (
+        response: PartnerDetailApiResponse | Dealer | undefined,
+      ) =>
         response && 'data' in response
           ? mapPartnerDealer(response.data)
           : response,
@@ -351,8 +368,9 @@ const dealerApi = baseApi.injectEndpoints({
         },
         mockResolver: () => mockDelay(dealerKpis),
       }),
-      transformResponse: (response: PartnerAnalyticsApiResponse | DealerKpis) =>
-        'data' in response ? mapPartnerAnalytics(response) : response,
+      transformResponse: (
+        response: PartnerAnalyticsApiResponse | DealerKpis,
+      ) => ('data' in response ? mapPartnerAnalytics(response) : response),
       providesTags: [{ type: 'Partners', id: 'DEALER_ANALYTICS' }],
     }),
 
@@ -363,6 +381,33 @@ const dealerApi = baseApi.injectEndpoints({
         method: 'PATCH',
         mockResolver: () => Promise.resolve(),
       }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const detailPatch = dispatch(
+          dealerApi.util.updateQueryData('getDealerDetail', id, (draft) => {
+            if (draft) {
+              draft.status = 'active'
+            }
+          }),
+        )
+
+        const listPatch = dispatch(
+          dealerApi.util.updateQueryData('getDealers', undefined, (draft) => {
+            if (!draft) return
+
+            const item = draft.find((entry) => entry.id === id)
+            if (item) {
+              item.status = 'active'
+            }
+          }),
+        )
+
+        try {
+          await queryFulfilled
+        } catch {
+          detailPatch.undo()
+          listPatch.undo()
+        }
+      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Partners', id },
         { type: 'Partners', id: 'LIST' },
@@ -377,6 +422,33 @@ const dealerApi = baseApi.injectEndpoints({
         method: 'PATCH',
         mockResolver: () => Promise.resolve(),
       }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const detailPatch = dispatch(
+          dealerApi.util.updateQueryData('getDealerDetail', id, (draft) => {
+            if (draft) {
+              draft.status = 'inactive'
+            }
+          }),
+        )
+
+        const listPatch = dispatch(
+          dealerApi.util.updateQueryData('getDealers', undefined, (draft) => {
+            if (!draft) return
+
+            const item = draft.find((entry) => entry.id === id)
+            if (item) {
+              item.status = 'inactive'
+            }
+          }),
+        )
+
+        try {
+          await queryFulfilled
+        } catch {
+          detailPatch.undo()
+          listPatch.undo()
+        }
+      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Partners', id },
         { type: 'Partners', id: 'LIST' },
@@ -398,7 +470,10 @@ const dealerApi = baseApi.injectEndpoints({
       ],
     }),
 
-    updateDealer: builder.mutation<void, { id: string; payload: DealerApiPayload }>({
+    updateDealer: builder.mutation<
+      void,
+      { id: string; payload: DealerApiPayload }
+    >({
       query: ({ id, payload }) => ({
         tag: 'Partners',
         url: `/partners/${id}`,
@@ -407,6 +482,20 @@ const dealerApi = baseApi.injectEndpoints({
         mockResolver: () => Promise.resolve(),
       }),
       invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Partners', id },
+        { type: 'Partners', id: 'LIST' },
+        { type: 'Partners', id: 'KPIS' },
+      ],
+    }),
+
+    deleteDealer: builder.mutation<void, string>({
+      query: (id) => ({
+        tag: 'Partners',
+        url: `/partners/${id}`,
+        method: 'DELETE',
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, id) => [
         { type: 'Partners', id },
         { type: 'Partners', id: 'LIST' },
         { type: 'Partners', id: 'KPIS' },
@@ -424,4 +513,5 @@ export const {
   useDeactivateDealerMutation,
   useCreateDealerMutation,
   useUpdateDealerMutation,
+  useDeleteDealerMutation,
 } = dealerApi

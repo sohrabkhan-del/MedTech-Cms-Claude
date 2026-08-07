@@ -19,7 +19,7 @@ import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemp
 export function ChemistDetailsPage() {
   const { chemistId } = useParams<{ chemistId: string }>()
   const navigate = useNavigate()
-  const { chemist, isLoading, activate, deactivate } =
+  const { chemist, isLoading, activate, deactivate, remove, isUpdatingStatus, isDeleting } =
     useChemistDetail(chemistId)
   const { redemptions, isLoading: isRedemptionsLoading } =
     useUserRedemptions(chemistId)
@@ -51,6 +51,16 @@ export function ChemistDetailsPage() {
         shopLabel="Chemist Shop Name"
         onActivate={activate}
         onDeactivate={deactivate}
+        isUpdatingStatus={isUpdatingStatus}
+        editPath={`/partners/chemists/${chemistId}/edit`}
+        onDelete={async () => {
+          const success = await remove()
+          if (success) {
+            navigate('/partners/chemists')
+          }
+          return success
+        }}
+        isDeleting={isDeleting}
       />
 
       <PartnerDetailsFieldsCard

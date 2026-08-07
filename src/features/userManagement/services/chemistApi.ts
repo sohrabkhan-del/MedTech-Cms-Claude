@@ -101,16 +101,23 @@ interface PartnerChemistItem {
   }>
 }
 
-function mapPartnerDocuments(documents?: PartnerDocumentApiItem[]): LicenseDocument[] {
-  if (!documents) return []
-  return documents.map((doc) => ({
-    id: doc.id,
-    documentName: doc.name,
-    uploadDate: '-',
-    verificationStatus: 'pending',
-    expiryDate: '-',
-    fileUrl: doc.path,
-  }))
+function mapPartnerDocuments(
+  businesses?: PartnerChemistItem['business'],
+): LicenseDocument[] {
+  if (!businesses) return []
+  return businesses.flatMap((b) =>
+    (b.documents ?? []).map((doc) => ({
+      id: doc.id,
+      documentName:
+        businesses.length > 1 && b.outletName
+          ? `${b.outletName} · ${doc.name}`
+          : doc.name,
+      uploadDate: '-',
+      verificationStatus: 'pending' as const,
+      expiryDate: '-',
+      fileUrl: doc.path,
+    })),
+  )
 }
 
 function mapStatus(status?: string | null, isBlocked?: boolean): PartnerStatus {
@@ -163,7 +170,9 @@ function mapPartnerBusinesses(
     drugLicenseNumber: b.drugLicenseNumber ?? undefined,
     drugLicenseExpiry: b.drugLicenseExpiry ?? undefined,
     addressType:
-      b.addressType === 'SHOP' || b.addressType === 'GODOWN' || b.addressType === 'OTHER'
+      b.addressType === 'SHOP' ||
+      b.addressType === 'GODOWN' ||
+      b.addressType === 'OTHER'
         ? b.addressType
         : undefined,
     addressLine1: b.addressLine1 ?? undefined,
@@ -172,6 +181,7 @@ function mapPartnerBusinesses(
     city: b.city ?? undefined,
     district: b.district ?? undefined,
     state: b.state ?? undefined,
+    country: b.country ?? undefined,
     pincode: b.pincode ?? undefined,
     latitude: b.latitude ?? undefined,
     longitude: b.longitude ?? undefined,
@@ -205,6 +215,7 @@ function mapPartnerChemist(item: PartnerChemistItem): Chemist {
     ownerName,
     email: item.email ?? '-',
     phone: item.phone ?? '-',
+    country: item.country ?? undefined,
     city: business?.city ?? '-',
     zone: inferZone(business?.state),
     status: mapStatus(item.status, item.isBlocked),
@@ -225,7 +236,7 @@ function mapPartnerChemist(item: PartnerChemistItem): Chemist {
     scanHistory: [],
     PointsHistory: [],
     interestedProducts: [],
-    documents: mapPartnerDocuments(business?.documents),
+    documents: mapPartnerDocuments(item.business),
     businesses: mapPartnerBusinesses(item.business),
     geoLock: {
       active: Boolean(business?.latitude && business?.longitude),
@@ -262,7 +273,9 @@ interface PartnerAnalyticsApiResponse {
   }
 }
 
-function mapPartnerAnalytics(response: PartnerAnalyticsApiResponse): ChemistKpis {
+function mapPartnerAnalytics(
+  response: PartnerAnalyticsApiResponse,
+): ChemistKpis {
   const data = response.data
   return {
     totalChemists: data.totalPartners,
@@ -315,7 +328,9 @@ const chemistApi = baseApi.injectEndpoints({
         url: `/partners/${id}`,
         mockResolver: () => mockDelay(getChemistById(id)),
       }),
-      transformResponse: (response: PartnerDetailApiResponse | Chemist | undefined) =>
+      transformResponse: (
+        response: PartnerDetailApiResponse | Chemist | undefined,
+      ) =>
         response && 'data' in response
           ? mapPartnerChemist(response.data)
           : response,
@@ -346,8 +361,9 @@ const chemistApi = baseApi.injectEndpoints({
         },
         mockResolver: () => mockDelay(chemistKpis),
       }),
-      transformResponse: (response: PartnerAnalyticsApiResponse | ChemistKpis) =>
-        'data' in response ? mapPartnerAnalytics(response) : response,
+      transformResponse: (
+        response: PartnerAnalyticsApiResponse | ChemistKpis,
+      ) => ('data' in response ? mapPartnerAnalytics(response) : response),
       providesTags: [{ type: 'Chemists', id: 'ANALYTICS' }],
     }),
 
@@ -358,6 +374,33 @@ const chemistApi = baseApi.injectEndpoints({
         method: 'PATCH',
         mockResolver: () => Promise.resolve(),
       }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const detailPatch = dispatch(
+          chemistApi.util.updateQueryData('getChemistDetail', id, (draft) => {
+            if (draft) {
+              draft.status = 'active'
+            }
+          }),
+        )
+
+        const listPatch = dispatch(
+          chemistApi.util.updateQueryData('getChemists', undefined, (draft) => {
+            if (!draft) return
+
+            const item = draft.find((entry) => entry.id === id)
+            if (item) {
+              item.status = 'active'
+            }
+          }),
+        )
+
+        try {
+          await queryFulfilled
+        } catch {
+          detailPatch.undo()
+          listPatch.undo()
+        }
+      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Chemists', id },
         { type: 'Chemists', id: 'LIST' },
@@ -372,6 +415,33 @@ const chemistApi = baseApi.injectEndpoints({
         method: 'PATCH',
         mockResolver: () => Promise.resolve(),
       }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const detailPatch = dispatch(
+          chemistApi.util.updateQueryData('getChemistDetail', id, (draft) => {
+            if (draft) {
+              draft.status = 'inactive'
+            }
+          }),
+        )
+
+        const listPatch = dispatch(
+          chemistApi.util.updateQueryData('getChemists', undefined, (draft) => {
+            if (!draft) return
+
+            const item = draft.find((entry) => entry.id === id)
+            if (item) {
+              item.status = 'inactive'
+            }
+          }),
+        )
+
+        try {
+          await queryFulfilled
+        } catch {
+          detailPatch.undo()
+          listPatch.undo()
+        }
+      },
       invalidatesTags: (_result, _error, id) => [
         { type: 'Chemists', id },
         { type: 'Chemists', id: 'LIST' },
@@ -393,7 +463,10 @@ const chemistApi = baseApi.injectEndpoints({
       ],
     }),
 
-    updateChemist: builder.mutation<void, { id: string; payload: ChemistApiPayload }>({
+    updateChemist: builder.mutation<
+      void,
+      { id: string; payload: ChemistApiPayload }
+    >({
       query: ({ id, payload }) => ({
         tag: 'Chemists',
         url: `/partners/${id}`,
@@ -402,6 +475,20 @@ const chemistApi = baseApi.injectEndpoints({
         mockResolver: () => Promise.resolve(),
       }),
       invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Chemists', id },
+        { type: 'Chemists', id: 'LIST' },
+        { type: 'Chemists', id: 'KPIS' },
+      ],
+    }),
+
+    deleteChemist: builder.mutation<void, string>({
+      query: (id) => ({
+        tag: 'Chemists',
+        url: `/partners/${id}`,
+        method: 'DELETE',
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, id) => [
         { type: 'Chemists', id },
         { type: 'Chemists', id: 'LIST' },
         { type: 'Chemists', id: 'KPIS' },
@@ -419,4 +506,5 @@ export const {
   useDeactivateChemistMutation,
   useCreateChemistMutation,
   useUpdateChemistMutation,
+  useDeleteChemistMutation,
 } = chemistApi

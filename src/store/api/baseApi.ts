@@ -94,6 +94,7 @@ const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   Partners: 'real',
   ProductCategories: 'real',
   ShowcaseProducts: 'real',
+  Verification: 'real',
 }
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {

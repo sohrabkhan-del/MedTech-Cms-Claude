@@ -69,6 +69,7 @@ export interface PartnerBusinessDetail {
   geoAccuracy?: number
   regionId?: string
   notes?: string
+  documents: LicenseDocument[]
 }
 
 export interface PartnerBase {
@@ -89,9 +90,15 @@ export interface PartnerBase {
   drugLicenseNumber?: string
   drugLicenseExpiry?: string
   regionId?: string
+  regionName?: string
   onboardedBy: OnboardedBy
-  availablePoints: number
   assignedMr: string
+  assignedMrId?: string
+  assignedMrName?: string
+  assignedMrCode?: string
+  assignedMrPhone?: string
+  assignedMrEmail?: string
+  availablePoints: number
   notes?: string
   geoLock: GeoLockDetails
   registeredAddress: string

@@ -109,6 +109,17 @@ interface CommonTableProps<T> {
    * new sort key/direction instead of re-sorting locally.
    */
   onSortChange?: (sortBy: string, sortDir: SortDirection) => void
+  /**
+   * When provided (together with `page`/`onPageChange`), pagination is
+   * delegated to the caller's API call instead of being computed
+   * client-side: `rows` are assumed to be just the current page, and
+   * `totalCount` drives the pagination control's page count.
+   */
+  totalCount?: number
+  page?: number
+  onPageChange?: (page: number) => void
+  rowsPerPage?: number
+  onRowsPerPageChange?: (rowsPerPage: number) => void
 }
 
 export function CommonTable<T>({
@@ -135,12 +146,32 @@ export function CommonTable<T>({
   defaultSortBy,
   defaultSortDir = 'asc',
   onSortChange,
+  totalCount,
+  page: controlledPage,
+  onPageChange,
+  rowsPerPage: controlledRowsPerPage,
+  onRowsPerPageChange,
 }: CommonTableProps<T>) {
   const navigate = useNavigate()
+  const isServerPaginated = totalCount !== undefined && onPageChange !== undefined
   const [search, setSearch] = useState('')
   const activeSearch = searchValue ?? search
-  const [page, setPage] = useState(0)
-  const [rowsPerPage, setRowsPerPage] = useState(rowsPerPageOptions[0] ?? 10)
+  const [localPage, setLocalPage] = useState(0)
+  const [localRowsPerPage, setLocalRowsPerPage] = useState(
+    rowsPerPageOptions[0] ?? 10,
+  )
+  const page = isServerPaginated ? (controlledPage ?? 0) : localPage
+  const rowsPerPage = isServerPaginated
+    ? (controlledRowsPerPage ?? rowsPerPageOptions[0] ?? 10)
+    : localRowsPerPage
+  const setPage = isServerPaginated ? (onPageChange ?? (() => {})) : setLocalPage
+  const setRowsPerPage = (next: number) => {
+    if (isServerPaginated) {
+      onRowsPerPageChange?.(next)
+    } else {
+      setLocalRowsPerPage(next)
+    }
+  }
   const [sortBy, setSortBy] = useState<string | undefined>(defaultSortBy)
   const [sortDir, setSortDir] = useState<SortDirection>(defaultSortDir)
   const [actionMenuAnchor, setActionMenuAnchor] = useState<HTMLElement | null>(
@@ -197,11 +228,10 @@ export function CommonTable<T>({
     })
   }, [filteredRows, sortBy, sortDir, columns, onSortChange])
 
-  const pagedRows = useMemo(
-    () =>
-      sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [sortedRows, page, rowsPerPage],
-  )
+  const pagedRows = useMemo(() => {
+    if (isServerPaginated) return sortedRows
+    return sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+  }, [sortedRows, page, rowsPerPage, isServerPaginated])
 
   const handleSort = (columnKey: string) => {
     const nextDir: SortDirection =
@@ -525,7 +555,7 @@ export function CommonTable<T>({
             <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
               <TablePagination
                 component="div"
-                count={sortedRows.length}
+                count={isServerPaginated ? (totalCount ?? 0) : sortedRows.length}
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
                 rowsPerPage={rowsPerPage}

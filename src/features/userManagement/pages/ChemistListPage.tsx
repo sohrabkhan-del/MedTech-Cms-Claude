@@ -74,6 +74,8 @@ export function ChemistListPage() {
   })
   const [sortColumn, setSortColumn] = useState('shopName')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   useEffect(() => {
     let ignore = false
@@ -92,9 +94,9 @@ export function ChemistListPage() {
   const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
   const debouncedSearch = useDebouncedValue(search, 300)
 
-  const { chemists, kpis, isLoading } = useChemists({
-    page: 1,
-    limit: 10,
+  const { chemists, totalItems, kpis, isLoading } = useChemists({
+    page: page + 1,
+    limit: rowsPerPage,
     search: debouncedSearch,
     status: appliedFilters.status,
     regionId: effectiveRegionId,
@@ -190,9 +192,10 @@ export function ChemistListPage() {
               value={chemistKpis.totalChemists}
               icon={<LocalPharmacyIcon size={20} />}
               iconColor="primary"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, status: 'all' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
@@ -205,9 +208,10 @@ export function ChemistListPage() {
               value={chemistKpis.activeChemists}
               icon={<ActiveChemistIcon size={20} />}
               iconColor="success"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, status: 'active' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
@@ -220,9 +224,10 @@ export function ChemistListPage() {
               value={chemistKpis.inactiveChemists}
               icon={<InactiveChemistIcon size={20} />}
               iconColor="error"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, status: 'inactive' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
@@ -235,9 +240,10 @@ export function ChemistListPage() {
               value={chemistKpis.pendingApproval}
               icon={<PendingActionsOutlinedIcon size={20} />}
               iconColor="warning"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
@@ -249,6 +255,14 @@ export function ChemistListPage() {
           setSortColumn(columnKey)
           setSortOrder(dir)
         }}
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         tableKey="chemists-list"
         columns={columns}
         rows={chemists}
@@ -256,7 +270,10 @@ export function ChemistListPage() {
         getRowId={(row) => row.id}
         searchPlaceholder="Search chemists…"
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +
@@ -312,7 +329,10 @@ export function ChemistListPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Chemists"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>

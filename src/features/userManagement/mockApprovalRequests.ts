@@ -135,6 +135,17 @@ function buildRequest(seed: number): ApprovalRequest {
     geoVerificationStatus: resolveGeoVerification(seed),
 
     documents: buildDocuments(seed, id),
+    businesses: [
+      {
+        id: `${id}-biz-0`,
+        outletName: partner.shopName,
+        addressType: businessCategories[seed % businessCategories.length]!,
+        address: partner.registeredAddress,
+        drugLicenseNumber: partner.licenseNumber,
+        panNumber: '-',
+        documents: buildDocuments(seed, id),
+      },
+    ],
 
     requestCreatedDate: dateFromSeed(seed),
     submittedBy: resolveRegisteredBy(seed) === 'Self' ? partner.ownerName : reviewedBy,

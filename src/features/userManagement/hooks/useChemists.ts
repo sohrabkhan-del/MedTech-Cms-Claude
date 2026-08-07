@@ -21,7 +21,8 @@ export function useChemists(params?: ChemistQueryParams) {
     ...analyticsParams,
     regionId: effectiveRegionId,
   })
-  const chemists = chemistsResult.data ?? []
+  const chemists = chemistsResult.data?.items ?? []
+  const totalItems = chemistsResult.data?.totalItems ?? 0
 
   const isLoading = chemistsResult.isFetching || analyticsResult.isFetching
   const error = chemistsResult.error
@@ -32,6 +33,7 @@ export function useChemists(params?: ChemistQueryParams) {
 
   return {
     chemists,
+    totalItems,
     kpis: analyticsResult.data ?? {
       totalChemists: 0,
       activeChemists: 0,

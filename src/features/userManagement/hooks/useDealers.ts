@@ -21,7 +21,8 @@ export function useDealers(params?: DealerQueryParams) {
     ...analyticsParams,
     regionId: effectiveRegionId,
   })
-  const dealers = dealersResult.data ?? []
+  const dealers = dealersResult.data?.items ?? []
+  const totalItems = dealersResult.data?.totalItems ?? 0
 
   const isLoading = dealersResult.isFetching || analyticsResult.isFetching
   const error = dealersResult.error
@@ -32,6 +33,7 @@ export function useDealers(params?: DealerQueryParams) {
 
   return {
     dealers,
+    totalItems,
     kpis: analyticsResult.data ?? {
       totalDealers: 0,
       activeDealers: 0,

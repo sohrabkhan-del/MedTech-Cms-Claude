@@ -13,7 +13,6 @@ import {
   XCircle as CancelOutlined,
   Store as StorefrontOutlined,
   Pill as LocalPharmacyOutlined,
-  Calendar as TodayOutlined,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -25,7 +24,6 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { Modal } from '@/components/common/Modal/Modal'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
-import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useRejectedRequests } from '@/features/userManagement/hooks/useRejectedRequests'
 import type {
@@ -60,18 +58,9 @@ interface RejectedFilters extends Record<string, unknown> {
 
 export function RejectedRequestsListPage() {
   const navigate = useNavigate()
-  const { region } = useRegionFilter()
-  const { requests, kpis, reviewers, reopen, remove, isLoading } =
-    useRejectedRequests()
-  useRegionTopbarHeader({
-    icon: <BlockIcon size={20} />,
-    title: 'Rejected Requests',
-    subtitle:
-      'Manage all Dealer and Chemist onboarding requests that have been rejected.',
-    isLoading,
-  })
   const [requestTypeTab, setRequestTypeTab] = useState<RequestTypeTab>('all')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const [appliedFilters, setAppliedFilters] = useState<RejectedFilters>({
     region: 'all',
     rejectedBy: 'all',
@@ -80,19 +69,31 @@ export function RejectedRequestsListPage() {
     toDate: '',
   })
   const [deleteTarget, setDeleteTarget] = useState<ApprovalRequest | null>(null)
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  const { requests, totalItems, kpis, reviewers, reopen, remove, isLoading } =
+    useRejectedRequests({
+      page: page + 1,
+      limit: rowsPerPage,
+      search,
+      type: requestTypeTab === 'all' ? undefined : requestTypeTab,
+    })
+  useRegionTopbarHeader({
+    icon: <BlockIcon size={20} />,
+    title: 'Rejected Requests',
+    subtitle:
+      'Manage all Dealer and Chemist onboarding requests that have been rejected.',
+    isLoading,
+  })
 
   const rejectedRequestKpis = kpis ?? {
     totalRejected: 0,
     dealerRejections: 0,
     chemistRejections: 0,
-    todaysRejections: 0,
   }
-  const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 
   const filteredRequests = requests.filter((request) => {
-    const topbarRegionMatch = !topbarZone || request.region === topbarZone
-    const typeMatch =
-      requestTypeTab === 'all' || request.requestType === requestTypeTab
     const regionMatch =
       appliedFilters.region === 'all' ||
       request.region === appliedFilters.region
@@ -102,13 +103,7 @@ export function RejectedRequestsListPage() {
     const reasonMatch =
       appliedFilters.rejectionReason === 'all' ||
       request.rejectionReason === appliedFilters.rejectionReason
-    return (
-      topbarRegionMatch &&
-      typeMatch &&
-      regionMatch &&
-      reviewerMatch &&
-      reasonMatch
-    )
+    return regionMatch && reviewerMatch && reasonMatch
   })
 
   const confirmDelete = () => {
@@ -118,7 +113,6 @@ export function RejectedRequestsListPage() {
   }
 
   const columns: CommonTableColumn<ApprovalRequest>[] = [
-    { key: 'id', header: 'Request ID', minWidth: 130, render: (row) => row.id },
     {
       key: 'applicantName',
       header: 'Partner Name',
@@ -201,7 +195,7 @@ export function RejectedRequestsListPage() {
   return (
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -213,7 +207,7 @@ export function RejectedRequestsListPage() {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -225,7 +219,7 @@ export function RejectedRequestsListPage() {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -237,38 +231,39 @@ export function RejectedRequestsListPage() {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
-            <StatCardSkeleton />
-          ) : (
-            <StatCard
-              label="Today's Rejections"
-              value={rejectedRequestKpis.todaysRejections}
-              icon={<TodayOutlined size={20} />}
-              iconColor="primary"
-            />
-          )}
-        </Grid>
       </Grid>
 
       <Box sx={{ mb: 2.5, mt: 7 }}>
         <ModularTabs
           tabs={REQUEST_TYPE_TABS}
           value={requestTypeTab}
-          onChange={setRequestTypeTab}
+          onChange={(next) => {
+            setRequestTypeTab(next)
+            setPage(0)
+          }}
         />
       </Box>
 
       <CommonTable
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         tableKey="rejected-requests-list"
         columns={columns}
         rows={filteredRequests}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search rejected requests…"
-        searchKeys={(row) =>
-          `${row.applicantName} ${row.id} ${row.storeName} ${row.ownerName}`
-        }
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.region !== 'all' ? 1 : 0) +
@@ -300,7 +295,10 @@ export function RejectedRequestsListPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Rejected Requests"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>

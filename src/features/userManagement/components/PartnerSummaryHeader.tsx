@@ -128,30 +128,26 @@ export function PartnerSummaryHeader({
       </Stack>
 
       <Card sx={{ p: 3, mb: 3 }}>
-        <Stack
-          direction={{ xs: 'column', md: 'row' }}
-          spacing={3}
-          sx={{ justifyContent: 'space-between', alignItems: { md: 'center' } }}
-        >
-          <Stack direction="row" spacing={2}>
-            <Avatar
-              sx={{
-                width: 56,
-                height: 56,
-                bgcolor: 'primary.main',
-                fontSize: '1.25rem',
-                fontWeight: 700,
-              }}
-            >
-              {partner.shopName.slice(0, 1)}
-            </Avatar>
-            <Stack spacing={1.5} sx={{ justifyContent: 'center' }}>
+        <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
+          <Avatar
+            sx={{
+              width: 56,
+              height: 56,
+              bgcolor: 'primary.main',
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              flexShrink: 0,
+            }}
+          >
+            {partner.shopName.slice(0, 1)}
+          </Avatar>
+          <Stack spacing={1.5} sx={{ justifyContent: 'center', flex: 1, minWidth: 0 }}>
               <Grid
                 container
                 spacing={2}
-                sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+                sx={{ alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
               >
-                <Grid size={{ xs: 6, sm: 4 }}>
+                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     {shopLabel}
                   </Typography>
@@ -159,7 +155,7 @@ export function PartnerSummaryHeader({
                     {partner.shopName}
                   </Typography>
                 </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
+                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     City / Region
                   </Typography>
@@ -167,7 +163,7 @@ export function PartnerSummaryHeader({
                     {partner.city} · {partner.zone}
                   </Typography>
                 </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
+                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     Contact Number
                   </Typography>
@@ -175,7 +171,7 @@ export function PartnerSummaryHeader({
                     {partner.phone}
                   </Typography>
                 </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
+                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     Assigned MR
                   </Typography>
@@ -199,7 +195,7 @@ export function PartnerSummaryHeader({
                     </Typography>
                   )}
                 </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
+                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     Geo-tag Status
                   </Typography>
@@ -207,7 +203,7 @@ export function PartnerSummaryHeader({
                     {partner.geoLock.active ? 'Tagged' : 'Pending'}
                   </Typography>
                 </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
+                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
                   <Typography variant="caption" sx={{ display: 'block' }}>
                     Points Earned
                   </Typography>
@@ -222,7 +218,6 @@ export function PartnerSummaryHeader({
                   </Typography>
                 </Grid>
               </Grid>
-            </Stack>
           </Stack>
         </Stack>
       </Card>

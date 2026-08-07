@@ -7,15 +7,19 @@ import {
   CircleCheck as CheckCircleOutlined,
   Trash2 as DeleteOutlined,
   Download as DownloadOutlined,
+  FilePlus2 as CreatedIcon,
+  ShieldCheck as ApprovedIcon,
+  ShieldX as RejectedIcon,
+  RotateCcw as ReopenedIcon,
+  MessageSquareText as RemarkIcon,
+  ClipboardList as DefaultNoteIcon,
+  UserRound as MrIcon,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import {
-  CommonTable,
-  type CommonTableColumn,
-} from '@/components/common/CommonTable/CommonTable'
-import { DocumentGridCard } from '@/components/common/DocumentGridCard/DocumentGridCard'
+import { GodownDocumentsCard } from '@/components/common/GodownDocumentsCard/GodownDocumentsCard'
+import { LinkedFieldValue } from '@/components/common/LinkedFieldValue/LinkedFieldValue'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
@@ -23,16 +27,44 @@ import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApp
 import {
   useReopenRequestMutation,
   useDeleteRequestMutation,
-  useUpdateDocumentMutation,
 } from '@/features/userManagement/services/verificationApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+
+const actionColorMap: Record<
+  string,
+  'success' | 'error' | 'warning' | 'info' | 'default'
+> = {
+  approved: 'success',
+  rejected: 'error',
+  reopened: 'warning',
+  created: 'info',
+  submitted: 'info',
+}
+
+function getActionColor(action: string) {
+  return actionColorMap[action.toLowerCase()] ?? 'default'
+}
+
+function getActionIcon(action: string) {
+  const normalized = action.toLowerCase()
+  if (normalized.includes('reject')) return RejectedIcon
+  if (normalized.includes('approve')) return ApprovedIcon
+  if (normalized.includes('reopen')) return ReopenedIcon
+  if (normalized.includes('created') || normalized.includes('submit'))
+    return CreatedIcon
+  if (normalized.includes('remark')) return RemarkIcon
+  return DefaultNoteIcon
+}
 
 export function RejectedRequestDetailsPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { requestId } = useParams<{ requestId: string }>()
-  const { request, isLoading } = useApprovalRequestDetail(requestId)
-  const [reopenRequest] = useReopenRequestMutation()
+  const { request, decide, isLoading, isDeciding } =
+    useApprovalRequestDetail(requestId)
+  const [reopenRequest, { isLoading: isReopening }] = useReopenRequestMutation()
   const [deleteRequest] = useDeleteRequestMutation()
-  const [updateDocument] = useUpdateDocumentMutation()
   const [reopened, setReopened] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -51,16 +83,25 @@ export function RejectedRequestDetailsPage() {
     )
   }
 
-  const handleReopen = () => {
-    reopenRequest(request.id)
-    setReopened(true)
+  const handleReopen = async () => {
+    try {
+      await reopenRequest(request.id).unwrap()
+      toast.success('Request reopened and moved back to Approval Requests.')
+      setReopened(true)
+      navigate('/verification/approval-requests')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to reopen request.'))
+    }
   }
 
-  const handleUpdateDocument = async (
-    doc: { id: string; documentName: string },
-    file: File,
-  ) => {
-    await updateDocument({ requestId: request.id, documentId: doc.id, file }).unwrap()
+  const handleApprove = async () => {
+    try {
+      await decide('approve')
+      toast.success('Request approved successfully.')
+      navigate('/verification/approval-requests')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to approve request.'))
+    }
   }
 
   const confirmDelete = () => {
@@ -69,18 +110,10 @@ export function RejectedRequestDetailsPage() {
     navigate('/verification/rejected-requests')
   }
 
-  const auditColumns: CommonTableColumn<
-    (typeof request.auditHistory)[number]
-  >[] = [
-    { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
-    { key: 'action', header: 'Action', render: (row) => row.action },
-    {
-      key: 'performedBy',
-      header: 'Performed By',
-      render: (row) => row.performedBy,
-    },
-    { key: 'remarks', header: 'Remarks', render: (row) => row.remarks },
-  ]
+  const partnerDetailPath =
+    request.requestType === 'Chemist'
+      ? `/partners/chemists/${request.id}`
+      : `/partners/dealers/${request.id}`
 
   const timelineEntries = reopened
     ? [
@@ -123,7 +156,7 @@ export function RejectedRequestDetailsPage() {
           <Box>
             <Typography variant="h1">{request.applicantName}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {request.id} · {request.requestType}
+              {request.requestType}
             </Typography>
           </Box>
         </Stack>
@@ -132,7 +165,8 @@ export function RejectedRequestDetailsPage() {
             variant="outlined"
             color="success"
             startIcon={<RestoreOutlined size={20} />}
-            disabled={reopened}
+            disabled={reopened || isReopening || isDeciding}
+            loading={isReopening}
             onClick={handleReopen}
             sx={{ fontSize: '0.75rem' }}
           >
@@ -142,7 +176,9 @@ export function RejectedRequestDetailsPage() {
             variant="outlined"
             color="primary"
             startIcon={<CheckCircleOutlined size={20} />}
-            disabled={reopened}
+            disabled={reopened || isReopening || isDeciding}
+            loading={isDeciding}
+            onClick={handleApprove}
             sx={{ fontSize: '0.75rem' }}
           >
             Approve
@@ -170,16 +206,28 @@ export function RejectedRequestDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Request ID', value: request.id },
               { label: 'Applicant Name', value: request.applicantName },
               { label: 'User Type', value: request.requestType },
-              { label: 'Shop Name', value: request.storeName },
-              { label: 'Owner Name', value: request.ownerName },
+              {
+                label: 'Shop Name',
+                value: (
+                  <LinkedFieldValue to={partnerDetailPath}>
+                    {request.storeName}
+                  </LinkedFieldValue>
+                ),
+              },
+              {
+                label: 'Owner Name',
+                value: (
+                  <LinkedFieldValue to={partnerDetailPath}>
+                    {request.ownerName}
+                  </LinkedFieldValue>
+                ),
+              },
               {
                 label: 'Contact Details',
                 value: `${request.mobileNumber} · ${request.email}`,
               },
-              { label: 'Region', value: request.region },
               { label: 'Submitted Date', value: request.submittedDate },
               {
                 label: 'Current Status',
@@ -213,12 +261,85 @@ export function RejectedRequestDetailsPage() {
           />
         </SectionCard>
 
-        <DocumentGridCard
-          title="Supporting Documents"
-          documents={request.documents}
-          emptyDescription="Documents added for this request will appear here."
-          showMetadata={false}
-          onUpdateDocument={handleUpdateDocument}
+        <SectionCard title="Region & Assigned MR">
+          <DetailFieldGrid
+            fields={[
+              {
+                label: 'Region',
+                value: request.regionDetail ? (
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: 'center' }}
+                  >
+                    <Chip
+                      label={request.regionDetail.code}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 20, fontSize: '0.6875rem' }}
+                    />
+                    {!request.regionDetail.isActive && (
+                      <Chip
+                        label="Inactive"
+                        size="small"
+                        color="default"
+                        variant="filled"
+                      />
+                    )}
+                  </Stack>
+                ) : (
+                  request.region
+                ),
+              },
+              {
+                label: 'Assigned Medical Representative',
+                value: request.assignedMr ? (
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    sx={{ alignItems: 'center' }}
+                  >
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'primary.light',
+                        color: 'primary.main',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <MrIcon size={16} />
+                    </Box>
+                    <Box>
+                      <LinkedFieldValue
+                        to={`/system-users/medical-representatives/${request.assignedMr.id}`}
+                      >
+                        {request.assignedMr.fullName}
+                      </LinkedFieldValue>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.secondary', display: 'block' }}
+                      >
+                        {request.assignedMr.employeeCode} ·{' '}
+                        {request.assignedMr.phone}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                ) : (
+                  '—'
+                ),
+              },
+            ]}
+          />
+        </SectionCard>
+
+        <GodownDocumentsCard
+          title="Godowns & Documents"
+          businesses={request.businesses}
         />
 
         <SectionCard title="Timeline">
@@ -228,20 +349,110 @@ export function RejectedRequestDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard title="Verification Notes">
-          <CommonTable
-            tableKey="rejected-request-audit"
-            columns={auditColumns}
-            rows={request.auditHistory}
-            loading={isLoading}
-            getRowId={(row) => row.id}
-            searchPlaceholder="Search verification notes…"
-            searchKeys={(row) =>
-              `${row.action} ${row.performedBy} ${row.remarks}`
-            }
-            defaultSortBy="date"
-            emptyTitle="No verification notes yet"
-          />
+        <SectionCard
+          title="Verification Notes"
+          action={
+            <Chip
+              label={`${request.auditHistory.length} ${request.auditHistory.length === 1 ? 'entry' : 'entries'}`}
+              size="small"
+              variant="outlined"
+            />
+          }
+        >
+          {request.auditHistory.length === 0 ? (
+            <EmptyState
+              title="No verification notes yet"
+              description="Notes added during review will appear here."
+            />
+          ) : (
+            <Stack spacing={0}>
+              {request.auditHistory.map((entry, index) => {
+                const isLast = index === request.auditHistory.length - 1
+                const color = getActionColor(entry.action)
+                const Icon = getActionIcon(entry.action)
+                return (
+                  <Stack key={entry.id} direction="row" spacing={2}>
+                    <Stack sx={{ alignItems: 'center', flexShrink: 0 }}>
+                      <Box
+                        sx={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: '50%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          backgroundColor: `${color}.light`,
+                          color: `${color}.main`,
+                          border: '2px solid',
+                          borderColor: 'background.paper',
+                          boxShadow: '0 0 0 1px currentColor',
+                        }}
+                      >
+                        <Icon size={16} />
+                      </Box>
+                      {!isLast && (
+                        <Box
+                          sx={{
+                            width: '2px',
+                            flex: 1,
+                            minHeight: 24,
+                            backgroundColor: 'divider',
+                            my: 0.5,
+                          }}
+                        />
+                      )}
+                    </Stack>
+
+                    <Box
+                      sx={{
+                        flex: 1,
+                        minWidth: 0,
+                        pb: isLast ? 0 : 2.5,
+                      }}
+                    >
+                      <Stack
+                        direction="row"
+                        spacing={1}
+                        sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}
+                      >
+                        <Typography
+                          sx={{ fontWeight: 700, fontSize: '0.8125rem' }}
+                        >
+                          {entry.action}
+                        </Typography>
+                        <Chip
+                          label={entry.date}
+                          size="small"
+                          variant="outlined"
+                          sx={{ height: 20, fontSize: '0.6875rem' }}
+                        />
+                      </Stack>
+                      <Box
+                        sx={{
+                          p: 1.5,
+                          borderRadius: '10px',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          backgroundColor: 'background.default',
+                        }}
+                      >
+                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                          {entry.remarks}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          sx={{ color: 'text.secondary' }}
+                        >
+                          By {entry.performedBy}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Stack>
+                )
+              })}
+            </Stack>
+          )}
         </SectionCard>
       </Stack>
 

@@ -6,23 +6,23 @@ import {
   CircleCheck as CheckCircleOutlined,
   XCircle as CancelOutlined,
   MapPin as PlaceOutlined,
+  UserRound as MrIcon,
 } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
-import { DocumentGridCard } from '@/components/common/DocumentGridCard/DocumentGridCard'
+import { GodownDocumentsCard } from '@/components/common/GodownDocumentsCard/GodownDocumentsCard'
+import { LinkedFieldValue } from '@/components/common/LinkedFieldValue/LinkedFieldValue'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { Modal } from '@/components/common/Modal/Modal'
 import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApprovalRequestDetail'
-import { useUpdateDocumentMutation } from '@/features/userManagement/services/verificationApi'
 
 export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
   const { request, decide, isLoading } = useApprovalRequestDetail(requestId)
-  const [updateDocument] = useUpdateDocumentMutation()
   const [dialog, setDialog] = useState<{
     open: boolean
     action: 'approve' | 'reject'
@@ -54,12 +54,10 @@ export function ApprovalRequestDetailsPage() {
     setDialog({ open: false, action: 'approve' })
   }
 
-  const handleUpdateDocument = async (
-    doc: { id: string; documentName: string },
-    file: File,
-  ) => {
-    await updateDocument({ requestId: request.id, documentId: doc.id, file }).unwrap()
-  }
+  const partnerDetailPath =
+    request.requestType === 'Chemist'
+      ? `/partners/chemists/${request.id}`
+      : `/partners/dealers/${request.id}`
 
   return (
     <>
@@ -138,8 +136,22 @@ export function ApprovalRequestDetailsPage() {
         <SectionCard title="Applicant Information">
           <DetailFieldGrid
             fields={[
-              { label: 'Store / Godown Name', value: request.storeName },
-              { label: 'Owner Name', value: request.ownerName },
+              {
+                label: 'Store / Godown Name',
+                value: (
+                  <LinkedFieldValue to={partnerDetailPath}>
+                    {request.storeName}
+                  </LinkedFieldValue>
+                ),
+              },
+              {
+                label: 'Owner Name',
+                value: (
+                  <LinkedFieldValue to={partnerDetailPath}>
+                    {request.ownerName}
+                  </LinkedFieldValue>
+                ),
+              },
               { label: 'Email Address', value: request.email },
               { label: 'Mobile Number', value: request.mobileNumber },
               { label: 'City', value: request.city },
@@ -154,6 +166,82 @@ export function ApprovalRequestDetailsPage() {
             fields={[
               { label: 'GST Number', value: request.gstNumber ?? '—' },
               { label: 'Registration Source', value: request.registeredBy },
+            ]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Region & Assigned MR">
+          <DetailFieldGrid
+            fields={[
+              {
+                label: 'Region',
+                value: request.regionDetail ? (
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: 'center' }}
+                  >
+                    <Chip
+                      label={request.regionDetail.code}
+                      size="small"
+                      variant="outlined"
+                      sx={{ height: 20, fontSize: '0.6875rem' }}
+                    />
+                    {!request.regionDetail.isActive && (
+                      <Chip
+                        label="Inactive"
+                        size="small"
+                        color="default"
+                        variant="filled"
+                      />
+                    )}
+                  </Stack>
+                ) : (
+                  request.region
+                ),
+              },
+              {
+                label: 'Assigned Medical Representative',
+                value: request.assignedMr ? (
+                  <Stack
+                    direction="row"
+                    spacing={1.5}
+                    sx={{ alignItems: 'center' }}
+                  >
+                    <Box
+                      sx={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: 'primary.light',
+                        color: 'primary.main',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <MrIcon size={16} />
+                    </Box>
+                    <Box>
+                      <LinkedFieldValue
+                        to={`/system-users/medical-representatives/${request.assignedMr.id}`}
+                      >
+                        {request.assignedMr.fullName}
+                      </LinkedFieldValue>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.secondary', display: 'block' }}
+                      >
+                        {request.assignedMr.employeeCode} ·{' '}
+                        {request.assignedMr.phone}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                ) : (
+                  '—'
+                ),
+              },
             ]}
           />
         </SectionCard>
@@ -207,12 +295,9 @@ export function ApprovalRequestDetailsPage() {
           />
         </SectionCard>
 
-        <DocumentGridCard
-          title="Verification Documents"
-          documents={request.documents}
-          emptyDescription="Documents added for this request will appear here."
-          showMetadata={false}
-          onUpdateDocument={handleUpdateDocument}
+        <GodownDocumentsCard
+          title="Godowns & Documents"
+          businesses={request.businesses}
         />
 
         <SectionCard title="Approval Timeline">

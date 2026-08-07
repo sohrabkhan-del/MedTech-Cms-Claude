@@ -9,7 +9,6 @@ import { PointsManagementCard } from '@/features/userManagement/components/Point
 import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistoryCard'
 import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
-import { LicenseDocumentsCard } from '@/features/userManagement/components/LicenseDocumentsCard'
 import { RedemptionHistoryCard } from '@/features/userManagement/components/RedemptionHistoryCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
@@ -96,7 +95,6 @@ export function ChemistDetailsPage() {
           isLoading={isRedemptionsLoading}
         />
         <InterestedProductsCard entries={chemist.interestedProducts} />
-        <LicenseDocumentsCard documents={chemist.documents} />
       </Stack>
     </Stack>
   )

@@ -56,6 +56,22 @@ interface PartnerDocumentApiItem {
   type?: string
 }
 
+interface PartnerRegionApiItem {
+  id: string
+  code?: string | null
+  name?: string | null
+  isActive?: boolean
+}
+
+interface PartnerMrApiItem {
+  id: string
+  referenceId?: string | null
+  employeeCode?: string | null
+  email?: string | null
+  phone?: string | null
+  fullName?: string | null
+}
+
 interface PartnerDealerItem {
   id: string
   referenceId?: string | null
@@ -67,7 +83,9 @@ interface PartnerDealerItem {
   country?: string | null
   gstNumber?: string | null
   regionId?: string | null
+  region?: PartnerRegionApiItem | null
   assignedMedicalRepresentativeId?: string | null
+  assignedMedicalRepresentative?: PartnerMrApiItem | null
   notes?: string | null
   status?: string | null
   approvalStatus?: string | null
@@ -157,6 +175,20 @@ function mapOnboardedBy(value?: string | null): OnboardedBy {
   return value === 'MR' ? 'MR' : 'Self'
 }
 
+function mapBusinessDocuments(
+  outletName: string | null | undefined,
+  documents: PartnerDocumentApiItem[] | undefined,
+): LicenseDocument[] {
+  return (documents ?? []).map((doc) => ({
+    id: doc.id,
+    documentName: doc.name,
+    uploadDate: '-',
+    verificationStatus: 'pending' as const,
+    expiryDate: '-',
+    fileUrl: doc.path,
+  }))
+}
+
 function mapPartnerBusinesses(
   business: PartnerDealerItem['business'],
 ): PartnerBusinessDetail[] {
@@ -187,6 +219,7 @@ function mapPartnerBusinesses(
     geoAccuracy: b.geoAccuracy ?? undefined,
     regionId: b.regionId ?? undefined,
     notes: b.notes ?? undefined,
+    documents: mapBusinessDocuments(b.outletName, b.documents),
   }))
 }
 
@@ -230,10 +263,22 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
     panNumber: business?.panNumber ?? undefined,
     drugLicenseNumber: business?.drugLicenseNumber ?? undefined,
     drugLicenseExpiry: business?.drugLicenseExpiry ?? undefined,
-    regionId: item.regionId ?? undefined,
+    regionId: item.regionId ?? item.region?.id ?? undefined,
+    regionName: item.region?.name ?? undefined,
     onboardedBy: mapOnboardedBy(business?.onboardedByType),
     availablePoints: 0,
-    assignedMr: item.assignedMedicalRepresentativeId ?? '-',
+    assignedMr:
+      item.assignedMedicalRepresentative?.fullName ??
+      item.assignedMedicalRepresentativeId ??
+      '-',
+    assignedMrId:
+      item.assignedMedicalRepresentative?.id ??
+      item.assignedMedicalRepresentativeId ??
+      undefined,
+    assignedMrName: item.assignedMedicalRepresentative?.fullName ?? undefined,
+    assignedMrCode: item.assignedMedicalRepresentative?.employeeCode ?? undefined,
+    assignedMrPhone: item.assignedMedicalRepresentative?.phone ?? undefined,
+    assignedMrEmail: item.assignedMedicalRepresentative?.email ?? undefined,
     notes: item.notes ?? undefined,
     registeredAddress: address || '-',
     totalScans: 0,
@@ -295,7 +340,10 @@ function mapPartnerAnalytics(
 
 const dealerApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getDealers: builder.query<Dealer[], DealerQueryParams | void>({
+    getDealers: builder.query<
+      { items: Dealer[]; totalItems: number },
+      DealerQueryParams | void
+    >({
       query: (params) => ({
         tag: 'Partners',
         url: '/partners',
@@ -314,16 +362,22 @@ const dealerApi = baseApi.injectEndpoints({
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
         },
-        mockResolver: () => mockDelay(mockDealers),
+        mockResolver: () =>
+          mockDelay({ items: mockDealers, totalItems: mockDealers.length }),
       }),
-      transformResponse: (response: PartnerListApiResponse | Dealer[]) =>
-        Array.isArray(response)
-          ? response
-          : response.data.items.map(mapPartnerDealer),
+      transformResponse: (
+        response: PartnerListApiResponse | { items: Dealer[]; totalItems: number },
+      ) =>
+        'success' in response
+          ? {
+              items: response.data.items.map(mapPartnerDealer),
+              totalItems: response.data.totalItems,
+            }
+          : response,
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Partners' as const, id })),
+              ...result.items.map(({ id }) => ({ type: 'Partners' as const, id })),
               { type: 'Partners' as const, id: 'LIST' },
             ]
           : [{ type: 'Partners' as const, id: 'LIST' }],

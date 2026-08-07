@@ -37,6 +37,33 @@ export interface RequestAuditEntry {
   remarks: string
 }
 
+export interface RequestBusiness {
+  id: string
+  outletName: string
+  addressType: string
+  address: string
+  drugLicenseNumber: string
+  panNumber: string
+  documents: RequestDocument[]
+}
+
+export interface RequestRegion {
+  id: string
+  code: string
+  name: string
+  isActive: boolean
+}
+
+export interface RequestAssignedMr {
+  id: string
+  referenceId: string
+  employeeCode: string
+  fullName: string
+  email: string
+  phone: string
+  status: string
+}
+
 export interface ApprovalRequest {
   id: string
   applicantName: string
@@ -44,6 +71,8 @@ export interface ApprovalRequest {
   status: ApprovalStatus
   city: string
   region: PartnerZone
+  regionDetail?: RequestRegion
+  assignedMr?: RequestAssignedMr
   submittedDate: string
   registeredBy: RegisteredBy
   onboardedType: OnboardedBy
@@ -65,6 +94,7 @@ export interface ApprovalRequest {
   geoVerificationStatus: GeoVerificationStatus
 
   documents: RequestDocument[]
+  businesses: RequestBusiness[]
 
   requestCreatedDate: string
   submittedBy: string

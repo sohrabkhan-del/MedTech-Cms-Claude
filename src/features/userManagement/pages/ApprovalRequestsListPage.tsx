@@ -25,7 +25,6 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { Modal } from '@/components/common/Modal/Modal'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
-import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useApprovalRequests } from '@/features/userManagement/hooks/useApprovalRequests'
 import type {
@@ -58,16 +57,9 @@ interface DecisionDialogState {
 
 export function ApprovalRequestsListPage() {
   const navigate = useNavigate()
-  const { region } = useRegionFilter()
-  const { requests, kpis, decide, isLoading } = useApprovalRequests()
-  useRegionTopbarHeader({
-    icon: <RuleIcon size={20} />,
-    title: 'Approval Requests',
-    subtitle: 'Review and process Dealer and Chemist onboarding requests.',
-    isLoading,
-  })
   const [requestTypeTab, setRequestTypeTab] = useState<RequestTypeTab>('all')
   const [filterOpen, setFilterOpen] = useState(false)
+  const [search, setSearch] = useState('')
   const [appliedFilters, setAppliedFilters] = useState<ApprovalFilters>({
     status: 'all',
     region: 'all',
@@ -80,6 +72,22 @@ export function ApprovalRequestsListPage() {
     request: null,
   })
   const [remarks, setRemarks] = useState('')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  const { requests, totalItems, kpis, decide, isLoading } = useApprovalRequests({
+    page: page + 1,
+    limit: rowsPerPage,
+    search,
+    type: requestTypeTab === 'all' ? undefined : requestTypeTab,
+    status: appliedFilters.status === 'all' ? undefined : appliedFilters.status,
+  })
+  useRegionTopbarHeader({
+    icon: <RuleIcon size={20} />,
+    title: 'Approval Requests',
+    subtitle: 'Review and process Dealer and Chemist onboarding requests.',
+    isLoading,
+  })
 
   const approvalRequestKpis = kpis ?? {
     pending: 0,
@@ -87,19 +95,12 @@ export function ApprovalRequestsListPage() {
     rejected: 0,
     total: 0,
   }
-  const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 
   const filteredRequests = requests.filter((request) => {
-    const topbarRegionMatch = !topbarZone || request.region === topbarZone
-    const statusMatch =
-      appliedFilters.status === 'all' ||
-      request.status === appliedFilters.status
-    const typeMatch =
-      requestTypeTab === 'all' || request.requestType === requestTypeTab
     const regionMatch =
       appliedFilters.region === 'all' ||
       request.region === appliedFilters.region
-    return topbarRegionMatch && statusMatch && typeMatch && regionMatch
+    return regionMatch
   })
 
   const openDialog = (
@@ -224,20 +225,33 @@ export function ApprovalRequestsListPage() {
         <ModularTabs
           tabs={REQUEST_TYPE_TABS}
           value={requestTypeTab}
-          onChange={setRequestTypeTab}
+          onChange={(next) => {
+            setRequestTypeTab(next)
+            setPage(0)
+          }}
         />
       </Box>
 
       <CommonTable
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         tableKey="approval-requests-list"
         columns={columns}
         rows={filteredRequests}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search requests…"
-        searchKeys={(row) =>
-          `${row.applicantName} ${row.city} ${row.requestType}`
-        }
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +
@@ -268,7 +282,10 @@ export function ApprovalRequestsListPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Approval Requests"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>

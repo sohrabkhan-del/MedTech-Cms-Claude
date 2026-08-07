@@ -58,6 +58,22 @@ interface PartnerDocumentApiItem {
   type?: string
 }
 
+interface PartnerRegionApiItem {
+  id: string
+  code?: string | null
+  name?: string | null
+  isActive?: boolean
+}
+
+interface PartnerMrApiItem {
+  id: string
+  referenceId?: string | null
+  employeeCode?: string | null
+  email?: string | null
+  phone?: string | null
+  fullName?: string | null
+}
+
 interface PartnerChemistItem {
   id: string
   referenceId?: string | null
@@ -69,7 +85,9 @@ interface PartnerChemistItem {
   country?: string | null
   gstNumber?: string | null
   regionId?: string | null
+  region?: PartnerRegionApiItem | null
   assignedMedicalRepresentativeId?: string | null
+  assignedMedicalRepresentative?: PartnerMrApiItem | null
   notes?: string | null
   status?: string | null
   approvalStatus?: string | null
@@ -159,6 +177,19 @@ function mapOnboardedBy(value?: string | null): OnboardedBy {
   return value === 'MR' ? 'MR' : 'Self'
 }
 
+function mapBusinessDocuments(
+  documents: PartnerDocumentApiItem[] | undefined,
+): LicenseDocument[] {
+  return (documents ?? []).map((doc) => ({
+    id: doc.id,
+    documentName: doc.name,
+    uploadDate: '-',
+    verificationStatus: 'pending' as const,
+    expiryDate: '-',
+    fileUrl: doc.path,
+  }))
+}
+
 function mapPartnerBusinesses(
   business: PartnerChemistItem['business'],
 ): PartnerBusinessDetail[] {
@@ -190,6 +221,7 @@ function mapPartnerBusinesses(
     geoAccuracy: b.geoAccuracy ?? undefined,
     regionId: b.regionId ?? undefined,
     notes: b.notes ?? undefined,
+    documents: mapBusinessDocuments(b.documents),
   }))
 }
 
@@ -225,10 +257,22 @@ function mapPartnerChemist(item: PartnerChemistItem): Chemist {
     panNumber: business?.panNumber ?? undefined,
     drugLicenseNumber: business?.drugLicenseNumber ?? undefined,
     drugLicenseExpiry: business?.drugLicenseExpiry ?? undefined,
-    regionId: item.regionId ?? undefined,
+    regionId: item.regionId ?? item.region?.id ?? undefined,
+    regionName: item.region?.name ?? undefined,
     onboardedBy: mapOnboardedBy(business?.onboardedByType),
     availablePoints: 0,
-    assignedMr: item.assignedMedicalRepresentativeId ?? '-',
+    assignedMr:
+      item.assignedMedicalRepresentative?.fullName ??
+      item.assignedMedicalRepresentativeId ??
+      '-',
+    assignedMrId:
+      item.assignedMedicalRepresentative?.id ??
+      item.assignedMedicalRepresentativeId ??
+      undefined,
+    assignedMrName: item.assignedMedicalRepresentative?.fullName ?? undefined,
+    assignedMrCode: item.assignedMedicalRepresentative?.employeeCode ?? undefined,
+    assignedMrPhone: item.assignedMedicalRepresentative?.phone ?? undefined,
+    assignedMrEmail: item.assignedMedicalRepresentative?.email ?? undefined,
     notes: item.notes ?? undefined,
     registeredAddress: address || '-',
     totalScans: 0,
@@ -287,7 +331,10 @@ function mapPartnerAnalytics(
 
 const chemistApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getChemists: builder.query<Chemist[], ChemistQueryParams | void>({
+    getChemists: builder.query<
+      { items: Chemist[]; totalItems: number },
+      ChemistQueryParams | void
+    >({
       query: (params) => ({
         tag: 'Chemists',
         url: '/partners',
@@ -307,16 +354,24 @@ const chemistApi = baseApi.injectEndpoints({
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
         },
-        mockResolver: () => mockDelay(mockChemists),
+        mockResolver: () =>
+          mockDelay({ items: mockChemists, totalItems: mockChemists.length }),
       }),
-      transformResponse: (response: PartnerListApiResponse | Chemist[]) =>
-        Array.isArray(response)
-          ? response
-          : response.data.items.map(mapPartnerChemist),
+      transformResponse: (
+        response:
+          | PartnerListApiResponse
+          | { items: Chemist[]; totalItems: number },
+      ) =>
+        'success' in response
+          ? {
+              items: response.data.items.map(mapPartnerChemist),
+              totalItems: response.data.totalItems,
+            }
+          : response,
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'Chemists' as const, id })),
+              ...result.items.map(({ id }) => ({ type: 'Chemists' as const, id })),
               { type: 'Chemists' as const, id: 'LIST' },
             ]
           : [{ type: 'Chemists' as const, id: 'LIST' }],

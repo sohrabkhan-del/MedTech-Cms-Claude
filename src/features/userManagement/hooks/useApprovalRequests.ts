@@ -1,20 +1,34 @@
 import {
   useGetApprovalRequestsQuery,
-  useGetApprovalRequestKpisQuery,
+  useGetApprovalRequestAnalyticsQuery,
   useDecideApprovalRequestMutation,
+  type VerificationQueryParams,
 } from '@/features/userManagement/services/verificationApi'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useApprovalRequests() {
-  const requestsResult = useGetApprovalRequestsQuery()
-  const kpisResult = useGetApprovalRequestKpisQuery()
+export function useApprovalRequests(params?: VerificationQueryParams) {
+  const { regionId, dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const effectiveRegionId = params?.regionId || regionId || undefined
+
+  const requestsResult = useGetApprovalRequestsQuery({
+    ...params,
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  })
+  const analyticsResult = useGetApprovalRequestAnalyticsQuery({
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  })
   const [decideMutation] = useDecideApprovalRequestMutation()
 
-  const isLoading = requestsResult.isLoading || kpisResult.isLoading
+  const isLoading = requestsResult.isFetching || analyticsResult.isFetching
   const error = requestsResult.error
     ? getApiErrorMessage(requestsResult.error, 'Failed to load approval requests.')
-    : kpisResult.error
-      ? getApiErrorMessage(kpisResult.error, 'Failed to load approval requests.')
+    : analyticsResult.error
+      ? getApiErrorMessage(analyticsResult.error, 'Failed to load approval requests.')
       : null
 
   async function decide(id: string, decision: 'approve' | 'reject', remarks?: string) {
@@ -22,8 +36,9 @@ export function useApprovalRequests() {
   }
 
   return {
-    requests: requestsResult.data ?? [],
-    kpis: kpisResult.data ?? null,
+    requests: requestsResult.data?.items ?? [],
+    totalItems: requestsResult.data?.totalItems ?? 0,
+    kpis: analyticsResult.data ?? null,
     isLoading,
     error,
     decide,

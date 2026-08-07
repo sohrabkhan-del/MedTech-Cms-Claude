@@ -1,27 +1,35 @@
 import {
   useGetApprovalRequestsQuery,
   useGetRejectedRequestKpisQuery,
-  useGetRejectedReviewersQuery,
   useReopenRequestMutation,
   useDeleteRequestMutation,
+  type VerificationQueryParams,
 } from '@/features/userManagement/services/verificationApi'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useRejectedRequests() {
-  const requestsResult = useGetApprovalRequestsQuery('rejected')
+export function useRejectedRequests(params?: VerificationQueryParams) {
+  const { regionId, dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const effectiveRegionId = params?.regionId || regionId || undefined
+
+  const requestsResult = useGetApprovalRequestsQuery({
+    ...params,
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+    status: 'rejected',
+  })
   const kpisResult = useGetRejectedRequestKpisQuery()
-  const reviewersResult = useGetRejectedReviewersQuery()
   const [reopenMutation] = useReopenRequestMutation()
   const [deleteMutation] = useDeleteRequestMutation()
 
-  const isLoading = requestsResult.isLoading || kpisResult.isLoading || reviewersResult.isLoading
+  const isLoading = requestsResult.isFetching || kpisResult.isFetching
   const error = requestsResult.error
     ? getApiErrorMessage(requestsResult.error, 'Failed to load rejected requests.')
     : kpisResult.error
       ? getApiErrorMessage(kpisResult.error, 'Failed to load rejected requests.')
-      : reviewersResult.error
-        ? getApiErrorMessage(reviewersResult.error, 'Failed to load rejected requests.')
-        : null
+      : null
 
   async function reopen(id: string) {
     await reopenMutation(id).unwrap()
@@ -31,10 +39,16 @@ export function useRejectedRequests() {
     await deleteMutation(id).unwrap()
   }
 
+  const requests = requestsResult.data?.items ?? []
+  const reviewers = Array.from(
+    new Set(requests.map((r) => r.reviewedBy).filter((name): name is string => !!name)),
+  )
+
   return {
-    requests: requestsResult.data ?? [],
+    requests,
+    totalItems: requestsResult.data?.totalItems ?? 0,
     kpis: kpisResult.data ?? null,
-    reviewers: reviewersResult.data ?? [],
+    reviewers,
     isLoading,
     error,
     reopen,

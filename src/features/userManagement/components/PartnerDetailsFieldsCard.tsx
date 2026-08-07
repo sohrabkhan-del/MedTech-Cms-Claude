@@ -1,8 +1,10 @@
 import { useState, type ReactNode } from 'react'
-import { Box, Card, Chip, Grid, Stack, Typography } from '@mui/material'
+import { Link as RouterLink } from 'react-router-dom'
+import { Box, Card, Chip, Grid, Link, Stack, Typography } from '@mui/material'
 import { Store, Warehouse, MapPin } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { OutletLocationCard } from '@/features/userManagement/components/OutletLocationCard'
+import { DocumentGridCard } from '@/components/common/DocumentGridCard/DocumentGridCard'
 import type { PartnerBase, PartnerBusinessDetail } from '@/types/partner'
 
 const outletTypeConfig: Record<
@@ -154,9 +156,39 @@ export function PartnerDetailsFieldsCard({
           />
         )}
         <FieldRow label="Onboarded By" value={partner.onboardedBy} />
-        <FieldRow label="Assigned MR" value={partner.assignedMr} />
-        {partner.regionId && (
-          <FieldRow label="Region ID" value={partner.regionId} />
+        <FieldRow
+          label="Assigned MR"
+          value={
+            partner.assignedMrId ? (
+              <Link
+                component={RouterLink}
+                to={`/system-users/medical-representatives/${partner.assignedMrId}`}
+                sx={{ fontWeight: 600, fontSize: '0.8125rem' }}
+              >
+                {partner.assignedMrCode
+                  ? `${partner.assignedMr} (${partner.assignedMrCode})`
+                  : partner.assignedMr}
+              </Link>
+            ) : partner.assignedMrCode ? (
+              `${partner.assignedMr} (${partner.assignedMrCode})`
+            ) : (
+              partner.assignedMr
+            )
+          }
+        />
+        {(partner.assignedMrPhone || partner.assignedMrEmail) && (
+          <FieldRow
+            label="MR Contact"
+            value={[partner.assignedMrPhone, partner.assignedMrEmail]
+              .filter(Boolean)
+              .join(' · ')}
+          />
+        )}
+        {(partner.regionName || partner.regionId) && (
+          <FieldRow
+            label="Region"
+            value={partner.regionName || partner.regionId}
+          />
         )}
         <Grid size={{ xs: 12, sm: 6, md: 3 }}>
           <Typography
@@ -319,6 +351,16 @@ export function PartnerDetailsFieldsCard({
                     <Box sx={{ mt: 2.25 }}>
                       <OutletLocationCard business={business} index={index} />
                     </Box>
+
+                    {business.documents.length > 0 && (
+                      <Box sx={{ mt: 2.25 }}>
+                        <DocumentGridCard
+                          title="Documents"
+                          documents={business.documents}
+                          showMetadata={false}
+                        />
+                      </Box>
+                    )}
                   </Box>
                 </Box>
               )

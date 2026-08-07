@@ -107,6 +107,7 @@ export interface PartnerDocumentPayload {
 }
 
 export interface PartnerBusinessPayload {
+  id?: string
   outletName: string
   userName?: string
   panNumber: string
@@ -191,6 +192,7 @@ export function toChemistApiPayload(values: ChemistFormValues): ChemistApiPayloa
     assignedMedicalRepresentativeId: values.assignedMedicalRepresentativeId,
     notes: values.notes,
     businesses: values.businesses.map((business) => ({
+      id: business.id || undefined,
       outletName: business.outletName,
       userName: business.userName || undefined,
       panNumber: business.panNumber,

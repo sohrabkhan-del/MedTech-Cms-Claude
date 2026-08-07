@@ -9,8 +9,7 @@ import {
 } from '@/components/layout/Sidebar/sidebarPalettes'
 import { useAuth } from '@/features/auth/hooks/useAuth'
 import { useAppearance } from '@/contexts/AppearanceContext'
-import { useAppSelector } from '@/app/store/hooks'
-import { selectUnreadNotificationCount } from '@/features/notifications/slices/notificationsSelectors'
+import { useGetNotificationStatsQuery } from '@/features/notifications/services/notificationsApi'
 import { layout, radius, shadows } from '@/theme/tokens'
 
 interface SidebarProps {
@@ -66,8 +65,8 @@ function SidebarContent({
   palette: SidebarPalette
 }) {
   const { user } = useAuth()
-  const unreadNotificationCount = useAppSelector(selectUnreadNotificationCount)
-  const badgeOverrides = { '/notifications': unreadNotificationCount }
+  const { data: notificationStats } = useGetNotificationStatsQuery()
+  const badgeOverrides = { '/notifications': notificationStats?.unread ?? 0 }
 
   return (
     <Box

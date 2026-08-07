@@ -4,6 +4,7 @@ import {
   Box,
   Button,
   Chip,
+  CircularProgress,
   Grid,
   Stack,
   Tabs,
@@ -16,13 +17,12 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import {
-  markAllAsRead,
-  markAsRead,
-} from '@/features/notifications/slices/notificationsSlice'
-import { selectNotifications } from '@/features/notifications/slices/notificationsSelectors'
+  useGetNotificationsQuery,
+  useMarkAllNotificationsReadMutation,
+  useMarkNotificationReadMutation,
+} from '@/features/notifications/services/notificationsApi'
 import {
   categoryConfig,
   formatRelativeTime,
@@ -32,8 +32,9 @@ import type { AppNotification } from '@/types/notification'
 
 export function NotificationsListPage() {
   const navigate = useNavigate()
-  const dispatch = useAppDispatch()
-  const notifications = useAppSelector(selectNotifications)
+  const { data: notifications = [], isLoading } = useGetNotificationsQuery()
+  const [markAsRead] = useMarkNotificationReadMutation()
+  const [markAllAsRead] = useMarkAllNotificationsReadMutation()
   useRegionTopbarHeader({
     icon: <Bell size={20} />,
     title: 'Notifications',
@@ -46,8 +47,16 @@ export function NotificationsListPage() {
     tab === 'unread' ? notifications.filter((n) => !n.isRead) : notifications
 
   function openNotification(notification: AppNotification) {
-    if (!notification.isRead) dispatch(markAsRead(notification.id))
+    if (!notification.isRead) void markAsRead(notification.id)
     navigate(`/notifications/${notification.id}`)
+  }
+
+  if (isLoading) {
+    return (
+      <Stack sx={{ alignItems: 'center', py: 8 }}>
+        <CircularProgress />
+      </Stack>
+    )
   }
 
   const columns: CommonTableColumn<AppNotification>[] = [
@@ -200,7 +209,7 @@ export function NotificationsListPage() {
           size="small"
           startIcon={<CheckCheck size={16} />}
           disabled={unreadCount === 0}
-          onClick={() => dispatch(markAllAsRead())}
+          onClick={() => void markAllAsRead()}
         >
           Mark all as read
         </Button>
@@ -265,7 +274,7 @@ export function NotificationsListPage() {
           { label: 'View Details', onClick: (row) => openNotification(row) },
           {
             label: 'Mark as Read',
-            onClick: (row) => dispatch(markAsRead(row.id)),
+            onClick: (row) => void markAsRead(row.id),
           },
         ]}
         emptyTitle={

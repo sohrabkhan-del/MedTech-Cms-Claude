@@ -1,26 +1,37 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, CircularProgress, Stack, Typography } from '@mui/material'
 import { ArrowRight, CheckCheck } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks'
-import { markAsRead } from '@/features/notifications/slices/notificationsSlice'
-import { selectNotificationById } from '@/features/notifications/slices/notificationsSelectors'
+import {
+  useGetNotificationsQuery,
+  useMarkNotificationReadMutation,
+} from '@/features/notifications/services/notificationsApi'
 import { categoryConfig, formatRelativeTime, priorityConfig } from '@/features/notifications/notificationDisplay'
 
 export function NotificationDetailPage() {
   const navigate = useNavigate()
-  const dispatch = useAppDispatch()
   const { notificationId } = useParams<{ notificationId: string }>()
-  const notification = useAppSelector(selectNotificationById(notificationId))
+  const { data: notifications = [], isLoading } = useGetNotificationsQuery()
+  const [markAsRead] = useMarkNotificationReadMutation()
+  const notification = notifications.find((item) => item.id === notificationId)
 
   useEffect(() => {
     if (notification && !notification.isRead) {
-      dispatch(markAsRead(notification.id))
+      void markAsRead(notification.id)
     }
-  }, [notification, dispatch])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notification])
+
+  if (isLoading) {
+    return (
+      <Stack sx={{ alignItems: 'center', py: 8 }}>
+        <CircularProgress />
+      </Stack>
+    )
+  }
 
   if (!notification) {
     return (
@@ -63,7 +74,7 @@ export function NotificationDetailPage() {
 
         <Stack direction="row" spacing={1.5}>
           {!notification.isRead && (
-            <Button variant="outlined" startIcon={<CheckCheck size={18} />} onClick={() => dispatch(markAsRead(notification.id))} sx={{ fontSize: '0.75rem' }}>
+            <Button variant="outlined" startIcon={<CheckCheck size={18} />} onClick={() => void markAsRead(notification.id)} sx={{ fontSize: '0.75rem' }}>
               Mark as Read
             </Button>
           )}

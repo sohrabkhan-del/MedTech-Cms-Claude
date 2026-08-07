@@ -133,6 +133,7 @@ export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
     assignedMedicalRepresentativeId: values.assignedMedicalRepresentativeId,
     notes: values.notes,
     businesses: values.businesses.map((business) => ({
+      id: business.id || undefined,
       outletName: business.outletName,
       userName: business.userName || undefined,
       panNumber: business.panNumber,

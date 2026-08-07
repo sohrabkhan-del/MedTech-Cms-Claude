@@ -2,14 +2,12 @@ import { combineReducers, configureStore } from '@reduxjs/toolkit'
 import { persistReducer, persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist'
 import { authReducer } from '@/features/auth/slices/authSlice'
 import { authPersistConfig } from '@/app/store/persistConfig'
-import { notificationsReducer } from '@/features/notifications/slices/notificationsSlice'
 import { configureApiClientAuth } from '@/services/apiClient'
 import { logout, setCredentials } from '@/features/auth/slices/authSlice'
 import { baseApi } from '@/store/api/baseApi'
 
 const rootReducer = combineReducers({
   auth: persistReducer(authPersistConfig, authReducer),
-  notifications: notificationsReducer,
   [baseApi.reducerPath]: baseApi.reducer,
 })
 

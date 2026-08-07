@@ -1,8 +1,10 @@
 import { Box, Button, Divider, MenuItem, Stack, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '@/app/store/hooks'
-import { markAsRead } from '@/features/notifications/slices/notificationsSlice'
-import { selectNotifications, selectUnreadNotificationCount } from '@/features/notifications/slices/notificationsSelectors'
+import {
+  useGetNotificationsQuery,
+  useGetNotificationStatsQuery,
+  useMarkNotificationReadMutation,
+} from '@/features/notifications/services/notificationsApi'
 import { categoryConfig, formatRelativeTime } from '@/features/notifications/notificationDisplay'
 import type { AppNotification } from '@/types/notification'
 
@@ -13,13 +15,14 @@ interface NotificationsMenuContentProps {
 
 export function NotificationsMenuContent({ onNavigate, limit = 5 }: NotificationsMenuContentProps) {
   const navigate = useNavigate()
-  const dispatch = useAppDispatch()
-  const notifications = useAppSelector(selectNotifications)
-  const unreadCount = useAppSelector(selectUnreadNotificationCount)
+  const { data: notifications = [] } = useGetNotificationsQuery()
+  const { data: stats } = useGetNotificationStatsQuery()
+  const [markAsRead] = useMarkNotificationReadMutation()
+  const unreadCount = stats?.unread ?? 0
   const recentNotifications = notifications.slice(0, limit)
 
   function openNotification(notification: AppNotification) {
-    if (!notification.isRead) dispatch(markAsRead(notification.id))
+    if (!notification.isRead) void markAsRead(notification.id)
     onNavigate()
     navigate(`/notifications/${notification.id}`)
   }

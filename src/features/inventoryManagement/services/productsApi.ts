@@ -187,7 +187,14 @@ const productsApi = baseApi.injectEndpoints({
     }),
 
     getProductKpis: builder.query<typeof productKpis, void>({
-      query: () => ({ tag: 'Products', url: '/products/kpis', mockResolver: () => mockDelay(productKpis) }),
+      query: () => ({
+        tag: 'Products',
+        url: '/analytics-cards/products',
+        mockResolver: () => mockDelay(productKpis),
+      }),
+      transformResponse: (
+        response: { success: boolean; data: typeof productKpis } | typeof productKpis,
+      ) => ('data' in response ? response.data : response),
       providesTags: [{ type: 'Products', id: 'KPIS' }],
     }),
 

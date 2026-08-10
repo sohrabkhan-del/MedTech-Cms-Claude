@@ -5,6 +5,7 @@ import { ProductFormPage } from '@/features/inventoryManagement/pages/ProductFor
 import { FactoryUploadListPage } from '@/features/inventoryManagement/pages/FactoryUploadListPage'
 import { FactoryUploadFormPage } from '@/features/inventoryManagement/pages/FactoryUploadFormPage'
 import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryUploadDetailsPage'
+import { FactoryProductionUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryProductionUploadDetailsPage'
 import { FactoryContainerPage } from '@/features/inventoryManagement/pages/FactoryContainerPage'
 import { FactoryBoxPage } from '@/features/inventoryManagement/pages/FactoryBoxPage'
 import { ProductBatchesPage } from '@/features/inventoryManagement/pages/ProductBatchesPage'
@@ -29,6 +30,10 @@ export const inventoryManagementRoutes: RouteObject[] = [
   {
     path: '/inventory/factory-inventory-upload/new',
     element: <FactoryUploadFormPage />,
+  },
+  {
+    path: '/inventory/factory-inventory-upload/upload/:uploadId',
+    element: <FactoryProductionUploadDetailsPage />,
   },
   {
     path: '/inventory/factory-inventory-upload/:batchId',

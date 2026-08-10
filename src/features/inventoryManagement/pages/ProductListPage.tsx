@@ -16,7 +16,6 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useProducts } from '@/features/inventoryManagement/hooks/useProducts'
-import { useProductCategoryOptions } from '@/features/inventoryManagement/hooks/useProductCategoryOptions'
 import { useProductCategories } from '@/features/masters/hooks/useProductCategories'
 import type {
   Product,
@@ -38,8 +37,11 @@ export function ProductListPage() {
   const { products, kpis, isLoading } = useProducts({
     search: debouncedSearch || undefined,
   })
-  const productCategoryOptions = useProductCategoryOptions()
   const { categories, isLoading: categoriesLoading } = useProductCategories()
+  const productCategoryOptions = useMemo(
+    () => categories.map((category) => category.categoryName),
+    [categories],
+  )
   useRegionTopbarHeader({
     icon: <Inventory2Icon size={20} />,
     title: 'Product Master',
@@ -62,7 +64,8 @@ export function ProductListPage() {
     totalProducts: 0,
     activeProducts: 0,
     inactiveProducts: 0,
-    totalRewardPointsIssued: 0,
+    newProducts: 0,
+    totalCategories: 0,
   }
 
   const filteredProducts = useMemo(
@@ -219,12 +222,12 @@ export function ProductListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6 }}>
-          {categoriesLoading ? (
+          {isLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
               label="Total Category"
-              value={categories.length}
+              value={productKpis.totalCategories}
               icon={<FolderTreeIcon size={20} />}
               iconColor="secondary"
             />

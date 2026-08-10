@@ -5,32 +5,29 @@ import { CircleCheck, Download as DownloadOutlined, Factory as FactoryOutlined }
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { radius } from '@/theme/tokens'
-import { useFactoryUpload } from '@/features/inventoryManagement/hooks/useFactoryUpload'
-import type { FactoryBatch } from '@/types/factoryUpload'
+import { useFactoryProductionUpload } from '@/features/inventoryManagement/hooks/useFactoryProductionUpload'
+import { downloadFactoryProductionUploadTemplate } from '@/features/inventoryManagement/factoryProductionUploadParser'
+import type { FactoryProductionUploadBatch } from '@/types/factoryProductionUpload'
 
 export function FactoryUploadFormPage() {
   const navigate = useNavigate()
-  const [manifestFile, setManifestFile] = useState<File | null>(null)
-  const [supportingFile, setSupportingFile] = useState<File | null>(null)
-  const [uploadedBatch, setUploadedBatch] = useState<FactoryBatch | null>(null)
-  const { uploadFiles, isUploading } = useFactoryUpload()
-
-  const bothSelected = !!manifestFile && !!supportingFile
+  const [file, setFile] = useState<File | null>(null)
+  const [uploadedBatch, setUploadedBatch] = useState<FactoryProductionUploadBatch | null>(null)
+  const { uploadFile, isUploading } = useFactoryProductionUpload()
 
   const handleContinue = async () => {
-    if (!manifestFile || !supportingFile) return
-    const batch = await uploadFiles(manifestFile, supportingFile)
+    if (!file) return
+    const batch = await uploadFile(file)
     if (batch) setUploadedBatch(batch)
   }
 
   const handleViewBatch = () => {
-    if (uploadedBatch) navigate(`/inventory/factory-inventory-upload/${uploadedBatch.id}`)
+    if (uploadedBatch) navigate(`/inventory/factory-inventory-upload/upload/${uploadedBatch.id}`)
   }
 
   const handleUploadAnother = () => {
     setUploadedBatch(null)
-    setManifestFile(null)
-    setSupportingFile(null)
+    setFile(null)
   }
 
   return (
@@ -52,7 +49,7 @@ export function FactoryUploadFormPage() {
         <Stack>
           <Typography variant="h1">Upload Manifest</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Import a new production batch from the factory manifest and supporting files.
+            Import a new production batch from a single Excel manifest file.
           </Typography>
         </Stack>
       </Stack>
@@ -60,27 +57,22 @@ export function FactoryUploadFormPage() {
       <Stack spacing={3}>
         <SectionCard title="Manifest File">
           <FileDropzone
-            file={manifestFile}
-            onSelect={setManifestFile}
-            onRemove={() => setManifestFile(null)}
+            file={file}
+            onSelect={setFile}
+            onRemove={() => setFile(null)}
             accept=".xls,.xlsx"
           />
         </SectionCard>
 
-        <SectionCard title="Supporting File">
-          <FileDropzone
-            file={supportingFile}
-            onSelect={setSupportingFile}
-            onRemove={() => setSupportingFile(null)}
-            accept=".xls,.xlsx,.csv"
-          />
-        </SectionCard>
-
         <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="outlined" startIcon={<DownloadOutlined size={20} />} onClick={() => {}}>
+          <Button
+            variant="outlined"
+            startIcon={<DownloadOutlined size={20} />}
+            onClick={downloadFactoryProductionUploadTemplate}
+          >
             Download Upload Template
           </Button>
-          <Button variant="contained" disabled={!bothSelected} loading={isUploading} onClick={handleContinue}>
+          <Button variant="contained" disabled={!file} loading={isUploading} onClick={handleContinue}>
             Continue
           </Button>
         </Stack>
@@ -88,11 +80,10 @@ export function FactoryUploadFormPage() {
         <SectionCard title="Upload Instructions">
           <Stack component="ul" spacing={1} sx={{ pl: 2.5, m: 0 }}>
             {[
-              'Both the manifest file and the supporting file must be selected before continuing.',
-              'Files must be in .xls, .xlsx, or .csv format only.',
-              'The first row must contain column headers matching the manifest template.',
-              'Serial number ranges must not overlap with any previously uploaded batch.',
-              'Each row must include a valid container number and box number.',
+              'Only .xls or .xlsx files are accepted.',
+              'The first row must contain column headers matching the upload template.',
+              'Each row corresponds to one production batch entry.',
+              'If a product code does not exist in the Product Master, it is created automatically.',
               'Maximum file size: 25 MB per upload.',
             ].map((line) => (
               <Typography key={line} component="li" variant="body1" sx={{ color: 'text.secondary' }}>
@@ -134,9 +125,8 @@ export function FactoryUploadFormPage() {
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {uploadedBatch && (
                 <>
-                  Batch <strong>{uploadedBatch.batchNumber}</strong> has been
-                  created with {uploadedBatch.totalProducts.toLocaleString('en-IN')}{' '}
-                  product(s).
+                  <strong>{uploadedBatch.uploadFileName}</strong> was imported
+                  with {uploadedBatch.totalRows.toLocaleString('en-IN')} row(s).
                 </>
               )}
             </Typography>

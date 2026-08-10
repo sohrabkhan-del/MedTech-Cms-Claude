@@ -396,8 +396,6 @@ export const productKpis = {
   totalProducts: mockProducts.length,
   activeProducts: mockProducts.filter((p) => p.status === 'active').length,
   inactiveProducts: mockProducts.filter((p) => p.status === 'inactive').length,
-  totalRewardPointsIssued: mockProducts.reduce(
-    (sum, p) => sum + p.totalRewardPointsIssued,
-    0,
-  ),
+  newProducts: mockProducts.length,
+  totalCategories: productCategoryOptions.length,
 }

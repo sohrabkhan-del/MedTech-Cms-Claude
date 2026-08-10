@@ -49,6 +49,7 @@ export const tagTypes = [
   'SecurityAlerts',
   'DistributorUpload',
   'FactoryUpload',
+  'FactoryProductionUpload',
   'ProductBatches',
   'Products',
   'InterestedUsers',
@@ -103,6 +104,7 @@ const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   GeoFences: 'real',
   GeoFenceSettings: 'real',
   Products: 'real',
+  FactoryProductionUpload: 'real',
 }
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {

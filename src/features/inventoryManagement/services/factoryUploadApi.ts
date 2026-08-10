@@ -6,7 +6,6 @@ import {
   getContainerById,
   getBoxById,
   addFactoryBatch,
-  buildNewBatchFromUpload,
   buildFactoryBatchFromBmrRow,
   factoryUploadKpis,
 } from '@/features/inventoryManagement/mockFactoryUploads'
@@ -96,22 +95,6 @@ const factoryUploadApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'FactoryUpload', id: 'KPIS' }],
     }),
 
-    /** Same shape used for both "Factory Inventory Upload" and "Delivery Upload" flows. */
-    uploadFactoryFile: builder.mutation<FactoryBatch, { manifestFile: File; supportingFile: File }>({
-      query: ({ manifestFile, supportingFile }) => ({
-        tag: 'FactoryUpload',
-        url: '/factory-upload/upload',
-        method: 'POST',
-        data: { manifestFile: manifestFile.name, supportingFile: supportingFile.name },
-        mockResolver: () => {
-          const batch = buildNewBatchFromUpload(`${manifestFile.name}+${supportingFile.name}`)
-          addFactoryBatch(batch)
-          return mockDelay(batch)
-        },
-      }),
-      invalidatesTags: [{ type: 'FactoryUpload', id: 'LIST' }, { type: 'FactoryUpload', id: 'KPIS' }],
-    }),
-
     /** Imports a Batch & UID Upload (BMR) result into the Active Product Registry Directory listing — one row per valid BMR batch, using its real uploaded fields. */
     importBmrUpload: builder.mutation<FactoryBatch[], ImportBmrUploadArgs>({
       query: ({ batchRows, uploadFileName, containerCountByBatch }) => ({
@@ -138,6 +121,5 @@ export const {
   useGetContainerDetailQuery,
   useGetBoxDetailQuery,
   useGetFactoryUploadKpisQuery,
-  useUploadFactoryFileMutation,
   useImportBmrUploadMutation,
 } = factoryUploadApi

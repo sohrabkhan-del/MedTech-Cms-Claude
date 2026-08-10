@@ -1,63 +1,73 @@
-import type { PartnerZone } from '@/types/partner'
-import type { ScanUserRole } from '@/types/scanFeed'
-
 export type AlertSeverity = 'high' | 'medium' | 'low'
 
-export type AlertType =
-  | 'Duplicate Barcode Scan'
-  | 'Geo-fence Violation'
-  | 'Multiple Failed Scan Attempts'
-  | 'Unauthorized Device Login'
-  | 'Suspicious Scan Frequency'
+export type AlertStatus = 'open' | 'reviewing' | 'resolved' | 'dismissed'
 
-export type SecurityTimelineActivity =
-  | 'Duplicate Barcode Scan'
-  | 'Geo-fence Violation'
-  | 'Multiple Failed Scan Attempts'
-  | 'Unauthorized Device Login'
-  | 'Suspicious Scan Frequency'
-  | 'Account Activated'
-  | 'Account Deactivated'
+export type AlertType =
+  | 'QR_ALREADY_CLAIMED'
+  | 'GEO_FENCE_VIOLATION'
+  | 'DUPLICATE_SCAN'
+  | 'SUSPICIOUS_FREQUENCY'
+  | 'UNAUTHORIZED_DEVICE'
+
+export interface SecurityAlertPartnerRef {
+  id: string
+  referenceId?: string
+  businessName: string
+  ownerName: string
+  type: string
+  region: string
+}
+
+export interface SecurityAlertBusinessDetails {
+  businessName: string
+  partnerName: string
+  outletName: string
+  outletUserName?: string | null
+}
+
+export interface SecurityAlertProductDetails {
+  productName: string
+  productCode: string
+  categoryName?: string | null
+}
+
+export interface SecurityAlertProductUpload {
+  uploadBatchId: string
+  batchNo: string
+  productionPlanNumber: string
+}
 
 export interface SecurityAlert {
   id: string
-  alertType: AlertType
-  description: string
-  userId: string
-  userName: string
-  userType: ScanUserRole
-  affectedUserId: string
-  affectedUserName: string
-  affectedUserType: ScanUserRole
-  requestSource: string
+  type: AlertType
   severity: AlertSeverity
-  alertDateTime: string
-  sourceIp: string
-  userStatus: 'active' | 'inactive'
-  region: PartnerZone
+  status: AlertStatus
+  reason: string
+  scannedCode: string
+  packagingLevel: string
+  serial: number
+  batch: string
+  businessDetails: SecurityAlertBusinessDetails
+  productDetails: SecurityAlertProductDetails
+  productUpload: SecurityAlertProductUpload
+  scanPartnerDetails: SecurityAlertPartnerRef
+  affectedPartnerDetails: SecurityAlertPartnerRef
+  affectedPartnerRewardPoints: number
+  reviewedBy: string | null
+  reviewedAt: string | null
+  remarks: string | null
+  createdAt: string
+  updatedAt: string
 }
 
-export interface SecurityTimelineEntry {
-  id: string
-  activity: SecurityTimelineActivity
-  dateTime: string
-}
-
-export interface UserSecuritySummary {
-  userId: string
-  userName: string
-  userType: ScanUserRole
-  mobileNumber: string
-  email: string
-  region: PartnerZone
-  status: 'active' | 'inactive'
-  totalAlerts: number
-  highSeverityAlerts: number
-  lastAlertDate: string
-  lastKnownLocation: string
-  lastKnownLatitude: number
-  lastKnownLongitude: number
-  sourceIp: string
-  deviceInfo: string
-  registeredDevice: string
+export interface SecurityAlertDetail extends SecurityAlert {
+  productId: string
+  productUploadId: string
+  businessId: string
+  technicalInformation: {
+    sourceIp: string
+    deviceInfo: string
+    deviceUuid: string
+    appVersion: string
+  }
 }

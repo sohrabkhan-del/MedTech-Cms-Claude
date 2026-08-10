@@ -1,14 +1,15 @@
 import {
   useGetSecurityAlertsQuery,
   useGetSecurityAlertKpisQuery,
+  type SecurityAlertQueryParams,
 } from '@/features/fieldOperations/services/securityAlertsApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useSecurityAlerts() {
-  const alertsResult = useGetSecurityAlertsQuery()
+export function useSecurityAlerts(params?: SecurityAlertQueryParams) {
+  const alertsResult = useGetSecurityAlertsQuery(params)
   const kpisResult = useGetSecurityAlertKpisQuery()
 
-  const isLoading = alertsResult.isLoading || kpisResult.isLoading
+  const isLoading = alertsResult.isFetching || kpisResult.isFetching
   const error = alertsResult.error
     ? getApiErrorMessage(alertsResult.error, 'Failed to load security alerts.')
     : kpisResult.error
@@ -16,7 +17,8 @@ export function useSecurityAlerts() {
       : null
 
   return {
-    alerts: alertsResult.data ?? [],
+    alerts: alertsResult.data?.items ?? [],
+    totalItems: alertsResult.data?.totalItems ?? 0,
     kpis: kpisResult.data ?? null,
     isLoading,
     error,

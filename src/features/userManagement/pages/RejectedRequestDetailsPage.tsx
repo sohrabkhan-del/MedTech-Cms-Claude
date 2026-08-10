@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Chip, Stack, Typography } from '@mui/material'
+import { Box, Button, Chip, Stack, TextField, Typography } from '@mui/material'
 import {
   Ban as BlockIcon,
   RotateCcw as RestoreOutlined,
@@ -67,6 +67,8 @@ export function RejectedRequestDetailsPage() {
   const [deleteRequest] = useDeleteRequestMutation()
   const [reopened, setReopened] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
+  const [reopenOpen, setReopenOpen] = useState(false)
+  const [reopenReason, setReopenReason] = useState('')
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={4} />
@@ -83,11 +85,17 @@ export function RejectedRequestDetailsPage() {
     )
   }
 
-  const handleReopen = async () => {
+  const openReopenDialog = () => {
+    setReopenReason('')
+    setReopenOpen(true)
+  }
+
+  const confirmReopen = async () => {
     try {
-      await reopenRequest(request.id).unwrap()
+      await reopenRequest({ id: request.id, reason: reopenReason }).unwrap()
       toast.success('Request reopened and moved back to Approval Requests.')
       setReopened(true)
+      setReopenOpen(false)
       navigate('/verification/approval-requests')
     } catch (err) {
       toast.error(getApiErrorMessage(err, 'Failed to reopen request.'))
@@ -167,7 +175,7 @@ export function RejectedRequestDetailsPage() {
             startIcon={<RestoreOutlined size={20} />}
             disabled={reopened || isReopening || isDeciding}
             loading={isReopening}
-            onClick={handleReopen}
+            onClick={openReopenDialog}
             sx={{ fontSize: '0.75rem' }}
           >
             {reopened ? 'Reopened' : 'Reopen Request'}
@@ -468,6 +476,28 @@ export function RejectedRequestDetailsPage() {
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
           {request.applicantName} · {request.storeName}
         </Typography>
+      </Modal>
+
+      <Modal
+        open={reopenOpen}
+        onClose={() => setReopenOpen(false)}
+        title="Reopen Request"
+        description="Provide a reason for reopening this request. It will be moved back to Approval Requests for review."
+        primaryActionLabel="Reopen"
+        primaryActionColor="primary"
+        onPrimaryAction={confirmReopen}
+        loading={isReopening}
+      >
+        <TextField
+          fullWidth
+          multiline
+          minRows={3}
+          size="small"
+          label="Reason for Reopening"
+          required
+          value={reopenReason}
+          onChange={(e) => setReopenReason(e.target.value)}
+        />
       </Modal>
     </>
   )

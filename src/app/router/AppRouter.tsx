@@ -106,7 +106,6 @@ import { getDealerById } from '@/features/userManagement/mockDealers'
 import { getChemistById } from '@/features/userManagement/mockChemists'
 import { getGeoFenceById } from '@/features/fieldOperations/mocks/mockGeoFences'
 import { getScanEventById } from '@/features/fieldOperations/mocks/mockScanFeed'
-import { getUserSecuritySummary } from '@/features/fieldOperations/mocks/mockSecurityAlerts'
 import { getApprovalRequestById } from '@/features/userManagement/mockApprovalRequests'
 import { getProductById } from '@/features/inventoryManagement/mockProducts'
 import { getBatchById } from '@/features/inventoryManagement/mockFactoryUploads'
@@ -200,10 +199,6 @@ registerDetailRoute({
 registerDetailRoute({
   parentPath: '/field-operations/live-scan-feed',
   resolveEntityName: (id) => getScanEventById(id)?.scanCode,
-})
-registerDetailRoute({
-  parentPath: '/field-operations/security-alerts',
-  resolveEntityName: (id) => getUserSecuritySummary(id)?.userName,
 })
 registerDetailRoute({
   parentPath: '/verification/approval-requests',

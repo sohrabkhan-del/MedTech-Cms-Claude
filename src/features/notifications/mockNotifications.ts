@@ -1,7 +1,6 @@
 import type { AppNotification } from '@/types/notification'
 import { mockApprovalRequests } from '@/features/userManagement/mockApprovalRequests'
 import { mockRedemptionRequests } from '@/features/rewardsWallet/mockRedemptions'
-import { mockSecurityAlerts } from '@/features/fieldOperations/mocks/mockSecurityAlerts'
 
 function hoursAgo(hours: number): string {
   return new Date(Date.now() - hours * 60 * 60 * 1000).toISOString()
@@ -27,20 +26,6 @@ function buildNotifications(): AppNotification[] {
       })
     })
 
-  mockSecurityAlerts.slice(0, 4).forEach((alert, index) => {
-    notifications.push({
-      id: `ntf-alert-${alert.id}`,
-      category: 'security_alert',
-      title: 'Security alert flagged',
-      message: `${alert.alertType} detected for ${alert.userName} (source IP ${alert.sourceIp}).`,
-      priority: 'high',
-      createdAt: hoursAgo(index * 5 + 2),
-      isRead: index > 1,
-      targetPath: '/field-operations/security-alerts',
-      actorName: alert.userName,
-    })
-  })
-
   mockRedemptionRequests
     .filter((request) => request.redemptionStatus === 'pending')
     .slice(0, 4)
@@ -63,7 +48,8 @@ function buildNotifications(): AppNotification[] {
       id: 'ntf-inventory-1',
       category: 'inventory',
       title: 'Factory inventory upload completed',
-      message: 'Batch BTC-88291 was processed successfully and is ready for verification.',
+      message:
+        'Batch BTC-88291 was processed successfully and is ready for verification.',
       priority: 'low',
       createdAt: hoursAgo(10),
       isRead: true,
@@ -73,7 +59,8 @@ function buildNotifications(): AppNotification[] {
       id: 'ntf-scheme-1',
       category: 'scheme',
       title: 'Scheme ending soon',
-      message: 'Monsoon Bonanza 2026 ends in 12 days. Review redemption progress before it closes.',
+      message:
+        'Monsoon Bonanza 2026 ends in 12 days. Review redemption progress before it closes.',
       priority: 'medium',
       createdAt: hoursAgo(18),
       isRead: true,
@@ -83,14 +70,17 @@ function buildNotifications(): AppNotification[] {
       id: 'ntf-system-1',
       category: 'system',
       title: 'Scheduled maintenance',
-      message: 'MedTech CMS will undergo scheduled maintenance this weekend between 1 AM and 3 AM IST.',
+      message:
+        'MedTech CMS will undergo scheduled maintenance this weekend between 1 AM and 3 AM IST.',
       priority: 'low',
       createdAt: hoursAgo(30),
       isRead: true,
     },
   )
 
-  return notifications.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  return notifications.sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )
 }
 
 export const mockNotifications: AppNotification[] = buildNotifications()

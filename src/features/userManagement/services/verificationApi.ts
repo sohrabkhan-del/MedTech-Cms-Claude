@@ -495,14 +495,15 @@ const verificationApi = baseApi.injectEndpoints({
       ],
     }),
 
-    reopenRequest: builder.mutation<void, string>({
-      query: (id) => ({
+    reopenRequest: builder.mutation<void, { id: string; reason: string }>({
+      query: ({ id, reason }) => ({
         tag: 'Verification',
         url: `/partners/${id}/reopen`,
         method: 'PATCH',
+        data: { reason },
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: (_result, _error, id) => [
+      invalidatesTags: (_result, _error, { id }) => [
         { type: 'Verification', id },
         { type: 'Verification', id: 'LIST' },
         { type: 'Verification', id: 'KPIS' },

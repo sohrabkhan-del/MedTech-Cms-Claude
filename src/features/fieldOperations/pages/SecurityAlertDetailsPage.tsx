@@ -1,11 +1,10 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Grid, Stack, Typography, Button, IconButton, Tooltip } from '@mui/material'
+import { Box, Grid, Stack, Typography, Button, Chip } from '@mui/material'
 import {
   ShieldAlert as GppMaybeIcon,
   TriangleAlert as ReportProblemOutlined,
-  Activity as TimelineIcon,
   ArrowLeft as ArrowBackOutlined,
-  MapPin,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
@@ -14,28 +13,44 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { CommonTable } from '@/components/common/CommonTable/CommonTable'
 import { SeverityChip } from '@/features/fieldOperations/components/SeverityChip'
-import { SEVERITY_CONFIG } from '@/features/fieldOperations/severityConfig'
-import { useSecurityAlertUserProfile } from '@/features/fieldOperations/hooks/useSecurityAlertUserProfile'
+import { SEVERITY_CONFIG, STATUS_CONFIG } from '@/features/fieldOperations/severityConfig'
+import { usePartnerSecurityHistory } from '@/features/fieldOperations/hooks/usePartnerSecurityHistory'
 
 export function SecurityAlertDetailsPage() {
   const navigate = useNavigate()
-  const { userId } = useParams<{ userId: string }>()
-  const { summary: userSummary, alertHistory: userAlertHistory, isLoading } = useSecurityAlertUserProfile(userId)
+  const { userId: partnerId } = useParams<{ userId: string }>()
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  if (isLoading) {
+  const { alerts, totalItems, isLoading } = usePartnerSecurityHistory(partnerId, {
+    page: page + 1,
+    limit: rowsPerPage,
+  })
+
+  if (isLoading && alerts.length === 0) {
     return <DetailsPageSkeleton sections={4} />
   }
 
-  if (!userSummary) {
+  const latestAlert = alerts[0]
+  const isScanPartner = latestAlert?.scanPartnerDetails.id === partnerId
+  const partnerDetails = latestAlert
+    ? isScanPartner
+      ? latestAlert.scanPartnerDetails
+      : latestAlert.affectedPartnerDetails
+    : undefined
+
+  if (!partnerDetails) {
     return (
       <EmptyState
-        title="User not found"
-        description="This user's security profile may have been removed."
+        title="Partner not found"
+        description="This partner's security history could not be found."
         actionLabel="Back to Security Alerts"
         onAction={() => navigate('/field-operations/security-alerts')}
       />
     )
   }
+
+  const highSeverityCount = alerts.filter((a) => a.severity === 'high').length
 
   return (
     <>
@@ -56,9 +71,9 @@ export function SecurityAlertDetailsPage() {
             <GppMaybeIcon size={18} />
           </Box>
           <Box>
-            <Typography variant="h1">{userSummary.userName}</Typography>
+            <Typography variant="h1">{partnerDetails.businessName}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {userSummary.userId} · {userSummary.userType}
+              {partnerDetails.referenceId ?? partnerDetails.id} · {partnerDetails.type}
             </Typography>
           </Box>
         </Stack>
@@ -73,15 +88,14 @@ export function SecurityAlertDetailsPage() {
       </Stack>
 
       <Stack spacing={3}>
-        <SectionCard title="User Summary">
+        <SectionCard title="Partner Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'User ID', value: userSummary.userId },
-              { label: 'User Name', value: userSummary.userName },
-              { label: 'User Type', value: userSummary.userType },
-              { label: 'Mobile Number', value: userSummary.mobileNumber },
-              { label: 'Email Address', value: userSummary.email },
-              { label: 'Region', value: userSummary.region },
+              { label: 'Partner ID', value: partnerDetails.referenceId ?? partnerDetails.id },
+              { label: 'Business Name', value: partnerDetails.businessName },
+              { label: 'Owner Name', value: partnerDetails.ownerName },
+              { label: 'Partner Type', value: partnerDetails.type },
+              { label: 'Region', value: partnerDetails.region },
             ]}
           />
         </SectionCard>
@@ -90,7 +104,7 @@ export function SecurityAlertDetailsPage() {
           <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard
               label="Total Security Alerts"
-              value={userSummary.totalAlerts}
+              value={totalItems}
               icon={<GppMaybeIcon size={20} />}
               iconColor="primary"
             />
@@ -98,7 +112,7 @@ export function SecurityAlertDetailsPage() {
           <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard
               label="High Severity Alerts"
-              value={userSummary.highSeverityAlerts}
+              value={highSeverityCount}
               icon={<ReportProblemOutlined size={20} />}
               iconColor="error"
             />
@@ -106,56 +120,36 @@ export function SecurityAlertDetailsPage() {
           <Grid size={{ xs: 12, sm: 6, lg: 4 }}>
             <StatCard
               label="Last Alert Date"
-              value={userSummary.lastAlertDate}
-              icon={<TimelineIcon size={20} />}
+              value={
+                latestAlert
+                  ? new Date(latestAlert.createdAt).toLocaleString('en-IN', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })
+                  : '—'
+              }
+              icon={<ReportProblemOutlined size={20} />}
               iconColor="warning"
             />
           </Grid>
         </Grid>
 
-        <SectionCard title="User Information">
-          <DetailFieldGrid
-            fields={[
-              {
-                label: 'Last Known Location',
-                value: (
-                  <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-                      {userSummary.lastKnownLocation}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-                      ({userSummary.lastKnownLatitude.toFixed(4)}, {userSummary.lastKnownLongitude.toFixed(4)})
-                    </Typography>
-                    <Tooltip title="Open in Google Maps">
-                      <IconButton
-                        size="small"
-                        component="a"
-                        href={`https://www.google.com/maps?q=${userSummary.lastKnownLatitude},${userSummary.lastKnownLongitude}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        aria-label="Open in Google Maps"
-                      >
-                        <MapPin size={16} />
-                      </IconButton>
-                    </Tooltip>
-                  </Stack>
-                ),
-              },
-              { label: 'Source IP Address', value: userSummary.sourceIp },
-              { label: 'Device Information', value: userSummary.deviceInfo },
-              { label: 'Registered Device', value: userSummary.registeredDevice },
-            ]}
-          />
-        </SectionCard>
-
         <SectionCard title="Security Alert History">
           <CommonTable
-            tableKey="security-alert-user-history"
+            tableKey="security-alert-partner-history"
             columns={[
-              { key: 'alertType', header: 'Alert Type', render: (row) => row.alertType },
-              { key: 'description', header: 'Description', render: (row) => row.description },
-              { key: 'userName', header: 'User', render: (row) => row.userName },
-              { key: 'affectedUserName', header: 'Affected User', render: (row) => row.affectedUserName },
+              { key: 'type', header: 'Alert Type', render: (row) => row.type },
+              { key: 'reason', header: 'Reason', render: (row) => row.reason },
+              {
+                key: 'scanPartner',
+                header: 'Scanning Partner',
+                render: (row) => row.scanPartnerDetails.businessName,
+              },
+              {
+                key: 'affectedPartner',
+                header: 'Affected Partner',
+                render: (row) => row.affectedPartnerDetails.businessName,
+              },
               {
                 key: 'severity',
                 header: 'Severity',
@@ -163,16 +157,41 @@ export function SecurityAlertDetailsPage() {
                 sortValue: (row) => SEVERITY_CONFIG[row.severity].label,
                 render: (row) => <SeverityChip severity={row.severity} />,
               },
-              { key: 'requestSource', header: 'Request Source', render: (row) => row.requestSource },
-              { key: 'sourceIp', header: 'Source IP Address', render: (row) => row.sourceIp },
-              { key: 'alertDateTime', header: 'Alert Date & Time', sortable: true, render: (row) => row.alertDateTime },
+              {
+                key: 'status',
+                header: 'Status',
+                render: (row) => (
+                  <Chip
+                    size="small"
+                    label={STATUS_CONFIG[row.status].label}
+                    color={STATUS_CONFIG[row.status].color === 'default' ? undefined : STATUS_CONFIG[row.status].color}
+                    variant="filled"
+                  />
+                ),
+              },
+              { key: 'batch', header: 'Batch', render: (row) => row.batch },
+              {
+                key: 'createdAt',
+                header: 'Alert Date & Time',
+                sortable: true,
+                render: (row) => new Date(row.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+              },
             ]}
-            rows={userAlertHistory}
+            rows={alerts}
             loading={isLoading}
             getRowId={(row) => row.id}
+            totalCount={totalItems}
+            page={page}
+            onPageChange={setPage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={(next) => {
+              setRowsPerPage(next)
+              setPage(0)
+            }}
             searchPlaceholder="Search alerts…"
-            searchKeys={(row) => `${row.alertType} ${row.description}`}
-            defaultSortBy="alertDateTime"
+            searchKeys={(row) => `${row.type} ${row.reason}`}
+            defaultSortBy="createdAt"
+            defaultSortDir="desc"
             emptyTitle="No alerts recorded"
           />
         </SectionCard>

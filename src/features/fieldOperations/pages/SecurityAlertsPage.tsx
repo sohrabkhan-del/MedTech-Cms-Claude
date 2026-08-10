@@ -1,13 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import {
-  Chip,
-  Grid,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
 import {
   ShieldAlert as GppMaybeIcon,
   TriangleAlert as ReportProblemOutlined,
@@ -21,65 +14,75 @@ import {
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { SeverityChip } from '@/features/fieldOperations/components/SeverityChip'
 import { SEVERITY_CONFIG } from '@/features/fieldOperations/severityConfig'
 import { useSecurityAlerts } from '@/features/fieldOperations/hooks/useSecurityAlerts'
 import type {
   AlertSeverity,
+  AlertStatus,
   SecurityAlert,
 } from '@/features/fieldOperations/types/fieldOperations.types'
-import type { ScanUserRole } from '@/types/scanFeed'
-import type { PartnerZone } from '@/types/partner'
 
 interface AlertFilters extends Record<string, unknown> {
   severity: AlertSeverity | 'all'
-  userType: ScanUserRole | 'all'
-  userStatus: 'active' | 'inactive' | 'all'
+  status: AlertStatus | 'all'
+  type: string
+}
+
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  severity: 'severity',
+  status: 'status',
+  type: 'type',
+  createdAt: 'createdAt',
 }
 
 export function SecurityAlertsPage() {
   const navigate = useNavigate()
-  const { region } = useRegionFilter()
-  const { alerts, kpis, isLoading } = useSecurityAlerts()
-  useRegionTopbarHeader({
-    icon: <GppMaybeIcon size={20} />,
-    title: 'Security Alerts',
-    subtitle:
-      'Real-time monitoring of suspicious activity across the platform.',
-    isLoading,
-  })
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<AlertFilters>({
     severity: 'all',
-    userType: 'all',
-    userStatus: 'all',
+    status: 'all',
+    type: '',
   })
+  const [sortColumn, setSortColumn] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const regionZone = region === 'All India' ? null : (region as PartnerZone)
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { alerts, totalItems, kpis, isLoading } = useSecurityAlerts({
+    page: page + 1,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    severity: appliedFilters.severity !== 'all' ? appliedFilters.severity.toUpperCase() : undefined,
+    status: appliedFilters.status !== 'all' ? appliedFilters.status.toUpperCase() : undefined,
+    type: appliedFilters.type || undefined,
+    regionId: topbarRegionId || undefined,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
+  useRegionTopbarHeader({
+    icon: <GppMaybeIcon size={20} />,
+    title: 'Security Alerts',
+    subtitle: 'Real-time monitoring of suspicious activity across the platform.',
+    isLoading,
+  })
 
   const securityAlertKpis = kpis ?? {
     totalAlerts: 0,
+    totalAlertsChange: 0,
     highSeverity: 0,
     mediumSeverity: 0,
     lowSeverity: 0,
+    criticalSeverity: 0,
   }
 
-  const filteredAlerts = alerts.filter((alert) => {
-    const regionMatch = !regionZone || alert.region === regionZone
-    const severityMatch =
-      appliedFilters.severity === 'all' ||
-      alert.severity === appliedFilters.severity
-    const userTypeMatch =
-      appliedFilters.userType === 'all' ||
-      alert.userType === appliedFilters.userType
-    const statusMatch =
-      appliedFilters.userStatus === 'all' ||
-      alert.userStatus === appliedFilters.userStatus
-    return regionMatch && severityMatch && userTypeMatch && statusMatch
-  })
-
-  const openUser = (userId: string) => {
-    navigate(`/field-operations/security-alerts/${userId}`)
+  const openPartner = (partnerId: string) => {
+    navigate(`/field-operations/security-alerts/${partnerId}`)
   }
 
   const columns: CommonTableColumn<SecurityAlert>[] = [
@@ -88,6 +91,7 @@ export function SecurityAlertsPage() {
       header: 'User Name',
       minWidth: 160,
       sortable: true,
+      sortValue: (row) => row.scanPartnerDetails.businessName,
       render: (row) => (
         <Typography
           sx={{
@@ -96,18 +100,23 @@ export function SecurityAlertsPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() => openUser(row.userId)}
+          onClick={() => openPartner(row.scanPartnerDetails.id)}
         >
-          {row.userName}
+          {row.scanPartnerDetails.businessName}
         </Typography>
       ),
     },
-    { key: 'userType', header: 'User Type', render: (row) => row.userType },
+    {
+      key: 'userType',
+      header: 'User Type',
+      render: (row) => row.scanPartnerDetails.type,
+    },
     {
       key: 'affectedUserName',
       header: 'Affected User Name',
       minWidth: 160,
       sortable: true,
+      sortValue: (row) => row.affectedPartnerDetails.businessName,
       render: (row) => (
         <Typography
           sx={{
@@ -116,23 +125,24 @@ export function SecurityAlertsPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() => openUser(row.affectedUserId)}
+          onClick={() => openPartner(row.affectedPartnerDetails.id)}
         >
-          {row.affectedUserName}
+          {row.affectedPartnerDetails.businessName}
         </Typography>
       ),
     },
     {
       key: 'affectedUserType',
       header: 'Affected User Type',
-      render: (row) => row.affectedUserType,
+      render: (row) => row.affectedPartnerDetails.type,
     },
     {
       key: 'region',
       header: 'Region',
       sortable: true,
+      sortValue: (row) => row.scanPartnerDetails.region,
       render: (row) => (
-        <Chip size="small" label={row.region} variant="outlined" />
+        <Chip size="small" label={row.scanPartnerDetails.region} variant="outlined" />
       ),
     },
     {
@@ -143,24 +153,25 @@ export function SecurityAlertsPage() {
       render: (row) => <SeverityChip severity={row.severity} />,
     },
     {
-      key: 'alertType',
+      key: 'type',
       header: 'Alert Type',
       minWidth: 170,
       sortable: true,
-      render: (row) => row.alertType,
+      render: (row) => row.type,
     },
     {
-      key: 'alertDateTime',
+      key: 'createdAt',
       header: 'Alert Date & Time',
       minWidth: 160,
-      render: (row) => row.alertDateTime,
+      sortable: true,
+      render: (row) => new Date(row.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
     },
   ]
 
   return (
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -169,13 +180,14 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.totalAlerts}
               icon={<GppMaybeIcon size={20} />}
               iconColor="primary"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, severity: 'all' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -184,13 +196,14 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.highSeverity}
               icon={<ReportProblemOutlined size={20} />}
               iconColor="error"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, severity: 'high' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -199,13 +212,14 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.mediumSeverity}
               icon={<ReportProblemOutlined size={20} />}
               iconColor="warning"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, severity: 'medium' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
           {isLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -214,39 +228,68 @@ export function SecurityAlertsPage() {
               value={securityAlertKpis.lowSeverity}
               icon={<ReportProblemOutlined size={20} />}
               iconColor="info"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, severity: 'low' }))
-              }
+                setPage(0)
+              }}
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
+          {isLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Critical Severity Alerts"
+              value={securityAlertKpis.criticalSeverity}
+              icon={<ReportProblemOutlined size={20} />}
+              iconColor="error"
             />
           )}
         </Grid>
       </Grid>
 
       <CommonTable
+        key={`${appliedFilters.severity}-${appliedFilters.status}-${appliedFilters.type}`}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         tableKey="security-alerts-list"
         columns={columns}
-        rows={filteredAlerts}
+        rows={alerts}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search alerts…"
-        searchKeys={(row) =>
-          `${row.userName} ${row.affectedUserName} ${row.alertType} ${row.id}`
-        }
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.severity !== 'all' ? 1 : 0) +
-          (appliedFilters.userType !== 'all' ? 1 : 0) +
-          (appliedFilters.userStatus !== 'all' ? 1 : 0)
+          (appliedFilters.status !== 'all' ? 1 : 0) +
+          (appliedFilters.type.trim() ? 1 : 0)
         }
-        defaultSortBy="alertDateTime"
+        defaultSortBy="createdAt"
+        defaultSortDir="desc"
         actions={[
           {
             label: 'View suspicious user',
-            onClick: (row) => openUser(row.userId),
+            onClick: (row) => openPartner(row.scanPartnerDetails.id),
           },
           {
             label: 'View original user',
-            onClick: (row) => openUser(row.affectedUserId),
+            onClick: (row) => openPartner(row.affectedPartnerDetails.id),
           },
         ]}
         emptyTitle="No security alerts found"
@@ -258,7 +301,10 @@ export function SecurityAlertsPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Alerts"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
@@ -281,36 +327,34 @@ export function SecurityAlertsPage() {
             </TextField>
             <TextField
               select
-              label="User Type"
+              label="Status"
               size="small"
-              value={draft.userType}
+              value={draft.status}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  userType: e.target.value as AlertFilters['userType'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Users</MenuItem>
-              <MenuItem value="Dealer">Dealer</MenuItem>
-              <MenuItem value="Chemist">Chemist</MenuItem>
-            </TextField>
-            <TextField
-              select
-              label="User Status"
-              size="small"
-              value={draft.userStatus}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  userStatus: e.target.value as AlertFilters['userStatus'],
+                  status: e.target.value as AlertFilters['status'],
                 }))
               }
             >
               <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
+              <MenuItem value="open">Open</MenuItem>
+              <MenuItem value="reviewing">Reviewing</MenuItem>
+              <MenuItem value="resolved">Resolved</MenuItem>
+              <MenuItem value="dismissed">Dismissed</MenuItem>
             </TextField>
+            <TextField
+              label="Incident Type"
+              size="small"
+              placeholder="e.g. QR_ALREADY_CLAIMED"
+              value={draft.type}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  type: e.target.value,
+                }))
+              }
+            />
           </Stack>
         )}
       </FilterDrawer>

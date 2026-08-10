@@ -1,10 +1,14 @@
 export type { ScanEvent, ScanUserRole, ScanResult, ScanUserSummary } from '@/types/scanFeed'
 export type {
   SecurityAlert,
+  SecurityAlertDetail,
   AlertSeverity,
+  AlertStatus,
   AlertType,
-  UserSecuritySummary,
-  SecurityTimelineEntry,
+  SecurityAlertPartnerRef,
+  SecurityAlertBusinessDetails,
+  SecurityAlertProductDetails,
+  SecurityAlertProductUpload,
 } from '@/types/securityAlert'
 export type {
   GeoFence,

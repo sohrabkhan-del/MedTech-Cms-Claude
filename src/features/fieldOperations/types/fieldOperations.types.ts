@@ -1,4 +1,12 @@
-export type { ScanEvent, ScanUserRole, ScanResult, ScanUserSummary } from '@/types/scanFeed'
+export type {
+  ScanEvent,
+  ScanEventDetail,
+  ScanUserRole,
+  ScanStatus,
+  ScanBusinessDetails,
+  ScanProductDetails,
+  ScanTechnicalInfo,
+} from '@/types/scanFeed'
 export type {
   SecurityAlert,
   SecurityAlertDetail,

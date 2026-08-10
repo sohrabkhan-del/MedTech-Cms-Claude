@@ -23,14 +23,25 @@ import {
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { ScanResultChip } from '@/features/fieldOperations/components/ScanResultChip'
-import { SCAN_RESULT_CONFIG } from '@/features/fieldOperations/scanResultConfig'
-import { useLiveScanFeed } from '@/features/fieldOperations/hooks/useLiveScanFeed'
+import { useScanFeed } from '@/features/fieldOperations/hooks/useScanFeed'
 import type {
-  ScanResult,
-  ScanUserRole,
+  ScanEvent,
+  ScanStatus,
 } from '@/features/fieldOperations/types/fieldOperations.types'
-import type { PartnerZone } from '@/types/partner'
+
+interface ScanFilters extends Record<string, unknown> {
+  scanStatus: ScanStatus | 'all'
+  type: string
+}
+
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  scannedAt: 'scannedAt',
+  scanStatus: 'scanStatus',
+}
+
+const LIVE_POLL_INTERVAL_MS = 5000
 
 const livePulseKeyframes = {
   '@keyframes live-scan-pulse': {
@@ -40,115 +51,118 @@ const livePulseKeyframes = {
   },
 }
 
-interface ScanFilters extends Record<string, unknown> {
-  userRole: ScanUserRole | 'all'
-  result: ScanResult | 'all'
-}
-
 export function LiveScanFeedPage() {
   const navigate = useNavigate()
-  const { region } = useRegionFilter()
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const [search, setSearch] = useState('')
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<ScanFilters>({
+    scanStatus: 'all',
+    type: '',
+  })
+  const [sortColumn, setSortColumn] = useState('scannedAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [isLive, setIsLive] = useState(true)
 
-  const { liveScans, newRowIds, isLive, toggleLive, isLoading } =
-    useLiveScanFeed()
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { scanEvents, totalItems, isLoading, error } = useScanFeed(
+    {
+      page: page + 1,
+      limit: rowsPerPage,
+      search: debouncedSearch,
+      scanStatus:
+        appliedFilters.scanStatus !== 'all'
+          ? appliedFilters.scanStatus.toUpperCase()
+          : undefined,
+      scanResultType: appliedFilters.type || undefined,
+      regionId: topbarRegionId || undefined,
+      sortBy: SORT_FIELD_MAP[sortColumn],
+      sortOrder,
+    },
+    isLive ? LIVE_POLL_INTERVAL_MS : 0,
+  )
 
   useRegionTopbarHeader({
     icon: <MyLocationIcon size={20} />,
     title: 'Live Scan Feed',
     subtitle:
       'Real-time barcode scanning activity across Dealers and Chemists.',
-    live: true,
     isLoading,
-  })
-
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<ScanFilters>({
-    userRole: 'all',
-    result: 'all',
-  })
-
-  const topbarZone = region === 'All India' ? null : (region as PartnerZone)
-
-  const filteredScans = liveScans.filter((scan) => {
-    const regionMatch = !topbarZone || scan.region === topbarZone
-    const roleMatch =
-      appliedFilters.userRole === 'all' ||
-      scan.userRole === appliedFilters.userRole
-    const resultMatch =
-      appliedFilters.result === 'all' || scan.result === appliedFilters.result
-    return regionMatch && roleMatch && resultMatch
   })
 
   const openScan = (scanId: string) => {
     navigate(`/field-operations/live-scan-feed/${scanId}`)
   }
 
-  const columns: CommonTableColumn<(typeof liveScans)[number]>[] = [
+  const openPartner = (partnerId: string) => {
+    navigate(`/field-operations/live-scan-feed/user/${partnerId}`)
+  }
+
+  const columns: CommonTableColumn<ScanEvent>[] = [
     {
       key: 'businessName',
       header: 'Business Name',
-      minWidth: 250,
+      minWidth: 220,
       render: (row) => (
-        <Stack direction="row" spacing={0.75} sx={{ alignItems: 'center' }}>
-          {newRowIds.has(row.id) && (
-            <Box
-              sx={{
-                width: 7,
-                height: 7,
-                borderRadius: '50%',
-                backgroundColor: 'success.main',
-                animation: 'live-scan-pulse 1.2s ease-in-out infinite',
-                ...livePulseKeyframes,
-              }}
-            />
-          )}
-          <Typography
-            sx={{
-              fontSize: '0.8125rem',
-              fontWeight: newRowIds.has(row.id) ? 700 : 400,
-              color: newRowIds.has(row.id) ? 'success.dark' : 'inherit',
-              cursor: 'pointer',
-              '&:hover': { textDecoration: 'underline' },
-            }}
-            onClick={() => openScan(row.id)}
-          >
-            {row.businessName}
-          </Typography>
-        </Stack>
+        <Typography
+          sx={{
+            fontSize: '0.8125rem',
+            fontWeight: 600,
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => openScan(row.id)}
+        >
+          {row.businessDetails.businessName}
+        </Typography>
       ),
     },
-    { key: 'userRole', header: 'Type', render: (row) => row.userRole },
+    { key: 'partnerType', header: 'Type', render: (row) => row.partnerType },
     {
-      key: 'userName',
+      key: 'partnerName',
       header: 'Name',
       minWidth: 160,
-      sortable: true,
       render: (row) => (
-        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-          {row.userName}
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={() => openPartner(row.id)}
+        >
+          {row.businessDetails.partnerName}
         </Typography>
       ),
     },
     {
-      key: 'scanDateTime',
+      key: 'scannedAt',
       header: 'Scan Date & Time',
       minWidth: 170,
       sortable: true,
       render: (row) => (
         <Typography sx={{ fontSize: '0.8125rem' }}>
-          {row.scanDateTime}
+          {new Date(row.scannedAt).toLocaleString('en-IN', {
+            dateStyle: 'medium',
+            timeStyle: 'short',
+          })}
         </Typography>
       ),
     },
     {
-      key: 'result',
+      key: 'scanResult',
       header: 'Scan Result',
       sortable: true,
-      sortValue: (row) => SCAN_RESULT_CONFIG[row.result].label,
-      render: (row) => <ScanResultChip result={row.result} />,
+      render: (row) => (
+        <ScanResultChip status={row.scanStatus} label={row.scanResult} />
+      ),
     },
     {
-      key: 'scanCode',
+      key: 'scannedCode',
       header: 'Scan Code',
       minWidth: 220,
       render: (row) => (
@@ -161,26 +175,17 @@ export function LiveScanFeedPage() {
           }}
           onClick={() => openScan(row.id)}
         >
-          {row.scanCode}
+          {row.scannedCode}
         </Typography>
       ),
     },
     {
-      key: 'productName',
-      header: 'Product Name',
-      minWidth: 170,
-      render: (row) => row.productName,
-    },
-    {
       key: 'productCode',
       header: 'Product Code',
-      minWidth: 130,
+      minWidth: 150,
       render: (row) => (
-        <Typography
-          onClick={(e) => e.stopPropagation()}
-          sx={{ fontWeight: 700, fontSize: '0.8125rem', cursor: 'default' }}
-        >
-          {row.productCode}
+        <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
+          {row.productDetails.productCode}
         </Typography>
       ),
     },
@@ -195,7 +200,7 @@ export function LiveScanFeedPage() {
         sx={{ alignItems: 'center', justifyContent: 'flex-end', mb: 1.5 }}
       >
         <Chip
-          label={isLive ? 'Live · updating every second' : 'Paused'}
+          label={isLive ? 'Live' : 'Paused'}
           size="small"
           color={isLive ? 'success' : 'default'}
           variant="filled"
@@ -218,7 +223,7 @@ export function LiveScanFeedPage() {
         <Tooltip title={isLive ? 'Pause Live Feed' : 'Resume Live Feed'}>
           <IconButton
             size="small"
-            onClick={toggleLive}
+            onClick={() => setIsLive((prev) => !prev)}
             aria-label={isLive ? 'Pause live feed' : 'Resume live feed'}
             sx={{
               border: '1px solid',
@@ -232,88 +237,84 @@ export function LiveScanFeedPage() {
       </Stack>
 
       <CommonTable
+        key={`${appliedFilters.scanStatus}-${appliedFilters.type}`}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         tableKey="live-scan-feed"
         columns={columns}
-        rows={filteredScans}
+        rows={scanEvents}
         loading={isLoading}
         getRowId={(row) => row.id}
         onRowClick={(row) => openScan(row.id)}
         searchPlaceholder="Search scans…"
-        searchKeys={(row) =>
-          `${row.userName} ${row.businessName} ${row.scanCode} ${row.productName} ${row.productCode}`
-        }
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
-          (appliedFilters.userRole !== 'all' ? 1 : 0) +
-          (appliedFilters.result !== 'all' ? 1 : 0)
+          (appliedFilters.scanStatus !== 'all' ? 1 : 0) +
+          (appliedFilters.type.trim() ? 1 : 0)
         }
+        defaultSortBy="scannedAt"
+        defaultSortDir="desc"
         emptyTitle="No scans found"
-        emptyDescription="Try adjusting your filters or search terms."
+        emptyDescription={
+          error ?? 'Try adjusting your filters or search terms.'
+        }
       />
-
-      <Tooltip title={isLive ? 'Pause Live Feed' : 'Resume Live Feed'}>
-        <IconButton
-          sx={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            backgroundColor: 'primary.main',
-            color: 'primary.contrastText',
-            '&:hover': { backgroundColor: 'primary.dark' },
-          }}
-          onClick={toggleLive}
-          aria-label={isLive ? 'Pause live feed' : 'Resume live feed'}
-        >
-          {isLive ? <RefreshIcon /> : <PlayArrowIcon />}
-        </IconButton>
-      </Tooltip>
 
       <FilterDrawer<ScanFilters>
         open={filterOpen}
         onClose={() => setFilterOpen(false)}
         title="Filter Scans"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <TextField
               select
-              label="Partner Filter"
+              label="Scan Status"
               size="small"
-              value={draft.userRole}
+              value={draft.scanStatus}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  userRole: e.target.value as ScanFilters['userRole'],
+                  scanStatus: e.target.value as ScanFilters['scanStatus'],
                 }))
               }
             >
-              <MenuItem value="all">All Partners</MenuItem>
-              <MenuItem value="Dealer">Dealer</MenuItem>
-              <MenuItem value="Chemist">Chemist</MenuItem>
+              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="success">Success</MenuItem>
+              <MenuItem value="failed">Failed</MenuItem>
             </TextField>
             <TextField
-              select
-              label="Scan Result"
+              label="Scan Result Type"
               size="small"
-              value={draft.result}
+              placeholder="e.g. QR_ALREADY_CLAIMED"
+              value={draft.type}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  result: e.target.value as ScanFilters['result'],
+                  type: e.target.value,
                 }))
               }
-            >
-              <MenuItem value="all">All Results</MenuItem>
-              {(Object.keys(SCAN_RESULT_CONFIG) as ScanResult[]).map(
-                (result) => (
-                  <MenuItem key={result} value={result}>
-                    {SCAN_RESULT_CONFIG[result].label}
-                  </MenuItem>
-                ),
-              )}
-            </TextField>
+            />
           </Stack>
         )}
       </FilterDrawer>

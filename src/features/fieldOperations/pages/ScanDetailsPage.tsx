@@ -31,6 +31,8 @@ export function ScanDetailsPage() {
     )
   }
 
+  const withinGeofence = selectedScan.distanceFromTaggedLocation <= selectedScan.geofenceAllowed
+
   return (
     <>
       <Stack
@@ -59,9 +61,9 @@ export function ScanDetailsPage() {
             <QrCodeScannerIcon size={18} />
           </Box>
           <Box>
-            <Typography variant="h1">{selectedScan.scanCode}</Typography>
+            <Typography variant="h1">{selectedScan.scannedCode}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {selectedScan.id} · {selectedScan.productName}
+              {selectedScan.referenceId} · {selectedScan.productDetails.productCode}
             </Typography>
           </Box>
         </Stack>
@@ -80,28 +82,39 @@ export function ScanDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Scan ID', value: selectedScan.id },
-              { label: 'Scan Code', value: selectedScan.scanCode },
-              { label: 'Product Name', value: selectedScan.productName },
-              { label: 'Product Code', value: selectedScan.productCode },
-              { label: 'Batch Number', value: selectedScan.batchNumber },
-              { label: 'Scan Date & Time', value: selectedScan.scanDateTime },
+              { label: 'Reference ID', value: selectedScan.referenceId },
+              { label: 'Scanned Code', value: selectedScan.scannedCode },
+              { label: 'Product Code', value: selectedScan.productDetails.productCode },
+              { label: 'Product Category', value: selectedScan.productDetails.productCategory ?? '-' },
+              { label: 'Batch Number', value: selectedScan.batchNo },
+              {
+                label: 'Scan Date & Time',
+                value: new Date(selectedScan.scannedAt).toLocaleString('en-IN', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }),
+              },
               {
                 label: 'Reward Points Earned',
-                value: selectedScan.rewardPoints.toLocaleString('en-IN'),
+                value: selectedScan.rewardPointsEarned.toLocaleString('en-IN'),
               },
               {
                 label: 'Scan Result',
-                value: <ScanResultChip result={selectedScan.result} />,
+                value: <ScanResultChip status={selectedScan.scanStatus} label={selectedScan.scanResult} />,
               },
+              { label: 'Scan Result Type', value: selectedScan.scanResultType },
+              ...(selectedScan.rewardReason
+                ? [{ label: 'Reward Reason', value: selectedScan.rewardReason }]
+                : []),
             ]}
           />
         </SectionCard>
 
-        <SectionCard title="User Information">
+        <SectionCard title="Business Information">
           <DetailFieldGrid
             fields={[
               {
-                label: 'User Name',
+                label: 'Partner Name',
                 value: (
                   <Typography
                     sx={{
@@ -111,22 +124,18 @@ export function ScanDetailsPage() {
                       '&:hover': { textDecoration: 'underline' },
                     }}
                     onClick={() =>
-                      navigate(
-                        `/field-operations/live-scan-feed/user/${selectedScan.userId}`,
-                      )
+                      navigate(`/field-operations/live-scan-feed/user/${selectedScan.partnerId}`)
                     }
                   >
-                    {selectedScan.userName}
+                    {selectedScan.businessDetails.partnerName}
                   </Typography>
                 ),
               },
-              { label: 'User Type', value: selectedScan.userRole },
-              {
-                label: 'Registered Location',
-                value: selectedScan.businessName,
-              },
+              { label: 'Partner Type', value: selectedScan.partnerType },
+              { label: 'Business Name', value: selectedScan.businessDetails.businessName },
+              { label: 'Outlet Name', value: selectedScan.businessDetails.outletName },
+              { label: 'Outlet User Name', value: selectedScan.businessDetails.outletUserName ?? '-' },
               { label: 'Assigned Region', value: selectedScan.region },
-              { label: 'Business Name', value: selectedScan.businessName },
             ]}
           />
         </SectionCard>
@@ -148,54 +157,29 @@ export function ScanDetailsPage() {
               </Typography>
               <Grid container spacing={2}>
                 {[
-                  ['Latitude', selectedScan.location.latitude.toFixed(4)],
-                  ['Longitude', selectedScan.location.longitude.toFixed(4)],
-                  [
-                    'Registered Geo-fence',
-                    `${selectedScan.location.registeredGeoFenceRadiusMeters} m`,
-                  ],
-                  [
-                    'Distance from Registered',
-                    `${selectedScan.location.distanceFromRegisteredMeters} m`,
-                  ],
+                  ['Latitude', selectedScan.latitude.toFixed(6)],
+                  ['Longitude', selectedScan.longitude.toFixed(6)],
+                  ['Registered Geo-fence', `${selectedScan.geofenceAllowed} m`],
+                  ['Buffer Geo-fence', `${selectedScan.bufferGeofenceAllowed} m`],
+                  ['Distance from Tagged Location', `${selectedScan.distanceFromTaggedLocation} m`],
                 ].map(([label, value]) => (
                   <Grid key={label} size={6}>
                     <Typography
                       variant="caption"
-                      sx={{
-                        color: 'text.secondary',
-                        textTransform: 'uppercase',
-                        letterSpacing: '0.04em',
-                      }}
+                      sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: '0.04em' }}
                     >
                       {label}
                     </Typography>
-                    <Typography
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: '0.8125rem',
-                        mt: 0.25,
-                      }}
-                    >
+                    <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem', mt: 0.25 }}>
                       {value}
                     </Typography>
                   </Grid>
                 ))}
                 <Grid size={12}>
                   <Chip
-                    label={
-                      selectedScan.location.geoFenceValidationResult ===
-                      'within_range'
-                        ? 'Within Range'
-                        : 'Outside Range'
-                    }
+                    label={withinGeofence ? 'Within Range' : 'Outside Range'}
                     size="small"
-                    color={
-                      selectedScan.location.geoFenceValidationResult ===
-                      'within_range'
-                        ? 'success'
-                        : 'error'
-                    }
+                    color={withinGeofence ? 'success' : 'error'}
                   />
                 </Grid>
               </Grid>
@@ -206,19 +190,17 @@ export function ScanDetailsPage() {
         <SectionCard title="Technical Information">
           <DetailFieldGrid
             fields={[
+              { label: 'Source IP Address', value: selectedScan.technicalInformation.sourceIp },
+              { label: 'Device Information', value: selectedScan.technicalInformation.deviceInfo },
+              { label: 'Device UUID', value: selectedScan.technicalInformation.deviceUuid },
               {
-                label: 'Source IP Address',
-                value: selectedScan.technical.sourceIp,
+                label: 'Scan Timestamp',
+                value: new Date(selectedScan.technicalInformation.scanTimestamp).toLocaleString('en-IN', {
+                  dateStyle: 'medium',
+                  timeStyle: 'short',
+                }),
               },
-              {
-                label: 'Device Information',
-                value: selectedScan.technical.deviceInfo,
-              },
-              { label: 'Scan Timestamp', value: selectedScan.scanDateTime },
-              {
-                label: 'Application Version',
-                value: selectedScan.technical.appVersion,
-              },
+              { label: 'Application Version', value: selectedScan.technicalInformation.appVersion },
             ]}
           />
         </SectionCard>

@@ -1,70 +1,187 @@
-// MOCK MODE — flip VITE_USE_MOCKS=false and confirm this endpoint's real backend path once integration starts.
 import { baseApi } from '@/store/api/baseApi'
-import {
-  mockScanEvents,
-  generateLiveScanEvent,
-  getScanEventById,
-  getUserScanSummary,
-  getUserScanHistory,
-  scanFeedKpis,
-} from '@/features/fieldOperations/mocks/mockScanFeed'
-import type { ScanEvent, ScanUserSummary } from '@/features/fieldOperations/types/fieldOperations.types'
+import type { ScanEvent, ScanEventDetail, ScanStatus } from '@/types/scanFeed'
 import { mockDelay } from '@/services/mockDelay'
 
-export type ScanFeedKpis = typeof scanFeedKpis
+export interface ScanFeedQueryParams {
+  page?: number
+  limit?: number
+  search?: string
+  partnerId?: string
+  affectedPartnerId?: string
+  businessId?: string
+  productId?: string
+  productUploadId?: string
+  batch?: string
+  regionId?: string
+  scanStatus?: string
+  scanResultType?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
 
-export interface UserScanProfile {
-  summary: ScanUserSummary | undefined
-  history: ScanEvent[]
+interface ApiScanEventItem {
+  id: string
+  referenceId: string
+  businessDetails: {
+    businessName: string
+    partnerName: string
+    outletName: string
+    outletUserName?: string | null
+  }
+  partnerType: string
+  scannedAt: string
+  scanResult: string
+  scanResultType: string
+  scanStatus: string
+  scannedCode: string
+  productDetails: {
+    productCode: string
+    productCategory?: string | null
+  }
+  region: string
+  batchNo: string
+  rewardPointsEarned: number
+}
+
+interface ApiScanEventDetailItem extends ApiScanEventItem {
+  latitude: number
+  longitude: number
+  geofenceAllowed: number
+  bufferGeofenceAllowed: number
+  distanceFromTaggedLocation: number
+  technicalInformation: {
+    sourceIp: string
+    deviceInfo: string
+    deviceUuid: string
+    scanTimestamp: string
+    appVersion: string
+  }
+  rewardReason?: string | null
+  productId: string
+  productUploadId: string
+  partnerId: string
+  businessId: string
+  createdAt: string
+  updatedAt: string
+}
+
+interface ScanFeedListApiResponse {
+  success: boolean
+  message?: string
+  data: {
+    items: ApiScanEventItem[]
+    totalItems: number
+    totalPages: number
+    currentPage: number
+    pageSize: number
+  }
+}
+
+interface ScanEventDetailApiResponse {
+  success: boolean
+  message?: string
+  data: ApiScanEventDetailItem
+}
+
+const statusMap: Record<string, ScanStatus> = {
+  SUCCESS: 'success',
+  FAILED: 'failed',
+}
+
+function mapScanEvent(item: ApiScanEventItem): ScanEvent {
+  return {
+    id: item.id,
+    referenceId: item.referenceId,
+    businessDetails: item.businessDetails,
+    partnerType: item.partnerType,
+    scannedAt: item.scannedAt,
+    scanResult: item.scanResult,
+    scanResultType: item.scanResultType,
+    scanStatus: statusMap[item.scanStatus] ?? 'failed',
+    scannedCode: item.scannedCode,
+    productDetails: item.productDetails,
+    region: item.region,
+    batchNo: item.batchNo,
+    rewardPointsEarned: item.rewardPointsEarned,
+  }
+}
+
+function mapScanEventDetail(item: ApiScanEventDetailItem): ScanEventDetail {
+  return {
+    ...mapScanEvent(item),
+    latitude: item.latitude,
+    longitude: item.longitude,
+    geofenceAllowed: item.geofenceAllowed,
+    bufferGeofenceAllowed: item.bufferGeofenceAllowed,
+    distanceFromTaggedLocation: item.distanceFromTaggedLocation,
+    technicalInformation: item.technicalInformation,
+    rewardReason: item.rewardReason,
+    productId: item.productId,
+    productUploadId: item.productUploadId,
+    partnerId: item.partnerId,
+    businessId: item.businessId,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+  }
 }
 
 const scanFeedApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getScanEvents: builder.query<ScanEvent[], void>({
-      query: () => ({ tag: 'ScanFeed', url: '/scan-feed', mockResolver: () => mockDelay(mockScanEvents) }),
+    getScanEvents: builder.query<
+      { items: ScanEvent[]; totalItems: number },
+      ScanFeedQueryParams | void
+    >({
+      query: (params) => ({
+        tag: 'ScanFeed',
+        url: '/product-scan',
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 10,
+          search: params?.search || undefined,
+          partnerId: params?.partnerId || undefined,
+          affectedPartnerId: params?.affectedPartnerId || undefined,
+          businessId: params?.businessId || undefined,
+          productId: params?.productId || undefined,
+          productUploadId: params?.productUploadId || undefined,
+          batch: params?.batch || undefined,
+          regionId: params?.regionId || undefined,
+          scanStatus: params?.scanStatus || undefined,
+          scanResultType: params?.scanResultType || undefined,
+          sortBy: params?.sortBy || undefined,
+          sortOrder: params?.sortOrder || undefined,
+        },
+        mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
+      }),
+      transformResponse: (
+        response: ScanFeedListApiResponse | { items: ScanEvent[]; totalItems: number },
+      ) =>
+        'success' in response
+          ? {
+              items: response.data.items.map(mapScanEvent),
+              totalItems: response.data.totalItems,
+            }
+          : response,
       providesTags: (result) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'ScanFeed' as const, id })), { type: 'ScanFeed' as const, id: 'LIST' }]
+          ? [
+              ...result.items.map(({ id }) => ({ type: 'ScanFeed' as const, id })),
+              { type: 'ScanFeed' as const, id: 'LIST' },
+            ]
           : [{ type: 'ScanFeed' as const, id: 'LIST' }],
     }),
 
-    getScanEventDetail: builder.query<ScanEvent | undefined, string>({
+    getScanEventDetail: builder.query<ScanEventDetail | undefined, string>({
       query: (id) => ({
         tag: 'ScanFeed',
-        url: `/scan-feed/${id}`,
-        mockResolver: () => mockDelay(getScanEventById(id)),
+        url: `/product-scan/${id}`,
+        mockResolver: () => mockDelay(undefined),
       }),
+      transformResponse: (
+        response: ScanEventDetailApiResponse | ScanEventDetail | undefined,
+      ) => (response && 'data' in response ? mapScanEventDetail(response.data) : response),
       providesTags: (_result, _error, id) => [{ type: 'ScanFeed', id }],
-    }),
-
-    getScanFeedKpis: builder.query<ScanFeedKpis, void>({
-      query: () => ({ tag: 'ScanFeed', url: '/scan-feed/kpis', mockResolver: () => mockDelay(scanFeedKpis) }),
-      providesTags: [{ type: 'ScanFeed', id: 'KPIS' }],
-    }),
-
-    getUserScanProfile: builder.query<UserScanProfile, string>({
-      query: (userId) => ({
-        tag: 'ScanFeed',
-        url: `/scan-feed/users/${userId}`,
-        mockResolver: () =>
-          mockDelay({
-            summary: getUserScanSummary(userId),
-            history: getUserScanHistory(userId),
-          }),
-      }),
-      providesTags: (_result, _error, userId) => [{ type: 'ScanFeed', id: `USER_${userId}` }],
     }),
   }),
 })
 
-export const { useGetScanEventsQuery, useGetScanEventDetailQuery, useGetScanFeedKpisQuery, useGetUserScanProfileQuery } =
-  scanFeedApi
-
-/**
- * Emits one simulated scan event per interval tick; returns an unsubscribe function.
- * Not a network call (local interval-based generator) — no RTK Query wrapper needed.
- */
-export function subscribeToLiveScans(onScan: (scan: ScanEvent) => void, intervalMs = 1000): () => void {
-  const interval = setInterval(() => onScan(generateLiveScanEvent()), intervalMs)
-  return () => clearInterval(interval)
-}
+export const { useGetScanEventsQuery, useGetScanEventDetailQuery } = scanFeedApi

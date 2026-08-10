@@ -20,33 +20,11 @@ import { mockDelay } from '@/services/mockDelay'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 import { mockDealers } from '@/features/userManagement/mockDealers'
 import { mockChemists } from '@/features/userManagement/mockChemists'
-import { mockScanEvents } from '@/features/fieldOperations/mocks/mockScanFeed'
-import type { BadgeStatus } from '@/components/common/StatusBadge/StatusBadge'
-import type { ScanResult } from '@/types/scanFeed'
-
 // TODO: replace with real aggregate dashboard endPoints once available.
 
-const SCAN_RESULT_TO_BADGE_STATUS: Record<ScanResult, BadgeStatus> = {
-  success: 'active',
-  failed_outside_geofence: 'inactive',
-  failed_duplicate_scan: 'pending',
-  failed_invalid_code: 'inactive',
-}
-
 // Recent Scans widget mirrors the Live Scan Feed feed so both surfaces show the same data.
-const recentScans: RecentScan[] = mockScanEvents
-  .slice(-15)
-  .reverse()
-  .map((scan) => ({
-    id: scan.id,
-    user: scan.userName,
-    role: scan.userRole,
-    business: scan.businessName,
-    region: scan.region,
-    result: SCAN_RESULT_TO_BADGE_STATUS[scan.result],
-    time: scan.scanDateTime.replace(' 2026,', ','),
-    linkTo: `/field-operations/live-scan-feed/${scan.id}`,
-  }))
+// TODO: source from GET /product-scan once the dashboard widgets endpoint is real.
+const recentScans: RecentScan[] = []
 
 const dealerLeaderboard: EntityLeaderboardEntry[] = [...mockDealers]
   .sort((a, b) => b.totalScans - a.totalScans)

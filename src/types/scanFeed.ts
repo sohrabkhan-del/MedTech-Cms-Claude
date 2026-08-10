@@ -1,69 +1,55 @@
-import type { PartnerZone } from '@/types/partner'
-
 export type ScanUserRole = 'Dealer' | 'Chemist'
 
-export type ScanResult =
-  | 'success'
-  | 'failed_outside_geofence'
-  | 'failed_duplicate_scan'
-  | 'failed_invalid_code'
+export type ScanStatus = 'success' | 'failed'
 
-export interface ScanValidationDetails {
-  codeValidation: 'passed' | 'failed'
-  duplicateScanCheck: 'passed' | 'failed'
-  geoFenceValidation: 'passed' | 'failed'
-  productEligibility: 'passed' | 'failed'
-  rewardEligibility: 'passed' | 'failed'
+export interface ScanBusinessDetails {
+  businessName: string
+  partnerName: string
+  outletName: string
+  outletUserName?: string | null
 }
 
-export interface ScanGeoLocation {
-  latitude: number
-  longitude: number
-  registeredGeoFenceRadiusMeters: number
-  distanceFromRegisteredMeters: number
-  geoFenceValidationResult: 'within_range' | 'outside_range'
+export interface ScanProductDetails {
+  productCode: string
+  productCategory?: string | null
 }
 
 export interface ScanTechnicalInfo {
   sourceIp: string
   deviceInfo: string
+  deviceUuid: string
+  scanTimestamp: string
   appVersion: string
 }
 
 export interface ScanEvent {
   id: string
-  scanDateTime: string
-  userId: string
-  userName: string
-  userRole: ScanUserRole
-  businessName: string
-  scanCode: string
-  productName: string
-  productCode: string
-  batchNumber: string
-  region: PartnerZone
-  result: ScanResult
-  rewardPoints: number
-  validation: ScanValidationDetails
-  location: ScanGeoLocation
-  technical: ScanTechnicalInfo
+  referenceId: string
+  businessDetails: ScanBusinessDetails
+  partnerType: string
+  scannedAt: string
+  scanResult: string
+  scanResultType: string
+  scanStatus: ScanStatus
+  scannedCode: string
+  productDetails: ScanProductDetails
+  region: string
+  batchNo: string
+  rewardPointsEarned: number
 }
 
-export interface ScanUserSummary {
-  userId: string
-  userName: string
-  role: ScanUserRole
-  contactNumber: string
-  email: string
-  city: string
-  address: string
-  zone: PartnerZone
-  businessName: string
-  businessNames: string[]
-  status: 'active' | 'inactive'
-  lastScanDateTime: string
-  totalScans: number
-  successfulScans: number
-  failedScans: number
-  totalPointsEarned: number
+export interface ScanEventDetail extends ScanEvent {
+  latitude: number
+  longitude: number
+  geofenceAllowed: number
+  bufferGeofenceAllowed: number
+  distanceFromTaggedLocation: number
+  technicalInformation: ScanTechnicalInfo
+  rewardReason?: string | null
+  productId: string
+  productUploadId: string
+  partnerId: string
+  businessId: string
+  createdAt: string
+  updatedAt: string
 }

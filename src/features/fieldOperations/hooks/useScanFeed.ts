@@ -1,21 +1,22 @@
-import { useGetScanEventsQuery, useGetScanFeedKpisQuery } from '@/features/fieldOperations/services/scanFeedApi'
+import {
+  useGetScanEventsQuery,
+  type ScanFeedQueryParams,
+} from '@/features/fieldOperations/services/scanFeedApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-/** Initial scan-feed page + KPIs. See useLiveScanFeed for the real-time-updating variant. */
-export function useScanFeed() {
-  const scanEventsResult = useGetScanEventsQuery()
-  const kpisResult = useGetScanFeedKpisQuery()
+export function useScanFeed(params?: ScanFeedQueryParams, pollingIntervalMs = 0) {
+  const scanEventsResult = useGetScanEventsQuery(params, {
+    pollingInterval: pollingIntervalMs,
+  })
 
-  const isLoading = scanEventsResult.isLoading || kpisResult.isLoading
+  const isLoading = scanEventsResult.isFetching
   const error = scanEventsResult.error
     ? getApiErrorMessage(scanEventsResult.error, 'Failed to load scan feed.')
-    : kpisResult.error
-      ? getApiErrorMessage(kpisResult.error, 'Failed to load scan feed.')
-      : null
+    : null
 
   return {
-    scanEvents: scanEventsResult.data ?? [],
-    kpis: kpisResult.data ?? null,
+    scanEvents: scanEventsResult.data?.items ?? [],
+    totalItems: scanEventsResult.data?.totalItems ?? 0,
     isLoading,
     error,
   }

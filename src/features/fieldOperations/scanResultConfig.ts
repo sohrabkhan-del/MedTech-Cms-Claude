@@ -1,8 +1,6 @@
-import type { ScanResult } from '@/features/fieldOperations/types/fieldOperations.types'
+import type { ScanStatus } from '@/types/scanFeed'
 
-export const SCAN_RESULT_CONFIG: Record<ScanResult, { label: string; color: 'success' | 'error' }> = {
+export const SCAN_RESULT_CONFIG: Record<ScanStatus, { label: string; color: 'success' | 'error' }> = {
   success: { label: 'Success', color: 'success' },
-  failed_outside_geofence: { label: 'Outside Geo-fence', color: 'error' },
-  failed_duplicate_scan: { label: 'Duplicate Scan', color: 'error' },
-  failed_invalid_code: { label: 'Invalid Code', color: 'error' },
+  failed: { label: 'Failed', color: 'error' },
 }

@@ -5,8 +5,16 @@ export type NotificationCategory =
   | 'redemption'
   | 'scheme'
   | 'system'
+  | 'visit'
+  | 'promotional'
+  | 'wallet'
+  | 'partner_onboarding'
+  | 'order'
+  | 'reward'
+  | 'product_scan'
+  | 'general'
 
-export type NotificationPriority = 'low' | 'medium' | 'high'
+export type NotificationPriority = 'low' | 'medium' | 'high' | 'urgent'
 
 export interface AppNotification {
   id: string

@@ -41,23 +41,39 @@ export interface ApiNotification {
 
 interface NotificationsListApiResponse {
   success: boolean
-  data: ApiNotification[]
+  data: {
+    items: ApiNotification[]
+    meta: {
+      totalItems: number
+      totalPages: number
+      currentPage: number
+      pageSize: number
+    }
+  }
 }
 
 const typeToCategory: Record<string, NotificationCategory> = {
-  WALLET: 'system',
+  VISIT: 'visit',
+  PROMOTIONAL: 'promotional',
+  SYSTEM: 'system',
+  WALLET: 'wallet',
+  PARTNER_ONBOARDING: 'partner_onboarding',
+  ORDER: 'order',
+  REWARD: 'reward',
+  PRODUCT_SCAN: 'product_scan',
+  GENERAL: 'general',
   APPROVAL: 'approval_request',
   SECURITY: 'security_alert',
   INVENTORY: 'inventory',
   REDEMPTION: 'redemption',
   SCHEME: 'scheme',
-  SYSTEM: 'system',
 }
 
 const priorityMap: Record<string, AppNotification['priority']> = {
   LOW: 'low',
   MEDIUM: 'medium',
   HIGH: 'high',
+  URGENT: 'urgent',
 }
 
 function mapApiNotification(item: ApiNotification): AppNotification {
@@ -97,7 +113,7 @@ export const notificationsApi = baseApi.injectEndpoints({
       ) =>
         Array.isArray(response)
           ? response
-          : response.data.map(mapApiNotification),
+          : response.data.items.map(mapApiNotification),
       providesTags: (result) =>
         result
           ? [

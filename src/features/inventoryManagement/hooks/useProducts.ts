@@ -8,11 +8,12 @@ import type { Product } from '@/features/inventoryManagement/types/inventoryMana
 import type { productKpis } from '@/features/inventoryManagement/mockProducts'
 import type { ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import type { ProductQueryParams } from '@/features/inventoryManagement/services/productsApi'
 
 type ProductKpis = typeof productKpis
 
-export function useProducts() {
-  const productsResult = useGetProductsQuery()
+export function useProducts(params?: ProductQueryParams) {
+  const productsResult = useGetProductsQuery(params)
   const kpisResult = useGetProductKpisQuery()
   const [importProductsMutation] = useImportProductsMutation()
 

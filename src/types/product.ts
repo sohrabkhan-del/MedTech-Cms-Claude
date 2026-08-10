@@ -2,6 +2,19 @@ export type ProductStatus = 'active' | 'inactive'
 export type RewardConfigStatus = 'configured' | 'pending'
 export type MovementScannedStatus = 'pending' | 'completed'
 
+export interface ProductCategoryRef {
+  id: string
+  categoryCode: string
+  categoryName: string
+}
+
+export interface ProductRegionConfig {
+  regionId: string
+  regionName: string
+  dealerMultiplier: number | null
+  chemistMultiplier: number | null
+}
+
 export interface ProductMovementEntry {
   id: string
   factoryUploadBatch: string
@@ -40,6 +53,8 @@ export interface Product {
   productName: string
   productCode: string
   productCategory: string
+  categoryId?: string
+  category?: ProductCategoryRef | null
   status: ProductStatus
   uploadedDate: string
 
@@ -54,7 +69,12 @@ export interface Product {
 
   dealerRewardPoints: number
   chemistRewardPoints: number
+  dealerContainerPoints: number
+  dealerProductPoints: number
+  chemistContainerPoints: number
+  chemistProductPoints: number
   rewardConfigStatus: RewardConfigStatus
+  regions: ProductRegionConfig[]
 
   totalFactoryUploads: number
   totalQrCodesGenerated: number

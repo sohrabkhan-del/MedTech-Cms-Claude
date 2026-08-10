@@ -61,7 +61,13 @@ const fieldLabelProps = {
   },
 } as const
 
-function FieldLabel({ children, required }: { children: string; required?: boolean }) {
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: string
+  required?: boolean
+}) {
   return (
     <Typography
       sx={{
@@ -123,7 +129,12 @@ function BusinessAddressFields({
               }}
               size="small"
               renderInput={(params) => (
-                <TextField {...params} placeholder="Select state" error={!!fieldState.error} helperText={fieldState.error?.message} />
+                <TextField
+                  {...params}
+                  placeholder="Select state"
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
               )}
             />
           )}
@@ -147,7 +158,9 @@ function BusinessAddressFields({
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder={selectedState ? 'Select district' : 'Select a state first'}
+                  placeholder={
+                    selectedState ? 'Select district' : 'Select a state first'
+                  }
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                 />
@@ -175,7 +188,11 @@ function BusinessAddressFields({
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder={selectedDistrict ? 'Select or type a city' : 'Select a district first'}
+                  placeholder={
+                    selectedDistrict
+                      ? 'Select or type a city'
+                      : 'Select a district first'
+                  }
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                 />
@@ -201,16 +218,21 @@ export function ChemistFormPage() {
   const [regions, setRegions] = useState<RegionOption[]>(
     fallbackRegions.filter((region) => region.code !== 'ALL_INDIA'),
   )
-  const { data: mrOptions = [], isFetching: isMrOptionsLoading } = useGetMedicalRepOptionsQuery()
+  const { data: mrOptions = [], isFetching: isMrOptionsLoading } =
+    useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
   const [mapPickerIndex, setMapPickerIndex] = useState<number | null>(null)
-  const [removeTargetIndex, setRemoveTargetIndex] = useState<number | null>(null)
+  const [removeTargetIndex, setRemoveTargetIndex] = useState<number | null>(
+    null,
+  )
 
   useEffect(() => {
     let ignore = false
     getRegions()
       .then((options) => {
-        const regionsOnly = options.filter((region) => region.code !== 'ALL_INDIA')
+        const regionsOnly = options.filter(
+          (region) => region.code !== 'ALL_INDIA',
+        )
         if (!ignore && regionsOnly.length > 0) setRegions(regionsOnly)
       })
       .catch((error) => {
@@ -221,12 +243,16 @@ export function ChemistFormPage() {
     }
   }, [])
 
-  const { control, handleSubmit, reset, watch, setValue } = useForm<ChemistFormValues>({
-    resolver: zodResolver(chemistFormSchema),
-    defaultValues: chemistFormDefaults,
-  })
+  const { control, handleSubmit, reset, watch, setValue } =
+    useForm<ChemistFormValues>({
+      resolver: zodResolver(chemistFormSchema),
+      defaultValues: chemistFormDefaults,
+    })
 
-  const { fields, append, remove } = useFieldArray({ control, name: 'businesses' })
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: 'businesses',
+  })
 
   useEffect(() => {
     if (!isEdit || !chemist) return
@@ -261,9 +287,15 @@ export function ChemistFormPage() {
               pincode: business.pincode ?? '',
               latitude: business.latitude ? String(business.latitude) : '',
               longitude: business.longitude ? String(business.longitude) : '',
-              scanRadius: business.scanRadius ? String(business.scanRadius) : '',
-              bufferRadius: business.bufferRadius ? String(business.bufferRadius) : '',
-              geoAccuracy: business.geoAccuracy ? String(business.geoAccuracy) : '',
+              scanRadius: business.scanRadius
+                ? String(business.scanRadius)
+                : '',
+              bufferRadius: business.bufferRadius
+                ? String(business.bufferRadius)
+                : '',
+              geoAccuracy: business.geoAccuracy
+                ? String(business.geoAccuracy)
+                : '',
               notes: business.notes ?? '',
             }))
           : [chemistBusinessDefaults],
@@ -289,7 +321,9 @@ export function ChemistFormPage() {
     )
   }
 
-  const backTo = isEdit ? `/partners/chemists/${chemistId}` : '/partners/chemists'
+  const backTo = isEdit
+    ? `/partners/chemists/${chemistId}`
+    : '/partners/chemists'
 
   const requestRemoveBusiness = (index: number) => {
     setRemoveTargetIndex(index)
@@ -334,8 +368,17 @@ export function ChemistFormPage() {
 
   return (
     <>
-      <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h1">{isEdit ? 'Edit Chemist' : 'Add New Chemist'}</Typography>
+      <Stack
+        sx={{
+          mb: 3,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h1">
+          {isEdit ? 'Edit Chemist' : 'Add New Chemist'}
+        </Typography>
       </Stack>
 
       <form onSubmit={submit} noValidate>
@@ -344,15 +387,30 @@ export function ChemistFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Business Name</FieldLabel>
-              <FormField name="businessName" control={control} placeholder="e.g. Shree Medical Store" {...fieldLabelProps} />
+              <FormField
+                name="businessName"
+                control={control}
+                placeholder="e.g. Shree Medical Store"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Owner First Name</FieldLabel>
-              <FormField name="ownerFirstName" control={control} placeholder="First name" {...fieldLabelProps} />
+              <FormField
+                name="ownerFirstName"
+                control={control}
+                placeholder="First name"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Owner Last Name</FieldLabel>
-              <FormField name="ownerLastName" control={control} placeholder="Last name" {...fieldLabelProps} />
+              <FormField
+                name="ownerLastName"
+                control={control}
+                placeholder="Last name"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Contact Number</FieldLabel>
@@ -377,11 +435,22 @@ export function ChemistFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>GST Number</FieldLabel>
-              <FormField name="gstNumber" control={control} placeholder="e.g. 27ABCDE1234F1Z5" uppercase {...fieldLabelProps} />
+              <FormField
+                name="gstNumber"
+                control={control}
+                placeholder="e.g. 27ABCDE1234F1Z5"
+                uppercase
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 8 }}>
               <FieldLabel>Profile Image URL</FieldLabel>
-              <FormField name="profileImageUrl" control={control} placeholder="https://…" {...fieldLabelProps} />
+              <FormField
+                name="profileImageUrl"
+                control={control}
+                placeholder="https://…"
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -399,13 +468,25 @@ export function ChemistFormPage() {
                   borderColor: 'divider',
                 }}
               >
-                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Stack
+                  direction="row"
+                  sx={{
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    mb: 2,
+                  }}
+                >
                   <Typography sx={{ fontWeight: 700, fontSize: '0.8125rem' }}>
                     Outlet {index + 1}
                   </Typography>
                   {fields.length > 1 && (
                     <Tooltip title="Remove outlet">
-                      <IconButton size="small" color="error" onClick={() => requestRemoveBusiness(index)} aria-label="Remove outlet">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => requestRemoveBusiness(index)}
+                        aria-label="Remove outlet"
+                      >
                         <Trash2 size={18} />
                       </IconButton>
                     </Tooltip>
@@ -415,50 +496,110 @@ export function ChemistFormPage() {
                 <Grid container spacing={2.5}>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel required>Outlet Name</FieldLabel>
-                    <FormField name={`businesses.${index}.outletName`} control={control} placeholder="e.g. Shree Medical Store" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.outletName`}
+                      control={control}
+                      placeholder="e.g. Shree Medical Store"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel required>PAN Number</FieldLabel>
-                    <FormField name={`businesses.${index}.panNumber`} control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.panNumber`}
+                      control={control}
+                      placeholder="e.g. ABCDE1234F"
+                      uppercase
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel required>Drug License Number</FieldLabel>
-                    <FormField name={`businesses.${index}.drugLicenseNumber`} control={control} placeholder="e.g. MH/MUM/DRUG/2026/45879" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.drugLicenseNumber`}
+                      control={control}
+                      placeholder="e.g. MH/MUM/DRUG/2026/45879"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel required>Drug License Expiry</FieldLabel>
-                    <FormField name={`businesses.${index}.drugLicenseExpiry`} control={control} type="date" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.drugLicenseExpiry`}
+                      control={control}
+                      type="date"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
                   <Grid size={12}>
                     <FieldLabel required>Address Line 1</FieldLabel>
-                    <FormField name={`businesses.${index}.addressLine1`} control={control} placeholder="Shop no., building, street" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.addressLine1`}
+                      control={control}
+                      placeholder="Shop no., building, street"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={12}>
                     <FieldLabel>Address Line 2</FieldLabel>
-                    <FormField name={`businesses.${index}.addressLine2`} control={control} placeholder="Area, locality" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.addressLine2`}
+                      control={control}
+                      placeholder="Area, locality"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel>Landmark</FieldLabel>
-                    <FormField name={`businesses.${index}.landmark`} control={control} placeholder="e.g. Near Metro Station" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.landmark`}
+                      control={control}
+                      placeholder="e.g. Near Metro Station"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
-                  <BusinessAddressFields control={control} setValue={setValue} watch={watch} index={index} />
+                  <BusinessAddressFields
+                    control={control}
+                    setValue={setValue}
+                    watch={watch}
+                    index={index}
+                  />
 
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel required>Pincode</FieldLabel>
-                    <FormField name={`businesses.${index}.pincode`} control={control} placeholder="e.g. 400086" numeric {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.pincode`}
+                      control={control}
+                      placeholder="e.g. 400086"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Latitude</FieldLabel>
-                    <FormField name={`businesses.${index}.latitude`} control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.latitude`}
+                      control={control}
+                      placeholder="e.g. 19.0760"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Longitude</FieldLabel>
-                    <FormField name={`businesses.${index}.longitude`} control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.longitude`}
+                      control={control}
+                      placeholder="e.g. 72.8777"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 2 }} sx={{ display: 'flex', alignItems: 'flex-end' }}>
+                  <Grid
+                    size={{ xs: 12, sm: 2 }}
+                    sx={{ display: 'flex', alignItems: 'flex-end' }}
+                  >
                     <Button
                       fullWidth
                       variant="outlined"
@@ -471,21 +612,45 @@ export function ChemistFormPage() {
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <FieldLabel>Scan Radius (m)</FieldLabel>
-                    <FormField name={`businesses.${index}.scanRadius`} control={control} placeholder="e.g. 50" numeric {...fieldLabelProps} />
+                    <FieldLabel>Scan Radius</FieldLabel>
+                    <FormField
+                      name={`businesses.${index}.scanRadius`}
+                      control={control}
+                      placeholder="e.g. 50"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <FieldLabel>Buffer Radius (m)</FieldLabel>
-                    <FormField name={`businesses.${index}.bufferRadius`} control={control} placeholder="e.g. 20" numeric {...fieldLabelProps} />
+                    <FieldLabel>Buffer Radius</FieldLabel>
+                    <FormField
+                      name={`businesses.${index}.bufferRadius`}
+                      control={control}
+                      placeholder="e.g. 20"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
-                    <FieldLabel>Geo Accuracy (m)</FieldLabel>
-                    <FormField name={`businesses.${index}.geoAccuracy`} control={control} placeholder="e.g. 10" numeric {...fieldLabelProps} />
+                    <FieldLabel>Geo Accuracy</FieldLabel>
+                    <FormField
+                      name={`businesses.${index}.geoAccuracy`}
+                      control={control}
+                      placeholder="e.g. 10"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
                   <Grid size={12}>
                     <FieldLabel>Outlet Notes</FieldLabel>
-                    <FormField name={`businesses.${index}.notes`} control={control} multiline minRows={2} {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.notes`}
+                      control={control}
+                      multiline
+                      minRows={2}
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                 </Grid>
 
@@ -517,7 +682,12 @@ export function ChemistFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 4 }}>
               <FieldLabel required>Region</FieldLabel>
-              <FormField name="regionId" control={control} select {...fieldLabelProps}>
+              <FormField
+                name="regionId"
+                control={control}
+                select
+                {...fieldLabelProps}
+              >
                 <MenuItem value="">
                   <em>Select a region</em>
                 </MenuItem>
@@ -538,11 +708,19 @@ export function ChemistFormPage() {
                     options={mrOptions}
                     loading={isMrOptionsLoading}
                     getOptionLabel={(option) =>
-                      option.employeeCode ? `${option.name} (${option.employeeCode})` : option.name
+                      option.employeeCode
+                        ? `${option.name} (${option.employeeCode})`
+                        : option.name
                     }
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    value={mrOptions.find((mr) => mr.id === field.value) ?? null}
-                    onChange={(_, selected) => field.onChange(selected?.id ?? '')}
+                    isOptionEqualToValue={(option, value) =>
+                      option.id === value.id
+                    }
+                    value={
+                      mrOptions.find((mr) => mr.id === field.value) ?? null
+                    }
+                    onChange={(_, selected) =>
+                      field.onChange(selected?.id ?? '')
+                    }
                     size="small"
                     renderInput={(params) => (
                       <TextField
@@ -558,7 +736,13 @@ export function ChemistFormPage() {
             </Grid>
             <Grid size={12}>
               <FieldLabel>Notes</FieldLabel>
-              <FormField name="notes" control={control} multiline minRows={3} {...fieldLabelProps} />
+              <FormField
+                name="notes"
+                control={control}
+                multiline
+                minRows={3}
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -569,9 +753,18 @@ export function ChemistFormPage() {
           sx={{ width: '100%', justifyContent: 'flex-end' }}
         >
           <Button type="submit" variant="contained" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Chemist'}
+            {isSubmitting
+              ? 'Saving…'
+              : isEdit
+                ? 'Save Changes'
+                : 'Create Chemist'}
           </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)} disabled={isSubmitting}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate(backTo)}
+            disabled={isSubmitting}
+          >
             Cancel
           </Button>
         </Stack>

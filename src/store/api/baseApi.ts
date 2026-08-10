@@ -44,6 +44,7 @@ export const tagTypes = [
   'MasterScanLogs',
   'Dashboard',
   'GeoFences',
+  'GeoFenceSettings',
   'ScanFeed',
   'SecurityAlerts',
   'DistributorUpload',
@@ -99,6 +100,9 @@ const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   Notifications: 'real',
   SecurityAlerts: 'real',
   ScanFeed: 'real',
+  GeoFences: 'real',
+  GeoFenceSettings: 'real',
+  Products: 'real',
 }
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {

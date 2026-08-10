@@ -13,7 +13,7 @@ import {
   CircleCheck as CheckCircleOutlined,
   ClipboardClock as PendingActionsOutlined,
   Target as TrackChangesIcon,
-  CalendarCheck as EventAvailableOutlined,
+  CircleDashed,
 } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -26,12 +26,28 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import { useGeoFences } from '@/features/fieldOperations/hooks/useGeoFences'
+import {
+  useActivateDealerMutation,
+  useDeactivateDealerMutation,
+} from '@/features/userManagement/services/dealerApi'
+import {
+  useActivateChemistMutation,
+  useDeactivateChemistMutation,
+} from '@/features/userManagement/services/chemistApi'
 import type {
   GeoFence,
   GeoFenceUserType,
 } from '@/features/fieldOperations/types/fieldOperations.types'
 import type { PartnerZone } from '@/types/partner'
+
+const partnerBasePath: Record<'Dealer' | 'Chemist', string> = {
+  Dealer: '/partners/dealers',
+  Chemist: '/partners/chemists',
+}
 
 interface GeoFenceFilters extends Record<string, unknown> {
   userType: GeoFenceUserType | 'all'
@@ -49,8 +65,13 @@ const RULE_TABS: { label: string; value: RuleTab }[] = [
 
 export function GeoFenceManagementPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { region } = useRegionFilter()
-  const { geoFences, kpis, isLoading } = useGeoFences()
+  const [tab, setTab] = useState<RuleTab>('all')
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
+  const { geoFences, analyticsCards, isLoading, isAnalyticsCardsLoading, refetch } =
+    useGeoFences(tab === 'all' ? undefined : tab, debouncedSearch || undefined)
   useRegionTopbarHeader({
     icon: <FenceIcon size={20} />,
     title: 'Geo Fence Management',
@@ -58,7 +79,47 @@ export function GeoFenceManagementPage() {
       'Manage location-based scan validation for Dealers, Chemists, and MRs.',
     isLoading,
   })
-  const [tab, setTab] = useState<RuleTab>('all')
+  const [activateDealer] = useActivateDealerMutation()
+  const [deactivateDealer] = useDeactivateDealerMutation()
+  const [activateChemist] = useActivateChemistMutation()
+  const [deactivateChemist] = useDeactivateChemistMutation()
+  const [statusOverrides, setStatusOverrides] = useState<Record<string, GeoFence['status']>>({})
+
+  function clearStatusOverride(id: string) {
+    setStatusOverrides((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
+  async function handleActivate(row: GeoFence) {
+    setStatusOverrides((prev) => ({ ...prev, [row.id]: 'active' }))
+    try {
+      if (row.userType === 'Dealer') await activateDealer(row.id).unwrap()
+      else if (row.userType === 'Chemist') await activateChemist(row.id).unwrap()
+      toast.success(`${row.userType} activated successfully.`)
+      await refetch()
+      clearStatusOverride(row.id)
+    } catch (err) {
+      clearStatusOverride(row.id)
+      toast.error(getApiErrorMessage(err, `Failed to activate ${row.userType.toLowerCase()}.`))
+    }
+  }
+
+  async function handleDeactivate(row: GeoFence) {
+    setStatusOverrides((prev) => ({ ...prev, [row.id]: 'inactive' }))
+    try {
+      if (row.userType === 'Dealer') await deactivateDealer(row.id).unwrap()
+      else if (row.userType === 'Chemist') await deactivateChemist(row.id).unwrap()
+      toast.success(`${row.userType} deactivated successfully.`)
+      await refetch()
+      clearStatusOverride(row.id)
+    } catch (err) {
+      clearStatusOverride(row.id)
+      toast.error(getApiErrorMessage(err, `Failed to deactivate ${row.userType.toLowerCase()}.`))
+    }
+  }
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({
     userType: 'all',
@@ -68,16 +129,13 @@ export function GeoFenceManagementPage() {
 
   const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 
-  const geoFenceKpis = kpis ?? {
-    activeFences: 0,
-    pendingVerification: 0,
-    averageRadius: 0,
-    verifiedThisWeek: 0,
-  }
+  const displayedFences = geoFences.map((fence) =>
+    statusOverrides[fence.id]
+      ? { ...fence, status: statusOverrides[fence.id]! }
+      : fence,
+  )
 
-  const filteredFences = geoFences.filter((fence) => {
-    const tabMatch =
-      tab === 'all' ? true : fence.scope === 'user' && fence.userType === tab
+  const filteredFences = displayedFences.filter((fence) => {
     const topbarRegionMatch = !topbarZone || fence.region === topbarZone
     const userTypeMatch =
       appliedFilters.userType === 'all' ||
@@ -87,7 +145,6 @@ export function GeoFenceManagementPage() {
     const statusMatch =
       appliedFilters.status === 'all' || fence.status === appliedFilters.status
     return (
-      tabMatch &&
       topbarRegionMatch &&
       userTypeMatch &&
       regionMatch &&
@@ -95,16 +152,22 @@ export function GeoFenceManagementPage() {
     )
   })
 
-  const createAction =
-    tab === 'all'
-      ? {
-          label: 'Add Geo Fence Rule',
-          to: '/field-operations/geo-fence-management/new?scope=global',
-        }
-      : {
-          label: 'Add Geo Fence',
-          to: `/field-operations/geo-fence-management/new?scope=user&userType=${tab}`,
-        }
+  const createAction = {
+    label: 'Update Geo Fence Rule',
+    to:
+      tab === 'all'
+        ? '/field-operations/geo-fence-management/new?scope=global'
+        : `/field-operations/geo-fence-management/new?scope=global&userType=${tab}`,
+  }
+
+  function partnerDetailPath(row: GeoFence): string | null {
+    if (row.userType !== 'Dealer' && row.userType !== 'Chemist') return null
+    return `${partnerBasePath[row.userType]}/${row.id}`
+  }
+
+  function geoFenceEditPath(row: GeoFence): string {
+    return `/field-operations/geo-fence-management/${row.id}/edit`
+  }
 
   const columns: CommonTableColumn<GeoFence>[] = [
     {
@@ -112,21 +175,22 @@ export function GeoFenceManagementPage() {
       header: 'Business Name',
       minWidth: 170,
       sortable: true,
-      render: (row) => (
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: '0.8125rem',
-            cursor: 'pointer',
-            '&:hover': { textDecoration: 'underline' },
-          }}
-          onClick={() =>
-            navigate(`/field-operations/geo-fence-management/${row.id}`)
-          }
-        >
-          {row.businessName}
-        </Typography>
-      ),
+      render: (row) => {
+        const path = partnerDetailPath(row)
+        return (
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.8125rem',
+              cursor: path ? 'pointer' : 'default',
+              '&:hover': path ? { textDecoration: 'underline' } : undefined,
+            }}
+            onClick={path ? () => navigate(path) : undefined}
+          >
+            {row.businessName}
+          </Typography>
+        )
+      },
     },
     {
       key: 'userName',
@@ -193,12 +257,12 @@ export function GeoFenceManagementPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
               label="Active Geo Fences"
-              value={geoFenceKpis.activeFences}
+              value={analyticsCards?.activeGeoFences ?? 0}
               icon={<CheckCircleOutlined size={20} />}
               iconColor="success"
               onClick={() =>
@@ -208,12 +272,12 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
               label="Pending Verification"
-              value={geoFenceKpis.pendingVerification}
+              value={analyticsCards?.pendingVerification ?? 0}
               icon={<PendingActionsOutlined size={20} />}
               iconColor="warning"
               onClick={() =>
@@ -223,25 +287,25 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
               label="Average Radius"
-              value={`${geoFenceKpis.averageRadius} m`}
+              value={`${analyticsCards?.averageRadius ?? 0} m`}
               icon={<TrackChangesIcon size={20} />}
               iconColor="primary"
             />
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Verified This Week"
-              value={geoFenceKpis.verifiedThisWeek}
-              icon={<EventAvailableOutlined size={20} />}
+              label="Average Buffer Radius"
+              value={`${analyticsCards?.averageBufferRadius ?? 0} m`}
+              icon={<CircleDashed size={20} />}
               iconColor="secondary"
             />
           )}
@@ -264,9 +328,8 @@ export function GeoFenceManagementPage() {
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search geo fences…"
-        searchKeys={(row) =>
-          `${row.userName} ${row.businessName} ${row.userType} ${row.zone}`
-        }
+        searchValue={search}
+        onSearchChange={setSearch}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.userType !== 'all' ? 1 : 0) +
@@ -279,16 +342,27 @@ export function GeoFenceManagementPage() {
         actions={[
           {
             label: 'View',
-            onClick: (row) =>
-              navigate(`/field-operations/geo-fence-management/${row.id}`),
+            hidden: (row) => !partnerDetailPath(row),
+            onClick: (row) => {
+              const path = partnerDetailPath(row)
+              if (path) navigate(path)
+            },
           },
           {
             label: 'Edit',
-            onClick: (row) =>
-              navigate(`/field-operations/geo-fence-management/${row.id}/edit`),
+            onClick: (row) => navigate(geoFenceEditPath(row)),
           },
-          { label: 'Activate', onClick: () => {} },
-          { label: 'Deactivate', onClick: () => {}, danger: true },
+          {
+            label: 'Activate',
+            hidden: (row) => row.status === 'active',
+            onClick: handleActivate,
+          },
+          {
+            label: 'Deactivate',
+            danger: true,
+            hidden: (row) => row.status !== 'active',
+            onClick: handleDeactivate,
+          },
         ]}
         emptyTitle="No geo fences found"
         emptyDescription="Try adjusting your filters or search terms."

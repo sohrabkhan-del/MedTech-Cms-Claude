@@ -22,7 +22,7 @@ import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApp
 export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
-  const { request, decide, isLoading } = useApprovalRequestDetail(requestId)
+  const { request, decide, isLoading, isDeciding } = useApprovalRequestDetail(requestId)
   const [dialog, setDialog] = useState<{
     open: boolean
     action: 'approve' | 'reject'
@@ -49,9 +49,13 @@ export function ApprovalRequestDetailsPage() {
     setDialog({ open: true, action })
   }
 
-  const confirmDecision = () => {
-    decide(dialog.action, remarks)
-    setDialog({ open: false, action: 'approve' })
+  const confirmDecision = async () => {
+    try {
+      await decide(dialog.action, remarks)
+      setDialog({ open: false, action: 'approve' })
+    } catch {
+      // keep the dialog open so the user can retry
+    }
   }
 
   const partnerDetailPath =
@@ -310,7 +314,7 @@ export function ApprovalRequestDetailsPage() {
 
       <Modal
         open={dialog.open}
-        onClose={() => setDialog({ open: false, action: 'approve' })}
+        onClose={() => !isDeciding && setDialog({ open: false, action: 'approve' })}
         title={
           dialog.action === 'approve' ? 'Approve Request' : 'Reject Request'
         }
@@ -322,6 +326,7 @@ export function ApprovalRequestDetailsPage() {
         primaryActionLabel={dialog.action === 'approve' ? 'Approve' : 'Reject'}
         primaryActionColor={dialog.action === 'approve' ? 'primary' : 'error'}
         onPrimaryAction={confirmDecision}
+        loading={isDeciding}
       >
         <TextField
           fullWidth

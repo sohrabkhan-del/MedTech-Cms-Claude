@@ -14,6 +14,7 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useProducts } from '@/features/inventoryManagement/hooks/useProducts'
 import { useProductCategoryOptions } from '@/features/inventoryManagement/hooks/useProductCategoryOptions'
 import { useProductCategories } from '@/features/masters/hooks/useProductCategories'
@@ -32,7 +33,11 @@ interface ProductFilters extends Record<string, unknown> {
 
 export function ProductListPage() {
   const navigate = useNavigate()
-  const { products, kpis, isLoading } = useProducts()
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
+  const { products, kpis, isLoading } = useProducts({
+    search: debouncedSearch || undefined,
+  })
   const productCategoryOptions = useProductCategoryOptions()
   const { categories, isLoading: categoriesLoading } = useProductCategories()
   useRegionTopbarHeader({
@@ -69,7 +74,16 @@ export function ProductListPage() {
         const statusMatch =
           appliedFilters.status === 'all' ||
           product.status === appliedFilters.status
-        return categoryMatch && statusMatch
+
+        const uploadedDate = new Date(product.uploadedDate)
+        const fromMatch =
+          !appliedFilters.fromDate ||
+          uploadedDate >= new Date(appliedFilters.fromDate)
+        const toMatch =
+          !appliedFilters.toDate ||
+          uploadedDate <= new Date(appliedFilters.toDate)
+
+        return categoryMatch && statusMatch && fromMatch && toMatch
       }),
     [products, appliedFilters],
   )
@@ -246,7 +260,8 @@ export function ProductListPage() {
           loading={isLoading}
           getRowId={(row) => row.id}
           searchPlaceholder="Search by product name or code…"
-          searchKeys={(row) => `${row.productName} ${row.productCode}`}
+          searchValue={search}
+          onSearchChange={setSearch}
           onFilterClick={() => setFilterOpen(true)}
           filterCount={
             (appliedFilters.category !== 'all' ? 1 : 0) +

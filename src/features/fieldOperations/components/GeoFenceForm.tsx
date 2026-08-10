@@ -1,10 +1,7 @@
-import { Controller, type Control, type UseFormSetValue } from 'react-hook-form'
-import { Autocomplete, Card, Grid, MenuItem, TextField, Typography } from '@mui/material'
+import type { Control } from 'react-hook-form'
+import { Card, Grid, Typography } from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import type { GeoFenceFormValues } from '@/features/fieldOperations/types/fieldOperations.types'
-
-const zones: GeoFenceFormValues['region'][] = ['North', 'South', 'East', 'West']
-const userTypes: GeoFenceFormValues['userType'][] = ['Dealer', 'Chemist']
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -41,100 +38,34 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 
 interface GeoFenceFormProps {
   control: Control<GeoFenceFormValues>
-  setValue: UseFormSetValue<GeoFenceFormValues>
-  userOptions: { id: string; name: string; userType: GeoFenceFormValues['userType']; region: GeoFenceFormValues['region'] }[]
-  scope?: 'global' | 'user'
-  /** Editing an existing geo fence locks every field except Basic Information. */
-  isEdit?: boolean
 }
 
-export function GeoFenceForm({ control, setValue, userOptions, scope = 'user', isEdit = false }: GeoFenceFormProps) {
-  const selectableUsers = userOptions.filter((user) => user.userType === 'Dealer' || user.userType === 'Chemist')
-
+export function GeoFenceForm({ control }: GeoFenceFormProps) {
   return (
-    <>
-      {scope === 'user' && (
-        <Card sx={{ p: 3, mb: 3 }}>
-          <Typography sx={sectionTitleSx}>Basic Information</Typography>
-          <Grid container spacing={2.5}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>User</FieldLabel>
-              <Controller
-                name="userId"
-                control={control}
-                render={({ field, fieldState }) => (
-                  <Autocomplete
-                    options={selectableUsers}
-                    getOptionLabel={(option) => option.name}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
-                    value={selectableUsers.find((user) => user.id === field.value) ?? null}
-                    onChange={(_, selected) => {
-                      field.onChange(selected?.id ?? '')
-                      if (selected) {
-                        setValue('userType', selected.userType)
-                        setValue('region', selected.region)
-                      }
-                    }}
-                    disabled={isEdit}
-                    size="small"
-                    renderInput={(params) => (
-                      <TextField {...params} error={!!fieldState.error} helperText={fieldState.error?.message} />
-                    )}
-                  />
-                )}
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>User Type</FieldLabel>
-              <FormField name="userType" control={control} select disabled {...fieldLabelProps}>
-                {userTypes.map((type) => (
-                  <MenuItem key={type} value={type}>
-                    {type}
-                  </MenuItem>
-                ))}
-              </FormField>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Region</FieldLabel>
-              <FormField name="region" control={control} select disabled {...fieldLabelProps}>
-                {zones.map((zone) => (
-                  <MenuItem key={zone} value={zone}>
-                    {zone}
-                  </MenuItem>
-                ))}
-              </FormField>
-            </Grid>
-          </Grid>
-        </Card>
-      )}
-
-      <Card sx={{ p: 3, mb: 3 }}>
-        <Typography sx={sectionTitleSx}>Location Configuration</Typography>
-        <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FieldLabel required>Radius (meters)</FieldLabel>
-            <FormField
-              name="radiusMeters"
-              control={control}
-              type="number"
-              placeholder="e.g. 150"
-              disabled={isEdit}
-              {...fieldLabelProps}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FieldLabel required>Buffer Distance (meters)</FieldLabel>
-            <FormField
-              name="bufferDistanceMeters"
-              control={control}
-              type="number"
-              placeholder="e.g. 50"
-              disabled={isEdit}
-              {...fieldLabelProps}
-            />
-          </Grid>
+    <Card sx={{ p: 3, mb: 3 }}>
+      <Typography sx={sectionTitleSx}>Location Configuration</Typography>
+      <Grid container spacing={2.5}>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <FieldLabel required>Radius (meters)</FieldLabel>
+          <FormField
+            name="radiusMeters"
+            control={control}
+            type="number"
+            placeholder="e.g. 150"
+            {...fieldLabelProps}
+          />
         </Grid>
-      </Card>
-    </>
+        <Grid size={{ xs: 12, sm: 6 }}>
+          <FieldLabel required>Buffer Distance (meters)</FieldLabel>
+          <FormField
+            name="bufferDistanceMeters"
+            control={control}
+            type="number"
+            placeholder="e.g. 50"
+            {...fieldLabelProps}
+          />
+        </Grid>
+      </Grid>
+    </Card>
   )
 }

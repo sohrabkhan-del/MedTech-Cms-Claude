@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Chip, Stack, Typography } from '@mui/material'
 import { Package as Inventory2Icon } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -11,7 +11,31 @@ import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useProductDetail } from '@/features/inventoryManagement/hooks/useProductDetail'
-import type { ProductMovementEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import type {
+  ProductMovementEntry,
+  ProductRegionConfig,
+} from '@/features/inventoryManagement/types/inventoryManagement.types'
+
+const regionColumns: CommonTableColumn<ProductRegionConfig>[] = [
+  {
+    key: 'regionName',
+    header: 'Region',
+    sortable: true,
+    render: (row) => row.regionName,
+  },
+  {
+    key: 'dealerMultiplier',
+    header: 'Dealer Multiplier',
+    align: 'center',
+    render: (row) => row.dealerMultiplier ?? '-',
+  },
+  {
+    key: 'chemistMultiplier',
+    header: 'Chemist Multiplier',
+    align: 'center',
+    render: (row) => row.chemistMultiplier ?? '-',
+  },
+]
 
 const movementColumns: CommonTableColumn<ProductMovementEntry>[] = [
   {
@@ -118,19 +142,34 @@ export function ProductDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Product Code', value: product.productCode },
-              { label: 'Product Name', value: product.productName },
-              { label: 'Product Category', value: product.productCategory },
+              { label: 'Product Name', value: product.productName || '-' },
+              {
+                label: 'Product Category',
+                value: product.category?.categoryName || '-',
+              },
+              {
+                label: 'Category Code',
+                value: product.category?.categoryCode || '-',
+              },
               {
                 label: 'Status',
                 value: <StatusBadge status={product.status} />,
               },
               {
-                label: 'Dealer Reward Points',
-                value: product.dealerRewardPoints,
+                label: 'Dealer Container Points',
+                value: product.dealerContainerPoints,
               },
               {
-                label: 'Chemist Reward Points',
-                value: product.chemistRewardPoints,
+                label: 'Dealer Product Points',
+                value: product.dealerProductPoints,
+              },
+              {
+                label: 'Chemist Container Points',
+                value: product.chemistContainerPoints,
+              },
+              {
+                label: 'Chemist Product Points',
+                value: product.chemistProductPoints,
               },
               {
                 label: 'Reward Configuration Status',
@@ -139,19 +178,16 @@ export function ProductDetailsPage() {
                     ? 'Configured'
                     : 'Pending',
               },
-              {
-                label: 'Total Dealer Allocations',
-                value: product.totalDealerAllocations,
-              },
-              {
-                label: 'Total Chemist Allocations',
-                value: product.totalChemistAllocations,
-              },
+              { label: 'Created On', value: product.createdDate },
+              { label: 'Last Updated', value: product.lastUpdatedDate },
             ]}
           />
         </SectionCard>
 
-        <SectionCard title="Product Movement History">
+        <SectionCard
+          title="Product Movement History"
+          action={<Chip label="Sample data" size="small" variant="outlined" />}
+        >
           <CommonTable
             tableKey="product-movement-history"
             columns={movementColumns}

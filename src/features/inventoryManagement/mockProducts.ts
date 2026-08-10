@@ -2,10 +2,18 @@ import type {
   Product,
   ProductAuditEntry,
   ProductMovementEntry,
+  ProductRegionConfig,
   ProductStatus,
   ProductTimelineEntry,
 } from '@/types/product'
 import { mrs } from '@/features/userManagement/mockPartnerData'
+
+const mockRegions: ProductRegionConfig[] = [
+  { regionId: 'region-north', regionName: 'North', dealerMultiplier: null, chemistMultiplier: null },
+  { regionId: 'region-south', regionName: 'South', dealerMultiplier: null, chemistMultiplier: null },
+  { regionId: 'region-east', regionName: 'East', dealerMultiplier: null, chemistMultiplier: null },
+  { regionId: 'region-west', regionName: 'West', dealerMultiplier: null, chemistMultiplier: null },
+]
 
 export const productCategoryOptions = [
   'Nebulizers',
@@ -219,8 +227,12 @@ function buildProduct(seed: number): Product {
   const entry = catalogEntries[seed % catalogEntries.length]!
   const name = entry.name
   const status = resolveStatus(seed)
-  const dealerRewardPoints = seededRoundHundred(seed, 100, 500)
-  const chemistRewardPoints = seededRoundHundred(seed + 1, 100, 500)
+  const dealerContainerPoints = seededRoundHundred(seed, 100, 500)
+  const dealerProductPoints = seededRoundHundred(seed + 1, 50, 250)
+  const chemistContainerPoints = seededRoundHundred(seed + 2, 100, 500)
+  const chemistProductPoints = seededRoundHundred(seed + 3, 50, 250)
+  const dealerRewardPoints = dealerContainerPoints + dealerProductPoints
+  const chemistRewardPoints = chemistContainerPoints + chemistProductPoints
 
   return {
     id,
@@ -241,6 +253,11 @@ function buildProduct(seed: number): Product {
 
     dealerRewardPoints,
     chemistRewardPoints,
+    dealerContainerPoints,
+    dealerProductPoints,
+    chemistContainerPoints,
+    chemistProductPoints,
+    regions: mockRegions,
     rewardConfigStatus:
       dealerRewardPoints > 0 && chemistRewardPoints > 0
         ? 'configured'
@@ -339,6 +356,11 @@ export function productFromImportedRow(
 
     dealerRewardPoints,
     chemistRewardPoints,
+    dealerContainerPoints: dealerRewardPoints,
+    dealerProductPoints: 0,
+    chemistContainerPoints: chemistRewardPoints,
+    chemistProductPoints: 0,
+    regions: mockRegions,
     rewardConfigStatus:
       dealerRewardPoints > 0 && chemistRewardPoints > 0
         ? 'configured'

@@ -537,6 +537,26 @@ const chemistApi = baseApi.injectEndpoints({
       ],
     }),
 
+    /** Partial update — only the geo fence fields on the chemist's business record. */
+    updateChemistGeoFence: builder.mutation<
+      void,
+      { id: string; businessId: string; scanRadius: number; bufferRadius: number }
+    >({
+      query: ({ id, businessId, scanRadius, bufferRadius }) => ({
+        tag: 'Chemists',
+        url: `/partners/${id}`,
+        method: 'PATCH',
+        data: { businesses: [{ id: businessId, scanRadius, bufferRadius }] },
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Chemists', id },
+        { type: 'Chemists', id: 'LIST' },
+        { type: 'GeoFences', id: 'LIST' },
+        { type: 'GeoFences', id: 'ANALYTICS_CARDS' },
+      ],
+    }),
+
     deleteChemist: builder.mutation<void, string>({
       query: (id) => ({
         tag: 'Chemists',
@@ -577,6 +597,7 @@ export const {
   useDeactivateChemistMutation,
   useCreateChemistMutation,
   useUpdateChemistMutation,
+  useUpdateChemistGeoFenceMutation,
   useDeleteChemistMutation,
   useDeleteChemistBusinessMutation,
 } = chemistApi

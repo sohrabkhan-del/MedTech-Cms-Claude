@@ -47,6 +47,7 @@ export interface GeoFence {
   businessAddress: string
   userType: GeoFenceUserType
   linkedUserId?: string
+  businessId?: string
   region: PartnerZone
   zone: PartnerZone
   latitude: number

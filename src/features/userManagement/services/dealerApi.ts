@@ -543,6 +543,26 @@ const dealerApi = baseApi.injectEndpoints({
       ],
     }),
 
+    /** Partial update — only the geo fence fields on the dealer's business record. */
+    updateDealerGeoFence: builder.mutation<
+      void,
+      { id: string; businessId: string; scanRadius: number; bufferRadius: number }
+    >({
+      query: ({ id, businessId, scanRadius, bufferRadius }) => ({
+        tag: 'Partners',
+        url: `/partners/${id}`,
+        method: 'PATCH',
+        data: { businesses: [{ id: businessId, scanRadius, bufferRadius }] },
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Partners', id },
+        { type: 'Partners', id: 'LIST' },
+        { type: 'GeoFences', id: 'LIST' },
+        { type: 'GeoFences', id: 'ANALYTICS_CARDS' },
+      ],
+    }),
+
     deleteDealer: builder.mutation<void, string>({
       query: (id) => ({
         tag: 'Partners',
@@ -583,6 +603,7 @@ export const {
   useDeactivateDealerMutation,
   useCreateDealerMutation,
   useUpdateDealerMutation,
+  useUpdateDealerGeoFenceMutation,
   useDeleteDealerMutation,
   useDeleteDealerBusinessMutation,
 } = dealerApi

@@ -197,10 +197,3 @@ export function getGeoFenceById(id: string): GeoFence | undefined {
 }
 
 export const geoFenceUserOptions = fenceUsers.map((user) => ({ id: user.id, name: user.name, userType: user.userType, region: user.zone }))
-
-export const geoFenceKpis = {
-  activeFences: mockGeoFences.filter((fence) => fence.status === 'active').length,
-  pendingVerification: mockGeoFences.filter((fence) => fence.status === 'pending').length,
-  averageRadius: Math.round(mockGeoFences.reduce((sum, fence) => sum + fence.radiusMeters, 0) / mockGeoFences.length),
-  verifiedThisWeek: mockGeoFences.filter((fence) => fence.lastVerified.includes('Jul 2026')).length,
-}

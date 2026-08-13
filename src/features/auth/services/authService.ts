@@ -8,6 +8,8 @@ import type {
   ForgotPasswordResponse,
   LoginRequest,
   LoginResponse,
+  ResendOtpRequest,
+  ResendOtpResponse,
   ResetPasswordRequest,
   ResetPasswordResponse,
   VerifyOtpRequest,
@@ -237,40 +239,37 @@ async function logout(): Promise<void> {
 async function forgotPassword(
   payload: ForgotPasswordRequest,
 ): Promise<ForgotPasswordResponse> {
-  const account = findMockAccount(payload.email)
-
-  if (!account) {
-    throw new Error('No account found with this email address')
-  }
-
-  return { email: payload.email }
+  const response = await apiClient.post<ApiResponse<ForgotPasswordResponse>>(
+    '/otp/forgot-password',
+    payload,
+  )
+  return response.data.data
 }
 
 async function verifyResetOtp(
   payload: VerifyResetOtpRequest,
 ): Promise<VerifyResetOtpResponse> {
-  const account = findMockAccount(payload.email)
+  // The backend responds with a misspelled `optId` field — normalize it here
+  // so the rest of the app can rely on the correctly-spelled `otpId`.
+  const response = await apiClient.post<ApiResponse<{ optId: string }>>(
+    '/otp/verify',
+    payload,
+  )
+  return { otpId: response.data.data.optId }
+}
 
-  if (!account) {
-    throw new Error('Account not found')
-  }
-
-  if (payload.otp !== '123456') {
-    throw new Error('Invalid or expired OTP')
-  }
-
-  return { resetToken: mockToken(payload.email, 'access') }
+async function resendOtp(payload: ResendOtpRequest): Promise<ResendOtpResponse> {
+  const response = await apiClient.post<ApiResponse<ResendOtpResponse>>(
+    '/otp/resend',
+    payload,
+  )
+  return response.data.data
 }
 
 async function resetPassword(
   payload: ResetPasswordRequest,
 ): Promise<ResetPasswordResponse> {
-  const account = findMockAccount(payload.email)
-
-  if (!account) {
-    throw new Error('Account not found')
-  }
-
+  await apiClient.post<ApiResponse<unknown>>('/otp/reset-password', payload)
   return { success: true }
 }
 
@@ -284,5 +283,6 @@ export const authService = {
   logout,
   forgotPassword,
   verifyResetOtp,
+  resendOtp,
   resetPassword,
 }

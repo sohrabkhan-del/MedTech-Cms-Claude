@@ -36,27 +36,51 @@ export interface FirstLoginResetResponse {
   user: AuthUser
 }
 
+export type OtpUserType = 'SUPER_ADMIN' | 'ADMIN'
+export type OtpPurpose = 'LOGIN' | 'FORGOT_PASSWORD'
+
 export interface ForgotPasswordRequest {
+  userType: OtpUserType
   email: string
+  phone?: string
 }
 
 export interface ForgotPasswordResponse {
-  email: string
+  success: boolean
+  message?: string
 }
 
 export interface VerifyResetOtpRequest {
-  email: string
+  userType: OtpUserType
+  userId?: string
+  email?: string
+  phone?: string
+  purpose: OtpPurpose
   otp: string
 }
 
 export interface VerifyResetOtpResponse {
-  resetToken: string
+  otpId: string
+}
+
+export interface ResendOtpRequest {
+  purpose: OtpPurpose
+  userType: OtpUserType
+  userId?: string
+  email?: string
+  phone?: string
+  country?: string
+}
+
+export interface ResendOtpResponse {
+  otpId: string
 }
 
 export interface ResetPasswordRequest {
-  email: string
-  resetToken: string
-  newPassword: string
+  otpId: string
+  userType: OtpUserType
+  password: string
+  confirmPassword: string
 }
 
 export interface ResetPasswordResponse {
@@ -72,7 +96,8 @@ export interface AuthState {
   tempPassword: string | null
   resetRequired: boolean
   passwordResetEmail: string | null
-  passwordResetToken: string | null
+  passwordResetPhone: string | null
+  passwordResetOtpId: string | null
 }
 
 export interface LoginFlowData {

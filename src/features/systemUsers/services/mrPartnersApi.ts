@@ -19,7 +19,7 @@ interface PartnerBusinessApiItem {
   approvalStatus?: string | null
 }
 
-interface MrPartnerApiItem {
+export interface MrPartnerApiItem {
   id: string
   referenceId: string
   type: MrPartnerType
@@ -58,7 +58,7 @@ export interface MrPartnerRow {
   createdAt: string
 }
 
-function mapMrPartner(item: MrPartnerApiItem): MrPartnerRow {
+export function mapMrPartner(item: MrPartnerApiItem): MrPartnerRow {
   const business = item.business?.[0]
   return {
     id: item.id,

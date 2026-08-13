@@ -13,7 +13,8 @@ import {
 } from '@/features/auth/resetOtpFormSchema'
 
 export function ResetOtpPage() {
-  const { verifyResetOtp, passwordResetEmail, isLoading, error } = useResetOtpService()
+  const { verifyResetOtp, resendOtp, passwordResetEmail, isLoading, isResending, error } =
+    useResetOtpService()
   const { control, handleSubmit } = useForm<ResetOtpFormValues>({
     resolver: zodResolver(resetOtpFormSchema),
     defaultValues: resetOtpFormDefaults,
@@ -43,6 +44,20 @@ export function ResetOtpPage() {
       <Button type="submit" variant="contained" size="large" loading={isLoading} sx={{ py: 1.25 }}>
         Verify code
       </Button>
+
+      <Stack direction="row" sx={{ justifyContent: 'center' }}>
+        <Link
+          component="button"
+          type="button"
+          variant="body2"
+          underline="hover"
+          onClick={() => resendOtp()}
+          sx={{ fontWeight: 500, opacity: isResending ? 0.6 : 1 }}
+          disabled={isResending}
+        >
+          {isResending ? 'Resending…' : "Didn't get a code? Resend"}
+        </Link>
+      </Stack>
 
       <Stack direction="row" sx={{ justifyContent: 'center' }}>
         <Link

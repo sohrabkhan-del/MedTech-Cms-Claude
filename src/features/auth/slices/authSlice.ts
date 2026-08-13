@@ -11,7 +11,8 @@ const initialState: AuthState = {
   tempPassword: null,
   resetRequired: false,
   passwordResetEmail: null,
-  passwordResetToken: null,
+  passwordResetPhone: null,
+  passwordResetOtpId: null,
 }
 
 const authSlice = createSlice({
@@ -35,16 +36,24 @@ const authSlice = createSlice({
       state.resetRequired = false
       state.pendingEmail = null
     },
-    setPasswordResetEmail(state, action: PayloadAction<string>) {
-      state.passwordResetEmail = action.payload
-      state.passwordResetToken = null
+    setPasswordResetRequest(
+      state,
+      action: PayloadAction<{
+        email: string
+        phone?: string
+      }>,
+    ) {
+      state.passwordResetEmail = action.payload.email
+      state.passwordResetPhone = action.payload.phone ?? null
+      state.passwordResetOtpId = null
     },
-    setPasswordResetToken(state, action: PayloadAction<string>) {
-      state.passwordResetToken = action.payload
+    setPasswordResetOtpId(state, action: PayloadAction<string>) {
+      state.passwordResetOtpId = action.payload
     },
     clearPasswordReset(state) {
       state.passwordResetEmail = null
-      state.passwordResetToken = null
+      state.passwordResetPhone = null
+      state.passwordResetOtpId = null
     },
     updateUser(state, action: PayloadAction<Partial<AuthUser>>) {
       if (state.user) {
@@ -61,8 +70,8 @@ export const {
   setPendingEmail,
   setLoginFlowData,
   setCredentials,
-  setPasswordResetEmail,
-  setPasswordResetToken,
+  setPasswordResetRequest,
+  setPasswordResetOtpId,
   clearPasswordReset,
   updateUser,
   logout,

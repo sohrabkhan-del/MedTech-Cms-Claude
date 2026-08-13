@@ -41,7 +41,9 @@ export function ResetPasswordPage() {
           ? `Create a new password for ${passwordResetEmail}`
           : 'Create a new password for your account'
       }
-      onSubmit={handleSubmit((values) => resetPassword(values.newPassword))}
+      onSubmit={handleSubmit((values) =>
+        resetPassword(values.newPassword, values.confirmPassword),
+      )}
     >
       {error && <Alert severity="error">{error}</Alert>}
 

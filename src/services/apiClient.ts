@@ -61,12 +61,33 @@ async function refreshAccessToken(): Promise<string | null> {
   }
 }
 
+/** Unauthenticated endpoints where a 401 means "invalid credentials/OTP", not
+ *  "your session expired" — must never trigger a token refresh or logout. */
+const UNAUTHENTICATED_PATHS = [
+  '/admins/login',
+  '/otp/forgot-password',
+  '/otp/verify',
+  '/otp/resend',
+  '/otp/reset-password',
+  '/otp/set-password',
+]
+
+function isUnauthenticatedRequest(url?: string): boolean {
+  if (!url) return false
+  return UNAUTHENTICATED_PATHS.some((path) => url.includes(path))
+}
+
 apiClient.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as RetriableRequestConfig | undefined
 
-    if (error.response?.status !== 401 || !originalRequest || originalRequest._retry) {
+    if (
+      error.response?.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isUnauthenticatedRequest(originalRequest.url)
+    ) {
       return Promise.reject(error)
     }
 

@@ -12,6 +12,11 @@ import type {
 } from '@/features/systemUsers/types/systemUsers.types'
 import type { MedicalRepApiPayload } from '@/features/systemUsers/medicalRepFormSchema'
 import { mockDelay } from '@/services/mockDelay'
+import {
+  mapMrPartner,
+  type MrPartnerApiItem,
+  type MrPartnerRow,
+} from '@/features/systemUsers/services/mrPartnersApi'
 
 export interface MedicalRepQueryParams {
   page?: number
@@ -326,20 +331,27 @@ const medicalRepsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    deleteMedicalRep: builder.mutation<void, { id: string; replacementMrId: string }>({
+    deleteMedicalRep: builder.mutation<
+      MrPartnerRow[],
+      { id: string; replacementMrId: string }
+    >({
       query: ({ id, replacementMrId }) => ({
         tag: 'MedicalRepDetail',
         url: `/medical-representatives/${id}`,
         method: 'DELETE',
         data: {
-          replacementMrId,
-          assignedMedicalRepresentativeId: replacementMrId,
+          newMedicalRepresentativeId: replacementMrId,
         },
-        mockResolver: () => Promise.resolve(),
+        mockResolver: () => mockDelay([]),
       }),
+      transformResponse: (response: {
+        success: boolean
+        data: { items: MrPartnerApiItem[] }
+      }) => response.data.items.map(mapMrPartner),
       invalidatesTags: (_result, _error, { id }) => [
         { type: 'MedicalReps', id },
         { type: 'MedicalReps', id: 'LIST' },
+        { type: 'Partners', id: 'LIST' },
       ],
     }),
   }),

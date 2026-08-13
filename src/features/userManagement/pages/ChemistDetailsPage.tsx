@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Grid, Stack } from '@mui/material'
 import { PartnerSummaryHeader } from '@/features/userManagement/components/PartnerSummaryHeader'
@@ -13,16 +12,23 @@ import { RedemptionHistoryCard } from '@/features/userManagement/components/Rede
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
-import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemptions'
+import {
+  useGetPartnerWalletBalanceQuery,
+  useCreditPartnerWalletMutation,
+} from '@/features/rewardsWallet/services/walletPartnersApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function ChemistDetailsPage() {
   const { chemistId } = useParams<{ chemistId: string }>()
   const navigate = useNavigate()
+  const toast = useToast()
   const { chemist, isLoading, activate, deactivate, remove, isUpdatingStatus, isDeleting } =
     useChemistDetail(chemistId)
-  const { redemptions, isLoading: isRedemptionsLoading } =
-    useUserRedemptions(chemistId)
-  const [, forceRerender] = useState(0)
+  const { data: walletBalance } = useGetPartnerWalletBalanceQuery(chemistId ?? '', {
+    skip: !chemistId,
+  })
+  const [creditWallet] = useCreditPartnerWalletMutation()
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={4} />
@@ -39,8 +45,24 @@ export function ChemistDetailsPage() {
     )
   }
 
-  const handleAdjustPoints = () => {
-    forceRerender((n) => n + 1)
+  const handleAdjustPoints = async (
+    type: 'credit' | 'debit',
+    points: number,
+    reason: string,
+  ) => {
+    if (!chemistId) return
+    try {
+      await creditWallet({
+        partnerId: chemistId,
+        points: type === 'credit' ? points : -points,
+        note: reason,
+      }).unwrap()
+      toast.success(
+        type === 'credit' ? 'Points added successfully.' : 'Points removed successfully.',
+      )
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to adjust points.'))
+    }
   }
 
   return (
@@ -81,20 +103,17 @@ export function ChemistDetailsPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={12}>
           <PointsManagementCard
-            currentBalance={chemist.availablePoints}
+            currentBalance={walletBalance?.totalPoints ?? chemist.availablePoints}
             onAdjust={handleAdjustPoints}
           />
         </Grid>
       </Grid>
 
       <Stack spacing={3}>
-        <ScanHistoryCard entries={chemist.scanHistory} />
-        <PointsHistoryCard entries={chemist.PointsHistory} />
-        <RedemptionHistoryCard
-          entries={redemptions}
-          isLoading={isRedemptionsLoading}
-        />
-        <InterestedProductsCard entries={chemist.interestedProducts} />
+        <ScanHistoryCard partnerId={chemistId} />
+        <PointsHistoryCard partnerId={chemistId} />
+        <RedemptionHistoryCard partnerId={chemistId} />
+        <InterestedProductsCard partnerId={chemistId} />
       </Stack>
     </Stack>
   )

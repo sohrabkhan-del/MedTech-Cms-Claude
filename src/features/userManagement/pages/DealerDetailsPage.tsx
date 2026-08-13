@@ -12,15 +12,23 @@ import { RedemptionHistoryCard } from '@/features/userManagement/components/Rede
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
-import { useUserRedemptions } from '@/features/rewardsWallet/hooks/useUserRedemptions'
+import {
+  useGetPartnerWalletBalanceQuery,
+  useCreditPartnerWalletMutation,
+} from '@/features/rewardsWallet/services/walletPartnersApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function DealerDetailsPage() {
   const { dealerId } = useParams<{ dealerId: string }>()
   const navigate = useNavigate()
+  const toast = useToast()
   const { dealer, isLoading, activate, deactivate, remove, isUpdatingStatus, isDeleting } =
     useDealerDetail(dealerId)
-  const { redemptions, isLoading: isRedemptionsLoading } =
-    useUserRedemptions(dealerId)
+  const { data: walletBalance } = useGetPartnerWalletBalanceQuery(dealerId ?? '', {
+    skip: !dealerId,
+  })
+  const [creditWallet] = useCreditPartnerWalletMutation()
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={4} />
@@ -35,6 +43,26 @@ export function DealerDetailsPage() {
         onAction={() => navigate('/partners/dealers')}
       />
     )
+  }
+
+  const handleAdjustPoints = async (
+    type: 'credit' | 'debit',
+    points: number,
+    reason: string,
+  ) => {
+    if (!dealerId) return
+    try {
+      await creditWallet({
+        partnerId: dealerId,
+        points: type === 'credit' ? points : -points,
+        note: reason,
+      }).unwrap()
+      toast.success(
+        type === 'credit' ? 'Points added successfully.' : 'Points removed successfully.',
+      )
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to adjust points.'))
+    }
   }
 
   return (
@@ -78,20 +106,17 @@ export function DealerDetailsPage() {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={12}>
           <PointsManagementCard
-            currentBalance={dealer.availablePoints}
-            onAdjust={() => {}}
+            currentBalance={walletBalance?.totalPoints ?? dealer.availablePoints}
+            onAdjust={handleAdjustPoints}
           />
         </Grid>
       </Grid>
 
       <Stack spacing={3}>
-        <ScanHistoryCard entries={dealer.scanHistory} />
-        <PointsHistoryCard entries={dealer.PointsHistory} />
-        <RedemptionHistoryCard
-          entries={redemptions}
-          isLoading={isRedemptionsLoading}
-        />
-        <InterestedProductsCard entries={dealer.interestedProducts} />
+        <ScanHistoryCard partnerId={dealerId} />
+        <PointsHistoryCard partnerId={dealerId} />
+        <RedemptionHistoryCard partnerId={dealerId} />
+        <InterestedProductsCard partnerId={dealerId} />
       </Stack>
     </Stack>
   )

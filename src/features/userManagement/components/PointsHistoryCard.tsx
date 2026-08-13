@@ -1,31 +1,32 @@
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { Typography } from '@mui/material'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
-import type { PointsHistoryEntry } from '@/types/partner'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useGetPartnerPointsHistoryQuery } from '@/features/userManagement/services/partnerActivityApi'
+import type { PartnerPointsHistoryRow } from '@/features/userManagement/services/partnerActivityApi'
 
-const columns: CommonTableColumn<PointsHistoryEntry>[] = [
+const columns: CommonTableColumn<PartnerPointsHistoryRow>[] = [
   {
-    key: 'transactionId',
-    header: 'Transaction ID',
-    render: (row) => row.transactionId,
+    key: 'createdAt',
+    header: 'Date',
+    sortable: true,
+    render: (row) => new Date(row.createdAt).toLocaleString('en-IN'),
   },
-  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
   {
     key: 'type',
     header: 'Transaction Type',
-    sortable: true,
-    sortValue: (row) => row.type,
     render: (row) => (row.type === 'credit' ? 'Credit' : 'Debit'),
   },
   {
-    key: 'Points',
+    key: 'points',
     header: 'Points Added / Deducted',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.Points,
     render: (row) => (
       <Typography
         component="span"
@@ -36,40 +37,73 @@ const columns: CommonTableColumn<PointsHistoryEntry>[] = [
         }}
       >
         {row.type === 'credit' ? '+' : '-'}
-        {row.Points.toLocaleString('en-IN')}
+        {row.points.toLocaleString('en-IN')}
       </Typography>
     ),
   },
   {
-    key: 'description',
+    key: 'reason',
     header: 'Description',
-    render: (row) => row.description,
+    render: (row) => row.reason,
   },
   {
     key: 'balanceAfter',
     header: 'Current Balance',
     align: 'center',
     sortable: true,
-    sortValue: (row) => row.balanceAfter,
     render: (row) => row.balanceAfter.toLocaleString('en-IN'),
   },
 ]
 
-export function PointsHistoryCard({
-  entries,
-}: {
-  entries: PointsHistoryEntry[]
-}) {
+export function PointsHistoryCard({ partnerId }: { partnerId: string | undefined }) {
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(20)
+
+  const { data, isFetching } = useGetPartnerPointsHistoryQuery(
+    partnerId
+      ? {
+          partnerId,
+          page: page + 1,
+          limit: rowsPerPage,
+          search: debouncedSearch || undefined,
+          sortBy,
+          sortOrder,
+        }
+      : skipToken,
+  )
+
   return (
     <SectionCard title="Points History">
       <CommonTable
         tableKey="partner-Points-history"
         columns={columns}
-        rows={entries}
+        rows={data?.items ?? []}
         getRowId={(row) => row.id}
+        loading={isFetching}
         searchPlaceholder="Search transactions…"
-        searchKeys={(row) => `${row.transactionId} ${row.description}`}
-        defaultSortBy="date"
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
+        onSortChange={(columnKey, dir) => {
+          setSortBy(columnKey)
+          setSortOrder(dir)
+        }}
+        defaultSortBy="createdAt"
+        defaultSortDir="desc"
+        totalCount={data?.totalItems ?? 0}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         emptyTitle="No transactions yet"
       />
     </SectionCard>

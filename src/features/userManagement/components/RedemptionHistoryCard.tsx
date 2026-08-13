@@ -1,85 +1,100 @@
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { Chip } from '@mui/material'
-import { useNavigate } from 'react-router-dom'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
-import type {
-  RedemptionRequest,
-  RedemptionStatus,
-} from '@/features/rewardsWallet/types/rewardsWallet.types'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useGetPartnerRedemptionsQuery } from '@/features/userManagement/services/partnerActivityApi'
+import type { PartnerRedemptionRow } from '@/features/userManagement/services/partnerActivityApi'
 
-const statusConfig: Record<
-  RedemptionStatus,
-  { label: string; color: 'warning' | 'info' | 'error' | 'success' }
-> = {
+const statusConfig: Record<string, { label: string; color: 'warning' | 'info' | 'error' | 'success' | 'default' }> = {
   pending: { label: 'Pending', color: 'warning' },
-  approved: { label: 'Approved', color: 'info' },
+  approved: { label: 'Approved', color: 'success' },
   rejected: { label: 'Rejected', color: 'error' },
-  completed: { label: 'Completed', color: 'success' },
+  fulfilled: { label: 'Fulfilled', color: 'info' },
 }
 
-export function RedemptionHistoryCard({
-  entries,
-  isLoading,
-}: {
-  entries: RedemptionRequest[]
-  isLoading?: boolean
-}) {
-  const navigate = useNavigate()
+const columns: CommonTableColumn<PartnerRedemptionRow>[] = [
+  { key: 'referenceId', header: 'Request ID', render: (row) => row.referenceId },
+  { key: 'rewardItem', header: 'Reward Item', render: (row) => row.rewardItem },
+  {
+    key: 'pointsUsed',
+    header: 'Points Used',
+    align: 'center',
+    sortable: true,
+    render: (row) => row.pointsUsed.toLocaleString('en-IN'),
+  },
+  {
+    key: 'requestDate',
+    header: 'Request Date',
+    sortable: true,
+    render: (row) => new Date(row.requestDate).toLocaleString('en-IN'),
+  },
+  {
+    key: 'status',
+    header: 'Status',
+    render: (row) => (
+      <Chip
+        size="small"
+        label={statusConfig[row.status]?.label ?? row.status}
+        color={statusConfig[row.status]?.color ?? 'default'}
+      />
+    ),
+  },
+]
 
-  const columns: CommonTableColumn<RedemptionRequest>[] = [
-    { key: 'id', header: 'Request ID', render: (row) => row.id },
-    { key: 'rewardItem', header: 'Reward Item', render: (row) => row.rewardItem },
-    {
-      key: 'PointsUsed',
-      header: 'Points Used',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.PointsUsed,
-      render: (row) => row.PointsUsed.toLocaleString('en-IN'),
-    },
-    {
-      key: 'requestDate',
-      header: 'Request Date',
-      sortable: true,
-      render: (row) => row.requestDate,
-    },
-    {
-      key: 'redemptionStatus',
-      header: 'Status',
-      render: (row) => (
-        <Chip
-          size="small"
-          label={statusConfig[row.redemptionStatus].label}
-          color={statusConfig[row.redemptionStatus].color}
-        />
-      ),
-    },
-    {
-      key: 'deliveryStatus',
-      header: 'Delivery Status',
-      render: (row) =>
-        row.deliveryStatus.charAt(0).toUpperCase() + row.deliveryStatus.slice(1),
-    },
-  ]
+export function RedemptionHistoryCard({ partnerId }: { partnerId: string | undefined }) {
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
+  const [sortBy, setSortBy] = useState('requestDate')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  const { data, isFetching } = useGetPartnerRedemptionsQuery(
+    partnerId
+      ? {
+          partnerId,
+          page: page + 1,
+          limit: rowsPerPage,
+          search: debouncedSearch || undefined,
+          sortBy,
+          sortOrder,
+        }
+      : skipToken,
+  )
 
   return (
     <SectionCard title="Redemption History">
       <CommonTable
         tableKey="partner-redemption-history"
         columns={columns}
-        rows={entries}
+        rows={data?.items ?? []}
         getRowId={(row) => row.id}
-        loading={isLoading}
+        loading={isFetching}
         searchPlaceholder="Search redemptions…"
-        searchKeys={(row) => `${row.id} ${row.rewardItem}`}
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
+        onSortChange={(columnKey, dir) => {
+          setSortBy(columnKey)
+          setSortOrder(dir)
+        }}
         defaultSortBy="requestDate"
         defaultSortDir="desc"
-        onRowClick={(row) =>
-          navigate(`/rewards-wallet/reward-redemptions/${row.id}`)
-        }
+        totalCount={data?.totalItems ?? 0}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         emptyTitle="No redemptions yet"
         emptyDescription="This partner hasn't redeemed any rewards yet."
       />

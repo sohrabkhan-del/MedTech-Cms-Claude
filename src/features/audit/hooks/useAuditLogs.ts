@@ -1,30 +1,20 @@
 import {
   useGetAuditLogsQuery,
-  useGetAuditLogKpisQuery,
-  useGetAuditLogFilterOptionsQuery,
+  type AuditLogsQueryParams,
 } from '@/features/audit/services/auditLogsApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useAuditLogs() {
-  const logsResult = useGetAuditLogsQuery()
-  const kpisResult = useGetAuditLogKpisQuery()
-  const filterOptionsResult = useGetAuditLogFilterOptionsQuery()
+/** Backs the Audit Logs listing page — GET /audit/timeline with server-side
+ *  pagination, search, entity/action filter, and date-range filtering. */
+export function useAuditLogs(params: AuditLogsQueryParams) {
+  const { data, isFetching, error: queryError } = useGetAuditLogsQuery(params)
 
-  const isLoading = logsResult.isLoading || kpisResult.isLoading || filterOptionsResult.isLoading
-
-  const error = logsResult.error
-    ? getApiErrorMessage(logsResult.error, 'Failed to load audit logs.')
-    : kpisResult.error
-      ? getApiErrorMessage(kpisResult.error, 'Failed to load audit logs.')
-      : filterOptionsResult.error
-        ? getApiErrorMessage(filterOptionsResult.error, 'Failed to load audit logs.')
-        : null
+  const error = queryError ? getApiErrorMessage(queryError, 'Failed to load audit logs.') : null
 
   return {
-    logs: logsResult.data ?? [],
-    kpis: kpisResult.data ?? null,
-    filterOptions: filterOptionsResult.data ?? null,
-    isLoading,
+    logs: data?.items ?? [],
+    totalItems: data?.totalItems ?? 0,
+    isLoading: isFetching,
     error,
   }
 }

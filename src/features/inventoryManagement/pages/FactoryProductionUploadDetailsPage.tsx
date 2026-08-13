@@ -15,57 +15,57 @@ import { useFactoryProductionUploadRows } from '@/features/inventoryManagement/h
 import type { FactoryProductionUploadRowRecord } from '@/types/factoryProductionUpload'
 
 const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
-  { key: 'ProductCode', header: 'Product Code', minWidth: 130, render: (row) => row.ProductCode },
-  { key: 'BatchNo', header: 'Batch No.', minWidth: 160, render: (row) => row.BatchNo },
+  { key: 'productCode', header: 'Product Code', minWidth: 130, render: (row) => row.productCode },
+  { key: 'batchNo', header: 'Batch No.', minWidth: 160, render: (row) => row.batchNo },
   {
-    key: 'ProductionPlanNumber',
+    key: 'productionPlanNumber',
     header: 'Production Plan No.',
     minWidth: 160,
-    render: (row) => row.ProductionPlanNumber,
+    render: (row) => row.productionPlanNumber,
   },
-  { key: 'BatchIssuedDate', header: 'Batch Issued Date', minWidth: 130, render: (row) => row.BatchIssuedDate },
-  { key: 'BatchIssuedByName', header: 'Batch Issued By', minWidth: 130, render: (row) => row.BatchIssuedByName },
-  { key: 'Month', header: 'Month', minWidth: 90, render: (row) => row.Month },
-  { key: 'Qty', header: 'Qty', align: 'center', render: (row) => row.Qty.toLocaleString('en-IN') },
+  { key: 'batchIssuedDate', header: 'Batch Issued Date', minWidth: 130, render: (row) => row.batchIssuedDate },
+  { key: 'batchIssuedByName', header: 'Batch Issued By', minWidth: 130, render: (row) => row.batchIssuedByName },
+  { key: 'month', header: 'Month', minWidth: 90, render: (row) => row.month },
+  { key: 'qty', header: 'Qty', align: 'center', render: (row) => row.qty.toLocaleString('en-IN') },
   {
-    key: 'SampleQty',
+    key: 'sampleQty',
     header: 'Sample Qty',
     align: 'center',
     minWidth: 100,
-    render: (row) => row.SampleQty.toLocaleString('en-IN'),
+    render: (row) => row.sampleQty.toLocaleString('en-IN'),
   },
-  { key: 'PlugType', header: 'Plug Type', minWidth: 100, render: (row) => row.PlugType },
-  { key: 'Domestic', header: 'Domestic', minWidth: 90, render: (row) => row.Domestic },
-  { key: 'Export', header: 'Export', minWidth: 90, render: (row) => row.Export },
-  { key: 'AssyLineNo', header: 'Assy Line No.', minWidth: 110, render: (row) => row.AssyLineNo },
+  { key: 'plugType', header: 'Plug Type', minWidth: 100, render: (row) => row.plugType },
+  { key: 'domestic', header: 'Domestic', minWidth: 90, render: (row) => row.domestic },
+  { key: 'export', header: 'Export', minWidth: 90, render: (row) => row.export },
+  { key: 'assyLineNo', header: 'Assy Line No.', minWidth: 110, render: (row) => row.assyLineNo },
   {
-    key: 'BatchCompletedDate',
+    key: 'batchCompletedDate',
     header: 'Batch Completed Date',
     minWidth: 150,
-    render: (row) => row.BatchCompletedDate,
+    render: (row) => row.batchCompletedDate,
   },
   {
-    key: 'ProducedQty',
+    key: 'producedQty',
     header: 'Produced Qty',
     align: 'center',
     minWidth: 110,
-    render: (row) => row.ProducedQty.toLocaleString('en-IN'),
+    render: (row) => row.producedQty.toLocaleString('en-IN'),
   },
-  { key: 'StartSerialNumber', header: 'Start Serial', align: 'center', render: (row) => row.StartSerialNumber },
-  { key: 'EndSerialNumber', header: 'End Serial', align: 'center', render: (row) => row.EndSerialNumber },
+  { key: 'startSerialNumber', header: 'Start Serial', align: 'center', render: (row) => row.startSerialNumber },
+  { key: 'endSerialNumber', header: 'End Serial', align: 'center', render: (row) => row.endSerialNumber },
   {
-    key: 'MasterCartonStartNo',
+    key: 'masterCartonStartNo',
     header: 'Master Carton Start No',
     align: 'center',
     minWidth: 150,
-    render: (row) => row.MasterCartonStartNo,
+    render: (row) => row.masterCartonStartNo,
   },
   {
-    key: 'MasterCartonEndNo',
+    key: 'masterCartonEndNo',
     header: 'Master Carton End No',
     align: 'center',
     minWidth: 150,
-    render: (row) => row.MasterCartonEndNo,
+    render: (row) => row.masterCartonEndNo,
   },
 ]
 
@@ -151,7 +151,7 @@ export function FactoryProductionUploadDetailsPage() {
               loading={areRowsLoading}
               getRowId={(row) => row.id}
               searchPlaceholder="Search rows…"
-              searchKeys={(row) => `${row.ProductCode} ${row.BatchNo}`}
+              searchKeys={(row) => `${row.productCode} ${row.batchNo}`}
               emptyTitle={
                 batchNoQuery ? 'No rows found for this batch number' : 'Enter a batch number to look up its rows'
               }

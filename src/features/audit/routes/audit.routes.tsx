@@ -9,5 +9,5 @@ export const auditRoutes: RouteObject[] = [
   { path: '/audit/master-scan-table-logs', element: <MasterScanLogListPage /> },
   { path: '/audit/master-scan-table-logs/:logId', element: <MasterScanLogDetailsPage /> },
   { path: '/audit/audit-logs', element: <AuditLogListPage /> },
-  { path: '/audit/audit-logs/:logId', element: <AuditLogDetailsPage /> },
+  { path: '/audit/audit-logs/:entityId', element: <AuditLogDetailsPage /> },
 ]

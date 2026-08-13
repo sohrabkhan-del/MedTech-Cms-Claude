@@ -43,6 +43,7 @@ export const tagTypes = [
   'AuditLogs',
   'MasterScanLogs',
   'Dashboard',
+  'AnalyticsCards',
   'GeoFences',
   'GeoFenceSettings',
   'ScanFeed',
@@ -90,6 +91,7 @@ export type FeatureTag = (typeof tagTypes)[number]
  *   }
  */
 const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
+  AuditLogs: 'real',
   Admins: 'real',
   Chemists: 'real',
   InterestedUsers: 'real',
@@ -105,6 +107,7 @@ const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   GeoFenceSettings: 'real',
   Products: 'real',
   FactoryProductionUpload: 'real',
+  AnalyticsCards: 'real',
 }
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {
@@ -171,7 +174,16 @@ export const mockOrRealBaseQuery: BaseQueryFn<
       data: args.data,
       params: args.params,
     })
-    return { data: response.data }
+    const body = response.data
+    if (body && typeof body === 'object' && 'success' in body && body.success === false) {
+      return {
+        error: {
+          status: 'REAL_ERROR',
+          message: body.message || 'Request failed.',
+        },
+      }
+    }
+    return { data: body }
   } catch (err) {
     return {
       error: {

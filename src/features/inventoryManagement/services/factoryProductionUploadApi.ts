@@ -9,6 +9,30 @@ export interface UploadFactoryProductionRowsArgs {
   rows: FactoryProductionUploadRow[]
 }
 
+/** The upload API expects PascalCase keys; internal state/UI stay camelCase. */
+function toApiRow(row: FactoryProductionUploadRow) {
+  return {
+    ProductCode: row.productCode,
+    BatchNo: row.batchNo,
+    ProductionPlanNumber: row.productionPlanNumber,
+    BatchIssuedDate: row.batchIssuedDate,
+    BatchIssuedByName: row.batchIssuedByName,
+    Month: row.month,
+    Qty: row.qty,
+    SampleQty: row.sampleQty,
+    PlugType: row.plugType,
+    Domestic: row.domestic,
+    Export: row.export,
+    AssyLineNo: row.assyLineNo,
+    BatchCompletedDate: row.batchCompletedDate,
+    ProducedQty: row.producedQty,
+    StartSerialNumber: row.startSerialNumber,
+    EndSerialNumber: row.endSerialNumber,
+    MasterCartonStartNo: row.masterCartonStartNo,
+    MasterCartonEndNo: row.masterCartonEndNo,
+  }
+}
+
 export interface FactoryProductionUploadRowsQueryParams {
   page?: number
   limit?: number
@@ -24,8 +48,32 @@ interface FactoryProductionUploadRowsListResponse {
   totalItems: number
 }
 
+export interface FactoryInventoryUploadKpis {
+  totalBatches: number
+  totalUploads: number
+}
+
 const factoryProductionUploadApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    /** GET /analytics-cards/factory-inventory-upload — stat card totals for the
+     *  Active Product Registry Directory (total batches, total uploaded rows). */
+    getFactoryInventoryUploadKpis: builder.query<FactoryInventoryUploadKpis, void>({
+      query: () => ({
+        tag: 'FactoryProductionUpload',
+        url: '/analytics-cards/factory-inventory-upload',
+        mockResolver: () => {
+          throw new Error('Factory production upload has no mock mode — real API only.')
+        },
+      }),
+      transformResponse: (
+        response:
+          | { success: boolean; data: FactoryInventoryUploadKpis }
+          | FactoryInventoryUploadKpis,
+      ): FactoryInventoryUploadKpis =>
+        'data' in response ? response.data : response,
+      providesTags: [{ type: 'FactoryProductionUpload', id: 'KPIS' }],
+    }),
+
     /** GET /products/upload-rows — full listing of uploaded rows across every batch,
      *  driving the Active Product Registry Directory table (search/sort/filter/paginate). */
     getFactoryProductionUploadRows: builder.query<
@@ -80,11 +128,16 @@ const factoryProductionUploadApi = baseApi.injectEndpoints({
         tag: 'FactoryProductionUpload',
         url: '/products/upload',
         method: 'POST',
-        data: { rows },
+        data: { rows: rows.map(toApiRow) },
         mockResolver: () => {
           throw new Error('Factory production upload has no mock mode — real API only.')
         },
       }),
+      transformResponse: (
+        response:
+          | { success: boolean; data: FactoryProductionUploadBatch }
+          | FactoryProductionUploadBatch,
+      ): FactoryProductionUploadBatch => ('data' in response ? response.data : response),
       invalidatesTags: [{ type: 'FactoryProductionUpload', id: 'LIST' }],
     }),
 
@@ -139,4 +192,5 @@ export const {
   useGetFactoryProductionUploadRowsByBatchQuery,
   useGetFactoryProductionBatchByNumberQuery,
   useGetFactoryProductionUploadRowsQuery,
+  useGetFactoryInventoryUploadKpisQuery,
 } = factoryProductionUploadApi

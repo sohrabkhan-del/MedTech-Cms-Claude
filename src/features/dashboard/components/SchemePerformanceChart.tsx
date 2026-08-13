@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Bar,
@@ -20,17 +19,20 @@ function truncateLabel(label: string, maxLength = 14): string {
 
 interface SchemePerformanceChartProps {
   schemePerformance: SchemeProgress[]
+  dateRange: DateRangeValue
+  onDateRangeChange: (value: DateRangeValue) => void
 }
 
 export function SchemePerformanceChart({
   schemePerformance,
+  dateRange,
+  onDateRangeChange,
 }: SchemePerformanceChartProps) {
   const navigate = useNavigate()
   const data = schemePerformance.map((s) => ({
     name: s.name.slice(0, 3),
     Progress: s.progress,
   }))
-  const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
   return (
     <ChartCard
@@ -38,7 +40,7 @@ export function SchemePerformanceChart({
       subtitle="Redemption progress by active scheme"
       height={280}
       dateRange={dateRange}
-      onDateRangeChange={setDateRange}
+      onDateRangeChange={onDateRangeChange}
       onCardClick={() => navigate('/scheme-management/schemes/general')}
     >
       <ResponsiveContainer width="100%" height="100%">

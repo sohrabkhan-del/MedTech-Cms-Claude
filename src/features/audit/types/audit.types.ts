@@ -2,10 +2,8 @@ export type {
   AuditModule,
   AuditActionType,
   AuditEntityType,
-  AuditStatus,
   AuditUserRole,
   AuditChangedField,
-  AuditTimelineEvent,
   AuditLogEntry,
 } from '@/types/auditLog'
 

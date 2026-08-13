@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Box, Button, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
@@ -14,11 +14,16 @@ const MAX_VISIBLE_SCANS = 10
 
 interface RecentScansWidgetProps {
   recentScans: RecentScan[]
+  dateRange: ScanDateRangeValue
+  onDateRangeChange: (value: ScanDateRangeValue) => void
 }
 
-export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
+export function RecentScansWidget({
+  recentScans,
+  dateRange,
+  onDateRangeChange,
+}: RecentScansWidgetProps) {
   const navigate = useNavigate()
-  const [dateRange, setDateRange] = useState<ScanDateRangeValue>('7')
 
   const visibleScans = useMemo(
     () => recentScans.slice(0, MAX_VISIBLE_SCANS),
@@ -33,7 +38,7 @@ export function RecentScansWidget({ recentScans }: RecentScansWidgetProps) {
       headerAction={
         <DateRangeDropdown
           value={dateRange}
-          onChange={setDateRange}
+          onChange={onDateRangeChange}
           options={SCAN_DATE_RANGE_OPTIONS}
           aria-label="Recent Scans date range"
           minWidth={84}

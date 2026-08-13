@@ -1,23 +1,23 @@
 /** One row of the factory production upload, matching the API's `rows[]` schema exactly. */
 export interface FactoryProductionUploadRow {
-  ProductCode: string
-  BatchNo: string
-  ProductionPlanNumber: string
-  BatchIssuedDate: string
-  BatchIssuedByName: string
-  Month: string
-  Qty: number
-  SampleQty: number
-  PlugType: string
-  Domestic: number
-  Export: number
-  AssyLineNo: string
-  BatchCompletedDate: string
-  ProducedQty: number
-  StartSerialNumber: number
-  EndSerialNumber: number
-  MasterCartonStartNo: number
-  MasterCartonEndNo: number
+  productCode: string
+  batchNo: string
+  productionPlanNumber: string
+  batchIssuedDate: string
+  batchIssuedByName: string
+  month: string
+  qty: number
+  sampleQty: number
+  plugType: string
+  domestic: number
+  export: number
+  assyLineNo: string
+  batchCompletedDate: string
+  producedQty: number
+  startSerialNumber: number
+  endSerialNumber: number
+  masterCartonStartNo: number
+  masterCartonEndNo: number
 }
 
 export interface FactoryProductionUploadBatch {
@@ -29,5 +29,5 @@ export interface FactoryProductionUploadBatch {
 
 export interface FactoryProductionUploadRowRecord extends FactoryProductionUploadRow {
   id: string
-  uploadId: string
+  uploadBatchId: string
 }

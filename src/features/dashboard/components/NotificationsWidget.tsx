@@ -1,19 +1,18 @@
 import { useNavigate } from 'react-router-dom'
 import { Box, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
-import type { NotificationItem } from '@/features/dashboard/types/dashboard.types'
+import { useGetNotificationsQuery } from '@/features/notifications/services/notificationsApi'
+import { formatRelativeTime } from '@/features/notifications/notificationDisplay'
 
-interface NotificationsWidgetProps {
-  notifications: NotificationItem[]
-}
-
-export function NotificationsWidget({ notifications }: NotificationsWidgetProps) {
+export function NotificationsWidget() {
   const navigate = useNavigate()
+  const { data: notifications = [] } = useGetNotificationsQuery()
+  const recent = notifications.slice(0, 5)
 
   return (
     <WidgetCard title="Notifications" subtitle="Recent system alerts" onCardClick={() => navigate('/notifications')}>
       <Stack spacing={2}>
-        {notifications.map((note) => (
+        {recent.map((note) => (
           <Stack key={note.id} direction="row" spacing={1.5}>
             <Box
               sx={{
@@ -22,17 +21,17 @@ export function NotificationsWidget({ notifications }: NotificationsWidgetProps)
                 borderRadius: '50%',
                 mt: 0.75,
                 flexShrink: 0,
-                backgroundColor: note.read ? 'transparent' : 'secondary.main',
-                border: note.read ? '1px solid' : 'none',
+                backgroundColor: note.isRead ? 'transparent' : 'secondary.main',
+                border: note.isRead ? '1px solid' : 'none',
                 borderColor: 'divider',
               }}
             />
             <Box sx={{ minWidth: 0 }}>
               <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>{note.title}</Typography>
               <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-                {note.description}
+                {note.message}
               </Typography>
-              <Typography variant="caption">{note.time}</Typography>
+              <Typography variant="caption">{formatRelativeTime(note.createdAt)}</Typography>
             </Box>
           </Stack>
         ))}

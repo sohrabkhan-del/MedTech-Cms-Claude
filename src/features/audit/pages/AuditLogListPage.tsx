@@ -1,22 +1,7 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import {
-  Button,
-  Chip,
-  Grid,
-  MenuItem,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
-import {
-  ClipboardList as ClipboardListIcon,
-  LogIn,
-  PencilLine,
-  Download,
-  FileSpreadsheet,
-  FileText,
-} from 'lucide-react'
+import { useState } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import { ClipboardList as ClipboardListIcon } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
@@ -25,99 +10,63 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useAuditLogs } from '@/features/audit/hooks/useAuditLogs'
-import type {
-  AuditActionType,
-  AuditEntityType,
-  AuditLogEntry,
-  AuditModule,
-  AuditStatus,
-  AuditUserRole,
-} from '@/features/audit/types/audit.types'
+import type { AuditLogEntry } from '@/features/audit/types/audit.types'
 
-const statusConfig: Record<
-  AuditStatus,
-  { label: string; color: 'success' | 'error' }
-> = {
-  success: { label: 'Success', color: 'success' },
-  failed: { label: 'Failed', color: 'error' },
+const ENTITY_OPTIONS = ['PARTNER_AUTH', 'PARTNER_BUSINESS']
+const ACTION_OPTIONS = ['CREATE', 'UPDATE', 'DELETE']
+
+const actionColor: Record<string, 'success' | 'info' | 'error' | 'default'> = {
+  CREATE: 'success',
+  UPDATE: 'info',
+  DELETE: 'error',
 }
 
 interface AuditLogFilters extends Record<string, unknown> {
-  module: AuditModule | 'all'
-  action: AuditActionType | 'all'
-  entity: AuditEntityType | 'all'
-  userRole: AuditUserRole | 'all'
-  status: AuditStatus | 'all'
+  entity: string
+  action: string
   fromDate: string
   toDate: string
 }
 
 export function AuditLogListPage() {
   const navigate = useNavigate()
-  const { logs, kpis, filterOptions, isLoading } = useAuditLogs()
-  useRegionTopbarHeader({
-    icon: <ClipboardListIcon size={20} />,
-    title: 'Audit Logs',
-    subtitle:
-      'Complete history of user and system activities across the platform.',
-    isLoading,
-  })
+  const [searchParams, setSearchParams] = useSearchParams()
+  const entityIdFilter = searchParams.get('entityId') || undefined
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<AuditLogFilters>({
-    module: 'all',
-    action: 'all',
     entity: 'all',
-    userRole: 'all',
-    status: 'all',
+    action: 'all',
     fromDate: '',
     toDate: '',
   })
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(20)
 
-  const auditKpis = kpis ?? {
-    totalEntries: 0,
-    loginActivities: 0,
-    recordUpdates: 0,
-    exportActivities: 0,
-  }
-  const options = filterOptions ?? {
-    moduleOptions: [],
-    actionOptions: [],
-    entityOptions: [],
-    userRoleOptions: [],
-  }
+  const { logs, totalItems, isLoading } = useAuditLogs({
+    page: page + 1,
+    limit: rowsPerPage,
+    search: debouncedSearch || undefined,
+    entity: appliedFilters.entity !== 'all' ? appliedFilters.entity : undefined,
+    entityId: entityIdFilter,
+    action: appliedFilters.action !== 'all' ? appliedFilters.action : undefined,
+    startDate: appliedFilters.fromDate || undefined,
+    endDate: appliedFilters.toDate || undefined,
+  })
 
-  const filteredLogs = useMemo(
-    () =>
-      logs.filter((log) => {
-        const moduleMatch =
-          appliedFilters.module === 'all' ||
-          log.module === appliedFilters.module
-        const actionMatch =
-          appliedFilters.action === 'all' ||
-          log.action === appliedFilters.action
-        const entityMatch =
-          appliedFilters.entity === 'all' ||
-          log.entity === appliedFilters.entity
-        const roleMatch =
-          appliedFilters.userRole === 'all' ||
-          log.userRole === appliedFilters.userRole
-        const statusMatch =
-          appliedFilters.status === 'all' ||
-          log.status === appliedFilters.status
-        return (
-          moduleMatch && actionMatch && entityMatch && roleMatch && statusMatch
-        )
-      }),
-    [logs, appliedFilters],
-  )
+  useRegionTopbarHeader({
+    icon: <ClipboardListIcon size={20} />,
+    title: 'Audit Logs',
+    subtitle: 'Complete history of user and system activities across the platform.',
+    isLoading,
+  })
 
   const filterCount = [
-    appliedFilters.module !== 'all',
-    appliedFilters.action !== 'all',
     appliedFilters.entity !== 'all',
-    appliedFilters.userRole !== 'all',
-    appliedFilters.status !== 'all',
+    appliedFilters.action !== 'all',
     !!(appliedFilters.fromDate || appliedFilters.toDate),
   ].filter(Boolean).length
 
@@ -126,8 +75,6 @@ export function AuditLogListPage() {
       key: 'id',
       header: 'Log ID',
       minWidth: 130,
-      sortable: true,
-      sortValue: (row) => row.id,
       render: (row) => (
         <Typography
           sx={{
@@ -136,7 +83,7 @@ export function AuditLogListPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() => navigate(`/audit/audit-logs/${row.id}`)}
+          onClick={() => navigate(`/audit/audit-logs/${row.entityId}`)}
         >
           {row.id}
         </Typography>
@@ -146,61 +93,51 @@ export function AuditLogListPage() {
       key: 'module',
       header: 'Module',
       minWidth: 160,
-      sortable: true,
       render: (row) => row.module,
     },
     {
       key: 'action',
       header: 'Action',
-      minWidth: 140,
-      sortable: true,
-      render: (row) => row.action,
+      minWidth: 120,
+      render: (row) => (
+        <Chip size="small" label={row.action} color={actionColor[row.action] ?? 'default'} />
+      ),
     },
     {
       key: 'entity',
       header: 'Entity',
-      minWidth: 110,
+      minWidth: 150,
       render: (row) => row.entity,
+    },
+    {
+      key: 'reason',
+      header: 'Reason',
+      minWidth: 220,
+      render: (row) => row.reason || '—',
     },
     {
       key: 'performedBy',
       header: 'Performed By',
       minWidth: 150,
-      sortable: true,
-      sortValue: (row) => row.performedBy,
       render: (row) => row.performedBy,
     },
     {
       key: 'userRole',
       header: 'User Role',
-      minWidth: 120,
+      minWidth: 130,
       render: (row) => row.userRole,
     },
     {
       key: 'dateTime',
       header: 'Date & Time',
       minWidth: 170,
-      sortable: true,
-      render: (row) => row.dateTime,
+      render: (row) => new Date(row.dateTime).toLocaleString('en-IN'),
     },
     {
       key: 'ipAddress',
       header: 'IP Address',
       minWidth: 130,
-      render: (row) => row.ipAddress,
-    },
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      sortValue: (row) => row.status,
-      render: (row) => (
-        <Chip
-          size="small"
-          label={statusConfig[row.status].label}
-          color={statusConfig[row.status].color}
-        />
-      ),
+      render: (row) => row.ipAddress || '—',
     },
   ]
 
@@ -213,95 +150,59 @@ export function AuditLogListPage() {
           ) : (
             <StatCard
               label="Total Audit Entries"
-              value={auditKpis.totalEntries}
+              value={totalItems}
               icon={<ClipboardListIcon size={20} />}
               iconColor="primary"
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
-            <StatCardSkeleton />
-          ) : (
-            <StatCard
-              label="Login Activities"
-              value={auditKpis.loginActivities}
-              icon={<LogIn size={20} />}
-              iconColor="info"
-            />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
-            <StatCardSkeleton />
-          ) : (
-            <StatCard
-              label="Record Updates"
-              value={auditKpis.recordUpdates}
-              icon={<PencilLine size={20} />}
-              iconColor="secondary"
-            />
-          )}
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
-            <StatCardSkeleton />
-          ) : (
-            <StatCard
-              label="Export Activities"
-              value={auditKpis.exportActivities}
-              icon={<Download size={20} />}
-              iconColor="warning"
-            />
-          )}
-        </Grid>
       </Grid>
 
-      <Stack
-        direction="row"
-        spacing={1}
-        sx={{ justifyContent: 'flex-end', mb: 1.5 }}
-      >
-        <Button
-          size="small"
-          variant="outlined"
-          color="success"
-          startIcon={<FileSpreadsheet size={16} />}
-          onClick={() => {}}
-          sx={{ fontSize: '0.75rem' }}
-        >
-          Export Excel
-        </Button>
-        <Button
-          size="small"
-          variant="outlined"
-          color="secondary"
-          startIcon={<FileText size={16} />}
-          onClick={() => {}}
-          sx={{ fontSize: '0.75rem' }}
-        >
-          Export CSV
-        </Button>
-      </Stack>
+      {entityIdFilter && (
+        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            Filtered by Entity ID:
+          </Typography>
+          <Chip
+            size="small"
+            label={entityIdFilter}
+            onDelete={() =>
+              setSearchParams((prev) => {
+                const params = new URLSearchParams(prev)
+                params.delete('entityId')
+                return params
+              })
+            }
+          />
+        </Stack>
+      )}
 
       <CommonTable
         tableKey="audit-logs-list"
         columns={columns}
-        rows={filteredLogs}
+        rows={logs}
         loading={isLoading}
         getRowId={(row) => row.id}
-        searchPlaceholder="Search by log ID, entity, or performed by…"
-        searchKeys={(row) =>
-          `${row.id} ${row.entityName} ${row.performedBy} ${row.module}`
-        }
+        searchPlaceholder="Search by entity ID or reason…"
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={filterCount}
-        defaultSortBy="dateTime"
-        defaultSortDir="desc"
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         actions={[
           {
             label: 'View',
-            onClick: (row) => navigate(`/audit/audit-logs/${row.id}`),
+            onClick: (row) => navigate(`/audit/audit-logs/${row.entityId}`),
           },
         ]}
         emptyTitle="No audit log entries found"
@@ -313,101 +214,40 @@ export function AuditLogListPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Audit Logs"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
             <TextField
               select
-              label="Module"
-              size="small"
-              value={draft.module}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  module: e.target.value as AuditLogFilters['module'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Modules</MenuItem>
-              {options.moduleOptions.map((m) => (
-                <MenuItem key={m} value={m}>
-                  {m}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              label="Action Type"
-              size="small"
-              value={draft.action}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  action: e.target.value as AuditLogFilters['action'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Actions</MenuItem>
-              {options.actionOptions.map((a) => (
-                <MenuItem key={a} value={a}>
-                  {a}
-                </MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
               label="Entity"
               size="small"
               value={draft.entity}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  entity: e.target.value as AuditLogFilters['entity'],
-                }))
-              }
+              onChange={(e) => setDraft((prev) => ({ ...prev, entity: e.target.value }))}
             >
               <MenuItem value="all">All Entities</MenuItem>
-              {options.entityOptions.map((e) => (
-                <MenuItem key={e} value={e}>
-                  {e}
+              {ENTITY_OPTIONS.map((entity) => (
+                <MenuItem key={entity} value={entity}>
+                  {entity}
                 </MenuItem>
               ))}
             </TextField>
             <TextField
               select
-              label="User Role"
+              label="Action"
               size="small"
-              value={draft.userRole}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  userRole: e.target.value as AuditLogFilters['userRole'],
-                }))
-              }
+              value={draft.action}
+              onChange={(e) => setDraft((prev) => ({ ...prev, action: e.target.value }))}
             >
-              <MenuItem value="all">All Roles</MenuItem>
-              {options.userRoleOptions.map((r) => (
-                <MenuItem key={r} value={r}>
-                  {r}
+              <MenuItem value="all">All Actions</MenuItem>
+              {ACTION_OPTIONS.map((action) => (
+                <MenuItem key={action} value={action}>
+                  {action}
                 </MenuItem>
               ))}
-            </TextField>
-            <TextField
-              select
-              label="Status"
-              size="small"
-              value={draft.status}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  status: e.target.value as AuditLogFilters['status'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="success">Success</MenuItem>
-              <MenuItem value="failed">Failed</MenuItem>
             </TextField>
             <TextField
               type="date"
@@ -415,9 +255,7 @@ export function AuditLogListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.fromDate}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
-              }
+              onChange={(e) => setDraft((prev) => ({ ...prev, fromDate: e.target.value }))}
             />
             <TextField
               type="date"
@@ -425,9 +263,7 @@ export function AuditLogListPage() {
               size="small"
               slotProps={{ inputLabel: { shrink: true } }}
               value={draft.toDate}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
-              }
+              onChange={(e) => setDraft((prev) => ({ ...prev, toDate: e.target.value }))}
             />
           </Stack>
         )}

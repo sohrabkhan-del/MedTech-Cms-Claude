@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
@@ -7,20 +6,23 @@ import type { ActivityEvent } from '@/features/dashboard/types/dashboard.types'
 
 interface ActivityTimelineWidgetProps {
   activityTimeline: ActivityEvent[]
+  dateRange: DateRangeValue
+  onDateRangeChange: (value: DateRangeValue) => void
 }
 
 export function ActivityTimelineWidget({
   activityTimeline,
+  dateRange,
+  onDateRangeChange,
 }: ActivityTimelineWidgetProps) {
   const navigate = useNavigate()
-  const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
   return (
     <WidgetCard
       title="Activity Timeline"
       subtitle="Latest actions across the platform"
       dateRange={dateRange}
-      onDateRangeChange={setDateRange}
+      onDateRangeChange={onDateRangeChange}
     >
       <Stack spacing={0} sx={{ maxHeight: 360, overflowY: 'auto' }}>
         {activityTimeline.map((event, index) => (

@@ -126,7 +126,7 @@ export function FactoryUploadFormPage() {
               {uploadedBatch && (
                 <>
                   <strong>{uploadedBatch.uploadFileName}</strong> was imported
-                  with {uploadedBatch.totalRows.toLocaleString('en-IN')} row(s).
+                  with {(uploadedBatch.totalRows ?? 0).toLocaleString('en-IN')} row(s).
                 </>
               )}
             </Typography>

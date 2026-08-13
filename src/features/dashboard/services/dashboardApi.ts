@@ -12,10 +12,13 @@ import {
 } from '@/features/dashboard/mockDashboard'
 import type { RecentScan } from '@/features/dashboard/mockDashboard'
 import type {
+  ActivityEvent,
   DashboardOverview,
   DashboardWidgetsData,
   EntityLeaderboardEntry,
+  SchemeProgress,
 } from '@/features/dashboard/types/dashboard.types'
+import type { AnalyticsCardsQueryParams } from '@/features/dashboard/types/analyticsCards.types'
 import { mockDelay } from '@/services/mockDelay'
 import { mockProducts } from '@/features/inventoryManagement/mockProducts'
 import { mockDealers } from '@/features/userManagement/mockDealers'
@@ -90,10 +93,11 @@ const dashboardApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Dashboard', id: 'OVERVIEW' }],
     }),
 
-    getDashboardWidgetsData: builder.query<DashboardWidgetsData, void>({
-      query: () => ({
+    getDashboardWidgetsData: builder.query<DashboardWidgetsData, AnalyticsCardsQueryParams | void>({
+      query: (params) => ({
         tag: 'Dashboard',
         url: '/dashboard/widgets',
+        params: params ? { regionId: params.regionId } : undefined,
         mockResolver: () =>
           mockDelay({
             scanActivityTrend,
@@ -108,7 +112,36 @@ const dashboardApi = baseApi.injectEndpoints({
       }),
       providesTags: [{ type: 'Dashboard', id: 'WIDGETS' }],
     }),
+
+    getActivityTimeline: builder.query<ActivityEvent[], AnalyticsCardsQueryParams | void>({
+      query: (params) => ({
+        tag: 'Dashboard',
+        url: '/dashboard/activity-timeline',
+        params: params
+          ? { regionId: params.regionId, preset: params.preset }
+          : undefined,
+        mockResolver: () => mockDelay(activityTimeline),
+      }),
+      providesTags: [{ type: 'Dashboard', id: 'ACTIVITY_TIMELINE' }],
+    }),
+
+    getSchemePerformance: builder.query<SchemeProgress[], AnalyticsCardsQueryParams | void>({
+      query: (params) => ({
+        tag: 'Dashboard',
+        url: '/dashboard/scheme-performance',
+        params: params
+          ? { regionId: params.regionId, preset: params.preset }
+          : undefined,
+        mockResolver: () => mockDelay(schemePerformance),
+      }),
+      providesTags: [{ type: 'Dashboard', id: 'SCHEME_PERFORMANCE' }],
+    }),
   }),
 })
 
-export const { useGetDashboardOverviewQuery, useGetDashboardWidgetsDataQuery } = dashboardApi
+export const {
+  useGetDashboardOverviewQuery,
+  useGetDashboardWidgetsDataQuery,
+  useGetActivityTimelineQuery,
+  useGetSchemePerformanceQuery,
+} = dashboardApi

@@ -12,6 +12,7 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useFactoryProductionUploadRowsList } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadRowsList'
+import { useGetFactoryInventoryUploadKpisQuery } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
 import type { FactoryProductionUploadRowRecord } from '@/types/factoryProductionUpload'
 
 interface UploadRowFilters extends Record<string, unknown> {
@@ -20,14 +21,13 @@ interface UploadRowFilters extends Record<string, unknown> {
 }
 
 // Maps CommonTable column keys to the real GET /products/upload-rows `sortBy`
-// field names. UNVERIFIED against the backend — best-effort guess based on
-// the upload row's own field names.
+// field names, per the swagger schema (camelCase).
 const SORT_FIELD_MAP: Partial<Record<string, string>> = {
-  productCode: 'ProductCode',
-  batchNumber: 'BatchNo',
-  batchDate: 'BatchIssuedDate',
-  quantity: 'Qty',
-  totalProducts: 'ProducedQty',
+  productCode: 'productCode',
+  batchNumber: 'batchNo',
+  batchDate: 'batchIssuedDate',
+  quantity: 'qty',
+  totalProducts: 'producedQty',
 }
 
 export function FactoryUploadListPage() {
@@ -54,6 +54,8 @@ export function FactoryUploadListPage() {
     endDate: appliedFilters.toDate || undefined,
   })
 
+  const { data: kpis, isLoading: isKpisLoading } = useGetFactoryInventoryUploadKpisQuery()
+
   useRegionTopbarHeader({
     icon: <FactoryOutlined size={20} />,
     title: 'Active Product Registry Directory',
@@ -68,114 +70,114 @@ export function FactoryUploadListPage() {
       header: 'Product Code',
       minWidth: 130,
       sortable: true,
-      sortValue: (row) => row.ProductCode,
-      render: (row) => row.ProductCode,
+      sortValue: (row) => row.productCode,
+      render: (row) => row.productCode,
     },
     {
       key: 'batchNumber',
       header: 'Batch No.',
       minWidth: 160,
       sortable: true,
-      sortValue: (row) => row.BatchNo,
+      sortValue: (row) => row.batchNo,
       render: (row) => (
-        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{row.BatchNo}</Typography>
+        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{row.batchNo}</Typography>
       ),
     },
     {
       key: 'productionPlanNumber',
       header: 'Production Plan No.',
       minWidth: 160,
-      render: (row) => row.ProductionPlanNumber,
+      render: (row) => row.productionPlanNumber,
     },
     {
       key: 'batchDate',
       header: 'Batch Issued Date',
       minWidth: 130,
       sortable: true,
-      sortValue: (row) => row.BatchIssuedDate,
-      render: (row) => row.BatchIssuedDate,
+      sortValue: (row) => row.batchIssuedDate,
+      render: (row) => row.batchIssuedDate,
     },
     {
       key: 'issuedBy',
       header: 'Batch Issued By',
       minWidth: 130,
-      render: (row) => row.BatchIssuedByName,
+      render: (row) => row.batchIssuedByName,
     },
-    { key: 'month', header: 'Month', minWidth: 90, render: (row) => row.Month },
+    { key: 'month', header: 'Month', minWidth: 90, render: (row) => row.month },
     {
       key: 'quantity',
       header: 'Qty',
       align: 'center',
       sortable: true,
-      sortValue: (row) => row.Qty,
-      render: (row) => row.Qty.toLocaleString('en-IN'),
+      sortValue: (row) => row.qty,
+      render: (row) => row.qty?.toLocaleString('en-IN') ?? '-',
     },
     {
       key: 'sampleQty',
       header: 'Sample Qty',
       align: 'center',
       minWidth: 100,
-      render: (row) => row.SampleQty.toLocaleString('en-IN'),
+      render: (row) => row.sampleQty?.toLocaleString('en-IN') ?? '-',
     },
     {
       key: 'plugType',
       header: 'Plug Type',
       minWidth: 100,
-      render: (row) => row.PlugType,
+      render: (row) => row.plugType,
     },
     {
       key: 'domestic',
       header: 'Domestic',
       minWidth: 90,
-      render: (row) => row.Domestic,
+      render: (row) => row.domestic,
     },
     {
       key: 'export',
       header: 'Export',
       minWidth: 90,
-      render: (row) => row.Export,
+      render: (row) => row.export,
     },
     {
       key: 'batchCompletionDate',
       header: 'Batch Completed Date',
       minWidth: 150,
-      render: (row) => row.BatchCompletedDate,
+      render: (row) => row.batchCompletedDate,
     },
     {
       key: 'totalProducts',
       header: 'Produced Qty',
       align: 'center',
       sortable: true,
-      sortValue: (row) => row.ProducedQty,
-      render: (row) => row.ProducedQty.toLocaleString('en-IN'),
+      sortValue: (row) => row.producedQty,
+      render: (row) => row.producedQty?.toLocaleString('en-IN') ?? '-',
     },
     {
       key: 'startSerialNumber',
       header: 'Start Serial',
       align: 'center',
       minWidth: 110,
-      render: (row) => row.StartSerialNumber,
+      render: (row) => row.startSerialNumber,
     },
     {
       key: 'endSerialNumber',
       header: 'End Serial',
       align: 'center',
       minWidth: 110,
-      render: (row) => row.EndSerialNumber,
+      render: (row) => row.endSerialNumber,
     },
     {
       key: 'masterStartNumber',
       header: 'Master Carton Start No',
       align: 'center',
       minWidth: 150,
-      render: (row) => row.MasterCartonStartNo,
+      render: (row) => row.masterCartonStartNo,
     },
     {
       key: 'masterEndNumber',
       header: 'Master Carton End No',
       align: 'center',
       minWidth: 150,
-      render: (row) => row.MasterCartonEndNo,
+      render: (row) => row.masterCartonEndNo,
     },
   ]
 
@@ -194,7 +196,7 @@ export function FactoryUploadListPage() {
         <Button
           variant="contained"
           startIcon={<UploadCloud size={18} />}
-          onClick={() => navigate('/inventory/factory-inventory-upload/new')}
+          onClick={() => navigate('/inventory/factory-inventory-upload/upload-bmr')}
         >
           Upload Inventory
         </Button>
@@ -202,14 +204,26 @@ export function FactoryUploadListPage() {
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isKpisLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Rows"
-              value={totalItems}
+              label="Total Batches"
+              value={kpis?.totalBatches ?? 0}
               icon={<FactoryOutlined size={20} />}
               iconColor="primary"
+            />
+          )}
+        </Grid>
+        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+          {isKpisLoading ? (
+            <StatCardSkeleton />
+          ) : (
+            <StatCard
+              label="Total Uploads"
+              value={kpis?.totalUploads ?? 0}
+              icon={<UploadCloud size={20} />}
+              iconColor="secondary"
             />
           )}
         </Grid>
@@ -248,7 +262,7 @@ export function FactoryUploadListPage() {
           {
             label: 'View Batch',
             onClick: (row) =>
-              navigate(`/inventory/factory-inventory-upload/upload/${row.uploadId}`),
+              navigate(`/inventory/factory-inventory-upload/upload/${row.uploadBatchId}`),
           },
         ]}
         emptyTitle="No batches found"

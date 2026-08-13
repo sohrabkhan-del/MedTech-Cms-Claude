@@ -1,13 +1,8 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Chip, Stack, Typography } from '@mui/material'
-import {
-  ClipboardList as ClipboardListIcon,
-  ArrowLeft as ArrowLeftIcon,
-  ExternalLink,
-} from 'lucide-react'
+import { ClipboardList as ClipboardListIcon, ArrowLeft as ArrowLeftIcon } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
-import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityTimeline'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -15,39 +10,21 @@ import {
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useAuditLogDetail } from '@/features/audit/hooks/useAuditLogDetail'
-import type {
-  AuditChangedField,
-  AuditEntityType,
-  AuditStatus,
-} from '@/features/audit/types/audit.types'
+import type { AuditChangedField } from '@/features/audit/types/audit.types'
 
-const statusConfig: Record<
-  AuditStatus,
-  { label: string; color: 'success' | 'error' }
-> = {
-  success: { label: 'Success', color: 'success' },
-  failed: { label: 'Failed', color: 'error' },
-}
-
-const entityRouteResolver: Partial<
-  Record<AuditEntityType, (entityId: string) => string>
-> = {
-  Dealer: () => '/partners/dealers',
-  Chemist: () => '/partners/chemists',
-  MR: () => '/system-users/medical-representatives',
-  Product: () => '/inventory/product-master',
-  Scheme: () => '/scheme-management/schemes/general',
-  Wallet: () => '/rewards-wallet/wallet-management',
-  Redemption: () => '/rewards-wallet/reward-redemptions',
+const actionColor: Record<string, 'success' | 'info' | 'error' | 'default'> = {
+  CREATE: 'success',
+  UPDATE: 'info',
+  DELETE: 'error',
 }
 
 export function AuditLogDetailsPage() {
-  const { logId } = useParams<{ logId: string }>()
+  const { entityId } = useParams<{ entityId: string }>()
   const navigate = useNavigate()
-  const { log, isLoading } = useAuditLogDetail(logId)
+  const { log, isLoading } = useAuditLogDetail(entityId)
 
   if (isLoading) {
-    return <DetailsPageSkeleton sections={4} />
+    return <DetailsPageSkeleton sections={3} />
   }
 
   if (!log) {
@@ -83,8 +60,6 @@ export function AuditLogDetailsPage() {
     },
   ]
 
-  const relatedEntityPath = entityRouteResolver[log.entity]?.(log.entityId)
-
   return (
     <>
       <Stack
@@ -114,17 +89,9 @@ export function AuditLogDetailsPage() {
             <ClipboardListIcon size={18} />
           </Box>
           <Box>
-            <Stack
-              direction="row"
-              spacing={1}
-              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
-            >
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
               <Typography variant="h1">{log.id}</Typography>
-              <Chip
-                size="small"
-                label={statusConfig[log.status].label}
-                color={statusConfig[log.status].color}
-              />
+              <Chip size="small" label={log.action} color={actionColor[log.action] ?? 'default'} />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {log.module} · {log.action} · {log.entityName}
@@ -173,19 +140,10 @@ export function AuditLogDetailsPage() {
               { label: 'Module', value: log.module },
               { label: 'Action', value: log.action },
               { label: 'Entity', value: log.entity },
+              { label: 'Reason', value: log.reason || '—' },
               { label: 'Performed By', value: log.performedBy },
               { label: 'User Role', value: log.userRole },
-              { label: 'Date & Time', value: log.dateTime },
-              {
-                label: 'Status',
-                value: (
-                  <Chip
-                    size="small"
-                    label={statusConfig[log.status].label}
-                    color={statusConfig[log.status].color}
-                  />
-                ),
-              },
+              { label: 'Date & Time', value: new Date(log.dateTime).toLocaleString('en-IN') },
             ]}
           />
         </SectionCard>
@@ -197,22 +155,11 @@ export function AuditLogDetailsPage() {
               { label: 'Module Name', value: log.module },
               { label: 'Entity Name', value: log.entityName },
               { label: 'Entity ID', value: log.entityId },
+              { label: 'Reason', value: log.reason || '—' },
               { label: 'Performed By', value: log.performedBy },
               { label: 'User Role', value: log.userRole },
-              { label: 'Timestamp', value: log.dateTime },
-              { label: 'IP Address', value: log.ipAddress },
-              { label: 'Device Information', value: log.device },
-              { label: 'Browser', value: log.browser },
-              {
-                label: 'Status',
-                value: (
-                  <Chip
-                    size="small"
-                    label={statusConfig[log.status].label}
-                    color={statusConfig[log.status].color}
-                  />
-                ),
-              },
+              { label: 'Timestamp', value: new Date(log.dateTime).toLocaleString('en-IN') },
+              { label: 'IP Address', value: log.ipAddress || '—' },
             ]}
           />
         </SectionCard>
@@ -229,47 +176,6 @@ export function AuditLogDetailsPage() {
             emptyTitle="No field changes recorded"
             emptyDescription="This activity did not modify any tracked fields."
           />
-        </SectionCard>
-
-        <SectionCard title="Activity Timeline">
-          <ActivityTimeline
-            entries={log.timeline}
-            emptyTitle="No timeline activity yet"
-          />
-        </SectionCard>
-
-        <SectionCard title="Related Entity">
-          {relatedEntityPath ? (
-            <Stack
-              direction="row"
-              spacing={1.5}
-              sx={{
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                p: 2,
-                borderRadius: '10px',
-                border: '1px solid',
-                borderColor: 'divider',
-                cursor: 'pointer',
-                '&:hover': { backgroundColor: 'background.default' },
-              }}
-              onClick={() => navigate(relatedEntityPath)}
-            >
-              <Box>
-                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                  {log.entityName}
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  {log.entity} · {log.entityId}
-                </Typography>
-              </Box>
-              <ExternalLink size={18} />
-            </Stack>
-          ) : (
-            <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-              {log.entityName} ({log.entity} · {log.entityId})
-            </Typography>
-          )}
         </SectionCard>
       </Stack>
     </>

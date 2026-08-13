@@ -123,7 +123,6 @@ import { getAdminById } from '@/features/systemUsers/mockAdmins'
 import { getMedicalRepById } from '@/features/systemUsers/mockMedicalReps'
 import { getProductCategoryById } from '@/features/masters/mockMasters'
 import { getMasterScanLogById } from '@/features/audit/mockMasterScanLogs'
-import { getAuditLogById } from '@/features/audit/mockAuditLogs'
 import { getScanReportById } from '@/features/reportsAnalytics/mockScanReports'
 import { getRewardReportById } from '@/features/reportsAnalytics/mockRewardReports'
 import { getWalletReportById } from '@/features/reportsAnalytics/mockWalletReports'
@@ -266,7 +265,7 @@ registerDetailRoute({
 })
 registerDetailRoute({
   parentPath: '/audit/audit-logs',
-  resolveEntityName: (id) => getAuditLogById(id)?.id,
+  resolveEntityName: (id) => id,
 })
 registerDetailRoute({
   parentPath: '/reports/scan-reports',
@@ -630,7 +629,7 @@ export function AppRouter() {
           />
           <Route path="/audit/audit-logs" element={<AuditLogListPage />} />
           <Route
-            path="/audit/audit-logs/:logId"
+            path="/audit/audit-logs/:entityId"
             element={<AuditLogDetailsPage />}
           />
           <Route

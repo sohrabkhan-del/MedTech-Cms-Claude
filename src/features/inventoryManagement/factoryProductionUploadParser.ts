@@ -4,80 +4,80 @@ import type { FactoryProductionUploadRow } from '@/types/factoryProductionUpload
 const MAX_ROWS = 20000
 
 const HEADER_ALIASES: Record<string, keyof FactoryProductionUploadRow> = {
-  'productcode': 'ProductCode',
-  'product code': 'ProductCode',
-  'batchno': 'BatchNo',
-  'batch no': 'BatchNo',
-  'batch no.': 'BatchNo',
-  'productionplannumber': 'ProductionPlanNumber',
-  'production plan number': 'ProductionPlanNumber',
-  'batchissueddate': 'BatchIssuedDate',
-  'batch issued date': 'BatchIssuedDate',
-  'batchissuedbyname': 'BatchIssuedByName',
-  'batch issued by name': 'BatchIssuedByName',
-  'month': 'Month',
-  'qty': 'Qty',
-  'sampleqty': 'SampleQty',
-  'sample qty': 'SampleQty',
-  'plugtype': 'PlugType',
-  'plug type': 'PlugType',
-  'domestic': 'Domestic',
-  'export': 'Export',
-  'assylineno': 'AssyLineNo',
-  'assy line no': 'AssyLineNo',
-  'assy line no.': 'AssyLineNo',
-  'batchcompleteddate': 'BatchCompletedDate',
-  'batch completed date': 'BatchCompletedDate',
-  'producedqty': 'ProducedQty',
-  'produced qty': 'ProducedQty',
-  'startserialnumber': 'StartSerialNumber',
-  'start serial number': 'StartSerialNumber',
-  'endserialnumber': 'EndSerialNumber',
-  'end serial number': 'EndSerialNumber',
-  'mastercartonstartno': 'MasterCartonStartNo',
-  'master carton start no': 'MasterCartonStartNo',
-  'master carton start no.': 'MasterCartonStartNo',
-  'mastercartonendno': 'MasterCartonEndNo',
-  'master carton end no': 'MasterCartonEndNo',
-  'master carton end no.': 'MasterCartonEndNo',
+  'productcode': 'productCode',
+  'product code': 'productCode',
+  'batchno': 'batchNo',
+  'batch no': 'batchNo',
+  'batch no.': 'batchNo',
+  'productionplannumber': 'productionPlanNumber',
+  'production plan number': 'productionPlanNumber',
+  'batchissueddate': 'batchIssuedDate',
+  'batch issued date': 'batchIssuedDate',
+  'batchissuedbyname': 'batchIssuedByName',
+  'batch issued by name': 'batchIssuedByName',
+  'month': 'month',
+  'qty': 'qty',
+  'sampleqty': 'sampleQty',
+  'sample qty': 'sampleQty',
+  'plugtype': 'plugType',
+  'plug type': 'plugType',
+  'domestic': 'domestic',
+  'export': 'export',
+  'assylineno': 'assyLineNo',
+  'assy line no': 'assyLineNo',
+  'assy line no.': 'assyLineNo',
+  'batchcompleteddate': 'batchCompletedDate',
+  'batch completed date': 'batchCompletedDate',
+  'producedqty': 'producedQty',
+  'produced qty': 'producedQty',
+  'startserialnumber': 'startSerialNumber',
+  'start serial number': 'startSerialNumber',
+  'endserialnumber': 'endSerialNumber',
+  'end serial number': 'endSerialNumber',
+  'mastercartonstartno': 'masterCartonStartNo',
+  'master carton start no': 'masterCartonStartNo',
+  'master carton start no.': 'masterCartonStartNo',
+  'mastercartonendno': 'masterCartonEndNo',
+  'master carton end no': 'masterCartonEndNo',
+  'master carton end no.': 'masterCartonEndNo',
 }
 
 const NUMERIC_FIELDS: (keyof FactoryProductionUploadRow)[] = [
-  'Qty',
-  'SampleQty',
-  'Domestic',
-  'Export',
-  'ProducedQty',
-  'StartSerialNumber',
-  'EndSerialNumber',
-  'MasterCartonStartNo',
-  'MasterCartonEndNo',
+  'qty',
+  'sampleQty',
+  'domestic',
+  'export',
+  'producedQty',
+  'startSerialNumber',
+  'endSerialNumber',
+  'masterCartonStartNo',
+  'masterCartonEndNo',
 ]
 
 const DATE_FIELDS: (keyof FactoryProductionUploadRow)[] = [
-  'BatchIssuedDate',
-  'BatchCompletedDate',
+  'batchIssuedDate',
+  'batchCompletedDate',
 ]
 
 const TEMPLATE_HEADERS: (keyof FactoryProductionUploadRow)[] = [
-  'ProductCode',
-  'BatchNo',
-  'ProductionPlanNumber',
-  'BatchIssuedDate',
-  'BatchIssuedByName',
-  'Month',
-  'Qty',
-  'SampleQty',
-  'PlugType',
-  'Domestic',
-  'Export',
-  'AssyLineNo',
-  'BatchCompletedDate',
-  'ProducedQty',
-  'StartSerialNumber',
-  'EndSerialNumber',
-  'MasterCartonStartNo',
-  'MasterCartonEndNo',
+  'productCode',
+  'batchNo',
+  'productionPlanNumber',
+  'batchIssuedDate',
+  'batchIssuedByName',
+  'month',
+  'qty',
+  'sampleQty',
+  'plugType',
+  'domestic',
+  'export',
+  'assyLineNo',
+  'batchCompletedDate',
+  'producedQty',
+  'startSerialNumber',
+  'endSerialNumber',
+  'masterCartonStartNo',
+  'masterCartonEndNo',
 ]
 
 const TEMPLATE_SAMPLE_ROW = [
@@ -118,6 +118,20 @@ function excelDateToIso(value: unknown): string {
     return XLSX.SSF.format('yyyy-mm-dd', value)
   }
   const str = String(value ?? '').trim()
+
+  // Already ISO (yyyy-mm-dd or yyyy-mm-ddThh:mm:ss...)
+  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/)
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`
+  }
+
+  // dd-mm-yyyy or dd/mm/yyyy
+  const dmyMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/)
+  if (dmyMatch) {
+    const [, day, month, year] = dmyMatch
+    return `${year}-${month!.padStart(2, '0')}-${day!.padStart(2, '0')}`
+  }
+
   const parsed = new Date(str)
   return Number.isNaN(parsed.getTime()) ? str : parsed.toISOString().slice(0, 10)
 }
@@ -142,10 +156,10 @@ export async function parseFactoryProductionFile(
   const fieldForColumn = headerRow.map((h) => HEADER_ALIASES[h])
 
   const requiredFields: (keyof FactoryProductionUploadRow)[] = [
-    'ProductCode',
-    'BatchNo',
-    'StartSerialNumber',
-    'EndSerialNumber',
+    'productCode',
+    'batchNo',
+    'startSerialNumber',
+    'endSerialNumber',
   ]
   const foundFields = new Set(fieldForColumn.filter(Boolean))
   const missing = requiredFields.filter((f) => !foundFields.has(f))

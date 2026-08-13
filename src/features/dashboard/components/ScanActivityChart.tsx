@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Area,
@@ -17,13 +16,16 @@ import type { ScanActivityPoint } from '@/features/dashboard/types/dashboard.typ
 
 interface ScanActivityChartProps {
   scanActivityTrend: ScanActivityPoint[]
+  dateRange: DateRangeValue
+  onDateRangeChange: (value: DateRangeValue) => void
 }
 
 export function ScanActivityChart({
   scanActivityTrend,
+  dateRange,
+  onDateRangeChange,
 }: ScanActivityChartProps) {
   const navigate = useNavigate()
-  const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
   return (
     <ChartCard
@@ -31,7 +33,7 @@ export function ScanActivityChart({
       subtitle="Scans vs. rewards issued, last 7 days"
       height={320}
       dateRange={dateRange}
-      onDateRangeChange={setDateRange}
+      onDateRangeChange={onDateRangeChange}
       onCardClick={() => navigate('/reports/scan-reports')}
     >
       <ResponsiveContainer width="100%" height="100%">

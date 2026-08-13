@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
@@ -8,20 +7,23 @@ import type { Redemption } from '@/features/dashboard/types/dashboard.types'
 
 interface RecentRedemptionsWidgetProps {
   recentRedemptions: Redemption[]
+  dateRange: DateRangeValue
+  onDateRangeChange: (value: DateRangeValue) => void
 }
 
 export function RecentRedemptionsWidget({
   recentRedemptions,
+  dateRange,
+  onDateRangeChange,
 }: RecentRedemptionsWidgetProps) {
   const navigate = useNavigate()
-  const [dateRange, setDateRange] = useState<DateRangeValue>('7')
 
   return (
     <WidgetCard
       title="Recent Redemptions"
       subtitle="Latest gift and wallet redemptions"
       dateRange={dateRange}
-      onDateRangeChange={setDateRange}
+      onDateRangeChange={onDateRangeChange}
       onCardClick={() => navigate('/rewards-wallet/reward-redemptions')}
     >
       <Stack spacing={2}>

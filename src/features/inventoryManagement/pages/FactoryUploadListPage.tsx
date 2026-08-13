@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, Grid, Stack, TextField, Typography } from '@mui/material'
+import { Button, Chip, Grid, Stack, TextField, Typography } from '@mui/material'
 import { Factory as FactoryOutlined, UploadCloud } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -19,6 +19,46 @@ interface UploadRowFilters extends Record<string, unknown> {
   fromDate: string
   toDate: string
 }
+
+function toIsoDate(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+const DATE_PRESETS: { label: string; getRange: () => { fromDate: string; toDate: string } }[] = [
+  {
+    label: 'Today',
+    getRange: () => {
+      const today = toIsoDate(new Date())
+      return { fromDate: today, toDate: today }
+    },
+  },
+  {
+    label: 'Last 7 Days',
+    getRange: () => {
+      const to = new Date()
+      const from = new Date()
+      from.setDate(from.getDate() - 6)
+      return { fromDate: toIsoDate(from), toDate: toIsoDate(to) }
+    },
+  },
+  {
+    label: 'Last 30 Days',
+    getRange: () => {
+      const to = new Date()
+      const from = new Date()
+      from.setDate(from.getDate() - 29)
+      return { fromDate: toIsoDate(from), toDate: toIsoDate(to) }
+    },
+  },
+  {
+    label: 'This Month',
+    getRange: () => {
+      const now = new Date()
+      const from = new Date(now.getFullYear(), now.getMonth(), 1)
+      return { fromDate: toIsoDate(from), toDate: toIsoDate(now) }
+    },
+  },
+]
 
 // Maps CommonTable column keys to the real GET /products/upload-rows `sortBy`
 // field names, per the swagger schema (camelCase).
@@ -54,7 +94,8 @@ export function FactoryUploadListPage() {
     endDate: appliedFilters.toDate || undefined,
   })
 
-  const { data: kpis, isLoading: isKpisLoading } = useGetFactoryInventoryUploadKpisQuery()
+  const { data: kpis, isLoading: isKpisLoading } =
+    useGetFactoryInventoryUploadKpisQuery()
 
   useRegionTopbarHeader({
     icon: <FactoryOutlined size={20} />,
@@ -80,7 +121,9 @@ export function FactoryUploadListPage() {
       sortable: true,
       sortValue: (row) => row.batchNo,
       render: (row) => (
-        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{row.batchNo}</Typography>
+        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
+          {row.batchNo}
+        </Typography>
       ),
     },
     {
@@ -196,14 +239,16 @@ export function FactoryUploadListPage() {
         <Button
           variant="contained"
           startIcon={<UploadCloud size={18} />}
-          onClick={() => navigate('/inventory/factory-inventory-upload/upload-bmr')}
+          onClick={() =>
+            navigate('/inventory/factory-inventory-upload/upload-bmr')
+          }
         >
           Upload Inventory
         </Button>
       </Stack>
 
       <Grid container spacing={3} sx={{ mb: 3 }}>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
           {isKpisLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -215,7 +260,7 @@ export function FactoryUploadListPage() {
             />
           )}
         </Grid>
-        <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+        <Grid size={{ xs: 12, sm: 6, lg: 6 }}>
           {isKpisLoading ? (
             <StatCardSkeleton />
           ) : (
@@ -262,7 +307,9 @@ export function FactoryUploadListPage() {
           {
             label: 'View Batch',
             onClick: (row) =>
-              navigate(`/inventory/factory-inventory-upload/upload/${row.uploadBatchId}`),
+              navigate(
+                `/inventory/factory-inventory-upload/upload/${row.uploadBatchId}`,
+              ),
           },
         ]}
         emptyTitle="No batches found"
@@ -281,6 +328,25 @@ export function FactoryUploadListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
+            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+              {DATE_PRESETS.map((preset) => {
+                const range = preset.getRange()
+                const selected =
+                  draft.fromDate === range.fromDate && draft.toDate === range.toDate
+                return (
+                  <Chip
+                    key={preset.label}
+                    label={preset.label}
+                    size="small"
+                    color={selected ? 'primary' : 'default'}
+                    variant={selected ? 'filled' : 'outlined'}
+                    onClick={() =>
+                      setDraft((prev) => ({ ...prev, ...range }))
+                    }
+                  />
+                )
+              })}
+            </Stack>
             <TextField
               type="date"
               label="Batch Date From"

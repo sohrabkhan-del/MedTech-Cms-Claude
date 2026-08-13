@@ -90,7 +90,7 @@ export function AuditLogDetailsPage() {
           </Box>
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography variant="h1">{log.id}</Typography>
+              <Typography variant="h1">{log.entityName}</Typography>
               <Chip size="small" label={log.action} color={actionColor[log.action] ?? 'default'} />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
@@ -136,10 +136,9 @@ export function AuditLogDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Log ID', value: log.id },
               { label: 'Module', value: log.module },
               { label: 'Action', value: log.action },
-              { label: 'Entity', value: log.entity },
+              { label: 'Entity', value: log.entityName },
               { label: 'Reason', value: log.reason || '—' },
               { label: 'Performed By', value: log.performedBy },
               { label: 'User Role', value: log.userRole },
@@ -154,12 +153,10 @@ export function AuditLogDetailsPage() {
               { label: 'Action Type', value: log.action },
               { label: 'Module Name', value: log.module },
               { label: 'Entity Name', value: log.entityName },
-              { label: 'Entity ID', value: log.entityId },
               { label: 'Reason', value: log.reason || '—' },
               { label: 'Performed By', value: log.performedBy },
               { label: 'User Role', value: log.userRole },
               { label: 'Timestamp', value: new Date(log.dateTime).toLocaleString('en-IN') },
-              { label: 'IP Address', value: log.ipAddress || '—' },
             ]}
           />
         </SectionCard>

@@ -72,9 +72,9 @@ export function AuditLogListPage() {
 
   const columns: CommonTableColumn<AuditLogEntry>[] = [
     {
-      key: 'id',
-      header: 'Log ID',
-      minWidth: 130,
+      key: 'module',
+      header: 'Module',
+      minWidth: 160,
       render: (row) => (
         <Typography
           sx={{
@@ -85,15 +85,9 @@ export function AuditLogListPage() {
           }}
           onClick={() => navigate(`/audit/audit-logs/${row.entityId}`)}
         >
-          {row.id}
+          {row.module}
         </Typography>
       ),
-    },
-    {
-      key: 'module',
-      header: 'Module',
-      minWidth: 160,
-      render: (row) => row.module,
     },
     {
       key: 'action',
@@ -104,10 +98,10 @@ export function AuditLogListPage() {
       ),
     },
     {
-      key: 'entity',
+      key: 'entityName',
       header: 'Entity',
       minWidth: 150,
-      render: (row) => row.entity,
+      render: (row) => row.entityName,
     },
     {
       key: 'reason',
@@ -132,12 +126,6 @@ export function AuditLogListPage() {
       header: 'Date & Time',
       minWidth: 170,
       render: (row) => new Date(row.dateTime).toLocaleString('en-IN'),
-    },
-    {
-      key: 'ipAddress',
-      header: 'IP Address',
-      minWidth: 130,
-      render: (row) => row.ipAddress || '—',
     },
   ]
 

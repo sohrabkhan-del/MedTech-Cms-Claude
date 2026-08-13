@@ -37,6 +37,13 @@ export interface AuditLogListResponse {
   pageSize: number
 }
 
+export interface AuditActorApiRef {
+  id: string
+  type: string
+  name: string
+  email: string | null
+}
+
 /** Raw shape of a single event as returned by GET /audit/timeline. */
 export interface AuditTimelineApiEntry {
   id: string
@@ -48,6 +55,7 @@ export interface AuditTimelineApiEntry {
   after: Record<string, unknown> | null
   actorId: string
   actorType: string
+  actor: AuditActorApiRef | null
   ip: string
   userAgent: string
   createdAt: string

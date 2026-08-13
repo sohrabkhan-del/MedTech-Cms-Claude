@@ -40,6 +40,8 @@ import {
   parseBmrFile,
   parseMasterCartonFile,
 } from '@/features/inventoryManagement/mockBatchUidUpload'
+import { useUploadFactoryProductionRowsMutation } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type {
   BmrBatchRow,
   BmrValidationSummary,
@@ -47,6 +49,7 @@ import type {
   MasterCartonLinkRow,
   MasterCartonUploadSummary,
 } from '@/types/batchUidUpload'
+import type { FactoryProductionUploadRow } from '@/types/factoryProductionUpload'
 
 const STEP_LABELS = [
   'Upload BMR',
@@ -275,6 +278,7 @@ export function BatchUidUploadTab({
   const [cartonSummary, setCartonSummary] =
     useState<MasterCartonUploadSummary | null>(null)
 
+  const [uploadRows] = useUploadFactoryProductionRowsMutation()
   const [isProcessing, setIsProcessing] = useState(false)
   const [validateError, setValidateError] = useState<string | null>(null)
   const [toast, setToast] = useState<{
@@ -353,25 +357,106 @@ export function BatchUidUploadTab({
     )
   }
 
+  function isFilledCell(value: string): boolean {
+    const normalized = value.trim().toLowerCase()
+    return normalized !== '' && normalized !== 'nil'
+  }
+
+  /** Converts "DD-MM-YYYY" or "DD-Mon-YYYY" display strings to ISO "YYYY-MM-DD". */
+  function toIsoDate(value: string): string {
+    const trimmed = value.trim()
+    const numericMatch = /^(\d{2})-(\d{2})-(\d{4})$/.exec(trimmed)
+    if (numericMatch) {
+      const [, dd, mm, yyyy] = numericMatch
+      return `${yyyy}-${mm}-${dd}`
+    }
+    const parsed = new Date(trimmed)
+    return Number.isNaN(parsed.getTime()) ? trimmed : parsed.toISOString().slice(0, 10)
+  }
+
+  function cartonRangeByBatch(): Record<string, { start: number; end: number }> {
+    const batchNumberByUid = new Map<string, string>()
+    for (const row of batchRows) {
+      if (!row.isValid) continue
+      for (const generated of generateUidsForBatch(row)) {
+        batchNumberByUid.set(generated.uid, row.batchNumber)
+      }
+    }
+
+    const cartonNumbersByBatch = new Map<string, number[]>()
+    for (const link of cartonRows) {
+      if (!link.isValid) continue
+      const batchNumber = batchNumberByUid.get(link.uid)
+      if (!batchNumber) continue
+      const cartonNumber = Number(link.masterCartonNumber.replace(/[^0-9]/g, ''))
+      if (!Number.isFinite(cartonNumber) || cartonNumber <= 0) continue
+      const numbers = cartonNumbersByBatch.get(batchNumber) ?? []
+      numbers.push(cartonNumber)
+      cartonNumbersByBatch.set(batchNumber, numbers)
+    }
+
+    return Object.fromEntries(
+      [...cartonNumbersByBatch.entries()].map(([batchNumber, numbers]) => [
+        batchNumber,
+        { start: Math.min(...numbers), end: Math.max(...numbers) },
+      ]),
+    )
+  }
+
+  function toFactoryProductionRows(): FactoryProductionUploadRow[] {
+    const cartonRanges = cartonRangeByBatch()
+    return batchRows
+      .filter((row) => row.isValid)
+      .map((row) => {
+        const range = cartonRanges[row.batchNumber]
+        return {
+          productCode: row.productCode,
+          batchNo: row.batchNumber,
+          productionPlanNumber: row.productionPlanNumber,
+          batchIssuedDate: toIsoDate(row.batchIssuedDate),
+          batchIssuedByName: row.batchIssuedByName,
+          month: row.month,
+          qty: row.qty,
+          sampleQty: row.sampleQty,
+          plugType: row.plugType,
+          domestic: isFilledCell(row.domestic) ? 1 : 0,
+          export: isFilledCell(row.export) ? 1 : 0,
+          assyLineNo: row.assyLineNo,
+          batchCompletedDate: toIsoDate(row.batchCompletedDate),
+          producedQty: row.producedQty,
+          startSerialNumber: Number(row.startSerialNumber),
+          endSerialNumber: Number(row.endSerialNumber),
+          masterCartonStartNo: range?.start ?? 0,
+          masterCartonEndNo: range?.end ?? 0,
+        }
+      })
+  }
+
   async function handleConfirmImport() {
     setIsProcessing(true)
-    await new Promise((r) => setTimeout(r, 700))
-    setIsProcessing(false)
-    setActiveStep(4)
-    onImported?.(
-      batchRows.filter((row) => row.isValid),
-      mappedBatches,
-      bmrFile?.name ?? 'bmr-upload.xlsx',
-      countContainersByBatch(),
-    )
-    setToast({
-      severity: 'success',
-      title: 'Import successful',
-      message:
-        'Batch, UID, and Master Carton linkage data imported successfully.',
-    })
-    if (onDone) {
-      setTimeout(onDone, 2000)
+    setValidateError(null)
+    try {
+      await uploadRows({ rows: toFactoryProductionRows() }).unwrap()
+      setActiveStep(4)
+      onImported?.(
+        batchRows.filter((row) => row.isValid),
+        mappedBatches,
+        bmrFile?.name ?? 'bmr-upload.xlsx',
+        countContainersByBatch(),
+      )
+      setToast({
+        severity: 'success',
+        title: 'Import successful',
+        message:
+          'Batch, UID, and Master Carton linkage data imported successfully.',
+      })
+      if (onDone) {
+        setTimeout(onDone, 2000)
+      }
+    } catch (err) {
+      setValidateError(getApiErrorMessage(err, 'Failed to import the validated data.'))
+    } finally {
+      setIsProcessing(false)
     }
   }
 
@@ -556,7 +641,29 @@ export function BatchUidUploadTab({
               rows={batchRows}
               getRowId={(row) => row.id}
               searchPlaceholder="Search batch rows…"
-              searchKeys={(row) => `${row.batchNumber} ${row.productCode}`}
+              searchKeys={(row) =>
+                [
+                  row.productCode,
+                  row.batchNumber,
+                  row.productionPlanNumber,
+                  row.batchIssuedDate,
+                  row.batchIssuedByName,
+                  row.month,
+                  row.qty,
+                  row.sampleQty,
+                  row.plugType,
+                  row.domestic,
+                  row.export,
+                  row.assyLineNo,
+                  row.batchCompletedDate,
+                  row.producedQty,
+                  row.startSerialNumber,
+                  row.endSerialNumber,
+                  row.isValid ? 'Valid' : row.validationNote,
+                ]
+                  .filter((value) => value !== undefined && value !== null)
+                  .join(' ')
+              }
               emptyTitle="No batch rows"
             />
           </SectionCard>
@@ -660,7 +767,15 @@ export function BatchUidUploadTab({
               rows={cartonRows}
               getRowId={(row) => row.id}
               searchPlaceholder="Search UIDs…"
-              searchKeys={(row) => `${row.uid} ${row.masterCartonNumber}`}
+              searchKeys={(row) =>
+                [
+                  row.uid,
+                  row.masterCartonNumber,
+                  row.isValid ? 'Valid' : row.validationNote,
+                ]
+                  .filter((value) => value !== undefined && value !== null)
+                  .join(' ')
+              }
               emptyTitle="No linkage rows"
             />
           </SectionCard>
@@ -731,6 +846,8 @@ export function BatchUidUploadTab({
             Rows that failed validation have already been excluded and will not
             be imported.
           </Alert>
+
+          {validateError && <Alert severity="error">{validateError}</Alert>}
 
           <Stack
             direction="row"

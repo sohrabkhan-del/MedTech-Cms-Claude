@@ -21,6 +21,18 @@ export interface AuditLogsQueryParams {
   endDate?: string
 }
 
+// Fields that must never be surfaced in the audit UI, even though the API
+// includes them in raw before/after snapshots.
+const SENSITIVE_FIELDS = new Set([
+  '_id',
+  '__v',
+  'password',
+  'token',
+  'accessToken',
+  'refreshToken',
+  'otp',
+])
+
 function formatFieldValue(value: unknown): string {
   if (value === null || value === undefined) return '—'
   if (typeof value === 'object') return JSON.stringify(value)
@@ -34,7 +46,7 @@ function diffChangedFields(entry: AuditTimelineApiEntry): AuditChangedField[] {
   const changed: AuditChangedField[] = []
   let i = 0
   for (const key of keys) {
-    if (key === '_id' || key === '__v') continue
+    if (SENSITIVE_FIELDS.has(key)) continue
     const oldRaw = (before as Record<string, unknown>)[key]
     const newRaw = (after as Record<string, unknown>)[key]
     if (JSON.stringify(oldRaw) === JSON.stringify(newRaw)) continue
@@ -49,16 +61,23 @@ function diffChangedFields(entry: AuditTimelineApiEntry): AuditChangedField[] {
 }
 
 function mapEntry(entry: AuditTimelineApiEntry): AuditLogEntry {
+  const actorLabel = entry.actor?.name || entry.actor?.email || entry.actorId
+  const after = entry.after as
+    | { name?: string; productName?: string; outletName?: string }
+    | null
+  const entityLabel =
+    after?.outletName || after?.name || after?.productName || entry.entityId
+
   return {
     id: entry.id,
     module: entry.entity,
     action: entry.action,
     entity: entry.entity,
     entityId: entry.entityId,
-    entityName: entry.entityId,
+    entityName: entityLabel,
     reason: entry.reason,
-    performedBy: entry.actorId,
-    userRole: entry.actorType,
+    performedBy: actorLabel,
+    userRole: entry.actor?.type || entry.actorType,
     dateTime: entry.createdAt,
     ipAddress: entry.ip,
     changedData: diffChangedFields(entry),

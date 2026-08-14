@@ -106,6 +106,7 @@ interface PartnerChemistItem {
     city?: string | null
     district?: string | null
     state?: string | null
+    country?: string | null
     pincode?: string | null
     latitude?: number | null
     longitude?: number | null
@@ -443,7 +444,7 @@ const chemistApi = baseApi.injectEndpoints({
           chemistApi.util.updateQueryData('getChemists', undefined, (draft) => {
             if (!draft) return
 
-            const item = draft.find((entry) => entry.id === id)
+            const item = draft.items.find((entry) => entry.id === id)
             if (item) {
               item.status = 'active'
             }
@@ -484,7 +485,7 @@ const chemistApi = baseApi.injectEndpoints({
           chemistApi.util.updateQueryData('getChemists', undefined, (draft) => {
             if (!draft) return
 
-            const item = draft.find((entry) => entry.id === id)
+            const item = draft.items.find((entry) => entry.id === id)
             if (item) {
               item.status = 'inactive'
             }

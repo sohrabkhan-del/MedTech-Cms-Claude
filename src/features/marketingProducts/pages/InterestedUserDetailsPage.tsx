@@ -9,7 +9,6 @@ import {
   Typography,
 } from '@mui/material'
 import {
-  ArrowLeft as ArrowBackOutlined,
   User,
   Trash2 as DeleteOutlined,
 } from 'lucide-react'

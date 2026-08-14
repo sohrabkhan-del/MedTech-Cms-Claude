@@ -125,6 +125,7 @@ function mapMedicalRepDetail(data: MedicalRepDetailApiResponse['data']): Medical
     totalDealersOnboarded: data.dealerCount ?? 0,
     totalChemistsOnboarded: data.chemistCount ?? 0,
     totalPartnersManaged: (data.dealerCount ?? 0) + (data.chemistCount ?? 0),
+    managedPartners: [],
   }
 }
 

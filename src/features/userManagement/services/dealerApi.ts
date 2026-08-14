@@ -176,7 +176,6 @@ function mapOnboardedBy(value?: string | null): OnboardedBy {
 }
 
 function mapBusinessDocuments(
-  outletName: string | null | undefined,
   documents: PartnerDocumentApiItem[] | undefined,
 ): LicenseDocument[] {
   return (documents ?? []).map((doc) => ({
@@ -220,7 +219,7 @@ function mapPartnerBusinesses(
     geoAccuracy: b.geoAccuracy ?? undefined,
     regionId: b.regionId ?? undefined,
     notes: b.notes ?? undefined,
-    documents: mapBusinessDocuments(b.outletName, b.documents),
+    documents: mapBusinessDocuments(b.documents),
   }))
 }
 
@@ -449,7 +448,7 @@ const dealerApi = baseApi.injectEndpoints({
           dealerApi.util.updateQueryData('getDealers', undefined, (draft) => {
             if (!draft) return
 
-            const item = draft.find((entry) => entry.id === id)
+            const item = draft.items.find((entry) => entry.id === id)
             if (item) {
               item.status = 'active'
             }
@@ -490,7 +489,7 @@ const dealerApi = baseApi.injectEndpoints({
           dealerApi.util.updateQueryData('getDealers', undefined, (draft) => {
             if (!draft) return
 
-            const item = draft.find((entry) => entry.id === id)
+            const item = draft.items.find((entry) => entry.id === id)
             if (item) {
               item.status = 'inactive'
             }

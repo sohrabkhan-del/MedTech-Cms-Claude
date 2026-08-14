@@ -15,31 +15,7 @@ import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/Det
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useProductDetail } from '@/features/inventoryManagement/hooks/useProductDetail'
 import { useGetProductMovementHistoryQuery } from '@/features/inventoryManagement/services/productsApi'
-import type {
-  ProductMovementEntry,
-  ProductRegionConfig,
-} from '@/features/inventoryManagement/types/inventoryManagement.types'
-
-const regionColumns: CommonTableColumn<ProductRegionConfig>[] = [
-  {
-    key: 'regionName',
-    header: 'Region',
-    sortable: true,
-    render: (row) => row.regionName,
-  },
-  {
-    key: 'dealerMultiplier',
-    header: 'Dealer Multiplier',
-    align: 'center',
-    render: (row) => row.dealerMultiplier ?? '-',
-  },
-  {
-    key: 'chemistMultiplier',
-    header: 'Chemist Multiplier',
-    align: 'center',
-    render: (row) => row.chemistMultiplier ?? '-',
-  },
-]
+import type { ProductMovementEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 const movementColumns: CommonTableColumn<ProductMovementEntry>[] = [
   {

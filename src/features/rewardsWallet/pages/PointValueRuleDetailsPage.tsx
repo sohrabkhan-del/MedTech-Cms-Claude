@@ -6,7 +6,6 @@ import {
   Button,
   Chip,
   Grid,
-  IconButton,
   InputAdornment,
   Menu,
   MenuItem,
@@ -17,10 +16,8 @@ import {
 } from '@mui/material'
 import {
   Coins as Points,
-  ArrowLeft as ArrowBackOutlined,
   Pencil,
   RotateCcw,
-  MoreVertical,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'

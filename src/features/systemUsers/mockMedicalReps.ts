@@ -1,4 +1,9 @@
-import type { MedicalRepresentative } from '@/types/medicalRep'
+import type {
+  MedicalRepresentative,
+  MrManagedPartner,
+  MrPartnerSource,
+  MrPartnerType,
+} from '@/types/medicalRep'
 import type { PartnerStatus, PartnerZone } from '@/types/partner'
 
 const names = [
@@ -7,6 +12,38 @@ const names = [
 ]
 const regions: PartnerZone[] = ['North', 'South', 'East', 'West']
 const statuses: PartnerStatus[] = ['active', 'pending', 'inactive']
+const partnerTypes: MrPartnerType[] = ['Dealer', 'Chemist']
+const partnerSources: MrPartnerSource[] = [
+  'QR Scan',
+  'Manual Onboarding',
+  'Referral',
+]
+const cities = [
+  'Mumbai', 'Delhi', 'Bengaluru', 'Chennai', 'Pune', 'Hyderabad', 'Kolkata',
+]
+
+function buildManagedPartners(
+  seed: number,
+  region: PartnerZone,
+  count: number,
+): MrManagedPartner[] {
+  return Array.from({ length: count }).map((_, i) => {
+    const partnerSeed = seed + i + 1
+    return {
+      id: `MR-${seed}-partner-${i}`,
+      partnerName: `${names[(seed + i) % names.length]!.split(' ')[0]} ${
+        partnerTypes[i % partnerTypes.length] === 'Dealer'
+          ? 'Distributors'
+          : 'Pharmacy'
+      }`,
+      partnerType: partnerTypes[i % partnerTypes.length]!,
+      city: cities[partnerSeed % cities.length]!,
+      region,
+      source: partnerSources[partnerSeed % partnerSources.length]!,
+      status: statuses[partnerSeed % statuses.length]!,
+    }
+  })
+}
 
 function seededNumber(seed: number, min: number, max: number): number {
   const x = Math.sin(seed) * 10000
@@ -34,6 +71,7 @@ export const mockMedicalReps: MedicalRepresentative[] = Array.from({ length: 14 
     totalDealersOnboarded: dealers,
     totalChemistsOnboarded: chemists,
     totalPartnersManaged: dealers + chemists,
+    managedPartners: buildManagedPartners(seed, region, dealers + chemists),
   }
 })
 

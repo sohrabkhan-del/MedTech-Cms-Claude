@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Chip,
@@ -49,10 +49,12 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
 
 interface InterestedUsersListTabProps {
   onViewLead: (lead: InterestedUserLead) => void
+  onLoadingChange?: (isLoading: boolean) => void
 }
 
 export function InterestedUsersListTab({
   onViewLead,
+  onLoadingChange,
 }: InterestedUsersListTabProps) {
   const toast = useToast()
   const navigate = useNavigate()
@@ -84,6 +86,10 @@ export function InterestedUsersListTab({
       sortBy: SORT_FIELD_MAP[sortColumn],
       sortOrder,
     })
+
+  useEffect(() => {
+    onLoadingChange?.(isLoading)
+  }, [isLoading, onLoadingChange])
 
   async function handleActionSubmit(note: string) {
     if (!actionDialog) return

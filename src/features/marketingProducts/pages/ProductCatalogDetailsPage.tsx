@@ -11,7 +11,6 @@ import {
   Typography,
 } from '@mui/material'
 import {
-  ArrowLeft as ArrowBackOutlined,
   Ban,
   CircleCheck,
   Megaphone,

@@ -1,8 +1,14 @@
-import type { Dispatch } from '@reduxjs/toolkit'
 import { baseApi } from '@/store/api/baseApi'
-import type { RootState } from '@/app/store'
+import type { AppDispatch } from '@/app/store'
 
-type ThunkApi = { dispatch: Dispatch; getState: () => RootState }
+// `getState` only needs to satisfy the api slice's own state shape (used by
+// `selectCachedArgsForQuery`), so it is typed loosely here rather than tied
+// to the full app `RootState` — this lets both the real store's dispatch
+// context and RTK Query's internal `onQueryStarted` thunkApi (whose inferred
+// state type omits unrelated slices like `auth`) satisfy this type. `dispatch`
+// is typed as `AppDispatch` (a thunk-aware dispatch) since we dispatch
+// `updateQueryData` thunk actions here, which a plain `Dispatch` rejects.
+type ThunkApi = { dispatch: AppDispatch; getState: () => unknown }
 import {
   mockInterestedUsers,
   getInterestedUserById,
@@ -286,7 +292,9 @@ function optimisticallyPatchLead(
   )
 
   const listArgsList = interestedUsersApi.util.selectCachedArgsForQuery(
-    getState(),
+    getState() as Parameters<
+      typeof interestedUsersApi.util.selectCachedArgsForQuery
+    >[0],
     'getInterestedUsers',
   )
 

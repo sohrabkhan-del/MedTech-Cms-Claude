@@ -19,7 +19,7 @@ const names = [
   'Pooja Iyer',
 ]
 const regions: AdminRegionAccess[] = [
-  'Pan India',
+  'All India',
   'North',
   'South',
   'East',

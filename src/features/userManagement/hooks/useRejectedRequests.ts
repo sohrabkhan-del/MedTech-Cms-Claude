@@ -31,8 +31,8 @@ export function useRejectedRequests(params?: VerificationQueryParams) {
       ? getApiErrorMessage(kpisResult.error, 'Failed to load rejected requests.')
       : null
 
-  async function reopen(id: string) {
-    await reopenMutation(id).unwrap()
+  async function reopen(id: string, reason = 'Reopened for review') {
+    await reopenMutation({ id, reason }).unwrap()
   }
 
   async function remove(id: string) {

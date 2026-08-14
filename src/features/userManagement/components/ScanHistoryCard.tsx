@@ -54,7 +54,7 @@ const columns: CommonTableColumn<PartnerScanHistoryRow>[] = [
       <Chip
         label={row.scanResult}
         size="small"
-        color={resultColor[row.scanStatus] ?? 'default'}
+        color={resultColor[row.scanResult] ?? 'default'}
       />
     ),
   },

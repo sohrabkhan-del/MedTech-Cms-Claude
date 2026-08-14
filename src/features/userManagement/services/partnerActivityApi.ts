@@ -29,7 +29,7 @@ interface PagedResult<T> {
 }
 
 function pagedQuery(url: string) {
-  return (params: PartnerActivityQueryParams) => ({
+  return (params: Omit<PartnerActivityQueryParams, 'partnerId'>) => ({
     url,
     params: {
       page: params.page ?? 1,

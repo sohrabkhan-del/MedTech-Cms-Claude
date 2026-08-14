@@ -22,7 +22,6 @@ import {
   Truck,
   Home,
   Ban,
-  ExternalLink,
   Wallet as WalletIcon,
   MoreVertical,
   ChevronDown,

@@ -180,7 +180,8 @@ export async function parseFactoryProductionFile(
         record[field] = row[colIndex]
       })
 
-      const result = {} as FactoryProductionUploadRow
+      const result: Record<keyof FactoryProductionUploadRow, unknown> =
+        {} as Record<keyof FactoryProductionUploadRow, unknown>
       for (const key of TEMPLATE_HEADERS) {
         const raw = record[key]
         if (NUMERIC_FIELDS.includes(key)) {
@@ -191,6 +192,6 @@ export async function parseFactoryProductionFile(
           result[key] = String(raw ?? '').trim()
         }
       }
-      return result
+      return result as FactoryProductionUploadRow
     })
 }

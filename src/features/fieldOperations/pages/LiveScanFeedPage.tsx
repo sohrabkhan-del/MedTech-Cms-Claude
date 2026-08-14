@@ -12,7 +12,6 @@ import {
 } from '@mui/material'
 import {
   Crosshair as MyLocationIcon,
-  RefreshCw as RefreshIcon,
   Pause as PauseIcon,
   Play as PlayArrowIcon,
 } from 'lucide-react'

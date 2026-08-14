@@ -1,5 +1,18 @@
 import type { PartnerZone, PartnerStatus } from '@/types/partner'
 
+export type MrPartnerType = 'Dealer' | 'Chemist'
+export type MrPartnerSource = 'QR Scan' | 'Manual Onboarding' | 'Referral'
+
+export interface MrManagedPartner {
+  id: string
+  partnerName: string
+  partnerType: MrPartnerType
+  city: string
+  region: PartnerZone
+  source: MrPartnerSource
+  status: PartnerStatus
+}
+
 export interface MedicalRepresentative {
   id: string
   referenceId?: string
@@ -23,4 +36,5 @@ export interface MedicalRepresentative {
   totalDealersOnboarded: number
   totalChemistsOnboarded: number
   totalPartnersManaged: number
+  managedPartners: MrManagedPartner[]
 }

@@ -419,8 +419,11 @@ export function ChemistFormPage() {
                 control={control}
                 placeholder="98xxx xxxxx"
                 numeric
-                slotProps={{ htmlInput: { maxLength: 10 } }}
                 {...fieldLabelProps}
+                slotProps={{
+                  ...fieldLabelProps.slotProps,
+                  htmlInput: { maxLength: 10 },
+                }}
               />
             </Grid>
             <Grid size={{ xs: 12, sm: 4 }}>

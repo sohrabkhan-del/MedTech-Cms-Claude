@@ -4,11 +4,14 @@ import {
   useDecideApprovalRequestMutation,
   type VerificationQueryParams,
 } from '@/features/userManagement/services/verificationApi'
+import type { ApprovalStatus } from '@/types/approvalRequest'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useApprovalRequests(params?: VerificationQueryParams) {
+export function useApprovalRequests(
+  params?: VerificationQueryParams & { status?: ApprovalStatus },
+) {
   const { regionId, dateRange } = useRegionFilter()
   const analyticsParams = dateRangeToAnalyticsParams(dateRange)
   const effectiveRegionId = params?.regionId || regionId || undefined
@@ -17,6 +20,7 @@ export function useApprovalRequests(params?: VerificationQueryParams) {
     ...params,
     ...analyticsParams,
     regionId: effectiveRegionId,
+    status: params?.status,
   })
   const analyticsResult = useGetApprovalRequestAnalyticsQuery({
     ...analyticsParams,

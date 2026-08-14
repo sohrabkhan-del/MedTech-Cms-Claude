@@ -210,6 +210,7 @@ export function generatePartnerBase(
         latitude: buildGeoLock(seed).latitude,
         longitude: buildGeoLock(seed).longitude,
         bufferRadius: buildGeoLock(seed).bufferRadiusMeters,
+        documents: buildDocuments(seed, shopName),
       },
     ],
   }

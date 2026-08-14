@@ -68,6 +68,7 @@ export const tagTypes = [
   'PointRules',
   'PointValueRules',
   'Redemptions',
+  'RewardClaims',
   'Wallets',
   'Gifts',
   'Schemes',
@@ -112,6 +113,7 @@ const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   Wallets: 'real',
   Redemptions: 'real',
   PointValueRules: 'real',
+  RewardClaims: 'real',
 }
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {

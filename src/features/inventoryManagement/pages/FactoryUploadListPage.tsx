@@ -13,6 +13,7 @@ import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useFactoryProductionUploadRowsList } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadRowsList'
 import { useGetFactoryInventoryUploadKpisQuery } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
+import { formatDate } from '@/utils/formatDate'
 import type { FactoryProductionUploadRowRecord } from '@/types/factoryProductionUpload'
 
 interface UploadRowFilters extends Record<string, unknown> {
@@ -138,7 +139,7 @@ export function FactoryUploadListPage() {
       minWidth: 130,
       sortable: true,
       sortValue: (row) => row.batchIssuedDate,
-      render: (row) => row.batchIssuedDate,
+      render: (row) => formatDate(row.batchIssuedDate),
     },
     {
       key: 'issuedBy',
@@ -184,7 +185,7 @@ export function FactoryUploadListPage() {
       key: 'batchCompletionDate',
       header: 'Batch Completed Date',
       minWidth: 150,
-      render: (row) => row.batchCompletedDate,
+      render: (row) => formatDate(row.batchCompletedDate),
     },
     {
       key: 'totalProducts',

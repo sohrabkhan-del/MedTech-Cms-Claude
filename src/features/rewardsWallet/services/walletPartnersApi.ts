@@ -37,6 +37,7 @@ interface PartnerApiItem {
   region?: PartnerRegionApiItem | null
   status?: string | null
   isBlocked?: boolean
+  createdAt?: string | null
   updatedAt?: string | null
   business?: Array<{ outletName?: string | null }>
 }
@@ -120,6 +121,64 @@ function mapPartnerWalletBalance(
   }
 }
 
+export interface PartnerWalletDetails {
+  partnerId: string
+  referenceId: string
+  userType: WalletUserType
+  businessName: string
+  ownerName: string
+  email: string
+  mobileNumber: string
+  regionName: string
+  status: string
+  createdAt: string
+  updatedAt: string
+  walletId: string
+  currentWalletBalance: number
+  lifetimePointsEarned: number
+  lifetimePointsRedeemed: number
+  pendingRedemptionPoints: number
+}
+
+interface PartnerWalletDetailsApiResponse {
+  success: boolean
+  data: {
+    partner: PartnerApiItem
+    wallet: {
+      id: string
+      currentWalletBalance: number
+      lifetimePointsEarned: number
+      lifetimePointsRedeemed: number
+      pendingRedemptionPoints: number
+    }
+  }
+}
+
+function mapPartnerWalletDetails(
+  response: PartnerWalletDetailsApiResponse,
+): PartnerWalletDetails {
+  const { partner, wallet } = response.data
+  const business = partner.business?.[0]
+  return {
+    partnerId: partner.id,
+    referenceId: partner.referenceId ?? '-',
+    userType: mapUserType(partner.type),
+    businessName: business?.outletName || partner.businessName || partner.ownerName || '-',
+    ownerName: partner.ownerName ?? '-',
+    email: partner.email ?? '-',
+    mobileNumber: partner.phone ?? '-',
+    regionName: partner.region?.name ?? '-',
+    status: partner.status ?? 'INACTIVE',
+    createdAt: partner.createdAt ?? '-',
+    updatedAt: partner.updatedAt ?? '-',
+    walletId: wallet.id,
+    currentWalletBalance: wallet.currentWalletBalance,
+    lifetimePointsEarned: wallet.lifetimePointsEarned,
+    lifetimePointsRedeemed: wallet.lifetimePointsRedeemed,
+    pendingRedemptionPoints: wallet.pendingRedemptionPoints,
+  }
+}
+
 const walletPartnersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     /** GET /partners — same partner directory used by the Dealer/Chemist
@@ -183,23 +242,39 @@ const walletPartnersApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, partnerId) => [{ type: 'Wallets', id: partnerId }],
     }),
 
+    /** GET /admin/wallet/{partnerId}/details — full Wallet Details page data:
+     *  partner identity fields plus the wallet's balance/lifetime totals. */
+    getPartnerWalletDetails: builder.query<PartnerWalletDetails, string>({
+      query: (partnerId) => ({
+        tag: 'Wallets',
+        url: `/admin/wallet/${partnerId}/details`,
+        mockResolver: () => Promise.reject(new Error('Wallet details has no mock mode — real API only.')),
+      }),
+      transformResponse: mapPartnerWalletDetails,
+      providesTags: (_result, _error, partnerId) => [
+        { type: 'Wallets', id: partnerId },
+        { type: 'Wallets', id: `DETAILS_${partnerId}` },
+      ],
+    }),
+
     /** POST /admin/wallet/{partnerId}/credit — adjusts a partner's point
-     *  balance. Positive `points` credits (Add Points); negative `points`
-     *  debits (Remove Points) — there is no separate debit endpoint. */
+     *  balance. `points` is always a positive integer; `type` says whether
+     *  it's a credit (Add Points) or debit (Remove Points). */
     creditPartnerWallet: builder.mutation<
       void,
-      { partnerId: string; points: number; note: string }
+      { partnerId: string; points: number; note: string; type: 'credit' | 'debit' }
     >({
-      query: ({ partnerId, points, note }) => ({
+      query: ({ partnerId, points, note, type }) => ({
         tag: 'Wallets',
         url: `/admin/wallet/${partnerId}/credit`,
         method: 'POST',
-        data: { points, note },
+        data: { points, note, type },
         mockResolver: () => Promise.resolve(),
       }),
       invalidatesTags: (_result, _error, { partnerId }) => [
         { type: 'Wallets', id: partnerId },
         { type: 'Wallets', id: `PARTNER_${partnerId}` },
+        { type: 'Wallets', id: `DETAILS_${partnerId}` },
       ],
     }),
   }),
@@ -208,5 +283,6 @@ const walletPartnersApi = baseApi.injectEndpoints({
 export const {
   useGetWalletPartnersQuery,
   useGetPartnerWalletBalanceQuery,
+  useGetPartnerWalletDetailsQuery,
   useCreditPartnerWalletMutation,
 } = walletPartnersApi

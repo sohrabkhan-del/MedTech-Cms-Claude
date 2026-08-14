@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -20,41 +20,90 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { useWallets } from '@/features/rewardsWallet/hooks/useWallets'
-import type { PartnerZone } from '@/types/partner'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useWalletPartners } from '@/features/rewardsWallet/hooks/useWalletPartners'
+import { WalletBalanceCell } from '@/features/rewardsWallet/components/WalletBalanceCell'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
 import type {
-  Wallet,
-  WalletStatus,
-  WalletUserType,
-} from '@/features/rewardsWallet/types/rewardsWallet.types'
+  WalletPartnerRow,
+  WalletPartnerType,
+} from '@/features/rewardsWallet/services/walletPartnersApi'
 
-const statusConfig: Record<
-  WalletStatus,
-  { label: string; color: 'success' | 'default' | 'error' }
-> = {
-  active: { label: 'Active', color: 'success' },
-  inactive: { label: 'Inactive', color: 'default' },
-  suspended: { label: 'Suspended', color: 'error' },
+const statusConfig: Record<string, { label: string; color: 'success' | 'default' | 'error' }> = {
+  ACTIVE: { label: 'Active', color: 'success' },
+  INACTIVE: { label: 'Inactive', color: 'default' },
+  SUSPENDED: { label: 'Suspended', color: 'error' },
 }
 
-type UserTypeTab = 'all' | WalletUserType
+function walletDetailsPath(row: WalletPartnerRow): string {
+  return `/rewards-wallet/wallet-management/${row.id}`
+}
+
+type UserTypeTab = 'all' | WalletPartnerType
 
 const USER_TYPE_TABS: { label: string; value: UserTypeTab }[] = [
   { label: 'All', value: 'all' },
-  { label: 'Chemist', value: 'Chemist' },
-  { label: 'Dealer', value: 'Dealer' },
+  { label: 'Chemist', value: 'CHEMIST' },
+  { label: 'Dealer', value: 'DEALER' },
 ]
 
+// Maps CommonTable column keys to the real GET /partners `sortBy` field
+// names, matching the same best-effort mapping used by DealerListPage.
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  businessName: 'businessName',
+  status: 'status',
+}
+
 interface WalletFilters extends Record<string, unknown> {
-  status: WalletStatus | 'all'
-  fromDate: string
-  toDate: string
+  status: string
+  regionId: string
 }
 
 export function WalletListPage() {
   const navigate = useNavigate()
-  const { region } = useRegionFilter()
-  const { wallets, kpis, isLoading } = useWallets()
+  const { regionId: topbarRegionId } = useRegionFilter()
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
+  const [userTypeTab, setUserTypeTab] = useState<UserTypeTab>('all')
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 300)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<WalletFilters>({
+    status: 'all',
+    regionId: '',
+  })
+  const [sortColumn, setSortColumn] = useState('businessName')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+
+  const { wallets, totalItems, isLoading } = useWalletPartners({
+    page: page + 1,
+    limit: rowsPerPage,
+    search: debouncedSearch || undefined,
+    type: userTypeTab === 'all' ? undefined : userTypeTab,
+    regionId: effectiveRegionId,
+    status: appliedFilters.status !== 'all' ? appliedFilters.status : undefined,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
+
   useRegionTopbarHeader({
     icon: <WalletIcon size={20} />,
     title: 'Wallet Directory',
@@ -62,37 +111,14 @@ export function WalletListPage() {
       'Manage wallet balances, reward points, and transaction history for Dealers and Chemists.',
     isLoading,
   })
-  const [userTypeTab, setUserTypeTab] = useState<UserTypeTab>('all')
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<WalletFilters>({
-    status: 'all',
-    fromDate: '',
-    toDate: '',
-  })
 
-  const regionZone = region === 'All India' ? null : (region as PartnerZone)
-
-  const filteredWallets = useMemo(
-    () =>
-      wallets.filter((wallet) => {
-        const regionMatch = !regionZone || wallet.region === regionZone
-        const userTypeMatch =
-          userTypeTab === 'all' || wallet.userType === userTypeTab
-        const statusMatch =
-          appliedFilters.status === 'all' ||
-          wallet.status === appliedFilters.status
-        return regionMatch && userTypeMatch && statusMatch
-      }),
-    [wallets, appliedFilters, regionZone, userTypeTab],
-  )
-
-  const columns: CommonTableColumn<Wallet>[] = [
+  const columns: CommonTableColumn<WalletPartnerRow>[] = [
     {
-      key: 'userName',
+      key: 'businessName',
       header: 'Business Name',
       minWidth: 180,
       sortable: true,
-      sortValue: (row) => row.userName,
+      sortValue: (row) => row.businessName,
       render: (row) => (
         <Typography
           sx={{
@@ -101,11 +127,9 @@ export function WalletListPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() =>
-            navigate(`/rewards-wallet/wallet-management/${row.id}`)
-          }
+          onClick={() => navigate(walletDetailsPath(row))}
         >
-          {row.userName}
+          {row.businessName}
         </Typography>
       ),
     },
@@ -122,24 +146,28 @@ export function WalletListPage() {
       render: (row) => row.mobileNumber,
     },
     {
-      key: 'region',
+      key: 'regionName',
       header: 'Region',
       minWidth: 90,
-      render: (row) => row.region,
+      render: (row) => row.regionName,
     },
     {
       key: 'availableBalance',
       header: 'Available Balance',
       align: 'center',
-      sortable: true,
-      sortValue: (row) => row.availableBalance,
-      render: (row) => row.availableBalance.toLocaleString('en-IN'),
+      render: (row) => <WalletBalanceCell partnerId={row.id} field="totalPoints" />,
     },
     {
-      key: 'pendingRedemptionPoints',
-      header: 'Pending Redemptions',
+      key: 'pointsEarned',
+      header: 'Points Earned',
       align: 'center',
-      render: (row) => row.pendingRedemptionPoints.toLocaleString('en-IN'),
+      render: (row) => <WalletBalanceCell partnerId={row.id} field="totalPointsEarned" />,
+    },
+    {
+      key: 'pointsRedeemed',
+      header: 'Points Redeemed',
+      align: 'center',
+      render: (row) => <WalletBalanceCell partnerId={row.id} field="totalPointsRedeemed" />,
     },
     {
       key: 'lastUpdated',
@@ -151,11 +179,12 @@ export function WalletListPage() {
       key: 'status',
       header: 'Status',
       minWidth: 100,
+      sortable: true,
       render: (row) => (
         <Chip
           size="small"
-          label={statusConfig[row.status].label}
-          color={statusConfig[row.status].color}
+          label={statusConfig[row.status]?.label ?? row.status}
+          color={statusConfig[row.status]?.color ?? 'default'}
         />
       ),
     },
@@ -169,8 +198,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Wallet Balance"
-              value={(kpis?.totalWalletBalance ?? 0).toLocaleString('en-IN')}
+              label="Total Partners"
+              value={totalItems}
               icon={<WalletIcon size={20} />}
               iconColor="primary"
             />
@@ -181,8 +210,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Points Earned"
-              value={(kpis?.totalPointsEarned ?? 0).toLocaleString('en-IN')}
+              label="Chemists"
+              value={wallets.filter((w) => w.userType === 'Chemist').length}
               icon={<Points size={20} />}
               iconColor="success"
             />
@@ -193,8 +222,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Points Redeemed"
-              value={(kpis?.totalPointsRedeemed ?? 0).toLocaleString('en-IN')}
+              label="Dealers"
+              value={wallets.filter((w) => w.userType === 'Dealer').length}
               icon={<Repeat2 size={20} />}
               iconColor="secondary"
             />
@@ -205,8 +234,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Pending Redemptions"
-              value={(kpis?.pendingRedemptions ?? 0).toLocaleString('en-IN')}
+              label="Active Wallets"
+              value={wallets.filter((w) => w.status === 'ACTIVE').length}
               icon={<Clock3 size={20} />}
               iconColor="warning"
             />
@@ -218,32 +247,50 @@ export function WalletListPage() {
         <ModularTabs
           tabs={USER_TYPE_TABS}
           value={userTypeTab}
-          onChange={setUserTypeTab}
+          onChange={(value) => {
+            setUserTypeTab(value)
+            setPage(0)
+          }}
         />
       </Box>
 
       <CommonTable
+        key={`${effectiveRegionId ?? 'all'}-${appliedFilters.status}-${userTypeTab}`}
         tableKey="wallet-directory-list"
         columns={columns}
-        rows={filteredWallets}
+        rows={wallets}
         getRowId={(row) => row.id}
         loading={isLoading}
-        searchPlaceholder="Search by user name or mobile number…"
-        searchKeys={(row) =>
-          `${row.userName} ${row.mobileNumber} ${row.userId}`
-        }
+        searchPlaceholder="Search by business name or mobile number…"
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +
-          (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
+          (appliedFilters.regionId.trim() ? 1 : 0)
         }
         onExportClick={() => {}}
-        defaultSortBy="userName"
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
+        defaultSortBy="businessName"
+        defaultSortDir="desc"
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         actions={[
           {
             label: 'View Wallet',
-            onClick: (row) =>
-              navigate(`/rewards-wallet/wallet-management/${row.id}`),
+            onClick: (row) => navigate(walletDetailsPath(row)),
           },
         ]}
         emptyTitle="No wallets found"
@@ -255,7 +302,10 @@ export function WalletListPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Wallets"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
@@ -265,37 +315,32 @@ export function WalletListPage() {
               size="small"
               value={draft.status}
               onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  status: e.target.value as WalletFilters['status'],
-                }))
+                setDraft((prev) => ({ ...prev, status: e.target.value }))
               }
             >
               <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="active">Active</MenuItem>
-              <MenuItem value="inactive">Inactive</MenuItem>
-              <MenuItem value="suspended">Suspended</MenuItem>
+              <MenuItem value="ACTIVE">Active</MenuItem>
+              <MenuItem value="INACTIVE">Inactive</MenuItem>
+              <MenuItem value="SUSPENDED">Suspended</MenuItem>
             </TextField>
             <TextField
-              type="date"
-              label="Registered From"
+              select
+              label="Region"
               size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              value={draft.fromDate}
+              value={draft.regionId}
               onChange={(e) =>
-                setDraft((prev) => ({ ...prev, fromDate: e.target.value }))
+                setDraft((prev) => ({ ...prev, regionId: e.target.value }))
               }
-            />
-            <TextField
-              type="date"
-              label="Registered To"
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
-              value={draft.toDate}
-              onChange={(e) =>
-                setDraft((prev) => ({ ...prev, toDate: e.target.value }))
-              }
-            />
+            >
+              <MenuItem value="">
+                <em>All Regions</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region.id} value={region.id}>
+                  {region.name}
+                </MenuItem>
+              ))}
+            </TextField>
           </Stack>
         )}
       </FilterDrawer>

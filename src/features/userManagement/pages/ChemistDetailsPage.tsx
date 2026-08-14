@@ -54,8 +54,9 @@ export function ChemistDetailsPage() {
     try {
       await creditWallet({
         partnerId: chemistId,
-        points: type === 'credit' ? points : -points,
+        points,
         note: reason,
+        type,
       }).unwrap()
       toast.success(
         type === 'credit' ? 'Points added successfully.' : 'Points removed successfully.',

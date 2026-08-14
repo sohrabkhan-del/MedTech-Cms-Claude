@@ -1,5 +1,7 @@
+import { useState } from 'react'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Chip, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Stack, Typography } from '@mui/material'
 import { Package as Inventory2Icon } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -10,7 +12,9 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useProductDetail } from '@/features/inventoryManagement/hooks/useProductDetail'
+import { useGetProductMovementHistoryQuery } from '@/features/inventoryManagement/services/productsApi'
 import type {
   ProductMovementEntry,
   ProductRegionConfig,
@@ -86,6 +90,22 @@ export function ProductDetailsPage() {
   const navigate = useNavigate()
   const { productId } = useParams<{ productId: string }>()
   const { product, isLoading } = useProductDetail(productId)
+
+  const [movementSearch, setMovementSearch] = useState('')
+  const debouncedMovementSearch = useDebouncedValue(movementSearch, 300)
+  const [movementPage, setMovementPage] = useState(0)
+  const [movementRowsPerPage, setMovementRowsPerPage] = useState(10)
+
+  const { data: movementData, isFetching: isMovementLoading } = useGetProductMovementHistoryQuery(
+    productId
+      ? {
+          id: productId,
+          page: movementPage + 1,
+          limit: movementRowsPerPage,
+          search: debouncedMovementSearch || undefined,
+        }
+      : skipToken,
+  )
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={6} />
@@ -184,20 +204,27 @@ export function ProductDetailsPage() {
           />
         </SectionCard>
 
-        <SectionCard
-          title="Product Movement History"
-          action={<Chip label="Sample data" size="small" variant="outlined" />}
-        >
+        <SectionCard title="Product Movement History">
           <CommonTable
             tableKey="product-movement-history"
             columns={movementColumns}
-            rows={product.movementHistory}
-            loading={isLoading}
+            rows={movementData?.items ?? []}
+            loading={isMovementLoading}
             getRowId={(row) => row.id}
             searchPlaceholder="Search movement history…"
-            searchKeys={(row) =>
-              `${row.factoryUploadBatch} ${row.startSerialNo} ${row.endSerialNo}`
-            }
+            searchValue={movementSearch}
+            onSearchChange={(value) => {
+              setMovementSearch(value)
+              setMovementPage(0)
+            }}
+            totalCount={movementData?.totalItems ?? 0}
+            page={movementPage}
+            onPageChange={setMovementPage}
+            rowsPerPage={movementRowsPerPage}
+            onRowsPerPageChange={(next) => {
+              setMovementRowsPerPage(next)
+              setMovementPage(0)
+            }}
             emptyTitle="No movement history yet"
           />
         </SectionCard>

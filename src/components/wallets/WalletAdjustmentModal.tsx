@@ -1,13 +1,5 @@
 import { useState } from 'react'
-import {
-  Box,
-  FormControlLabel,
-  MenuItem,
-  Stack,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Stack, TextField, Typography } from '@mui/material'
 import { Modal } from '@/components/common/Modal/Modal'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 
@@ -22,9 +14,6 @@ interface WalletAdjustmentModalProps {
     type: AdjustmentType
     amount: number
     reason: string
-    referenceNumber: string
-    remarks: string
-    requireApproval: boolean
   }) => void
 }
 
@@ -36,12 +25,9 @@ export function WalletAdjustmentModal({
   onConfirm,
 }: WalletAdjustmentModalProps) {
   const [step, setStep] = useState<'form' | 'confirm'>('form')
-  const [type, setType] = useState<AdjustmentType>(defaultType)
+  const type = defaultType
   const [amount, setAmount] = useState('')
   const [reason, setReason] = useState('')
-  const [referenceNumber, setReferenceNumber] = useState('')
-  const [remarks, setRemarks] = useState('')
-  const [requireApproval, setRequireApproval] = useState(true)
 
   const numericAmount = Number(amount) || 0
   const updatedBalance =
@@ -51,12 +37,8 @@ export function WalletAdjustmentModal({
 
   const resetAndClose = () => {
     setStep('form')
-    setType(defaultType)
     setAmount('')
     setReason('')
-    setReferenceNumber('')
-    setRemarks('')
-    setRequireApproval(true)
     onClose()
   }
 
@@ -67,9 +49,6 @@ export function WalletAdjustmentModal({
       type,
       amount: numericAmount,
       reason,
-      referenceNumber,
-      remarks,
-      requireApproval,
     })
     resetAndClose()
   }
@@ -101,7 +80,6 @@ export function WalletAdjustmentModal({
               value: updatedBalance.toLocaleString('en-IN'),
             },
             { label: 'Adjustment Reason', value: reason || '—' },
-            { label: 'Remarks', value: remarks || '—' },
           ]}
         />
       </Modal>
@@ -120,16 +98,6 @@ export function WalletAdjustmentModal({
     >
       <Stack spacing={2.5} sx={{ pt: 1 }}>
         <TextField
-          select
-          label="Adjustment Type"
-          size="small"
-          value={type}
-          onChange={(e) => setType(e.target.value as AdjustmentType)}
-        >
-          <MenuItem value="add">Add Points</MenuItem>
-          <MenuItem value="deduct">Deduct Points</MenuItem>
-        </TextField>
-        <TextField
           type="number"
           label="Point Amount"
           size="small"
@@ -141,29 +109,6 @@ export function WalletAdjustmentModal({
           size="small"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
-        />
-        <TextField
-          label="Reference Number (Optional)"
-          size="small"
-          value={referenceNumber}
-          onChange={(e) => setReferenceNumber(e.target.value)}
-        />
-        <TextField
-          label="Remarks"
-          size="small"
-          multiline
-          minRows={2}
-          value={remarks}
-          onChange={(e) => setRemarks(e.target.value)}
-        />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={requireApproval}
-              onChange={(e) => setRequireApproval(e.target.checked)}
-            />
-          }
-          label="Require Approval"
         />
         <Box
           sx={{

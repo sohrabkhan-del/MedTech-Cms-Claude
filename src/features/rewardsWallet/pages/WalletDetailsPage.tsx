@@ -16,211 +16,58 @@ import {
   ArrowLeft as ArrowBackOutlined,
   PlusCircle,
   MinusCircle,
-  Download,
   ExternalLink,
   Coins as Points,
   TrendingUp,
   TrendingDown,
   Clock3,
-  ScanLine,
-  Sparkles,
-  Users2,
-  Megaphone,
-  UserPlus,
   MoreVertical,
 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
-import {
-  CommonTable,
-  type CommonTableColumn,
-} from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import {
   WalletAdjustmentModal,
   type AdjustmentType,
 } from '@/components/wallets/WalletAdjustmentModal'
-import { useWalletDetail } from '@/features/rewardsWallet/hooks/useWalletDetail'
-import type {
-  RecentRewardActivity,
-  TransactionStatus,
-  WalletStatus,
-  WalletTransaction,
-} from '@/features/rewardsWallet/types/rewardsWallet.types'
+import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistoryCard'
+import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
+import { RedemptionHistoryCard } from '@/features/userManagement/components/RedemptionHistoryCard'
+import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
+import {
+  useGetPartnerWalletDetailsQuery,
+  useCreditPartnerWalletMutation,
+} from '@/features/rewardsWallet/services/walletPartnersApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-const statusConfig: Record<
-  WalletStatus,
-  { label: string; color: 'success' | 'default' | 'error' }
-> = {
-  active: { label: 'Active', color: 'success' },
-  inactive: { label: 'Inactive', color: 'default' },
-  suspended: { label: 'Suspended', color: 'error' },
+const statusConfig: Record<string, { label: string; color: 'success' | 'default' | 'error' }> = {
+  ACTIVE: { label: 'Active', color: 'success' },
+  INACTIVE: { label: 'Inactive', color: 'default' },
+  SUSPENDED: { label: 'Suspended', color: 'error' },
 }
-
-const txnStatusConfig: Record<
-  TransactionStatus,
-  { label: string; color: 'success' | 'warning' | 'error' }
-> = {
-  completed: { label: 'Completed', color: 'success' },
-  pending: { label: 'Pending', color: 'warning' },
-  reversed: { label: 'Reversed', color: 'error' },
-}
-
-const activityStatusConfig: Record<
-  RecentRewardActivity['status'],
-  { label: string; color: 'success' | 'warning' | 'error' }
-> = {
-  credited: { label: 'Credited', color: 'success' },
-  pending: { label: 'Pending', color: 'warning' },
-  failed: { label: 'Failed', color: 'error' },
-}
-
-const transactionColumns: CommonTableColumn<WalletTransaction>[] = [
-  {
-    key: 'id',
-    header: 'Transaction ID',
-    minWidth: 130,
-    render: (row) => row.id,
-  },
-  {
-    key: 'transactionDate',
-    header: 'Transaction Date',
-    minWidth: 140,
-    sortable: true,
-    render: (row) => row.transactionDate,
-  },
-  {
-    key: 'transactionType',
-    header: 'Transaction Type',
-    minWidth: 110,
-    render: (row) => (
-      <Chip
-        size="small"
-        label={row.transactionType === 'credit' ? 'Credit' : 'Debit'}
-        color={row.transactionType === 'credit' ? 'success' : 'error'}
-      />
-    ),
-  },
-  {
-    key: 'previousBalance',
-    header: 'Previous Balance',
-    align: 'center',
-    render: (row) => row.previousBalance.toLocaleString('en-IN'),
-  },
-  {
-    key: 'PointsAdjusted',
-    header: 'Points Adjusted',
-    align: 'center',
-    render: (row) =>
-      `${row.PointsAdjusted > 0 ? '+' : ''}${row.PointsAdjusted.toLocaleString('en-IN')}`,
-  },
-  {
-    key: 'updatedBalance',
-    header: 'Updated Balance',
-    align: 'center',
-    render: (row) => row.updatedBalance.toLocaleString('en-IN'),
-  },
-  {
-    key: 'transactionSource',
-    header: 'Transaction Source',
-    minWidth: 150,
-    render: (row) => row.transactionSource,
-  },
-  {
-    key: 'reason',
-    header: 'Reason',
-    minWidth: 170,
-    render: (row) => row.reason,
-  },
-  {
-    key: 'performedBy',
-    header: 'Performed By',
-    minWidth: 120,
-    render: (row) => row.performedBy,
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    minWidth: 100,
-    render: (row) => (
-      <Chip
-        size="small"
-        label={txnStatusConfig[row.status].label}
-        color={txnStatusConfig[row.status].color}
-      />
-    ),
-  },
-]
-
-const activityColumns: CommonTableColumn<RecentRewardActivity>[] = [
-  { key: 'date', header: 'Date', sortable: true, render: (row) => row.date },
-  {
-    key: 'productName',
-    header: 'Product Name',
-    minWidth: 170,
-    render: (row) => row.productName,
-  },
-  {
-    key: 'scanCode',
-    header: 'Scan Code',
-    minWidth: 130,
-    render: (row) => row.scanCode,
-  },
-  {
-    key: 'dealer',
-    header: 'Dealer',
-    minWidth: 150,
-    render: (row) => row.dealer,
-  },
-  {
-    key: 'chemist',
-    header: 'Chemist',
-    minWidth: 150,
-    render: (row) => row.chemist,
-  },
-  {
-    key: 'PointsEarned',
-    header: 'Points Earned',
-    align: 'center',
-    render: (row) => row.PointsEarned,
-  },
-  {
-    key: 'appliedScheme',
-    header: 'Applied Scheme',
-    minWidth: 170,
-    render: (row) => row.appliedScheme,
-  },
-  {
-    key: 'status',
-    header: 'Status',
-    render: (row) => (
-      <Chip
-        size="small"
-        label={activityStatusConfig[row.status].label}
-        color={activityStatusConfig[row.status].color}
-      />
-    ),
-  },
-]
 
 export function WalletDetailsPage() {
   const navigate = useNavigate()
-  const { walletId } = useParams<{ walletId: string }>()
-  const { wallet, adjustBalance, exportStatement, isLoading } =
-    useWalletDetail(walletId)
-  const [adjustmentType, setAdjustmentType] = useState<AdjustmentType | null>(
-    null,
-  )
+  const toast = useToast()
+  const { walletId: partnerId } = useParams<{ walletId: string }>()
+  const {
+    data: details,
+    isLoading,
+    error,
+  } = useGetPartnerWalletDetailsQuery(partnerId ?? '', { skip: !partnerId })
+  const [creditWallet] = useCreditPartnerWalletMutation()
+  const [adjustmentType, setAdjustmentType] = useState<AdjustmentType | null>(null)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={4} />
   }
 
-  if (!wallet) {
+  if (!details || error) {
     return (
       <EmptyState
         title="Wallet not found"
@@ -231,7 +78,24 @@ export function WalletDetailsPage() {
     )
   }
 
-  const currentBalance = wallet.availableBalance
+  const currentBalance = details.currentWalletBalance
+
+  async function handleAdjust(payload: { type: AdjustmentType; amount: number; reason: string }) {
+    if (!partnerId) return
+    try {
+      await creditWallet({
+        partnerId,
+        points: payload.amount,
+        note: payload.reason,
+        type: payload.type === 'add' ? 'credit' : 'debit',
+      }).unwrap()
+      toast.success(
+        payload.type === 'add' ? 'Points added successfully.' : 'Points deducted successfully.',
+      )
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to adjust points.'))
+    }
+  }
 
   return (
     <>
@@ -262,15 +126,15 @@ export function WalletDetailsPage() {
           </Box>
           <Box>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Typography variant="h1">{wallet.userName}</Typography>
+              <Typography variant="h1">{details.businessName}</Typography>
               <Chip
                 size="small"
-                label={statusConfig[wallet.status].label}
-                color={statusConfig[wallet.status].color}
+                label={statusConfig[details.status]?.label ?? details.status}
+                color={statusConfig[details.status]?.color ?? 'default'}
               />
             </Stack>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {wallet.id} · {wallet.userType}
+              {details.referenceId} · {details.userType}
             </Typography>
           </Box>
         </Stack>
@@ -316,24 +180,15 @@ export function WalletDetailsPage() {
             <MenuItem
               onClick={() => {
                 setMoreMenuAnchor(null)
-                void exportStatement()
-              }}
-            >
-              <Download size={18} style={{ marginRight: 12 }} />
-              Export Wallet Statement
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setMoreMenuAnchor(null)
                 navigate(
-                  wallet.userType === 'Dealer'
-                    ? `/partners/dealers/${wallet.userId}`
-                    : `/partners/chemists/${wallet.userId}`,
+                  details.userType === 'Dealer'
+                    ? `/partners/dealers/${details.partnerId}`
+                    : `/partners/chemists/${details.partnerId}`,
                 )
               }}
             >
               <ExternalLink size={18} style={{ marginRight: 12 }} />
-              View {wallet.userType} Profile
+              View {details.userType} Profile
             </MenuItem>
           </Menu>
         </Stack>
@@ -343,19 +198,19 @@ export function WalletDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Business Name', value: wallet.userName },
-              { label: 'User Type', value: wallet.userType },
-              { label: 'Mobile Number', value: wallet.mobileNumber },
-              { label: 'Email Address', value: wallet.email },
-              { label: 'Region', value: wallet.region },
-              { label: 'Registration Date', value: wallet.registrationDate },
+              { label: 'Business Name', value: details.businessName },
+              { label: 'Owner Name', value: details.ownerName },
+              { label: 'User Type', value: details.userType },
+              { label: 'Mobile Number', value: details.mobileNumber },
+              { label: 'Email Address', value: details.email },
+              { label: 'Region', value: details.regionName },
               {
                 label: 'Account Status',
                 value: (
                   <Chip
                     size="small"
-                    label={statusConfig[wallet.status].label}
-                    color={statusConfig[wallet.status].color}
+                    label={statusConfig[details.status]?.label ?? details.status}
+                    color={statusConfig[details.status]?.color ?? 'default'}
                   />
                 ),
               },
@@ -363,168 +218,53 @@ export function WalletDetailsPage() {
                 label: 'Current Wallet Balance',
                 value: currentBalance.toLocaleString('en-IN'),
               },
-              { label: 'Last Updated Date & Time', value: wallet.lastUpdated },
+              {
+                label: 'Last Updated Date & Time',
+                value: new Date(details.updatedAt).toLocaleString('en-IN'),
+              },
             ]}
           />
         </SectionCard>
 
         <Grid container spacing={3}>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Current Wallet Balance"
-                value={currentBalance.toLocaleString('en-IN')}
-                icon={<Points size={20} />}
-                iconColor="primary"
-              />
-            )}
+            <StatCard
+              label="Current Wallet Balance"
+              value={currentBalance.toLocaleString('en-IN')}
+              icon={<Points size={20} />}
+              iconColor="primary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Lifetime Points Earned"
-                value={wallet.lifetimeEarned.toLocaleString('en-IN')}
-                icon={<TrendingUp size={20} />}
-                iconColor="success"
-              />
-            )}
+            <StatCard
+              label="Lifetime Points Earned"
+              value={details.lifetimePointsEarned.toLocaleString('en-IN')}
+              icon={<TrendingUp size={20} />}
+              iconColor="success"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Lifetime Points Redeemed"
-                value={wallet.lifetimeRedeemed.toLocaleString('en-IN')}
-                icon={<TrendingDown size={20} />}
-                iconColor="secondary"
-              />
-            )}
+            <StatCard
+              label="Lifetime Points Redeemed"
+              value={details.lifetimePointsRedeemed.toLocaleString('en-IN')}
+              icon={<TrendingDown size={20} />}
+              iconColor="secondary"
+            />
           </Grid>
           <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            {isLoading ? (
-              <StatCardSkeleton />
-            ) : (
-              <StatCard
-                label="Pending Redemption Points"
-                value={wallet.pendingRedemptionPoints.toLocaleString('en-IN')}
-                icon={<Clock3 size={20} />}
-                iconColor="info"
-              />
-            )}
+            <StatCard
+              label="Pending Redemption Points"
+              value={details.pendingRedemptionPoints.toLocaleString('en-IN')}
+              icon={<Clock3 size={20} />}
+              iconColor="info"
+            />
           </Grid>
         </Grid>
 
-        <SectionCard title="Wallet Transaction History">
-          <CommonTable
-            tableKey="wallet-transaction-history"
-            columns={transactionColumns}
-            rows={wallet.transactions}
-            getRowId={(row) => row.id}
-            loading={isLoading}
-            searchPlaceholder="Search transactions…"
-            searchKeys={(row) =>
-              `${row.id} ${row.reason} ${row.referenceNumber}`
-            }
-            defaultSortBy="transactionDate"
-            defaultSortDir="desc"
-            emptyTitle="No transactions yet"
-          />
-        </SectionCard>
-
-        <SectionCard title="Earned Points Breakdown">
-          <Grid container spacing={3}>
-            <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Product Scans"
-                  value={wallet.earnedPointsBreakdown.productScans.toLocaleString(
-                    'en-IN',
-                  )}
-                  icon={<ScanLine size={20} />}
-                  iconColor="primary"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Active Schemes"
-                  value={wallet.earnedPointsBreakdown.activeSchemes.toLocaleString(
-                    'en-IN',
-                  )}
-                  icon={<Sparkles size={20} />}
-                  iconColor="secondary"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Referral Program"
-                  value={wallet.earnedPointsBreakdown.referralProgram.toLocaleString(
-                    'en-IN',
-                  )}
-                  icon={<UserPlus size={20} />}
-                  iconColor="info"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Promotional Campaigns"
-                  value={wallet.earnedPointsBreakdown.promotionalCampaigns.toLocaleString(
-                    'en-IN',
-                  )}
-                  icon={<Megaphone size={20} />}
-                  iconColor="warning"
-                />
-              )}
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6, lg: 2.4 }}>
-              {isLoading ? (
-                <StatCardSkeleton />
-              ) : (
-                <StatCard
-                  label="Manual Credits"
-                  value={wallet.earnedPointsBreakdown.manualCredits.toLocaleString(
-                    'en-IN',
-                  )}
-                  icon={<Users2 size={20} />}
-                  iconColor="success"
-                />
-              )}
-            </Grid>
-          </Grid>
-        </SectionCard>
-
-        <SectionCard title="Recent Reward Activity">
-          <CommonTable
-            tableKey="wallet-recent-activity"
-            columns={activityColumns}
-            rows={wallet.recentActivity}
-            getRowId={(row) => row.id}
-            loading={isLoading}
-            searchPlaceholder="Search recent activity…"
-            searchKeys={(row) => `${row.productName} ${row.scanCode}`}
-            defaultSortBy="date"
-            defaultSortDir="desc"
-            emptyTitle="No recent activity"
-          />
-        </SectionCard>
+        <PointsHistoryCard partnerId={partnerId} />
+        <ScanHistoryCard partnerId={partnerId} />
+        <RedemptionHistoryCard partnerId={partnerId} />
+        <InterestedProductsCard partnerId={partnerId} />
       </Stack>
 
       <WalletAdjustmentModal
@@ -533,7 +273,7 @@ export function WalletDetailsPage() {
         currentBalance={currentBalance}
         defaultType={adjustmentType ?? 'add'}
         onConfirm={(payload) => {
-          void adjustBalance(payload.type, payload.amount, currentBalance)
+          void handleAdjust(payload)
         }}
       />
     </>

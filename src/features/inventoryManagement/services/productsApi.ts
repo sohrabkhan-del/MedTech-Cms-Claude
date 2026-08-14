@@ -10,7 +10,12 @@ import type {
   Product,
   ProductFormValues,
 } from '@/features/inventoryManagement/types/inventoryManagement.types'
-import type { ProductCategoryRef, ProductRegionConfig } from '@/types/product'
+import type {
+  MovementScannedStatus,
+  ProductCategoryRef,
+  ProductMovementEntry,
+  ProductRegionConfig,
+} from '@/types/product'
 import type { ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 import { mockDelay } from '@/services/mockDelay'
 import { formatDate } from '@/utils/formatDate'
@@ -143,6 +148,56 @@ function mapProductItem(item: ProductApiItem): Product {
   }
 }
 
+export interface ProductMovementHistoryQueryParams {
+  id: string
+  page?: number
+  limit?: number
+  search?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
+interface ProductMovementApiItem {
+  id: string
+  batchNo: string
+  createdAt: string
+  scannedStatus: string
+  quantity: number
+  startSerialNo: number
+  endSerialNo: number
+  containerStartSerialNo: number
+  containerEndSerialNo: number
+}
+
+interface ProductMovementHistoryApiResponse {
+  success: boolean
+  message?: string
+  data: {
+    items: ProductMovementApiItem[]
+    totalItems: number
+    totalPages: number
+    currentPage: number
+    pageSize: number
+  }
+}
+
+function mapMovementScannedStatus(status: string): MovementScannedStatus {
+  return status === 'COMPLETED' ? 'completed' : 'pending'
+}
+
+function mapProductMovementItem(item: ProductMovementApiItem): ProductMovementEntry {
+  return {
+    id: item.id,
+    factoryUploadBatch: item.batchNo,
+    quantityUploaded: item.quantity,
+    startSerialNo: String(item.startSerialNo),
+    endSerialNo: String(item.endSerialNo),
+    containerStartSerialNo: String(item.containerStartSerialNo),
+    containerEndSerialNo: String(item.containerEndSerialNo),
+    scannedStatus: mapMovementScannedStatus(item.scannedStatus),
+  }
+}
+
 function mapStatusParam(status?: string) {
   if (!status || status === 'all') return undefined
   return status === 'active' ? 'ACTIVE' : 'INACTIVE'
@@ -184,6 +239,33 @@ const productsApi = baseApi.injectEndpoints({
           ? mapProductItem(response.data)
           : response,
       providesTags: (_result, _error, id) => [{ type: 'Products', id }],
+    }),
+
+    /** GET /products/:id/movement-history — a product's factory-batch movement
+     *  history, paginated (used by the Product Master details page). */
+    getProductMovementHistory: builder.query<
+      { items: ProductMovementEntry[]; totalItems: number },
+      ProductMovementHistoryQueryParams
+    >({
+      query: ({ id, ...params }) => ({
+        tag: 'Products',
+        url: `/products/${id}/movement-history`,
+        params: {
+          page: params.page ?? 1,
+          limit: params.limit ?? 10,
+          search: params.search || undefined,
+          sortBy: params.sortBy || undefined,
+          sortOrder: params.sortOrder ?? 'desc',
+        },
+        mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
+      }),
+      transformResponse: (response: ProductMovementHistoryApiResponse) => ({
+        items: response.data.items.map(mapProductMovementItem),
+        totalItems: response.data.totalItems,
+      }),
+      providesTags: (_result, _error, { id }) => [
+        { type: 'Products', id: `MOVEMENT_${id}` },
+      ],
     }),
 
     getProductKpis: builder.query<typeof productKpis, void>({
@@ -254,6 +336,7 @@ const productsApi = baseApi.injectEndpoints({
 export const {
   useGetProductsQuery,
   useGetProductDetailQuery,
+  useGetProductMovementHistoryQuery,
   useGetProductKpisQuery,
   useGetProductCategoryOptionsQuery,
   useCreateProductMutation,

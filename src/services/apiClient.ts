@@ -1,8 +1,13 @@
 import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { env } from '@/config/env'
 
+/** Default API version, used unless a request specifies its own via the
+ *  `apiVersion` field on `MockOrRealArgs` (see `baseApi.ts`). Kept out of
+ *  `env.apiBaseUrl` so individual endpoints can move to v2+ independently. */
+export const DEFAULT_API_VERSION = 'v1'
+
 export const apiClient = axios.create({
-  baseURL: env.apiBaseUrl,
+  baseURL: `${env.apiBaseUrl}/api/${DEFAULT_API_VERSION}`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -51,7 +56,7 @@ async function refreshAccessToken(): Promise<string | null> {
 
   try {
     const response = await axios.post<{ token: string; refreshToken: string }>(
-      `${env.apiBaseUrl}/auth/refresh`,
+      `${env.apiBaseUrl}/api/${DEFAULT_API_VERSION}/auth/refresh`,
       { refreshToken },
     )
     onTokenRefreshed(response.data)

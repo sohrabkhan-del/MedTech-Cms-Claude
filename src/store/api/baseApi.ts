@@ -1,6 +1,7 @@
 import { createApi, type BaseQueryFn } from '@reduxjs/toolkit/query/react'
 import type { AxiosRequestConfig } from 'axios'
-import { apiClient } from '@/services/apiClient'
+import { apiClient, DEFAULT_API_VERSION } from '@/services/apiClient'
+import { env } from '@/config/env'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 /**
@@ -139,6 +140,10 @@ export interface MockOrRealArgs<T = unknown> {
   method?: AxiosRequestConfig['method']
   data?: unknown
   params?: unknown
+  /** API version this request targets, e.g. 'v2'. Defaults to `apiClient`'s
+   *  baseURL version (`DEFAULT_API_VERSION`) when omitted — only set this to
+   *  pin an endpoint to a specific version other than the default. */
+  apiVersion?: string
 }
 
 export interface MockOrRealError {
@@ -179,6 +184,9 @@ export const mockOrRealBaseQuery: BaseQueryFn<
       method: args.method ?? 'GET',
       data: args.data,
       params: args.params,
+      ...(args.apiVersion && args.apiVersion !== DEFAULT_API_VERSION
+        ? { baseURL: `${env.apiBaseUrl}/api/${args.apiVersion}` }
+        : {}),
     })
     const body = response.data
     if (body && typeof body === 'object' && 'success' in body && body.success === false) {

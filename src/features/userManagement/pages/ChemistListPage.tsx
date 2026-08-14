@@ -31,6 +31,11 @@ import {
   useActivateChemistMutation,
   useDeactivateChemistMutation,
 } from '@/features/userManagement/services/chemistApi'
+import { useBulkCreatePartnersMutation } from '@/features/userManagement/services/partnersBulkApi'
+import {
+  downloadPartnerBulkTemplate,
+  mapParsedRowsToPartnerBulk,
+} from '@/features/userManagement/utils/partnerBulkImport'
 import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
@@ -63,6 +68,7 @@ export function ChemistListPage() {
   const { regionId: topbarRegionId } = useRegionFilter()
   const [activateChemist] = useActivateChemistMutation()
   const [deactivateChemist] = useDeactivateChemistMutation()
+  const [bulkCreatePartners] = useBulkCreatePartnersMutation()
   const { data: mrOptions = [] } = useGetMedicalRepOptionsQuery()
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
   const [search, setSearch] = useState('')
@@ -281,7 +287,28 @@ export function ChemistListPage() {
           (appliedFilters.regionId.trim() ? 1 : 0)
         }
         onExportClick={() => {}}
-        onImportClick={() => {}}
+        onImportClick={async (parsed) => {
+          const { rows, errors } = mapParsedRowsToPartnerBulk(parsed, 'CHEMIST')
+          if (errors.length > 0) {
+            toast.error(`Fix these rows before importing: ${errors.join('; ')}`)
+            return
+          }
+          try {
+            const result = await bulkCreatePartners({ rows }).unwrap()
+            if (result.failed > 0) {
+              toast.error(
+                `Imported ${result.created} chemist(s), ${result.failed} failed: ${result.errors
+                  .map((e) => `Row ${e.row}: ${e.message}`)
+                  .join('; ')}`,
+              )
+            } else {
+              toast.success(`Imported ${result.created} chemist(s) successfully.`)
+            }
+          } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Failed to import chemists.'))
+          }
+        }}
+        onDownloadTemplateClick={() => downloadPartnerBulkTemplate('chemist-bulk-upload-template')}
         createAction={{ label: 'Create Chemist', to: '/partners/chemists/new' }}
         defaultSortBy="shopName"
         defaultSortDir="desc"

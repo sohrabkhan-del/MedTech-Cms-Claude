@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   Box,
   Button,
-  Chip,
   Grid,
   MenuItem,
   Stack,
@@ -25,16 +24,13 @@ import {
   CommonTable,
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
-import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
-import { usePointRules } from '@/features/rewardsWallet/hooks/usePointRules'
-import type { ProductPointRuleGroup } from '@/features/rewardsWallet/mockPointRules'
-import type {
-  PointRulePartnerType,
-  PointRuleRegion,
-} from '@/features/rewardsWallet/types/rewardsWallet.types'
+import { useProductPointRules } from '@/features/rewardsWallet/hooks/useProductPointRules'
+import { fallbackRegions, getRegions } from '@/services/regionsService'
+import type { RegionOption } from '@/contexts/RegionFilterContext'
+import type { ProductPointRuleRow } from '@/features/rewardsWallet/services/pointValueRulesApi'
 
-type PartnerTypeTab = 'all' | PointRulePartnerType
+type PartnerTypeTab = 'all' | 'Dealer' | 'Chemist'
 
 const PARTNER_TYPE_TABS: { label: string; value: PartnerTypeTab }[] = [
   { label: 'All', value: 'all' },
@@ -42,29 +38,46 @@ const PARTNER_TYPE_TABS: { label: string; value: PartnerTypeTab }[] = [
   { label: 'Dealer', value: 'Dealer' },
 ]
 
-const REGIONS: PointRuleRegion[] = ['North', 'South', 'East', 'West']
-
-interface PointRuleFilters extends Record<string, unknown> {
-  productCategory: string | 'all'
-  region: PointRuleRegion | 'all'
+function partnerTypeTabFromPath(pathname: string): PartnerTypeTab {
+  if (pathname.endsWith('/dealer')) return 'Dealer'
+  if (pathname.endsWith('/chemist')) return 'Chemist'
+  return 'all'
 }
 
-interface ProductRow extends ProductPointRuleGroup {
-  status: 'active' | 'inactive'
+interface PointRuleFilters extends Record<string, unknown> {
+  categoryId: string | 'all'
+  regionId: string
 }
 
 export function PointValueRulesListPage() {
   const navigate = useNavigate()
-  const [partnerTypeTab, setPartnerTypeTab] = useState<PartnerTypeTab>('all')
+  const location = useLocation()
+  const [partnerTypeTab, setPartnerTypeTab] = useState<PartnerTypeTab>(
+    partnerTypeTabFromPath(location.pathname),
+  )
+  const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
 
-  const {
-    rules: allRules,
-    productGroups,
-    baseValueOverrides,
-    statusOverrides,
-    setRuleStatus,
-    isLoading,
-  } = usePointRules()
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<PointRuleFilters>({
+    categoryId: 'all',
+    regionId: '',
+  })
+
+  useEffect(() => {
+    let ignore = false
+    getRegions()
+      .then((options) => {
+        if (!ignore && options.length > 0) setRegions(options)
+      })
+      .catch((error) => {
+        console.warn('[regions] failed to load regions, using fallback', error)
+      })
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  const { rules, kpis, isLoading } = useProductPointRules(appliedFilters.regionId)
 
   useRegionTopbarHeader({
     icon: <Points size={20} />,
@@ -77,101 +90,32 @@ export function PointValueRulesListPage() {
     isLoading,
   })
 
-  const rules = useMemo(
+  const categoryOptions = useMemo(
     () =>
-      partnerTypeTab === 'all'
-        ? allRules
-        : allRules.filter((rule) => rule.partnerType === partnerTypeTab),
-    [allRules, partnerTypeTab],
-  )
-
-  const kpis = useMemo(
-    () => ({
-      totalOutstandingPointLiability: rules.reduce(
-        (sum, r) => sum + r.regions.reduce((s, x) => s + x.currentPoints, 0),
-        0,
+      Array.from(
+        new Map(
+          rules
+            .filter((r) => r.categoryId)
+            .map((r) => [r.categoryId as string, r.categoryName ?? r.categoryId as string]),
+        ).entries(),
       ),
-      totalConfiguredRules: rules.length,
-      averageBasePointValue: rules.length
-        ? Math.round(
-            rules.reduce((sum, r) => sum + r.basePointValue, 0) / rules.length,
-          )
-        : 0,
-    }),
     [rules],
   )
 
-  const distributionByCategory = useMemo(
+  const filteredRows = useMemo(
     () =>
-      Object.entries(
-        rules.reduce<Record<string, number>>((acc, rule) => {
-          const total = rule.regions.reduce((s, x) => s + x.currentPoints, 0)
-          acc[rule.productCategory] = (acc[rule.productCategory] ?? 0) + total
-          return acc
-        }, {}),
-      ).map(([category, value]) => ({ category, value })),
-    [rules],
-  )
-
-  const productCategoryOptions = useMemo(
-    () => Array.from(new Set(rules.map((r) => r.productCategory))).sort(),
-    [rules],
-  )
-
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<PointRuleFilters>({
-    productCategory: 'all',
-    region: 'all',
-  })
-
-  const resolvedBaseValue = (ruleId: string, fallback: number) =>
-    baseValueOverrides[ruleId] ?? fallback
-
-  const resolvedStatus = (ruleId: string, fallback: 'active' | 'inactive') =>
-    statusOverrides[ruleId] ?? fallback
-
-  const productRows: ProductRow[] = useMemo(
-    () =>
-      productGroups
-        .filter((group) => {
-          if (partnerTypeTab === 'Dealer') return !!group.dealerRule
-          if (partnerTypeTab === 'Chemist') return !!group.chemistRule
-          return true
-        })
-        .map((group) => {
-          const primaryRule = group.dealerRule ?? group.chemistRule
-          return {
-            ...group,
-            status: resolvedStatus(
-              primaryRule?.id ?? group.modelCode,
-              primaryRule?.status ?? 'active',
-            ),
-          }
-        }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [productGroups, partnerTypeTab, statusOverrides],
-  )
-
-  const filteredProductRows = useMemo(
-    () =>
-      productRows.filter((row) => {
-        const categoryMatch =
-          appliedFilters.productCategory === 'all' ||
-          row.productCategory === appliedFilters.productCategory
-        const regionMatch =
-          appliedFilters.region === 'all' ||
-          [row.dealerRule, row.chemistRule].some((rule) =>
-            rule?.regions.some((r) => r.region === appliedFilters.region),
-          )
-        return categoryMatch && regionMatch
-      }),
-    [productRows, appliedFilters],
+      rules.filter(
+        (row) =>
+          appliedFilters.categoryId === 'all' ||
+          row.categoryId === appliedFilters.categoryId,
+      ),
+    [rules, appliedFilters],
   )
 
   const showDealerColumn = partnerTypeTab !== 'Chemist'
   const showChemistColumn = partnerTypeTab !== 'Dealer'
 
-  const columns: CommonTableColumn<ProductRow>[] = [
+  const columns: CommonTableColumn<ProductPointRuleRow>[] = [
     {
       key: 'productName',
       header: 'Product Name',
@@ -186,105 +130,60 @@ export function PointValueRulesListPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() => {
-            const targetRule = row.dealerRule ?? row.chemistRule
-            if (targetRule)
-              navigate(`/rewards-wallet/point-value-rules/${targetRule.id}`)
-          }}
+          onClick={() => navigate(`/rewards-wallet/point-value-rules/${row.productId}`)}
         >
           {row.productName}
         </Typography>
       ),
     },
     {
-      key: 'modelCode',
+      key: 'productCode',
       header: 'Product Code',
       minWidth: 130,
       sortable: true,
-      sortValue: (row) => row.modelCode,
+      sortValue: (row) => row.productCode,
       render: (row) => (
         <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-          {row.modelCode}
+          {row.productCode}
         </Typography>
       ),
+    },
+    {
+      key: 'categoryName',
+      header: 'Product Category',
+      minWidth: 160,
+      sortable: true,
+      sortValue: (row) => row.categoryName ?? '',
+      render: (row) => row.categoryName ?? '-',
     },
     ...(showDealerColumn
       ? [
           {
-            key: 'basePointValueDealer',
+            key: 'dealerProductPoints',
             header: 'Base Point Value (Dealer)',
             align: 'center' as const,
             minWidth: 170,
             sortable: true,
-            sortValue: (row: ProductRow) =>
-              row.dealerRule
-                ? resolvedBaseValue(
-                    row.dealerRule.id,
-                    row.dealerRule.basePointValue,
-                  )
-                : 0,
-            render: (row: ProductRow) =>
-              row.dealerRule ? (
-                <Chip
-                  size="small"
-                  label={resolvedBaseValue(
-                    row.dealerRule.id,
-                    row.dealerRule.basePointValue,
-                  )}
-                  variant="outlined"
-                />
-              ) : (
-                <Typography
-                  sx={{ fontSize: '0.8125rem', color: 'text.disabled' }}
-                >
-                  —
-                </Typography>
-              ),
+            sortValue: (row: ProductPointRuleRow) => row.dealerProductPoints,
+            render: (row: ProductPointRuleRow) =>
+              row.dealerProductPoints.toLocaleString('en-IN'),
           },
         ]
       : []),
     ...(showChemistColumn
       ? [
           {
-            key: 'basePointValueChemist',
+            key: 'chemistProductPoints',
             header: 'Base Point Value (Chemist)',
             align: 'center' as const,
             minWidth: 170,
             sortable: true,
-            sortValue: (row: ProductRow) =>
-              row.chemistRule
-                ? resolvedBaseValue(
-                    row.chemistRule.id,
-                    row.chemistRule.basePointValue,
-                  )
-                : 0,
-            render: (row: ProductRow) =>
-              row.chemistRule ? (
-                <Chip
-                  size="small"
-                  label={resolvedBaseValue(
-                    row.chemistRule.id,
-                    row.chemistRule.basePointValue,
-                  )}
-                  variant="outlined"
-                />
-              ) : (
-                <Typography
-                  sx={{ fontSize: '0.8125rem', color: 'text.disabled' }}
-                >
-                  —
-                </Typography>
-              ),
+            sortValue: (row: ProductPointRuleRow) => row.chemistProductPoints,
+            render: (row: ProductPointRuleRow) =>
+              row.chemistProductPoints.toLocaleString('en-IN'),
           },
         ]
       : []),
-    {
-      key: 'status',
-      header: 'Status',
-      sortable: true,
-      sortValue: (row) => row.status,
-      render: (row) => <StatusBadge status={row.status} />,
-    },
   ]
 
   return (
@@ -296,9 +195,7 @@ export function PointValueRulesListPage() {
           ) : (
             <StatCard
               label="Total Outstanding Point Liability"
-              value={(kpis?.totalOutstandingPointLiability ?? 0).toLocaleString(
-                'en-IN',
-              )}
+              value={(kpis?.totalOutstandingPointLiability ?? 0).toLocaleString('en-IN')}
               icon={<Landmark size={20} />}
               iconColor="primary"
             />
@@ -310,7 +207,7 @@ export function PointValueRulesListPage() {
           ) : (
             <StatCard
               label="Configured Product Rules"
-              value={kpis?.totalConfiguredRules ?? 0}
+              value={kpis?.configuredProductRules ?? 0}
               icon={<Package size={20} />}
               iconColor="secondary"
             />
@@ -334,7 +231,7 @@ export function PointValueRulesListPage() {
           ) : (
             <StatCard
               label="Product Categories"
-              value={distributionByCategory.length}
+              value={kpis?.productCategories ?? 0}
               icon={<Layers size={20} />}
               iconColor="warning"
             />
@@ -362,13 +259,7 @@ export function PointValueRulesListPage() {
           variant="outlined"
           color="secondary"
           endIcon={<ChevronRight size={16} />}
-          onClick={() =>
-            navigate(
-              `/rewards-wallet/point-value-rules/region-multipliers?partnerType=${
-                partnerTypeTab === 'all' ? 'Dealer' : partnerTypeTab
-              }`,
-            )
-          }
+          onClick={() => navigate('/rewards-wallet/point-value-rules/region-multipliers')}
           sx={{
             fontSize: '0.8125rem',
             fontWeight: 600,
@@ -389,55 +280,27 @@ export function PointValueRulesListPage() {
         <CommonTable
           tableKey="Point-value-rules-product-list"
           columns={columns}
-          rows={filteredProductRows}
-          getRowId={(row) => row.modelCode}
+          rows={filteredRows}
+          getRowId={(row) => row.productId}
           loading={isLoading}
           searchPlaceholder="Search by product name or code…"
-          searchKeys={(row) =>
-            `${row.modelCode} ${row.productCategory} ${row.productName}`
-          }
+          searchKeys={(row) => `${row.productCode} ${row.productName} ${row.categoryName ?? ''}`}
           onFilterClick={() => setFilterOpen(true)}
           filterCount={
-            (appliedFilters.productCategory !== 'all' ? 1 : 0) +
-            (appliedFilters.region !== 'all' ? 1 : 0)
+            (appliedFilters.categoryId !== 'all' ? 1 : 0) +
+            (appliedFilters.regionId.trim() ? 1 : 0)
           }
           defaultSortBy="productName"
           actions={[
             {
               label: 'View',
-              onClick: (row) => {
-                const targetRule = row.dealerRule ?? row.chemistRule
-                if (targetRule)
-                  navigate(`/rewards-wallet/point-value-rules/${targetRule.id}`)
-              },
+              onClick: (row) =>
+                navigate(`/rewards-wallet/point-value-rules/${row.productId}`),
             },
             {
               label: 'Edit',
-              onClick: (row) => {
-                const targetRule = row.dealerRule ?? row.chemistRule
-                if (targetRule)
-                  navigate(`/rewards-wallet/point-value-rules/${targetRule.id}`)
-              },
-            },
-            {
-              label: 'Activate',
-              hidden: (row) => row.status === 'active',
-              onClick: (row) => {
-                if (row.dealerRule)
-                  void setRuleStatus(row.dealerRule.id, 'active')
-                if (row.chemistRule)
-                  void setRuleStatus(row.chemistRule.id, 'active')
-              },
-            },
-            {
-              label: 'Deactivate',
-              hidden: (row) => row.status === 'inactive',
-              onClick: (row) => {
-                if (row.dealerRule)
-                  void setRuleStatus(row.dealerRule.id, 'inactive')
-                if (row.chemistRule)
-                  void setRuleStatus(row.chemistRule.id, 'inactive')
-              },
+              onClick: (row) =>
+                navigate(`/rewards-wallet/point-value-rules/${row.productId}/edit-base-value`),
             },
           ]}
           emptyTitle="No Point value rules configured"
@@ -458,18 +321,15 @@ export function PointValueRulesListPage() {
               select
               label="Product Category"
               size="small"
-              value={draft.productCategory}
+              value={draft.categoryId}
               onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  productCategory: e.target.value,
-                }))
+                setDraft((prev) => ({ ...prev, categoryId: e.target.value }))
               }
             >
               <MenuItem value="all">All Categories</MenuItem>
-              {productCategoryOptions.map((category) => (
-                <MenuItem key={category} value={category}>
-                  {category}
+              {categoryOptions.map(([id, name]) => (
+                <MenuItem key={id} value={id}>
+                  {name}
                 </MenuItem>
               ))}
             </TextField>
@@ -477,18 +337,17 @@ export function PointValueRulesListPage() {
               select
               label="Region"
               size="small"
-              value={draft.region}
+              value={draft.regionId}
               onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  region: e.target.value as PointRuleFilters['region'],
-                }))
+                setDraft((prev) => ({ ...prev, regionId: e.target.value }))
               }
             >
-              <MenuItem value="all">All Regions</MenuItem>
-              {REGIONS.map((region) => (
-                <MenuItem key={region} value={region}>
-                  {region}
+              <MenuItem value="">
+                <em>All Regions</em>
+              </MenuItem>
+              {regions.map((region) => (
+                <MenuItem key={region.id} value={region.id}>
+                  {region.name}
                 </MenuItem>
               ))}
             </TextField>

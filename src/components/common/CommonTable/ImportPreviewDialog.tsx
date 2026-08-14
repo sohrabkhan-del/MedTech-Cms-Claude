@@ -9,6 +9,7 @@ interface ImportPreviewDialogProps {
   fileName: string | null
   parsed: ParsedImportFile | null
   error: string | null
+  confirming?: boolean
 }
 
 export function ImportPreviewDialog({
@@ -18,6 +19,7 @@ export function ImportPreviewDialog({
   fileName,
   parsed,
   error,
+  confirming = false,
 }: ImportPreviewDialogProps) {
   const rows = parsed?.rows ?? []
 
@@ -31,6 +33,7 @@ export function ImportPreviewDialog({
       secondaryActionLabel="Cancel"
       primaryActionLabel={parsed && !error ? 'Confirm' : undefined}
       onPrimaryAction={onConfirm}
+      loading={confirming}
     >
       {error && <Alert severity="error">{error}</Alert>}
 

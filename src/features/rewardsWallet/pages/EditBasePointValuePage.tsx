@@ -1,240 +1,66 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import {
-  Box,
-  Button,
-  Card,
-  Chip,
-  Stack,
-  TextField,
-  Typography,
-} from '@mui/material'
+import { Box, Button, Card, Chip, Skeleton, Stack, TextField, Typography } from '@mui/material'
 import { Coins as Points, ArrowLeft as ArrowBackOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { Modal } from '@/components/common/Modal/Modal'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
-import { radius } from '@/theme/tokens'
-import { usePointRuleDetail } from '@/features/rewardsWallet/hooks/usePointRuleDetail'
-import type {
-  PointRulePartnerType,
-  PointValueRule,
-} from '@/features/rewardsWallet/types/rewardsWallet.types'
-
-const PARTNER_TYPE_STYLES: Record<
-  PointRulePartnerType,
-  { bg: string; text: string; buttonColor: 'primary' | 'warning' }
-> = {
-  Dealer: { bg: 'primary.light', text: 'primary.dark', buttonColor: 'primary' },
-  Chemist: {
-    bg: 'secondary.light',
-    text: 'secondary.dark',
-    buttonColor: 'warning',
-  },
-}
-
-interface BasePointValueCardProps {
-  partnerType: PointRulePartnerType
-  rule: PointValueRule | undefined
-  setBasePointValue: (value: number, targetRuleId?: string) => Promise<void>
-}
-
-function BasePointValueCard({
-  partnerType,
-  rule,
-  setBasePointValue,
-}: BasePointValueCardProps) {
-  const [baseValue, setBaseValue] = useState(String(rule?.basePointValue ?? ''))
-  const [confirmStep, setConfirmStep] = useState<0 | 1 | 2>(0)
-
-  if (!rule) {
-    return (
-      <Card
-        sx={{
-          p: 3,
-          backgroundColor: PARTNER_TYPE_STYLES[partnerType].bg,
-        }}
-      >
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: '0.75rem',
-            color: PARTNER_TYPE_STYLES[partnerType].text,
-            mb: 1,
-          }}
-        >
-          {partnerType}
-        </Typography>
-        <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-          No {partnerType.toLowerCase()} rule configured for this product yet.
-        </Typography>
-      </Card>
-    )
-  }
-
-  const baseValueNext = Math.max(0, Number(baseValue) || 0)
-  const unchanged = baseValueNext === rule.basePointValue
-
-  const handleFinalConfirm = () => {
-    void setBasePointValue(baseValueNext, rule.id)
-    setConfirmStep(0)
-  }
-
-  return (
-    <Card
-      sx={{
-        p: 3,
-        backgroundColor: PARTNER_TYPE_STYLES[partnerType].bg,
-      }}
-    >
-      <Stack
-        direction="row"
-        sx={{
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 2.5,
-          flexWrap: 'wrap',
-          gap: 1.5,
-        }}
-      >
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: '0.8125rem',
-            color: PARTNER_TYPE_STYLES[partnerType].text,
-          }}
-        >
-          {partnerType} Base Point Value
-        </Typography>
-        <Button
-          variant="contained"
-          color={PARTNER_TYPE_STYLES[partnerType].buttonColor}
-          disabled={unchanged}
-          onClick={() => setConfirmStep(1)}
-          sx={{ fontSize: '0.8125rem' }}
-        >
-          Save Changes
-        </Button>
-      </Stack>
-
-      <TextField
-        fullWidth
-        type="number"
-        label={`New Base Point Value (${partnerType})`}
-        size="small"
-        slotProps={{ htmlInput: { step: 1, min: 0 } }}
-        value={baseValue}
-        onChange={(e) => setBaseValue(e.target.value)}
-        sx={{
-          backgroundColor: 'background.paper',
-          borderRadius: `${radius.sm}px`,
-        }}
-      />
-
-      <Modal
-        open={confirmStep === 1}
-        onClose={() => setConfirmStep(0)}
-        title={`Confirm ${partnerType} Base Point Value Change`}
-        description="Please review the change before continuing."
-        primaryActionLabel="Continue"
-        onPrimaryAction={() => setConfirmStep(2)}
-        secondaryActionLabel="Back"
-        onSecondaryAction={() => setConfirmStep(0)}
-        maxWidth="sm"
-      >
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-            This will update the base Point value ({partnerType}) for{' '}
-            <strong>{rule.productName}</strong>.
-          </Typography>
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-          >
-            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-              Base Point Value
-            </Typography>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Chip
-                size="small"
-                variant="outlined"
-                label={rule.basePointValue}
-              />
-              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
-                →
-              </Typography>
-              <Chip size="small" color="primary" label={baseValueNext} />
-            </Stack>
-          </Stack>
-        </Stack>
-      </Modal>
-
-      <Modal
-        open={confirmStep === 2}
-        onClose={() => setConfirmStep(0)}
-        title="Are you sure?"
-        description="This is your final confirmation — the change is applied immediately and cannot be undone from here."
-        primaryActionLabel="Confirm & Save"
-        onPrimaryAction={handleFinalConfirm}
-        secondaryActionLabel="Back"
-        onSecondaryAction={() => setConfirmStep(1)}
-        maxWidth="sm"
-      >
-        <Stack spacing={2} sx={{ mt: 1 }}>
-          <Stack
-            direction="row"
-            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
-          >
-            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-              Base Point Value
-            </Typography>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Chip
-                size="small"
-                variant="outlined"
-                label={rule.basePointValue}
-              />
-              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
-                →
-              </Typography>
-              <Chip size="small" color="primary" label={baseValueNext} />
-            </Stack>
-          </Stack>
-          <Typography sx={{ fontSize: '0.75rem', color: 'warning.main' }}>
-            This will recalculate reward Point payouts for every configured
-            region of this {partnerType.toLowerCase()} rule going forward.
-            Existing partner wallets are not retroactively adjusted.
-          </Typography>
-        </Stack>
-      </Modal>
-    </Card>
-  )
-}
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import {
+  useGetProductRegionMultipliersQuery,
+  useUpdateProductBasePointsMutation,
+} from '@/features/rewardsWallet/services/pointValueRulesApi'
 
 export function EditBasePointValuePage() {
   const navigate = useNavigate()
-  const { ruleId } = useParams<{ ruleId: string }>()
-  const { rule, siblingRule, setBasePointValue, isLoading } =
-    usePointRuleDetail(ruleId)
+  const toast = useToast()
+  const { ruleId: productId } = useParams<{ ruleId: string }>()
+  const { data: detail, isFetching: isLoading } = useGetProductRegionMultipliersQuery(
+    productId ?? '',
+    { skip: !productId },
+  )
+  const [updateBasePoints, { isLoading: isSaving }] = useUpdateProductBasePointsMutation()
 
-  if (isLoading) {
-    return <DetailsPageSkeleton sections={2} />
-  }
+  const [dealerValue, setDealerValue] = useState<string | null>(null)
+  const [chemistValue, setChemistValue] = useState<string | null>(null)
+  const [confirmStep, setConfirmStep] = useState<0 | 1 | 2>(0)
 
-  if (!rule) {
+  if (!isLoading && !detail) {
     return (
       <EmptyState
         title="Point value rule not found"
-        description="This rule may have been removed."
+        description="This product may have been removed."
         actionLabel="Back to Point Value Rules"
-        onAction={() => navigate('/rewards-wallet/point-value-rules')}
+        onAction={() => navigate('/rewards-wallet/point-value-rules/all')}
       />
     )
   }
 
-  const dealerRule = rule.partnerType === 'Dealer' ? rule : siblingRule
-  const chemistRule = rule.partnerType === 'Chemist' ? rule : siblingRule
+  const dealerInput = dealerValue ?? String(detail?.dealerProductPoints ?? 0)
+  const chemistInput = chemistValue ?? String(detail?.chemistProductPoints ?? 0)
+  const dealerNext = Math.max(0, Number(dealerInput) || 0)
+  const chemistNext = Math.max(0, Number(chemistInput) || 0)
+  const dealerDirty = !!detail && dealerNext !== detail.dealerProductPoints
+  const chemistDirty = !!detail && chemistNext !== detail.chemistProductPoints
+
+  const handleFinalConfirm = async () => {
+    if (!productId) return
+    try {
+      await updateBasePoints({
+        id: productId,
+        dealerProductPoints: dealerNext,
+        chemistProductPoints: chemistNext,
+      }).unwrap()
+      toast.success('Base point values updated successfully.')
+      setDealerValue(null)
+      setChemistValue(null)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to update base point values.'))
+    }
+    setConfirmStep(0)
+  }
 
   return (
     <>
@@ -264,19 +90,26 @@ export function EditBasePointValuePage() {
             <Points size={20} />
           </Box>
           <Box>
-            <Typography variant="h1">Edit Base Point Value</Typography>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {rule.productName} · {rule.modelCode}
-            </Typography>
+            {detail ? (
+              <>
+                <Typography variant="h1">Edit Base Point Value</Typography>
+                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                  {detail.productName} · {detail.productCode}
+                </Typography>
+              </>
+            ) : (
+              <>
+                <Typography variant="h1">Edit Base Point Value</Typography>
+                <Skeleton variant="text" width={160} height={24} />
+              </>
+            )}
           </Box>
         </Stack>
 
         <Button
           variant="outlined"
           startIcon={<ArrowBackOutlined size={18} />}
-          onClick={() =>
-            navigate(`/rewards-wallet/point-value-rules/${rule.id}`)
-          }
+          onClick={() => navigate(`/rewards-wallet/point-value-rules/${productId}`)}
           sx={{ fontSize: '0.8125rem' }}
         >
           Back to Details
@@ -285,64 +118,179 @@ export function EditBasePointValuePage() {
 
       <Stack spacing={3}>
         <SectionCard title="Overview">
-          <DetailFieldGrid
-            fields={[
-              { label: 'Rule ID (Model Code)', value: rule.modelCode },
-              { label: 'Product Category', value: rule.productCategory },
-              { label: 'Default Point Value', value: rule.defaultPointValue },
-              {
-                label: 'Base Point Value (Dealer)',
-                labelColor: 'primary.main',
-                value: (
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '0.8125rem',
-                      color: 'primary.main',
-                    }}
-                  >
-                    {dealerRule?.basePointValue ?? '—'}
-                  </Typography>
-                ),
-              },
-
-              { label: 'Total Configured Regions', value: rule.regions.length },
-              { label: 'Last Modified By', value: rule.lastModifiedBy },
-              { label: 'Last Updated Time', value: rule.lastUpdatedTime },
-              {
-                label: 'Base Point Value (Chemist)',
-                labelColor: 'secondary.main',
-                value: (
-                  <Typography
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: '0.8125rem',
-                      color: 'secondary.main',
-                    }}
-                  >
-                    {chemistRule?.basePointValue ?? '—'}
-                  </Typography>
-                ),
-              },
-            ]}
-          />
+          {detail ? (
+            <DetailFieldGrid
+              fields={[
+                { label: 'Product Code', value: detail.productCode },
+                { label: 'Product Category', value: detail.categoryName ?? '-' },
+                {
+                  label: 'Base Point Value (Dealer)',
+                  labelColor: 'primary.main',
+                  value: detail.dealerProductPoints,
+                },
+                {
+                  label: 'Base Point Value (Chemist)',
+                  labelColor: 'secondary.main',
+                  value: detail.chemistProductPoints,
+                },
+                { label: 'Total Configured Regions', value: detail.regions.length },
+                {
+                  label: 'Last Updated Time',
+                  value: detail.updatedAt ? new Date(detail.updatedAt).toLocaleString('en-IN') : '-',
+                },
+              ]}
+            />
+          ) : (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: 2,
+              }}
+            >
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Box key={i}>
+                  <Skeleton variant="text" width="60%" height={16} />
+                  <Skeleton variant="rounded" width="90%" height={24} />
+                </Box>
+              ))}
+            </Box>
+          )}
         </SectionCard>
 
         <Stack spacing={3}>
-          <BasePointValueCard
-            key={`dealer-${dealerRule?.basePointValue ?? 'none'}`}
-            partnerType="Dealer"
-            rule={dealerRule}
-            setBasePointValue={setBasePointValue}
-          />
-          <BasePointValueCard
-            key={`chemist-${chemistRule?.basePointValue ?? 'none'}`}
-            partnerType="Chemist"
-            rule={chemistRule}
-            setBasePointValue={setBasePointValue}
-          />
+          <Card sx={{ p: 3, backgroundColor: 'primary.light' }}>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: '0.8125rem', color: 'primary.dark', mb: 2.5 }}
+            >
+              Dealer Base Point Value
+            </Typography>
+            <TextField
+              fullWidth
+              type="number"
+              label="New Base Point Value (Dealer)"
+              size="small"
+              disabled={!detail}
+              slotProps={{ htmlInput: { step: 1, min: 0 } }}
+              value={dealerInput}
+              onChange={(e) => setDealerValue(e.target.value)}
+              sx={{ backgroundColor: 'background.paper', borderRadius: '10px' }}
+            />
+            {dealerDirty && (
+              <Stack direction="row" sx={{ mt: 2.5 }}>
+                <Button
+                  variant="contained"
+                  onClick={() => setConfirmStep(1)}
+                  sx={{ fontSize: '0.8125rem' }}
+                >
+                  Save Changes
+                </Button>
+              </Stack>
+            )}
+          </Card>
+
+          <Card sx={{ p: 3, backgroundColor: 'secondary.light' }}>
+            <Typography
+              sx={{ fontWeight: 700, fontSize: '0.8125rem', color: 'secondary.dark', mb: 2.5 }}
+            >
+              Chemist Base Point Value
+            </Typography>
+            <TextField
+              fullWidth
+              type="number"
+              label="New Base Point Value (Chemist)"
+              size="small"
+              disabled={!detail}
+              slotProps={{ htmlInput: { step: 1, min: 0 } }}
+              value={chemistInput}
+              onChange={(e) => setChemistValue(e.target.value)}
+              sx={{ backgroundColor: 'background.paper', borderRadius: '10px' }}
+            />
+            {chemistDirty && (
+              <Stack direction="row" sx={{ mt: 2.5 }}>
+                <Button
+                  variant="contained"
+                  color="warning"
+                  onClick={() => setConfirmStep(1)}
+                  sx={{ fontSize: '0.8125rem' }}
+                >
+                  Save Changes
+                </Button>
+              </Stack>
+            )}
+          </Card>
         </Stack>
       </Stack>
+
+      <Modal
+        open={confirmStep === 1}
+        onClose={() => setConfirmStep(0)}
+        title="Confirm Base Point Value Change"
+        description="Please review the change before continuing."
+        primaryActionLabel="Continue"
+        onPrimaryAction={() => setConfirmStep(2)}
+        secondaryActionLabel="Back"
+        onSecondaryAction={() => setConfirmStep(0)}
+        maxWidth="sm"
+      >
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
+            This will update the base Point values for <strong>{detail?.productName}</strong>.
+          </Typography>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Dealer</Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Chip size="small" variant="outlined" label={detail?.dealerProductPoints ?? 0} />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip size="small" color="primary" label={dealerNext} />
+            </Stack>
+          </Stack>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Chemist</Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Chip size="small" variant="outlined" label={detail?.chemistProductPoints ?? 0} />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip size="small" color="primary" label={chemistNext} />
+            </Stack>
+          </Stack>
+        </Stack>
+      </Modal>
+
+      <Modal
+        open={confirmStep === 2}
+        onClose={() => setConfirmStep(0)}
+        title="Are you sure?"
+        description="This is your final confirmation — the change is applied immediately and cannot be undone from here."
+        primaryActionLabel="Confirm & Save"
+        onPrimaryAction={() => void handleFinalConfirm()}
+        secondaryActionLabel="Back"
+        onSecondaryAction={() => setConfirmStep(1)}
+        loading={isSaving}
+        maxWidth="sm"
+      >
+        <Stack spacing={2} sx={{ mt: 1 }}>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Dealer</Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Chip size="small" variant="outlined" label={detail?.dealerProductPoints ?? 0} />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip size="small" color="primary" label={dealerNext} />
+            </Stack>
+          </Stack>
+          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Chemist</Typography>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+              <Chip size="small" variant="outlined" label={detail?.chemistProductPoints ?? 0} />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip size="small" color="primary" label={chemistNext} />
+            </Stack>
+          </Stack>
+          <Typography sx={{ fontSize: '0.75rem', color: 'warning.main' }}>
+            This will recalculate reward Point payouts for every configured region of this
+            product going forward. Existing partner wallets are not retroactively adjusted.
+          </Typography>
+        </Stack>
+      </Modal>
     </>
   )
 }

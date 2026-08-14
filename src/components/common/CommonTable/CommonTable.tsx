@@ -81,6 +81,8 @@ interface CommonTableProps<T> {
   rows: T[]
   getRowId: (row: T) => string
   loading?: boolean
+  /** Hides the search input entirely. Defaults to false (search shown). */
+  hideSearch?: boolean
   searchPlaceholder?: string
   searchValue?: string
   onSearchChange?: (value: string) => void
@@ -93,7 +95,9 @@ interface CommonTableProps<T> {
   /** Shows the Export button. Downloads the currently visible columns/rows as CSV; pass a function to run extra logic after the download starts. */
   onExportClick?: () => void
   /** Shows the Import button. Parses the chosen file, opens a preview, and calls this with the parsed rows when the user confirms the import. */
-  onImportClick?: (parsed: ParsedImportFile) => void
+  onImportClick?: (parsed: ParsedImportFile) => void | Promise<void>
+  /** Shows a "Download Template" option in the Import/Export menu, e.g. to hand the user a fillable .xlsx template. */
+  onDownloadTemplateClick?: () => void
   /** When provided, makes each row clickable (hover highlight + Pointer cursor) and calls this with the clicked row. */
   onRowClick?: (row: T) => void
   createAction?: CommonTableCreateAction
@@ -128,6 +132,7 @@ export function CommonTable<T>({
   rows,
   getRowId,
   loading = false,
+  hideSearch = false,
   searchPlaceholder = 'Search…',
   searchValue,
   onSearchChange,
@@ -138,6 +143,7 @@ export function CommonTable<T>({
   filterCount = 0,
   onExportClick,
   onImportClick,
+  onDownloadTemplateClick,
   onRowClick,
   createAction,
   emptyTitle = 'No records found',
@@ -190,6 +196,7 @@ export function CommonTable<T>({
     null,
   )
   const [importError, setImportError] = useState<string | null>(null)
+  const [importConfirming, setImportConfirming] = useState(false)
 
   const visibleColumns = useMemo(
     () => columns.filter((col) => !hidden.has(col.key)),
@@ -282,9 +289,15 @@ export function CommonTable<T>({
     }
   }
 
-  const handleImportConfirm = () => {
-    if (importParsed) onImportClick?.(importParsed)
-    setImportOpen(false)
+  const handleImportConfirm = async () => {
+    if (!importParsed) return
+    setImportConfirming(true)
+    try {
+      await onImportClick?.(importParsed)
+      setImportOpen(false)
+    } finally {
+      setImportConfirming(false)
+    }
   }
 
   return (
@@ -298,36 +311,40 @@ export function CommonTable<T>({
           justifyContent: 'space-between',
         }}
       >
-        <TextField
-          size="small"
-          placeholder={searchPlaceholder}
-          value={activeSearch}
-          onChange={(e) => {
-            const nextSearch = e.target.value
-            if (onSearchChange) {
-              onSearchChange(nextSearch)
-            } else {
-              setSearch(nextSearch)
-            }
-            setPage(0)
-          }}
-          sx={{
-            width: { xs: '100%', sm: 260 },
-            '& .MuiOutlinedInput-root': { height: 36, fontSize: '0.8125rem' },
-          }}
-          slotProps={{
-            input: {
-              startAdornment: (
-                <InputAdornment
-                  position="start"
-                  sx={{ color: 'text.disabled' }}
-                >
-                  <Search size={20} />
-                </InputAdornment>
-              ),
-            },
-          }}
-        />
+        {hideSearch ? (
+          <Box />
+        ) : (
+          <TextField
+            size="small"
+            placeholder={searchPlaceholder}
+            value={activeSearch}
+            onChange={(e) => {
+              const nextSearch = e.target.value
+              if (onSearchChange) {
+                onSearchChange(nextSearch)
+              } else {
+                setSearch(nextSearch)
+              }
+              setPage(0)
+            }}
+            sx={{
+              width: { xs: '100%', sm: 260 },
+              '& .MuiOutlinedInput-root': { height: 36, fontSize: '0.8125rem' },
+            }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment
+                    position="start"
+                    sx={{ color: 'text.disabled' }}
+                  >
+                    <Search size={20} />
+                  </InputAdornment>
+                ),
+              },
+            }}
+          />
+        )}
         <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
           {onFilterClick && (
             <Button
@@ -373,7 +390,7 @@ export function CommonTable<T>({
                 </MenuItem>
               ))}
           </Menu>
-          {(onImportClick || onExportClick) && (
+          {(onImportClick || onExportClick || onDownloadTemplateClick) && (
             <>
               {onImportClick && (
                 <input
@@ -420,6 +437,19 @@ export function CommonTable<T>({
                   >
                     <Upload size={15} style={{ marginRight: 8 }} />
                     Import Excel
+                  </MenuItem>
+                )}
+                {onDownloadTemplateClick && (
+                  <MenuItem
+                    dense
+                    sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}
+                    onClick={() => {
+                      setIoMenuAnchor(null)
+                      onDownloadTemplateClick()
+                    }}
+                  >
+                    <FileSpreadsheet size={15} style={{ marginRight: 8 }} />
+                    Download Template
                   </MenuItem>
                 )}
                 {onExportClick && (
@@ -610,6 +640,7 @@ export function CommonTable<T>({
           fileName={importFileName}
           parsed={importParsed}
           error={importError}
+          confirming={importConfirming}
         />
       )}
     </Box>

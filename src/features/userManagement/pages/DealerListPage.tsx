@@ -31,6 +31,11 @@ import {
   useActivateDealerMutation,
   useDeactivateDealerMutation,
 } from '@/features/userManagement/services/dealerApi'
+import { useBulkCreatePartnersMutation } from '@/features/userManagement/services/partnersBulkApi'
+import {
+  downloadPartnerBulkTemplate,
+  mapParsedRowsToPartnerBulk,
+} from '@/features/userManagement/utils/partnerBulkImport'
 import { useGetMedicalRepOptionsQuery } from '@/features/systemUsers/services/medicalRepsApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
@@ -63,6 +68,7 @@ export function DealerListPage() {
   const { regionId: topbarRegionId } = useRegionFilter()
   const [activateDealer] = useActivateDealerMutation()
   const [deactivateDealer] = useDeactivateDealerMutation()
+  const [bulkCreatePartners] = useBulkCreatePartnersMutation()
   const { data: mrOptions = [] } = useGetMedicalRepOptionsQuery()
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
   const [search, setSearch] = useState('')
@@ -282,7 +288,28 @@ export function DealerListPage() {
           (appliedFilters.regionId.trim() ? 1 : 0)
         }
         onExportClick={() => {}}
-        onImportClick={() => {}}
+        onImportClick={async (parsed) => {
+          const { rows, errors } = mapParsedRowsToPartnerBulk(parsed, 'DEALER')
+          if (errors.length > 0) {
+            toast.error(`Fix these rows before importing: ${errors.join('; ')}`)
+            return
+          }
+          try {
+            const result = await bulkCreatePartners({ rows }).unwrap()
+            if (result.failed > 0) {
+              toast.error(
+                `Imported ${result.created} dealer(s), ${result.failed} failed: ${result.errors
+                  .map((e) => `Row ${e.row}: ${e.message}`)
+                  .join('; ')}`,
+              )
+            } else {
+              toast.success(`Imported ${result.created} dealer(s) successfully.`)
+            }
+          } catch (err) {
+            toast.error(getApiErrorMessage(err, 'Failed to import dealers.'))
+          }
+        }}
+        onDownloadTemplateClick={() => downloadPartnerBulkTemplate('dealer-bulk-upload-template')}
         createAction={{ label: 'Create Dealer', to: '/partners/dealers/new' }}
         defaultSortBy="shopName"
         defaultSortDir="desc"

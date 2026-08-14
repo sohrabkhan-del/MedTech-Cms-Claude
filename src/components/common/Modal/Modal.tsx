@@ -23,6 +23,7 @@ interface ModalProps {
   primaryActionLabel?: string
   onPrimaryAction?: () => void
   primaryActionColor?: 'primary' | 'error'
+  primaryActionDisabled?: boolean
   secondaryActionLabel?: string
   onSecondaryAction?: () => void
   loading?: boolean
@@ -38,6 +39,7 @@ export function Modal({
   primaryActionLabel,
   onPrimaryAction,
   primaryActionColor = 'primary',
+  primaryActionDisabled = false,
   secondaryActionLabel = 'Cancel',
   onSecondaryAction,
   loading = false,
@@ -101,6 +103,7 @@ export function Modal({
               color={primaryActionColor}
               onClick={onPrimaryAction}
               loading={loading}
+              disabled={primaryActionDisabled}
             >
               {primaryActionLabel}
             </Button>

@@ -8,6 +8,7 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Skeleton,
   Stack,
   Typography,
 } from '@mui/material'
@@ -28,7 +29,6 @@ import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailField
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
-import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import {
   WalletAdjustmentModal,
   type AdjustmentType,
@@ -63,11 +63,7 @@ export function WalletDetailsPage() {
   const [adjustmentType, setAdjustmentType] = useState<AdjustmentType | null>(null)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
 
-  if (isLoading) {
-    return <DetailsPageSkeleton sections={4} />
-  }
-
-  if (!details || error) {
+  if (!isLoading && (!details || error)) {
     return (
       <EmptyState
         title="Wallet not found"
@@ -78,7 +74,7 @@ export function WalletDetailsPage() {
     )
   }
 
-  const currentBalance = details.currentWalletBalance
+  const currentBalance = details?.currentWalletBalance ?? 0
 
   async function handleAdjust(payload: { type: AdjustmentType; amount: number; reason: string }) {
     if (!partnerId) return
@@ -125,17 +121,26 @@ export function WalletDetailsPage() {
             <WalletIcon size={18} />
           </Box>
           <Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Typography variant="h1">{details.businessName}</Typography>
-              <Chip
-                size="small"
-                label={statusConfig[details.status]?.label ?? details.status}
-                color={statusConfig[details.status]?.color ?? 'default'}
-              />
-            </Stack>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {details.referenceId} · {details.userType}
-            </Typography>
+            {details ? (
+              <>
+                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Typography variant="h1">{details.businessName}</Typography>
+                  <Chip
+                    size="small"
+                    label={statusConfig[details.status]?.label ?? details.status}
+                    color={statusConfig[details.status]?.color ?? 'default'}
+                  />
+                </Stack>
+                <Typography variant="body1" sx={{ color: 'text.secondary' }}>
+                  {details.referenceId} · {details.userType}
+                </Typography>
+              </>
+            ) : (
+              <>
+                <Skeleton variant="text" width={220} height={36} />
+                <Skeleton variant="text" width={160} height={24} />
+              </>
+            )}
           </Box>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
@@ -144,6 +149,7 @@ export function WalletDetailsPage() {
             color="success"
             startIcon={<PlusCircle size={18} />}
             onClick={() => setAdjustmentType('add')}
+            disabled={!details}
             sx={{ fontSize: '0.8125rem' }}
           >
             Add Points
@@ -153,6 +159,7 @@ export function WalletDetailsPage() {
             color="error"
             startIcon={<MinusCircle size={18} />}
             onClick={() => setAdjustmentType('deduct')}
+            disabled={!details}
             sx={{ fontSize: '0.8125rem' }}
           >
             Deduct Points
@@ -167,6 +174,7 @@ export function WalletDetailsPage() {
           </Button>
           <IconButton
             onClick={(e) => setMoreMenuAnchor(e.currentTarget)}
+            disabled={!details}
             sx={{ border: '1px solid', borderColor: 'divider' }}
             aria-label="More actions"
           >
@@ -180,6 +188,7 @@ export function WalletDetailsPage() {
             <MenuItem
               onClick={() => {
                 setMoreMenuAnchor(null)
+                if (!details) return
                 navigate(
                   details.userType === 'Dealer'
                     ? `/partners/dealers/${details.partnerId}`
@@ -188,7 +197,7 @@ export function WalletDetailsPage() {
               }}
             >
               <ExternalLink size={18} style={{ marginRight: 12 }} />
-              View {details.userType} Profile
+              View {details?.userType ?? 'Partner'} Profile
             </MenuItem>
           </Menu>
         </Stack>
@@ -196,69 +205,90 @@ export function WalletDetailsPage() {
 
       <Stack spacing={3}>
         <SectionCard title="Summary">
-          <DetailFieldGrid
-            fields={[
-              { label: 'Business Name', value: details.businessName },
-              { label: 'Owner Name', value: details.ownerName },
-              { label: 'User Type', value: details.userType },
-              { label: 'Mobile Number', value: details.mobileNumber },
-              { label: 'Email Address', value: details.email },
-              { label: 'Region', value: details.regionName },
-              {
-                label: 'Account Status',
-                value: (
-                  <Chip
-                    size="small"
-                    label={statusConfig[details.status]?.label ?? details.status}
-                    color={statusConfig[details.status]?.color ?? 'default'}
-                  />
-                ),
-              },
-              {
-                label: 'Current Wallet Balance',
-                value: currentBalance.toLocaleString('en-IN'),
-              },
-              {
-                label: 'Last Updated Date & Time',
-                value: new Date(details.updatedAt).toLocaleString('en-IN'),
-              },
-            ]}
-          />
+          {details ? (
+            <DetailFieldGrid
+              fields={[
+                { label: 'Business Name', value: details.businessName },
+                { label: 'Owner Name', value: details.ownerName },
+                { label: 'User Type', value: details.userType },
+                { label: 'Mobile Number', value: details.mobileNumber },
+                { label: 'Email Address', value: details.email },
+                { label: 'Region', value: details.regionName },
+                {
+                  label: 'Account Status',
+                  value: (
+                    <Chip
+                      size="small"
+                      label={statusConfig[details.status]?.label ?? details.status}
+                      color={statusConfig[details.status]?.color ?? 'default'}
+                    />
+                  ),
+                },
+                {
+                  label: 'Current Wallet Balance',
+                  value: currentBalance.toLocaleString('en-IN'),
+                },
+                {
+                  label: 'Last Updated Date & Time',
+                  value: new Date(details.updatedAt).toLocaleString('en-IN'),
+                },
+              ]}
+            />
+          ) : (
+            <Grid container spacing={2}>
+              {Array.from({ length: 8 }).map((_, i) => (
+                <Grid key={i} size={{ xs: 12, sm: 6, lg: 3 }}>
+                  <Skeleton variant="text" width="60%" height={16} />
+                  <Skeleton variant="rounded" width="90%" height={24} />
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </SectionCard>
 
         <Grid container spacing={3}>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Current Wallet Balance"
-              value={currentBalance.toLocaleString('en-IN')}
-              icon={<Points size={20} />}
-              iconColor="primary"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Lifetime Points Earned"
-              value={details.lifetimePointsEarned.toLocaleString('en-IN')}
-              icon={<TrendingUp size={20} />}
-              iconColor="success"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Lifetime Points Redeemed"
-              value={details.lifetimePointsRedeemed.toLocaleString('en-IN')}
-              icon={<TrendingDown size={20} />}
-              iconColor="secondary"
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-            <StatCard
-              label="Pending Redemption Points"
-              value={details.pendingRedemptionPoints.toLocaleString('en-IN')}
-              icon={<Clock3 size={20} />}
-              iconColor="info"
-            />
-          </Grid>
+          {details ? (
+            <>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Current Wallet Balance"
+                  value={currentBalance.toLocaleString('en-IN')}
+                  icon={<Points size={20} />}
+                  iconColor="primary"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Lifetime Points Earned"
+                  value={details.lifetimePointsEarned.toLocaleString('en-IN')}
+                  icon={<TrendingUp size={20} />}
+                  iconColor="success"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Lifetime Points Redeemed"
+                  value={details.lifetimePointsRedeemed.toLocaleString('en-IN')}
+                  icon={<TrendingDown size={20} />}
+                  iconColor="secondary"
+                />
+              </Grid>
+              <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCard
+                  label="Pending Redemption Points"
+                  value={details.pendingRedemptionPoints.toLocaleString('en-IN')}
+                  icon={<Clock3 size={20} />}
+                  iconColor="info"
+                />
+              </Grid>
+            </>
+          ) : (
+            Array.from({ length: 4 }).map((_, i) => (
+              <Grid key={i} size={{ xs: 12, sm: 6, lg: 3 }}>
+                <StatCardSkeleton />
+              </Grid>
+            ))
+          )}
         </Grid>
 
         <PointsHistoryCard partnerId={partnerId} />

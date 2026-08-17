@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import {
   Controller,
   useFieldArray,
@@ -32,6 +32,7 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { radius } from '@/theme/tokens'
 import { useSchemeForm } from '@/features/schemeManagement/hooks/useSchemeForm'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import type { SchemeMasterProductOption } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
 import {
   schemeFormDefaults,
@@ -156,6 +157,8 @@ export function SchemeFormPage() {
   const { schemeId } = useParams<{ schemeId: string }>()
   const [searchParams] = useSearchParams()
   const cloneFromId = !schemeId ? searchParams.get('cloneFrom') : null
+  const [productSearch, setProductSearch] = useState('')
+  const debouncedProductSearch = useDebouncedValue(productSearch, 400)
   const {
     isEdit,
     scheme,
@@ -164,7 +167,7 @@ export function SchemeFormPage() {
     isLoading,
     isSubmitting,
     submit,
-  } = useSchemeForm(schemeId, cloneFromId)
+  } = useSchemeForm(schemeId, cloneFromId, debouncedProductSearch)
 
   const listPath = '/scheme-management/schemes'
 
@@ -686,18 +689,14 @@ export function SchemeFormPage() {
                 attachedProductIds.has(p.id),
               )}
               getOptionLabel={(option) => option.name}
-              filterOptions={(opts, state) => {
-                const query = state.inputValue.trim().toLowerCase()
-                const filtered = query
-                  ? opts.filter(
-                      (opt) =>
-                        opt.name.toLowerCase().includes(query) ||
-                        opt.code.toLowerCase().includes(query),
-                    )
+              onInputChange={(_, value, reason) => {
+                if (reason === 'input') setProductSearch(value)
+                if (reason === 'clear') setProductSearch('')
+              }}
+              filterOptions={(opts) => {
+                return opts.length > 0
+                  ? [SELECT_ALL_PRODUCTS_OPTION, ...opts]
                   : opts
-                return filtered.length > 0
-                  ? [SELECT_ALL_PRODUCTS_OPTION, ...filtered]
-                  : filtered
               }}
               renderOption={(props, option) => {
                 if (option.id === SELECT_ALL_PRODUCTS_OPTION.id) {

@@ -13,7 +13,6 @@ import {
 import {
   Target,
   Sparkle,
-  ArrowLeft as ArrowBackOutlined,
   Pencil,
   Copy,
   Trash2,
@@ -68,9 +67,18 @@ function applicableProductColumns(): CommonTableColumn<SchemeApplicableProduct>[
       header: 'Product',
       minWidth: 200,
       render: (row) => (
-        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-          {getProductById(row.productId)?.productName ?? row.productId}
-        </Typography>
+        <>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
+            {row.productName ??
+              getProductById(row.productId)?.productName ??
+              row.productId}
+          </Typography>
+          {(row.productCode ?? getProductById(row.productId)?.productCode) && (
+            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+              {row.productCode ?? getProductById(row.productId)?.productCode}
+            </Typography>
+          )}
+        </>
       ),
     },
     {
@@ -160,7 +168,7 @@ function giftRuleColumns(
             navigate(`/scheme-management/gift-catalogue/${row.giftId}`)
           }
         >
-          {getGiftById(row.giftId)?.giftName ?? row.giftId}
+          {row.giftName ?? getGiftById(row.giftId)?.giftName ?? row.giftId}
         </Typography>
       ),
     },
@@ -376,9 +384,6 @@ export function SchemeDetailsPage() {
                 color={scheme.status === 'active' ? 'success' : 'default'}
               />
             </Stack>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {scheme.id}
-            </Typography>
           </Box>
         </Stack>
         <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap' }}>
@@ -422,14 +427,6 @@ export function SchemeDetailsPage() {
           >
             Delete
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackOutlined size={20} />}
-            onClick={() => navigate(LIST_PATH)}
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Back
-          </Button>
         </Stack>
       </Stack>
 
@@ -452,7 +449,10 @@ export function SchemeDetailsPage() {
         <SectionCard title="Scheme Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Scheme ID', value: scheme.id },
+              {
+                label: 'Scheme Code',
+                value: scheme.schemeCode ?? scheme.code ?? '—',
+              },
               {
                 label: 'Type',
                 value: scheme.type === 'general' ? 'General' : 'Seasonal',
@@ -467,8 +467,45 @@ export function SchemeDetailsPage() {
                   />
                 ),
               },
+              {
+                label: 'Priority',
+                value:
+                  scheme.priority != null ? scheme.priority.toString() : '—',
+              },
               { label: 'Start Date', value: scheme.startDate },
               { label: 'End Date', value: scheme.endDate ?? 'No end date' },
+              {
+                label: 'Dealer Points',
+                value: (
+                  scheme.totalDealerPoints ??
+                  dealerTotal ??
+                  0
+                ).toLocaleString('en-IN'),
+              },
+              {
+                label: 'Chemist Points',
+                value: (
+                  scheme.totalChemistPoints ??
+                  chemistTotal ??
+                  0
+                ).toLocaleString('en-IN'),
+              },
+              {
+                label: 'Applicable to All Products',
+                value: scheme.applicableToAllProducts ? 'Yes' : 'No',
+              },
+              {
+                label: 'Auto Enroll',
+                value: scheme.autoEnroll ? 'Yes' : 'No',
+              },
+              {
+                label: 'Redemption Type',
+                value: scheme.redemptionType ?? '—',
+              },
+              {
+                label: 'Point Calculation',
+                value: scheme.pointCalculationType ?? '—',
+              },
             ]}
           />
         </SectionCard>

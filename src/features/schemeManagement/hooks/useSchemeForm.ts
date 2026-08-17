@@ -6,48 +6,93 @@ import {
   useGetSchemeFormOptionsQuery,
   useCreateSchemeMutation,
   useUpdateSchemeMutation,
-  useLazyCheckSchemeNameAvailableQuery,
 } from '@/features/schemeManagement/services/schemesApi'
+import { useGetGiftsQuery } from '@/features/schemeManagement/services/giftsApi'
+import { useGetProductsQuery } from '@/features/inventoryManagement/services/productsApi'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import type { SchemeFormValues } from '@/features/schemeManagement/types/schemeManagement.types'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useSchemeForm(schemeId: string | undefined, cloneFromId: string | null) {
+const ALL_INDIA_REGION = 'All India'
+
+export function useSchemeForm(
+  schemeId: string | undefined,
+  cloneFromId: string | null,
+  productSearch?: string,
+) {
   const isEdit = !!schemeId
   const toast = useToast()
+  const { region, regionId: topbarRegionId, dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const effectiveRegionId =
+    region === ALL_INDIA_REGION ? undefined : (topbarRegionId ?? undefined)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   const schemeResult = useGetSchemeDetailQuery(schemeId ?? skipToken)
   const cloneSourceResult = useGetSchemeDetailQuery(!schemeId && cloneFromId ? cloneFromId : skipToken)
   const optionsResult = useGetSchemeFormOptionsQuery()
+  const giftsResult = useGetGiftsQuery({
+    ...analyticsParams,
+    page: 1,
+    limit: 10,
+    regionId: effectiveRegionId,
+    sortBy: 'name',
+    sortOrder: 'desc',
+  })
+  const productsResult = useGetProductsQuery({
+    page: 1,
+    limit: 10,
+    search: productSearch || undefined,
+    sortOrder: 'desc',
+  })
   const [createScheme] = useCreateSchemeMutation()
   const [updateScheme] = useUpdateSchemeMutation()
-  const [checkNameAvailable] = useLazyCheckSchemeNameAvailableQuery()
 
   const isLoading =
     (isEdit && schemeResult.isLoading) ||
     (!isEdit && !!cloneFromId && cloneSourceResult.isLoading) ||
-    optionsResult.isLoading
+    optionsResult.isLoading ||
+    giftsResult.isLoading ||
+    productsResult.isLoading
   const loadError = schemeResult.error
     ? getApiErrorMessage(schemeResult.error, 'Failed to load scheme form data.')
     : cloneSourceResult.error
       ? getApiErrorMessage(cloneSourceResult.error, 'Failed to load scheme form data.')
       : optionsResult.error
         ? getApiErrorMessage(optionsResult.error, 'Failed to load scheme form data.')
-        : null
+        : giftsResult.error
+          ? getApiErrorMessage(giftsResult.error, 'Failed to load gift products.')
+          : productsResult.error
+            ? getApiErrorMessage(productsResult.error, 'Failed to load applicable products.')
+            : null
+  const options = optionsResult.data
+    ? {
+        ...optionsResult.data,
+        giftProductOptions: (giftsResult.data ?? []).map((gift) => ({
+          id: gift.id,
+          name: gift.giftName,
+          image: gift.giftImage,
+          price: gift.price,
+          dealerBasePoints: gift.dealerBasePoints,
+          chemistBasePoints: gift.chemistBasePoints,
+        })),
+        masterProductOptions: (productsResult.data ?? []).map((product) => ({
+          id: product.id,
+          name: product.productName || product.productCode || product.id,
+          code: product.productCode,
+          category: product.productCategory,
+          dealerRewardPoints: product.dealerRewardPoints,
+          chemistRewardPoints: product.chemistRewardPoints,
+        })),
+      }
+    : null
 
   async function submit(values: SchemeFormValues) {
     setIsSubmitting(true)
     setSubmitError(null)
     try {
-      const nameAvailable = await checkNameAvailable({ name: values.name, excludeId: schemeId }).unwrap()
-      if (!nameAvailable) {
-        const message = 'A scheme with this name already exists.'
-        setSubmitError(message)
-        toast.error(message)
-        return false
-      }
-
       if (isEdit && schemeId) {
         await updateScheme({ id: schemeId, values }).unwrap()
       } else {
@@ -69,7 +114,7 @@ export function useSchemeForm(schemeId: string | undefined, cloneFromId: string 
     isEdit,
     scheme: schemeResult.data,
     cloneSource: cloneSourceResult.data,
-    options: optionsResult.data ?? null,
+    options,
     isLoading,
     isSubmitting,
     error: loadError ?? submitError,

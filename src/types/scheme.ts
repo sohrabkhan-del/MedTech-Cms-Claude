@@ -8,10 +8,13 @@ export type SchemePartnerStatus = 'interested' | 'enrolled' | 'redeemed'
 /** Per-partner-type base point value plus its own per-region payout multipliers for one Product Master item attached to a scheme. */
 export interface SchemeApplicableProduct {
   productId: string
+  productName?: string
+  productCode?: string
   dealerBasePointValue: number | null
   chemistBasePointValue: number | null
-  dealerRegionMultipliers: Partial<Record<PartnerZone, number>>
-  chemistRegionMultipliers: Partial<Record<PartnerZone, number>>
+  /** Keys can be PartnerZone names or region IDs depending on API; UI should prefer readable names when available. */
+  dealerRegionMultipliers: Partial<Record<string, number>>
+  chemistRegionMultipliers: Partial<Record<string, number>>
 }
 
 /** Per-partner-type redemption rule (price / Points / discount price) for one gift attached to a scheme. */
@@ -23,6 +26,7 @@ export interface SchemeGiftPartnerRule {
 
 export interface SchemeGiftRule {
   giftId: string
+  giftName?: string
   dealerRule: SchemeGiftPartnerRule | null
   chemistRule: SchemeGiftPartnerRule | null
 }
@@ -58,5 +62,17 @@ export interface Scheme {
   disclaimer?: string
   image?: string
   banner?: string
+  code?: string
+  referenceId?: string
+  schemeCode?: string
+  totalDealerPoints?: number
+  totalChemistPoints?: number
+  priority?: number
+  applicableToAllProducts?: boolean
+  autoEnroll?: boolean
+  pointCalculationType?: string
+  redemptionType?: string
+  isFeatured?: boolean
+  sendNotification?: boolean
   partners: SchemePartners
 }

@@ -19,15 +19,17 @@ import type {
 import type { ParsedImportFile } from '@/components/common/CommonTable/tableCsv'
 import { mockDelay } from '@/services/mockDelay'
 import { formatDate } from '@/utils/formatDate'
+import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
 
 // create/update are currently no-ops resolving immediately so the UI/hook
 // contract is stable ahead of the real API. Movement history, audit history,
 // and timeline have no real backend endpoint yet — they stay mock-only.
 
-export interface ProductQueryParams {
+export interface ProductQueryParams extends Partial<AnalyticsDateParams> {
   page?: number
   limit?: number
   search?: string
+  regionId?: string
   categoryId?: string
   status?: string
   sortBy?: string
@@ -62,7 +64,13 @@ interface ProductRegionApiItem {
 interface ProductApiItem {
   id: string
   categoryId: string
-  category: { id: string; categoryCode: string; categoryName: string } | null
+  category: {
+    id: string
+    categoryCode?: string
+    categoryName?: string
+    code?: string
+    name?: string
+  } | null
   productCode: string
   productName: string
   dealerContainerPoints: number
@@ -95,14 +103,16 @@ function mapProductItem(item: ProductApiItem): Product {
   const category: ProductCategoryRef | null = item.category
     ? {
         id: item.category.id,
-        categoryCode: item.category.categoryCode,
-        categoryName: item.category.categoryName,
+        categoryCode: item.category.categoryCode ?? item.category.code ?? '',
+        categoryName: item.category.categoryName ?? item.category.name ?? '',
       }
     : null
 
+  const productName = item.productName || item.productCode || item.id
+
   return {
     id: item.id,
-    productName: item.productName,
+    productName,
     productCode: item.productCode,
     productCategory: category?.categoryName ?? '',
     categoryId: item.categoryId || undefined,
@@ -213,6 +223,10 @@ const productsApi = baseApi.injectEndpoints({
           page: params?.page ?? 1,
           limit: params?.limit ?? 10,
           search: params?.search || undefined,
+          regionId: params?.regionId || undefined,
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
           categoryId: params?.categoryId || undefined,
           status: mapStatusParam(params?.status),
           sortBy: params?.sortBy || undefined,

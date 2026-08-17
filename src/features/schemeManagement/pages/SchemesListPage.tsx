@@ -21,6 +21,7 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { Modal } from '@/components/common/Modal/Modal'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useSchemes } from '@/features/schemeManagement/hooks/useSchemes'
 import { useSchemeFormOptions } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
 import {
@@ -64,7 +65,13 @@ function RegionsCell({ regions }: { regions: string[] }) {
 export function SchemesListPage() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { schemes, kpis, isLoading, refetch } = useSchemes()
+  const [tab, setTab] = useState<SchemeTab>('all')
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
+  const { schemes, kpis, isLoading, refetch } = useSchemes({
+    search: debouncedSearch || undefined,
+    schemeType: tab === 'all' ? undefined : tab,
+  })
   const { regionOptions, partnerTypeOptions } = useSchemeFormOptions()
   const [deleteScheme] = useDeleteSchemeMutation()
   const [updateSchemeStatus] = useUpdateSchemeStatusMutation()
@@ -75,7 +82,6 @@ export function SchemesListPage() {
       'Gift redemption schemes for Dealers and Chemists — General (ongoing) and Seasonal (campaign-limited).',
     isLoading,
   })
-  const [tab, setTab] = useState<SchemeTab>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active'>('all')
   const [filterOpen, setFilterOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Scheme | null>(null)
@@ -108,7 +114,6 @@ export function SchemesListPage() {
   ]
 
   const filteredSchemes = schemes.filter((scheme) => {
-    const tabMatch = tab === 'all' || scheme.type === tab
     const statusMatch = statusFilter === 'all' || scheme.status === 'active'
     const regionMatch =
       appliedFilters.region === 'all' ||
@@ -120,14 +125,7 @@ export function SchemesListPage() {
       !appliedFilters.fromDate || scheme.startDate >= appliedFilters.fromDate
     const toMatch =
       !appliedFilters.toDate || scheme.startDate <= appliedFilters.toDate
-    return (
-      tabMatch &&
-      statusMatch &&
-      regionMatch &&
-      partnerMatch &&
-      fromMatch &&
-      toMatch
-    )
+    return statusMatch && regionMatch && partnerMatch && fromMatch && toMatch
   })
 
   const handleDelete = async () => {
@@ -149,7 +147,6 @@ export function SchemesListPage() {
   }
 
   const columns: CommonTableColumn<Scheme>[] = [
-    { key: 'id', header: 'Scheme ID', minWidth: 130, render: (row) => row.id },
     {
       key: 'name',
       header: 'Name',
@@ -292,6 +289,8 @@ export function SchemesListPage() {
         getRowId={(row) => row.id}
         loading={isLoading}
         searchPlaceholder="Search by scheme name or ID…"
+        searchValue={search}
+        onSearchChange={setSearch}
         searchKeys={(row) => `${row.name} ${row.id}`}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={

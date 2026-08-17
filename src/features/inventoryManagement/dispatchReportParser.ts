@@ -21,16 +21,23 @@ export interface ParsedDispatchReport {
 
 const TABLE_HEADER_MARKER = 'sr'
 
-/** Finds the cell value immediately to the right of a label cell (e.g. "CUSTOMER NAME :" -> next non-empty cell). */
+/** Matches cells that look like another field's label rather than a value
+ *  (e.g. "DATE :", "VEHICLE NO." ) — used to stop scanning right when a label
+ *  cell has no value before the next label. */
+const LABEL_LIKE_CELL = /:\s*$/
+
+/** Finds the cell value immediately to the right of a label cell (e.g. "CUSTOMER NAME :" -> next non-empty cell).
+ *  Stops at the first empty-cell gap or another label cell, so a blank field doesn't
+ *  bleed into the next label's text (e.g. blank "Vehicle No." followed by "Date :"). */
 function findLabelValue(matrix: unknown[][], labelPattern: RegExp): string {
   for (const row of matrix) {
     for (let col = 0; col < row.length; col++) {
       const cell = String(row[col] ?? '').trim()
       if (labelPattern.test(cell)) {
-        for (let next = col + 1; next < row.length; next++) {
-          const value = String(row[next] ?? '').trim()
-          if (value) return value
-        }
+        const next = col + 1
+        const value = String(row[next] ?? '').trim()
+        if (value && !LABEL_LIKE_CELL.test(value)) return value
+        return ''
       }
     }
   }
@@ -98,7 +105,7 @@ export function parseDispatchReportFile(file: File): Promise<ParsedDispatchRepor
         const dispatchQtyCol = colIndex(/dispatch\s*qty/)
 
         const dataRows = matrix.slice(headerRowIndex + 1)
-        const cartonNoCounts = new Map<string, number>()
+        const cartonNoCounts = new Map<number, number>()
         const rows: DispatchUploadRow[] = []
 
         for (const row of dataRows) {
@@ -106,7 +113,7 @@ export function parseDispatchReportFile(file: File): Promise<ParsedDispatchRepor
           if (!srNoRaw || /^total$/i.test(srNoRaw)) continue
           if (/^total$/i.test(String(row[itemNameCol] ?? '').trim())) continue
 
-          const cartonNo = String(row[cartonNoCol] ?? '').trim()
+          const cartonNo = toNumber(row[cartonNoCol])
           if (cartonNo) cartonNoCounts.set(cartonNo, (cartonNoCounts.get(cartonNo) ?? 0) + 1)
 
           rows.push({

@@ -1,6 +1,7 @@
+import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Grid, Stack, Typography } from '@mui/material'
-import { Truck, Package, Weight, Boxes } from 'lucide-react'
+import { Box, Button, Grid, Stack, Typography } from '@mui/material'
+import { Truck, Package, Weight, Boxes, Trash2 } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { StatCard } from '@/components/common/StatCard/StatCard'
@@ -10,13 +11,32 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { Modal } from '@/components/common/Modal/Modal'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import { useDistributorDetail } from '@/features/inventoryManagement/hooks/useDistributorDetail'
+import { useDeleteDistributorMutation } from '@/features/inventoryManagement/services/distributorUploadApi'
 import type { DispatchLineItem } from '@/types/distributorUpload'
 
 export function DistributorDetailsPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { distributorId } = useParams<{ distributorId: string }>()
   const { invoice, isLoading } = useDistributorDetail(distributorId)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleteDistributor, { isLoading: isDeleting }] = useDeleteDistributorMutation()
+
+  async function handleDeleteConfirm() {
+    if (!invoice) return
+    try {
+      await deleteDistributor(invoice.distributorId).unwrap()
+      toast.success(`${invoice.customerName} deleted successfully.`)
+      navigate('/distributor-upload')
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to delete distributor.'))
+      setDeleteOpen(false)
+    }
+  }
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={3} />
@@ -128,6 +148,15 @@ export function DistributorDetailsPage() {
             </Typography>
           </Box>
         </Stack>
+        <Button
+          variant="outlined"
+          color="error"
+          startIcon={<Trash2 size={18} />}
+          onClick={() => setDeleteOpen(true)}
+          sx={{ fontSize: '0.8125rem' }}
+        >
+          Delete
+        </Button>
       </Stack>
 
       <Grid container spacing={3}>
@@ -174,9 +203,8 @@ export function DistributorDetailsPage() {
             { label: 'Total Box Qty', value: invoice.totalBoxQty },
             { label: 'Vehicle No.', value: invoice.vehicleNo || '—' },
             { label: 'Date', value: invoice.date },
-            { label: 'Format No.', value: invoice.formatNo },
-            { label: 'Rev. No.', value: invoice.revNo },
-            { label: 'Rev. Date', value: invoice.revDate },
+
+
           ]}
         />
       </SectionCard>
@@ -194,6 +222,20 @@ export function DistributorDetailsPage() {
           emptyTitle="No line items on this invoice"
         />
       </SectionCard>
+
+      <Modal
+        open={deleteOpen}
+        onClose={() => setDeleteOpen(false)}
+        title="Delete Distributor"
+        description={`This will permanently delete "${invoice.customerName}" and cannot be undone.`}
+        primaryActionLabel="Delete"
+        primaryActionColor="error"
+        onPrimaryAction={() => void handleDeleteConfirm()}
+        loading={isDeleting}
+        maxWidth="sm"
+      >
+        <div />
+      </Modal>
     </Stack>
   )
 }

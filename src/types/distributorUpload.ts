@@ -3,13 +3,14 @@ export interface DispatchLineItem {
   srNo: number
   itemCode: string
   itemName: string
-  cartonNo: string
+  cartonNo: number
   cartonWeight: number
   dispatchQty: number
 }
 
 export interface DispatchInvoice {
   id: string
+  distributorId: string
   invoiceNo: string
   customerName: string
   transporter: string
@@ -29,7 +30,7 @@ export interface DispatchUploadRow {
   srNo: number
   itemCode: string
   itemName: string
-  cartonNo: string
+  cartonNo: number
   cartonWeight: number
   dispatchQty: number
   isValid: boolean

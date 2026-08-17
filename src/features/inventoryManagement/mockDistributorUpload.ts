@@ -13,21 +13,21 @@ function pad(n: number, width: number): string {
  *  the Distributor Upload details page must reproduce this manifest verbatim, same carton
  *  numbers and sequence, no fabricated values. */
 const dlrLifecareLineItems: Omit<DispatchLineItem, 'id'>[] = [
-  { srNo: 1, itemCode: 'S0BH1-6', itemName: 'Fingertip Pulse Oximeter OLED OG05 IN', cartonNo: '1177', cartonWeight: 9.7, dispatchQty: 96 },
-  { srNo: 2, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54807', cartonWeight: 18.78, dispatchQty: 12 },
-  { srNo: 3, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54809', cartonWeight: 18.74, dispatchQty: 12 },
-  { srNo: 4, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54810', cartonWeight: 18.71, dispatchQty: 12 },
-  { srNo: 5, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54813', cartonWeight: 18.74, dispatchQty: 12 },
-  { srNo: 6, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54814', cartonWeight: 18.73, dispatchQty: 12 },
-  { srNo: 7, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54815', cartonWeight: 18.72, dispatchQty: 12 },
-  { srNo: 8, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54819', cartonWeight: 18.76, dispatchQty: 12 },
-  { srNo: 9, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54823', cartonWeight: 18.74, dispatchQty: 12 },
-  { srNo: 10, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54825', cartonWeight: 18.74, dispatchQty: 12 },
-  { srNo: 11, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54829', cartonWeight: 18.68, dispatchQty: 12 },
-  { srNo: 12, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54831', cartonWeight: 18.71, dispatchQty: 12 },
-  { srNo: 13, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: '54833', cartonWeight: 18.69, dispatchQty: 12 },
-  { srNo: 14, itemCode: 'S0H6-1', itemName: 'Nebulizer HANDYNEB CLASSIC 230V-50Hz Indian Cord', cartonNo: '88837', cartonWeight: 17.36, dispatchQty: 12 },
-  { srNo: 15, itemCode: 'S0H6-1', itemName: 'Nebulizer HANDYNEB CLASSIC 230V-50Hz Indian Cord', cartonNo: '88845', cartonWeight: 17.02, dispatchQty: 12 },
+  { srNo: 1, itemCode: 'S0BH1-6', itemName: 'Fingertip Pulse Oximeter OLED OG05 IN', cartonNo: 1177, cartonWeight: 9.7, dispatchQty: 96 },
+  { srNo: 2, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54807, cartonWeight: 18.78, dispatchQty: 12 },
+  { srNo: 3, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54809, cartonWeight: 18.74, dispatchQty: 12 },
+  { srNo: 4, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54810, cartonWeight: 18.71, dispatchQty: 12 },
+  { srNo: 5, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54813, cartonWeight: 18.74, dispatchQty: 12 },
+  { srNo: 6, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54814, cartonWeight: 18.73, dispatchQty: 12 },
+  { srNo: 7, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54815, cartonWeight: 18.72, dispatchQty: 12 },
+  { srNo: 8, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54819, cartonWeight: 18.76, dispatchQty: 12 },
+  { srNo: 9, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54823, cartonWeight: 18.74, dispatchQty: 12 },
+  { srNo: 10, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54825, cartonWeight: 18.74, dispatchQty: 12 },
+  { srNo: 11, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54829, cartonWeight: 18.68, dispatchQty: 12 },
+  { srNo: 12, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54831, cartonWeight: 18.71, dispatchQty: 12 },
+  { srNo: 13, itemCode: 'S0H7-1', itemName: 'Nebulizer HANDYNEB SMART 230V-50Hz Indian Cord', cartonNo: 54833, cartonWeight: 18.69, dispatchQty: 12 },
+  { srNo: 14, itemCode: 'S0H6-1', itemName: 'Nebulizer HANDYNEB CLASSIC 230V-50Hz Indian Cord', cartonNo: 88837, cartonWeight: 17.36, dispatchQty: 12 },
+  { srNo: 15, itemCode: 'S0H6-1', itemName: 'Nebulizer HANDYNEB CLASSIC 230V-50Hz Indian Cord', cartonNo: 88845, cartonWeight: 17.02, dispatchQty: 12 },
 ]
 
 function buildInvoice(id: string, invoice: Omit<DispatchInvoice, 'id' | 'lineItems'>, lineItems: Omit<DispatchLineItem, 'id'>[]): DispatchInvoice {
@@ -91,7 +91,7 @@ function buildSeededInvoice(index: number): DispatchInvoice {
       srNo: i + 1,
       itemCode: item.code,
       itemName: item.name,
-      cartonNo: `${10000 + seededNumber(index * 7 + i, 0, 89000)}`,
+      cartonNo: 10000 + seededNumber(index * 7 + i, 0, 89000),
       cartonWeight: Number((15 + seededNumber(index + i, 0, 500) / 100).toFixed(2)),
       dispatchQty: [6, 12, 24][seededNumber(index + i, 0, 3)]!,
     }
@@ -101,6 +101,7 @@ function buildSeededInvoice(index: number): DispatchInvoice {
   return buildInvoice(
     id,
     {
+      distributorId: `distributor-seed-${index % seedCustomers.length}`,
       invoiceNo: `D-VP${2620 + index}-0${300 + index}`,
       customerName: seedCustomers[index % seedCustomers.length]!,
       transporter: seedTransporters[index % seedTransporters.length]!,
@@ -122,6 +123,7 @@ let dispatchInvoices: DispatchInvoice[] = [
   buildInvoice(
     'dispatch-dlr-lifecare-0324',
     {
+      distributorId: 'distributor-dlr-lifecare',
       invoiceNo: 'D-VP2627-0324',
       customerName: 'DLR LIFECARE',
       transporter: 'NCP PARCEL SERVICE',
@@ -159,6 +161,7 @@ export function addDispatchInvoice(
   const invoice = buildInvoice(
     id,
     {
+      distributorId: `distributor-${invoiceMeta.customerName}`,
       invoiceNo: invoiceMeta.invoiceNo,
       customerName: invoiceMeta.customerName,
       transporter: invoiceMeta.transporter,

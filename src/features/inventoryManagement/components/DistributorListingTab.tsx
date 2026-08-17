@@ -9,6 +9,10 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { Modal } from '@/components/common/Modal/Modal'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { useDeleteDistributorMutation } from '@/features/inventoryManagement/services/distributorUploadApi'
 import type { DispatchInvoice } from '@/types/distributorUpload'
 
 interface DispatchListingFilters extends Record<string, unknown> {
@@ -26,11 +30,26 @@ export function DistributorListingTab({
   isLoading,
 }: DistributorListingTabProps) {
   const navigate = useNavigate()
+  const toast = useToast()
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<DispatchListingFilters>({
     customerName: '',
     transporter: '',
   })
+  const [deleteTarget, setDeleteTarget] = useState<DispatchInvoice | null>(null)
+  const [deleteDistributor, { isLoading: isDeleting }] = useDeleteDistributorMutation()
+
+  async function handleDeleteConfirm() {
+    if (!deleteTarget) return
+    try {
+      await deleteDistributor(deleteTarget.distributorId).unwrap()
+      toast.success(`${deleteTarget.customerName} deleted successfully.`)
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to delete distributor.'))
+    } finally {
+      setDeleteTarget(null)
+    }
+  }
 
   const totalBoxes = useMemo(
     () => distributors.reduce((sum, invoice) => sum + invoice.totalBoxQty, 0),
@@ -177,6 +196,11 @@ export function DistributorListingTab({
             label: 'View Details',
             onClick: (row) => navigate(`/distributor-upload/${row.id}`),
           },
+          {
+            label: 'Delete',
+            danger: true,
+            onClick: (row) => setDeleteTarget(row),
+          },
         ]}
         onExportClick={() => {}}
         defaultSortBy="date"
@@ -221,6 +245,20 @@ export function DistributorListingTab({
           </Stack>
         )}
       </FilterDrawer>
+
+      <Modal
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Distributor"
+        description={`This will permanently delete "${deleteTarget?.customerName}" and cannot be undone.`}
+        primaryActionLabel="Delete"
+        primaryActionColor="error"
+        onPrimaryAction={() => void handleDeleteConfirm()}
+        loading={isDeleting}
+        maxWidth="sm"
+      >
+        <div />
+      </Modal>
     </>
   )
 }

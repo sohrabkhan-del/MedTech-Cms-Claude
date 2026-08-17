@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { Button, Stack } from '@mui/material'
 import { Truck, UploadCloud } from 'lucide-react'
@@ -14,6 +14,14 @@ export function DistributorUploadPage() {
   const [importDone, setImportDone] = useState(
     Boolean((location.state as { imported?: boolean } | null)?.imported),
   )
+
+  useEffect(() => {
+    if ((location.state as { imported?: boolean } | null)?.imported) {
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+    // Only needs to run once on mount to consume the one-time "just imported" flag.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
   useRegionTopbarHeader({
     icon: <Truck size={20} />,
     title: 'Distributor Upload',

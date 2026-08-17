@@ -9,7 +9,8 @@ import { skipToken } from '@reduxjs/toolkit/query/react'
 
 export function useGiftDetail(giftId: string | undefined) {
   const { data: gift, isLoading, error: queryError } = useGetGiftDetailQuery(giftId ?? skipToken)
-  const [setStatusMutation] = useSetGiftStatusMutation()
+  const [setStatusMutation, { isLoading: isSettingStatus }] =
+    useSetGiftStatusMutation()
   const [deleteGiftMutation] = useDeleteGiftMutation()
 
   const error = queryError ? getApiErrorMessage(queryError, 'Failed to load gift.') : null
@@ -24,5 +25,5 @@ export function useGiftDetail(giftId: string | undefined) {
     await deleteGiftMutation(giftId).unwrap()
   }
 
-  return { gift, isLoading, error, setStatus, remove }
+  return { gift, isLoading, error, setStatus, remove, isSettingStatus }
 }

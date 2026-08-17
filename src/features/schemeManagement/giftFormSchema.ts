@@ -1,7 +1,5 @@
 import { z } from 'zod'
 
-const REGION_VALUES = ['East', 'West', 'North', 'South'] as const
-
 export const giftFormSchema = z
   .object({
     giftName: z.string().min(2, 'Gift name is required'),
@@ -9,16 +7,16 @@ export const giftFormSchema = z
     brand: z.string().min(1, 'Brand is required'),
     giftImage: z.string().optional(),
     description: z.string().optional(),
-    price: z.string().min(1, 'Price is required'),
-    requiredPoints: z.string().min(1, 'Required Points is required'),
+    price: z.string().optional(),
+    requiredPoints: z.string().optional(),
     availableQuantity: z.string().min(1, 'Available quantity is required'),
     status: z.enum(['active', 'inactive']),
     eligibleUserType: z.enum(['All', 'Dealer', 'Chemist']),
     partnerTypes: z
       .array(z.enum(['Dealer', 'Chemist']))
       .min(1, 'Select at least one partner type'),
-    dealerRegions: z.array(z.enum(REGION_VALUES)),
-    chemistRegions: z.array(z.enum(REGION_VALUES)),
+    dealerRegions: z.array(z.string()),
+    chemistRegions: z.array(z.string()),
     dealerBasePoints: z.string(),
     chemistBasePoints: z.string(),
   })

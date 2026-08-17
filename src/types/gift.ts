@@ -30,6 +30,7 @@ export interface Gift {
   id: string
   giftCode: string
   giftName: string
+  categoryId?: string
   category: string
   brand: string
   giftImage: string
@@ -46,6 +47,8 @@ export interface Gift {
   partnerTypes: GiftPartnerType[]
   dealerRegions: PartnerZone[]
   chemistRegions: PartnerZone[]
+  dealerRegionIds?: string[]
+  chemistRegionIds?: string[]
   dealerBasePoints: number | null
   chemistBasePoints: number | null
 

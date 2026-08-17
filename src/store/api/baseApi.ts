@@ -116,6 +116,7 @@ const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   PointValueRules: 'real',
   RewardClaims: 'real',
   DistributorUpload: 'real',
+  Gifts: 'real',
 }
 
 function resolveMode(tag: FeatureTag | undefined): 'mock' | 'real' {

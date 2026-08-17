@@ -19,13 +19,28 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useGifts } from '@/features/schemeManagement/hooks/useGifts'
 import { useGiftFormOptions } from '@/features/schemeManagement/hooks/useGiftFormOptions'
-import { getGiftStockStatus } from '@/features/schemeManagement/services/giftsApi'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import {
+  getGiftStockStatus,
+  useDeleteGiftMutation,
+  useSetGiftStatusMutation,
+} from '@/features/schemeManagement/services/giftsApi'
+import { useToast } from '@/contexts/ToastContext'
 import type {
   Gift,
   GiftEligibility,
   GiftStatus,
   StockStatus,
 } from '@/features/schemeManagement/types/schemeManagement.types'
+
+// Maps CommonTable column keys to the real GET /rewards `sortBy` field names.
+const SORT_FIELD_MAP: Record<string, string> = {
+  giftName: 'name',
+  category: 'category',
+  brand: 'brand',
+  availableQuantity: 'availableQuantity',
+  status: 'isActive',
+}
 
 interface GiftFilters extends Record<string, unknown> {
   category: string | 'all'
@@ -39,7 +54,19 @@ interface GiftFilters extends Record<string, unknown> {
 
 export function GiftCatalogueListPage() {
   const navigate = useNavigate()
-  const { gifts, kpis, isLoading } = useGifts()
+  const toast = useToast()
+  const [sortColumn, setSortColumn] = useState('giftName')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 400)
+  const { gifts, kpis, isLoading } = useGifts({
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+    search: debouncedSearch || undefined,
+  })
+  const [setGiftStatus, { isLoading: isTogglingStatus }] =
+    useSetGiftStatusMutation()
+  const [deleteGift] = useDeleteGiftMutation()
   const {
     giftCategoryOptions: categoryOptions,
     giftBrandOptions: brandOptions,
@@ -52,6 +79,9 @@ export function GiftCatalogueListPage() {
     isLoading,
   })
   const [filterOpen, setFilterOpen] = useState(false)
+  const [statusLoadingGiftId, setStatusLoadingGiftId] = useState<string | null>(
+    null,
+  )
   const [appliedFilters, setAppliedFilters] = useState<GiftFilters>({
     category: 'all',
     brand: 'all',
@@ -123,14 +153,7 @@ export function GiftCatalogueListPage() {
         </Typography>
       ),
     },
-    {
-      key: 'price',
-      header: 'Price (₹)',
-      align: 'center',
-      sortable: true,
-      sortValue: (row) => row.price,
-      render: (row) => `₹${row.price.toLocaleString('en-IN')}`,
-    },
+
     {
       key: 'category',
       header: 'Category',
@@ -164,6 +187,30 @@ export function GiftCatalogueListPage() {
       ),
     },
   ]
+
+  const handleStatusChange = async (gift: Gift) => {
+    setStatusLoadingGiftId(gift.id)
+    try {
+      await setGiftStatus({
+        id: gift.id,
+        status: gift.status === 'active' ? 'inactive' : 'active',
+      }).unwrap()
+      toast.success('Gift status updated successfully.')
+    } catch {
+      toast.error('Failed to update gift status.')
+    } finally {
+      setStatusLoadingGiftId(null)
+    }
+  }
+
+  const handleDelete = async (gift: Gift) => {
+    try {
+      await deleteGift(gift.id).unwrap()
+      toast.success('Gift deleted successfully.')
+    } catch {
+      toast.error('Failed to delete gift.')
+    }
+  }
 
   return (
     <>
@@ -225,8 +272,13 @@ export function GiftCatalogueListPage() {
         getRowId={(row) => row.id}
         loading={isLoading}
         searchPlaceholder="Search by gift name or code…"
+        searchValue={search}
+        onSearchChange={(value) => setSearch(value)}
         searchKeys={(row) => `${row.giftName} ${row.giftCode} ${row.brand}`}
         onFilterClick={() => setFilterOpen(true)}
+        isRowActionLoading={(row) =>
+          isTogglingStatus && statusLoadingGiftId === row.id
+        }
         filterCount={
           (appliedFilters.category !== 'all' ? 1 : 0) +
           (appliedFilters.brand !== 'all' ? 1 : 0) +
@@ -242,6 +294,11 @@ export function GiftCatalogueListPage() {
           to: '/scheme-management/gift-catalogue/new',
         }}
         defaultSortBy="giftName"
+        defaultSortDir={sortOrder}
+        onSortChange={(columnKey, dir) => {
+          setSortColumn(columnKey)
+          setSortOrder(dir)
+        }}
         actions={[
           {
             label: 'View',
@@ -253,9 +310,17 @@ export function GiftCatalogueListPage() {
             onClick: (row) =>
               navigate(`/scheme-management/gift-catalogue/${row.id}/edit`),
           },
-          { label: 'Activate', onClick: () => {} },
-          { label: 'Deactivate', onClick: () => {} },
-          { label: 'Delete', onClick: () => {}, danger: true },
+          {
+            label: 'Activate',
+            onClick: handleStatusChange,
+            hidden: (row) => row.status === 'active',
+          },
+          {
+            label: 'Deactivate',
+            onClick: handleStatusChange,
+            hidden: (row) => row.status === 'inactive',
+          },
+          { label: 'Delete', onClick: handleDelete, danger: true },
         ]}
         emptyTitle="No gifts found"
         emptyDescription="Try adjusting your filters or search terms."

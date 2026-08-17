@@ -4,6 +4,7 @@ import { useToast } from '@/contexts/ToastContext'
 import {
   useGetGiftDetailQuery,
   useGetGiftFormOptionsQuery,
+  useGetGiftRegionOptionsQuery,
   useCreateGiftMutation,
   useUpdateGiftMutation,
 } from '@/features/schemeManagement/services/giftsApi'
@@ -18,15 +19,28 @@ export function useGiftForm(giftId: string | undefined) {
 
   const giftResult = useGetGiftDetailQuery(giftId ?? skipToken)
   const optionsResult = useGetGiftFormOptionsQuery()
+  const regionsResult = useGetGiftRegionOptionsQuery()
   const [createGift] = useCreateGiftMutation()
   const [updateGift] = useUpdateGiftMutation()
 
-  const isLoading = (isEdit && giftResult.isLoading) || optionsResult.isLoading
+  const options = optionsResult.data
+    ? {
+        ...optionsResult.data,
+        regionOptions: regionsResult.data ?? [],
+      }
+    : null
+
+  const isLoading =
+    (isEdit && giftResult.isLoading) ||
+    optionsResult.isLoading ||
+    regionsResult.isLoading
   const loadError = giftResult.error
     ? getApiErrorMessage(giftResult.error, 'Failed to load gift form data.')
     : optionsResult.error
       ? getApiErrorMessage(optionsResult.error, 'Failed to load gift form data.')
-      : null
+      : regionsResult.error
+        ? getApiErrorMessage(regionsResult.error, 'Failed to load gift form data.')
+        : null
 
   async function submit(values: GiftFormValues) {
     setIsSubmitting(true)
@@ -52,7 +66,7 @@ export function useGiftForm(giftId: string | undefined) {
   return {
     isEdit,
     gift: giftResult.data,
-    options: optionsResult.data ?? null,
+    options,
     isLoading,
     isSubmitting,
     error: loadError ?? submitError,

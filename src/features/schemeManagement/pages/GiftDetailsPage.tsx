@@ -3,9 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
 import {
   Gift as GiftIcon,
-  ArrowLeft as ArrowBackOutlined,
   Pencil,
-  PackagePlus,
   CircleCheck,
   Ban,
   Trash2,
@@ -121,7 +119,8 @@ const inventoryColumns: CommonTableColumn<GiftInventoryEntry>[] = [
 export function GiftDetailsPage() {
   const navigate = useNavigate()
   const { giftId } = useParams<{ giftId: string }>()
-  const { gift, setStatus, remove, isLoading } = useGiftDetail(giftId)
+  const { gift, setStatus, remove, isLoading, isSettingStatus } =
+    useGiftDetail(giftId)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   if (isLoading) {
@@ -200,20 +199,14 @@ export function GiftDetailsPage() {
           >
             Edit Gift
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<PackagePlus size={20} />}
-            onClick={() => {}}
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Update Stock
-          </Button>
+
           {gift.status === 'active' ? (
             <Button
               variant="outlined"
               color="warning"
               startIcon={<Ban size={20} />}
               onClick={() => setStatus('inactive')}
+              loading={isSettingStatus}
               sx={{ fontSize: '0.75rem' }}
             >
               Deactivate
@@ -224,6 +217,7 @@ export function GiftDetailsPage() {
               color="success"
               startIcon={<CircleCheck size={20} />}
               onClick={() => setStatus('active')}
+              loading={isSettingStatus}
               sx={{ fontSize: '0.75rem' }}
             >
               Activate
@@ -238,14 +232,6 @@ export function GiftDetailsPage() {
           >
             Delete
           </Button>
-          <Button
-            variant="outlined"
-            startIcon={<ArrowBackOutlined size={20} />}
-            onClick={() => navigate('/scheme-management/gift-catalogue')}
-            sx={{ fontSize: '0.75rem' }}
-          >
-            Back
-          </Button>
         </Stack>
       </Stack>
 
@@ -257,10 +243,7 @@ export function GiftDetailsPage() {
               { label: 'Gift Name', value: gift.giftName },
               { label: 'Category', value: gift.category },
               { label: 'Brand', value: gift.brand },
-              {
-                label: 'Price (₹)',
-                value: `₹${gift.price.toLocaleString('en-IN')}`,
-              },
+
               {
                 label: 'Required Points',
                 value: gift.requiredPoints.toLocaleString('en-IN'),
@@ -352,10 +335,7 @@ export function GiftDetailsPage() {
                     fields={[
                       { label: 'Brand', value: gift.brand },
                       { label: 'SKU', value: gift.sku },
-                      {
-                        label: 'Price (₹)',
-                        value: `₹${gift.price.toLocaleString('en-IN')}`,
-                      },
+
                       {
                         label: 'Point Value',
                         value: gift.requiredPoints.toLocaleString('en-IN'),

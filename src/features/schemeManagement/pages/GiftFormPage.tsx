@@ -22,17 +22,18 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { Modal } from '@/components/common/Modal/Modal'
 import { radius } from '@/theme/tokens'
+import { useToast } from '@/contexts/ToastContext'
 import { useGiftForm } from '@/features/schemeManagement/hooks/useGiftForm'
+import { useCreateRewardCategoryMutation } from '@/features/schemeManagement/services/giftsApi'
 import {
   giftFormDefaults,
   giftFormSchema,
   type GiftFormValues,
 } from '@/features/schemeManagement/types/schemeManagement.types'
-import type { PartnerZone } from '@/types/partner'
 import type { GiftPartnerType } from '@/types/gift'
 
 const ALL_PARTNER_TYPES: GiftPartnerType[] = ['Dealer', 'Chemist']
-const ALL_REGIONS: PartnerZone[] = ['East', 'West', 'North', 'South']
+const ALL_REGIONS = ['East', 'West', 'North', 'South']
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -85,9 +86,12 @@ function readFileAsDataUrl(file: File): Promise<string> {
 
 export function GiftFormPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { giftId } = useParams<{ giftId: string }>()
   const { isEdit, gift, options, isLoading, isSubmitting, submit } =
     useGiftForm(giftId)
+  const [createRewardCategory, { isLoading: isCreatingCategory }] =
+    useCreateRewardCategoryMutation()
 
   const { control, handleSubmit, watch, reset, setValue } =
     useForm<GiftFormValues>({
@@ -96,30 +100,36 @@ export function GiftFormPage() {
     })
 
   const imageUrl = watch('giftImage')
-  const [customCategories, setCustomCategories] = useState<string[]>([])
+  const [customCategories, setCustomCategories] = useState<
+    Array<{ id: string; name: string }>
+  >([])
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const categoryOptions = [
-    ...(options?.giftCategoryOptions ?? []),
+    ...(options?.giftCategorySelectOptions ?? []),
     ...customCategories,
   ]
+  const regionChoices =
+    options?.regionOptions.filter((region) =>
+      ['East', 'West', 'North', 'South'].includes(region.name),
+    ) ?? []
 
   useEffect(() => {
     if (!gift) return
     reset({
       giftName: gift.giftName,
-      category: gift.category,
+      category: gift.categoryId ?? gift.category,
       brand: gift.brand,
       giftImage: gift.giftImage,
       description: gift.description,
-      price: String(gift.price),
+
       requiredPoints: String(gift.requiredPoints),
       availableQuantity: String(gift.availableQuantity),
       status: gift.status,
       eligibleUserType: gift.eligibleUserType,
       partnerTypes: gift.partnerTypes,
-      dealerRegions: gift.dealerRegions,
-      chemistRegions: gift.chemistRegions,
+      dealerRegions: gift.dealerRegionIds ?? gift.dealerRegions,
+      chemistRegions: gift.chemistRegionIds ?? gift.chemistRegions,
       dealerBasePoints:
         gift.dealerBasePoints === null ? '' : String(gift.dealerBasePoints),
       chemistBasePoints:
@@ -142,19 +152,32 @@ export function GiftFormPage() {
     ? `/scheme-management/gift-catalogue/${giftId}`
     : '/scheme-management/gift-catalogue'
 
-  const onSubmit = handleSubmit(async (values) => {
-    const success = await submit(values)
-    if (success) navigate(backTo)
-  })
+  const onSubmit = handleSubmit(
+    async (values) => {
+      const success = await submit(values)
+      if (success) navigate(backTo)
+    },
+    () => {
+      toast.error('Please complete the required gift fields.')
+    },
+  )
 
-  const handleAddCategory = () => {
+  const handleAddCategory = async () => {
     const name = newCategoryName.trim()
     if (!name) return
-    setCustomCategories((prev) =>
-      prev.includes(name) ? prev : [...prev, name],
-    )
-    setValue('category', name, { shouldValidate: true })
-    setCategoryDialogOpen(false)
+    try {
+      const category = await createRewardCategory(name).unwrap()
+      setCustomCategories((prev) =>
+        prev.some((option) => option.id === category.id)
+          ? prev
+          : [...prev, category],
+      )
+      setValue('category', category.id, { shouldValidate: true })
+      setCategoryDialogOpen(false)
+      toast.success('Reward category created successfully.')
+    } catch {
+      toast.error('Failed to create reward category.')
+    }
   }
 
   return (
@@ -201,8 +224,22 @@ export function GiftFormPage() {
                       fullWidth
                       size="small"
                       options={categoryOptions}
-                      value={field.value || null}
-                      onChange={(_, selected) => field.onChange(selected ?? '')}
+                      value={
+                        categoryOptions.find(
+                          (option) => option.id === field.value,
+                        ) ??
+                        categoryOptions.find(
+                          (option) => option.name === field.value,
+                        ) ??
+                        null
+                      }
+                      getOptionLabel={(option) => option.name}
+                      isOptionEqualToValue={(option, value) =>
+                        option.id === value.id
+                      }
+                      onChange={(_, selected) =>
+                        field.onChange(selected?.id ?? '')
+                      }
                       renderInput={(params) => (
                         <TextField
                           {...params}
@@ -243,28 +280,7 @@ export function GiftFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <FieldLabel required>Price</FieldLabel>
-              <FormField
-                name="price"
-                control={control}
-                decimal
-                placeholder="e.g. 1999"
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <Box
-                        component="span"
-                        sx={{ mr: 0.5, color: 'text.secondary' }}
-                      >
-                        ₹
-                      </Box>
-                    ),
-                  },
-                  inputLabel: { shrink: false, sx: { display: 'none' } },
-                }}
-              />
-            </Grid>
+
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Available Quantity</FieldLabel>
               <FormField
@@ -407,31 +423,40 @@ export function GiftFormPage() {
                                     spacing={1}
                                     sx={{ flexWrap: 'wrap', mb: 1.5 }}
                                   >
-                                    {ALL_REGIONS.map((region) => (
+                                    {(regionChoices.length
+                                      ? regionChoices.map((region) => ({
+                                          label: region.name,
+                                          value: region.id,
+                                        }))
+                                      : ALL_REGIONS.map((region) => ({
+                                          label: region,
+                                          value: region,
+                                        }))
+                                    ).map((region) => (
                                       <FormControlLabel
-                                        key={region}
+                                        key={region.value}
                                         control={
                                           <Checkbox
                                             size="small"
                                             checked={regionField.value.includes(
-                                              region,
+                                              region.value,
                                             )}
                                             onChange={(e) => {
                                               regionField.onChange(
                                                 e.target.checked
                                                   ? [
                                                       ...regionField.value,
-                                                      region,
+                                                      region.value,
                                                     ]
                                                   : regionField.value.filter(
-                                                      (r: PartnerZone) =>
-                                                        r !== region,
+                                                      (value: string) =>
+                                                        value !== region.value,
                                                     ),
                                               )
                                             }}
                                           />
                                         }
-                                        label={region}
+                                        label={region.label}
                                       />
                                     ))}
                                   </Stack>
@@ -501,6 +526,7 @@ export function GiftFormPage() {
         description="Quickly add a new category name for this gift."
         primaryActionLabel="Add Category"
         onPrimaryAction={handleAddCategory}
+        loading={isCreatingCategory}
       >
         <TextField
           autoFocus

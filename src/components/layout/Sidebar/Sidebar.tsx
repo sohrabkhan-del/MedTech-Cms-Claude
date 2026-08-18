@@ -1,6 +1,7 @@
 import { Box, Divider, Drawer } from '@mui/material'
 import { Link } from 'react-router-dom'
 import { menuConfig } from '@/components/layout/Sidebar/menuConfig'
+import type { MenuGroup } from '@/components/layout/Sidebar/menuConfig'
 import { SidebarGroup } from '@/components/layout/Sidebar/SidebarGroup'
 import { UserFooterCard } from '@/components/layout/Sidebar/UserFooterCard'
 import {
@@ -67,6 +68,7 @@ function SidebarContent({
   const { user } = useAuth()
   const { data: notificationStats } = useGetNotificationStatsQuery()
   const badgeOverrides = { '/notifications': notificationStats?.unread ?? 0 }
+  const visibleMenuConfig = getVisibleMenuConfig(menuConfig, user?.role, user?.modulePermissions)
 
   return (
     <Box
@@ -89,10 +91,10 @@ function SidebarContent({
           '&::-webkit-scrollbar': { display: 'none' },
         }}
       >
-        {menuConfig.map((group, index) => (
+        {visibleMenuConfig.map((group, index) => (
           <Box key={group.groupLabel}>
             <SidebarGroup group={group} railMode={railMode} palette={palette} badgeOverrides={badgeOverrides} />
-            {index < menuConfig.length - 1 && (
+            {index < visibleMenuConfig.length - 1 && (
               <Divider sx={{ borderColor: palette.divider, mx: 2, my: 0.5 }} />
             )}
           </Box>
@@ -102,6 +104,20 @@ function SidebarContent({
       {user && <UserFooterCard user={user} railMode={railMode} palette={palette} />}
     </Box>
   )
+}
+
+function getVisibleMenuConfig(
+  groups: MenuGroup[],
+  role?: string,
+  modulePermissions?: string[],
+) {
+  if (role === 'super_admin' || !modulePermissions?.length) return groups
+
+  const allowedModules = new Set(modulePermissions)
+  return groups.filter((group) => {
+    if (!group.moduleCode) return false
+    return allowedModules.has(group.moduleCode)
+  })
 }
 
 export function Sidebar({

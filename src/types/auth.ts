@@ -24,5 +24,6 @@ export interface AuthUser {
   phone?: string
   location?: string
   regions?: AuthUserRegion[]
+  modulePermissions?: string[]
   joinedOn?: string
 }

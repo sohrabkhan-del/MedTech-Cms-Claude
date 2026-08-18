@@ -3,8 +3,10 @@ import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useToast } from '@/contexts/ToastContext'
 import {
   useGetAdminDetailQuery,
+  useGetAdminModulesQuery,
   useCreateAdminMutation,
   useUpdateAdminMutation,
+  useUpdateAdminModulesMutation,
 } from '@/features/systemUsers/services/adminsApi'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
 import type { RegionOption } from '@/contexts/RegionFilterContext'
@@ -20,8 +22,10 @@ export function useAdminForm(adminId: string | undefined) {
   const [regionsLoading, setRegionsLoading] = useState(true)
 
   const adminResult = useGetAdminDetailQuery(adminId ?? skipToken)
+  const modulesResult = useGetAdminModulesQuery()
   const [createAdmin] = useCreateAdminMutation()
   const [updateAdmin] = useUpdateAdminMutation()
+  const [updateAdminModules] = useUpdateAdminModulesMutation()
 
   useEffect(() => {
     let ignore = false
@@ -40,9 +44,12 @@ export function useAdminForm(adminId: string | undefined) {
     }
   }, [])
 
-  const isLoading = (isEdit && adminResult.isLoading) || regionsLoading
+  const isLoading =
+    (isEdit && adminResult.isLoading) || modulesResult.isLoading || regionsLoading
   const loadError = adminResult.error
     ? getApiErrorMessage(adminResult.error, 'Failed to load admin form data.')
+    : modulesResult.error
+      ? getApiErrorMessage(modulesResult.error, 'Failed to load admin modules.')
     : null
 
   async function submit(values: AdminFormValues) {
@@ -51,6 +58,10 @@ export function useAdminForm(adminId: string | undefined) {
     try {
       if (isEdit && adminId) {
         await updateAdmin({ id: adminId, values }).unwrap()
+        await updateAdminModules({
+          id: adminId,
+          modulePermissions: values.modulePermissions,
+        }).unwrap()
       } else {
         await createAdmin(values).unwrap()
       }
@@ -69,6 +80,7 @@ export function useAdminForm(adminId: string | undefined) {
   return {
     isEdit,
     admin: adminResult.data,
+    modules: modulesResult.data ?? [],
     regions,
     isLoading,
     isSubmitting,

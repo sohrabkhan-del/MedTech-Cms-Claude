@@ -27,6 +27,7 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useAdminDetail } from '@/features/systemUsers/hooks/useAdminDetail'
+import { useGetAdminModulesQuery } from '@/features/systemUsers/services/adminsApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
@@ -86,6 +87,7 @@ export function AdminDetailsPage() {
   const toast = useToast()
   const { admin, setStatus, isLoading, isStatusUpdating } =
     useAdminDetail(adminId)
+  const { data: modules = [] } = useGetAdminModulesQuery()
 
   async function handleSetStatus(status: 'active' | 'inactive') {
     try {
@@ -322,6 +324,44 @@ export function AdminDetailsPage() {
                 value={admin.regionAccess}
               />
             </Grid>
+          </Grid>
+        </SectionCard>
+
+        <SectionCard title="Module Access">
+          <Grid container spacing={2}>
+            {admin.modulePermissions.length > 0 ? (
+              admin.modulePermissions.map((code) => {
+                const module = modules.find((item) => item.code === code)
+                return (
+                  <Grid key={code} size={{ xs: 12, sm: 6, lg: 4 }}>
+                    <Box
+                      sx={{
+                        border: '1px solid',
+                        borderColor: 'divider',
+                        borderRadius: '8px',
+                        p: 1.5,
+                        height: '100%',
+                      }}
+                    >
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>
+                        {module?.name ?? code}
+                      </Typography>
+                      {module?.description ? (
+                        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                          {module.description}
+                        </Typography>
+                      ) : null}
+                    </Box>
+                  </Grid>
+                )
+              })
+            ) : (
+              <Grid size={{ xs: 12 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                  No module access assigned.
+                </Typography>
+              </Grid>
+            )}
           </Grid>
         </SectionCard>
 

@@ -1,8 +1,18 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Button, Card, Grid, Skeleton, Stack, Typography } from '@mui/material'
+import { Controller, useForm } from 'react-hook-form'
+import {
+  Box,
+  Button,
+  Card,
+  Checkbox,
+  FormControlLabel,
+  Grid,
+  Skeleton,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { RegionMultiSelectField } from '@/components/common/RegionMultiSelectField/RegionMultiSelectField'
@@ -45,7 +55,7 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 export function AdminFormPage() {
   const navigate = useNavigate()
   const { adminId } = useParams<{ adminId: string }>()
-  const { isEdit, admin, regions, isLoading, isSubmitting, submit } = useAdminForm(adminId)
+  const { isEdit, admin, modules, regions, isLoading, isSubmitting, submit } = useAdminForm(adminId)
 
   const { control, handleSubmit, reset } = useForm<AdminFormValues>({
     resolver: zodResolver(adminFormSchema),
@@ -60,6 +70,7 @@ export function AdminFormPage() {
       email: admin.email,
       phone: admin.phone,
       regionIds: admin.regionIds,
+      modulePermissions: admin.modulePermissions,
     })
   }, [admin, reset])
 
@@ -149,6 +160,68 @@ export function AdminFormPage() {
               <RegionMultiSelectField name="regionIds" control={control} regions={regions} />
             </Grid>
           </Grid>
+        </Card>
+
+        <Card sx={{ p: 3, mb: 3 }}>
+          <Typography sx={sectionTitleSx}>Module Access</Typography>
+          <Controller
+            name="modulePermissions"
+            control={control}
+            render={({ field, fieldState }) => (
+              <Stack spacing={1.25}>
+                <Grid container spacing={1.5}>
+                  {modules.map((module) => {
+                    const checked = field.value.includes(module.code)
+                    return (
+                      <Grid key={module.code} size={{ xs: 12, sm: 6, lg: 4 }}>
+                        <Box
+                          sx={{
+                            height: '100%',
+                            border: '1px solid',
+                            borderColor: checked ? 'primary.main' : 'divider',
+                            borderRadius: '8px',
+                            px: 1.5,
+                            py: 1.25,
+                            backgroundColor: checked ? 'primary.light' : 'background.paper',
+                          }}
+                        >
+                          <FormControlLabel
+                            sx={{ alignItems: 'flex-start', m: 0 }}
+                            control={
+                              <Checkbox
+                                checked={checked}
+                                onChange={(event) => {
+                                  const nextValue = event.target.checked
+                                    ? [...field.value, module.code]
+                                    : field.value.filter((code) => code !== module.code)
+                                  field.onChange(nextValue)
+                                }}
+                              />
+                            }
+                            label={
+                              <Box sx={{ pt: 0.75 }}>
+                                <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>
+                                  {module.name}
+                                </Typography>
+                                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                                  {module.description}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </Box>
+                      </Grid>
+                    )
+                  })}
+                </Grid>
+                {fieldState.error ? (
+                  <Typography variant="caption" sx={{ color: 'error.main' }}>
+                    {fieldState.error.message}
+                  </Typography>
+                ) : null}
+              </Stack>
+            )}
+          />
         </Card>
 
         <Stack

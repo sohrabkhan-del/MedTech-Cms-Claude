@@ -7,6 +7,8 @@ import {
 import type {
   Admin,
   AdminFormValues,
+  AdminModule,
+  AdminModulePermission,
   AdminStatus,
 } from '@/features/systemUsers/types/systemUsers.types'
 import { mockDelay } from '@/services/mockDelay'
@@ -64,9 +66,58 @@ interface AdminApiItem {
   status: string
   createdAt?: string
   totalActionsLogged?: number
+  modulePermissions?: string[]
   region?: { id: string; code: string; name: string } | null
   regions?: Array<{ id: string; code: string; name: string }>
 }
+
+interface AdminModulesApiResponse {
+  success: boolean
+  data: AdminModule[]
+}
+
+const fallbackAdminModules: AdminModule[] = [
+  {
+    code: 'operations',
+    name: 'Operations',
+    description: 'Core operational workflows and task management.',
+  },
+  {
+    code: 'inventory_management',
+    name: 'Inventory Management',
+    description: 'Stock, inventory visibility, and stock movement workflows.',
+  },
+  {
+    code: 'partners',
+    name: 'Partners',
+    description: 'Partner onboarding, profiles, and partner lifecycle management.',
+  },
+  {
+    code: 'verification',
+    name: 'Verification',
+    description: 'Approval, review, verification, and compliance checks.',
+  },
+  {
+    code: 'marketing_product',
+    name: 'Marketing Product',
+    description: 'Marketing and product promotion workflows.',
+  },
+  {
+    code: 'scheme_management',
+    name: 'Scheme Management',
+    description: 'Campaign, scheme, and benefit configuration management.',
+  },
+  {
+    code: 'reward_wallet',
+    name: 'Reward Wallet',
+    description: 'Reward wallet and redemption management.',
+  },
+  {
+    code: 'reports_and_analytics',
+    name: 'Reports and Analytics',
+    description: 'Reporting, KPIs, and analytics dashboards.',
+  },
+]
 
 let regionCache: RegionOption[] = fallbackRegions
 
@@ -153,6 +204,7 @@ function mapAdminItem(item: AdminApiItem): Admin {
     phone: item.phone ? normalizePhoneDisplay(item.phone) : '-',
     regionAccess: regionNamesToAccess(regionList.map((r) => r.name)),
     regionIds: regionList.map((r) => r.id),
+    modulePermissions: (item.modulePermissions ?? []) as AdminModulePermission[],
     role: mapRole(item.role),
     status: mapStatus(item.status),
     totalActionsLogged: item.totalActionsLogged ?? 0,
@@ -170,6 +222,7 @@ function mapFormValuesToCreatePayload(values: AdminFormValues) {
     country: '91',
     profileImageUrl: '',
     regionIds: values.regionIds,
+    modulePermissions: values.modulePermissions,
     role: 'ADMIN',
     status: 'ACTIVE',
   }
@@ -192,6 +245,16 @@ function mapFormValuesToUpdatePayload(values: AdminFormValues) {
 
 const adminsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getAdminModules: builder.query<AdminModule[], void>({
+      query: () => ({
+        tag: 'Admins',
+        url: '/admins/modules',
+        mockResolver: () => mockDelay(fallbackAdminModules),
+      }),
+      transformResponse: (response: AdminModulesApiResponse | AdminModule[]) =>
+        Array.isArray(response) ? response : response.data,
+    }),
+
     getAdmins: builder.query<Admin[], AdminQueryParams | void>({
       query: (params) => ({
         tag: 'Admins',
@@ -293,6 +356,23 @@ const adminsApi = baseApi.injectEndpoints({
       ],
     }),
 
+    updateAdminModules: builder.mutation<
+      void,
+      { id: string; modulePermissions: string[] }
+    >({
+      query: ({ id, modulePermissions }) => ({
+        tag: 'Admins',
+        url: `/admins/${id}/modules`,
+        method: 'PATCH',
+        data: { modulePermissions },
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Admins', id },
+        { type: 'Admins', id: 'LIST' },
+      ],
+    }),
+
     setAdminStatus: builder.mutation<void, { id: string; status: AdminStatus }>(
       {
         query: ({ id, status }) => ({
@@ -341,8 +421,10 @@ const adminsApi = baseApi.injectEndpoints({
 export const {
   useGetAdminsQuery,
   useGetAdminDetailQuery,
+  useGetAdminModulesQuery,
   useGetAdminAnalyticsQuery,
   useCreateAdminMutation,
   useUpdateAdminMutation,
+  useUpdateAdminModulesMutation,
   useSetAdminStatusMutation,
 } = adminsApi

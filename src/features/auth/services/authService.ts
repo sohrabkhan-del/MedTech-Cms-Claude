@@ -49,6 +49,7 @@ interface AdminProfileData {
   status?: string
   isEmailVerified?: boolean
   isPhoneVerified?: boolean
+  modulePermissions?: string[]
   region?: string | null
   regions?: AdminProfileRegion[]
 }
@@ -108,6 +109,7 @@ function mapAdminProfile(profile: AdminProfileData): AuthUser {
       : undefined,
     location: profile.region ?? undefined,
     regions: profile.regions,
+    modulePermissions: profile.modulePermissions,
   }
 }
 

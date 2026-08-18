@@ -1,6 +1,7 @@
 import type {
   Admin,
   AdminActivityEntry,
+  AdminModulePermission,
   AdminRegionAccess,
   AdminRole,
   AdminStatus,
@@ -27,6 +28,12 @@ const regions: AdminRegionAccess[] = [
 ]
 const roles: AdminRole[] = ['Super Admin', 'Admin']
 const statuses: AdminStatus[] = ['active', 'pending', 'inactive']
+const moduleSets: AdminModulePermission[][] = [
+  ['operations', 'inventory_management'],
+  ['partners', 'verification'],
+  ['marketing_product', 'scheme_management'],
+  ['reward_wallet', 'reports_and_analytics'],
+]
 const actionTypes = [
   { action: 'Activated Dealer Account', target: 'Dealer' },
   { action: 'Approved KYC Request', target: 'Verification' },
@@ -68,6 +75,7 @@ export const mockAdmins: Admin[] = Array.from({ length: 18 }).map(
       phone: `+91 98${(20000000 + index * 173).toString().slice(0, 8)}`,
       regionAccess: regions[index % regions.length]!,
       regionIds: [],
+      modulePermissions: moduleSets[index % moduleSets.length]!,
       role: index % 5 === 0 ? 'Super Admin' : roles[index % roles.length]!,
       status: statuses[index % statuses.length]!,
       totalActionsLogged: seededNumber(seed, 20, 400),

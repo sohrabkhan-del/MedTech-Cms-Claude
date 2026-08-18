@@ -48,6 +48,7 @@ export interface MenuGroup {
   groupLabel: string
   icon?: LucideIcon
   items: MenuItem[]
+  moduleCode?: string
   /** When true, the group header toggles a collapsed/expanded state (collapsed by default). */
   collapsible?: boolean
 }
@@ -74,6 +75,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'FIELD OPERATIONS',
     icon: MapPin,
+    moduleCode: 'operations',
     items: [
       {
         label: 'Live Scan Feed',
@@ -98,6 +100,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'INVENTORY MANAGEMENT',
     icon: Package,
+    moduleCode: 'inventory_management',
     items: [
       {
         label: 'Product Master',
@@ -133,6 +136,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'PARTNERS',
     icon: Users,
+    moduleCode: 'partners',
     items: [
       {
         label: 'Dealers',
@@ -151,6 +155,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'VERIFICATION',
     icon: ShieldCheck,
+    moduleCode: 'verification',
     items: [
       {
         label: 'Approval Requests',
@@ -171,6 +176,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'MARKETING PRODUCTS',
     icon: Megaphone,
+    moduleCode: 'marketing_product',
     items: [
       {
         label: 'Marketing Catalogue',
@@ -191,6 +197,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'SCHEME MANAGEMENT',
     icon: Target,
+    moduleCode: 'scheme_management',
     items: [
       {
         label: 'Schemes',
@@ -209,6 +216,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'REWARDS & WALLET',
     icon: Wallet,
+    moduleCode: 'reward_wallet',
     items: [
       {
         label: 'Point Value Rules',
@@ -233,6 +241,7 @@ export const menuConfig: MenuGroup[] = [
   {
     groupLabel: 'REPORTS & ANALYTICS',
     icon: BarChart3,
+    moduleCode: 'reports_and_analytics',
     items: [
       {
         label: 'Reports',

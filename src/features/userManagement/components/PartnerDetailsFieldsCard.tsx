@@ -1,23 +1,32 @@
 import { useState, type ReactNode } from 'react'
 import { Link as RouterLink } from 'react-router-dom'
-import { Box, Card, Chip, Collapse, Grid, Link, Stack, Typography } from '@mui/material'
+import {
+  Box,
+  Card,
+  Chip,
+  Collapse,
+  Grid,
+  Link,
+  Stack,
+  Typography,
+} from '@mui/material'
 import { Store, Warehouse, MapPin, ChevronDown } from 'lucide-react'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { OutletLocationCard } from '@/features/userManagement/components/OutletLocationCard'
 import { DocumentGridCard } from '@/components/common/DocumentGridCard/DocumentGridCard'
 import type { PartnerBase, PartnerBusinessDetail } from '@/types/partner'
 
-const outletTypeConfig: Record<
-  string,
-  { label: string; icon: typeof Store }
-> = {
-  SHOP: { label: 'Shop', icon: Store },
-  GODOWN: { label: 'Godown', icon: Warehouse },
-  OTHER: { label: 'Other', icon: MapPin },
-}
+const outletTypeConfig: Record<string, { label: string; icon: typeof Store }> =
+  {
+    SHOP: { label: 'Shop', icon: Store },
+    GODOWN: { label: 'Godown', icon: Warehouse },
+    OTHER: { label: 'Other', icon: MapPin },
+  }
 
 function getOutletTypeInfo(addressType?: PartnerBusinessDetail['addressType']) {
-  return (addressType && outletTypeConfig[addressType]) || outletTypeConfig.OTHER
+  return (
+    (addressType && outletTypeConfig[addressType]) || outletTypeConfig.OTHER
+  )
 }
 
 const NOTE_PREVIEW_LENGTH = 120
@@ -34,6 +43,7 @@ function ExpandableNote({ value }: { value: string }) {
           color: 'text.secondary',
           textTransform: 'uppercase',
           letterSpacing: '0.04em',
+          width: 120,
         }}
       >
         Notes
@@ -44,6 +54,8 @@ function ExpandableNote({ value }: { value: string }) {
           fontSize: '0.8125rem',
           mt: 0.25,
           whiteSpace: 'pre-wrap',
+          wordBreak: 'break-word',
+          // keep content within the available space and allow wrapping
           lineHeight: 1.5,
         }}
       >
@@ -65,6 +77,9 @@ function ExpandableNote({ value }: { value: string }) {
             fontWeight: 700,
             color: 'primary.main',
             cursor: 'pointer',
+            display: 'inline',
+            // ensure the control doesn't force full-width layout
+            width: 'auto',
           }}
         >
           {expanded ? 'Show less' : 'Show more'}
@@ -377,6 +392,7 @@ export function PartnerDetailsFieldsCard({
               color="primary"
               sx={{ height: 20, fontSize: '0.6875rem', fontWeight: 700 }}
             />
+            <Box sx={{ flex: 1 }} />
           </Stack>
 
           <Stack spacing={2.5}>
@@ -406,6 +422,7 @@ export function PartnerDetailsFieldsCard({
               color: 'text.secondary',
               textTransform: 'uppercase',
               letterSpacing: '0.04em',
+              width: 120,
             }}
           >
             Notes

@@ -1,7 +1,23 @@
 import { useState } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
-import { Chip, Typography } from '@mui/material'
+import {
+  Chip,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  CircularProgress,
+  Box,
+} from '@mui/material'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
+import { Plus } from 'lucide-react'
 import {
   CommonTable,
   type CommonTableColumn,
@@ -9,12 +25,18 @@ import {
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useGetPartnerScanHistoryQuery } from '@/features/userManagement/services/partnerActivityApi'
 import type { PartnerScanHistoryRow } from '@/features/userManagement/services/partnerActivityApi'
+import { useToast } from '@/contexts/ToastContext'
+import { apiClient } from '@/services/apiClient'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
+import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
 
-const resultColor: Record<string, 'success' | 'warning' | 'error' | 'default'> = {
-  SUCCESS: 'success',
-  DUPLICATE: 'warning',
-  FAILED: 'error',
-}
+const resultColor: Record<string, 'success' | 'warning' | 'error' | 'default'> =
+  {
+    SUCCESS: 'success',
+    DUPLICATE: 'warning',
+    FAILED: 'error',
+  }
 
 const columns: CommonTableColumn<PartnerScanHistoryRow>[] = [
   {
@@ -60,15 +82,20 @@ const columns: CommonTableColumn<PartnerScanHistoryRow>[] = [
   },
 ]
 
-export function ScanHistoryCard({ partnerId }: { partnerId: string | undefined }) {
+export function ScanHistoryCard({
+  partnerId,
+}: {
+  partnerId: string | undefined
+}) {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 300)
   const [sortBy, setSortBy] = useState('scannedAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [businessFocused, setBusinessFocused] = useState(false)
 
-  const { data, isFetching } = useGetPartnerScanHistoryQuery(
+  const result = useGetPartnerScanHistoryQuery(
     partnerId
       ? {
           partnerId,
@@ -81,8 +108,84 @@ export function ScanHistoryCard({ partnerId }: { partnerId: string | undefined }
       : skipToken,
   )
 
+  const { data, isFetching, refetch } = result
+  const toast = useToast()
+
+  // determine user type and load partner details for businesses
+  const userType = window.location.pathname.toLowerCase().includes('/chemists')
+    ? 'chemist'
+    : 'dealer'
+  const dealerDetail = useDealerDetail(
+    userType === 'dealer' ? partnerId : undefined,
+  )
+  const chemistDetail = useChemistDetail(
+    userType === 'chemist' ? partnerId : undefined,
+  )
+  const businesses =
+    (userType === 'dealer'
+      ? dealerDetail.dealer?.businesses
+      : chemistDetail.chemist?.businesses) ?? []
+
+  const partnerName =
+    (userType === 'dealer'
+      ? dealerDetail.dealer?.shopName
+      : chemistDetail.chemist?.shopName) ?? ''
+
+  const [manualOpen, setManualOpen] = useState(false)
+  // start with empty code — user will enter it manually
+  const [code, setCode] = useState('')
+  // don't preselect business; let user choose
+  const [selectedBusiness, setSelectedBusiness] = useState<string | undefined>(
+    undefined,
+  )
+  const [submitting, setSubmitting] = useState(false)
+
+  function openManual() {
+    setSelectedBusiness(undefined)
+    setCode('')
+    setManualOpen(true)
+  }
+
+  async function submitManual() {
+    if (!selectedBusiness) {
+      toast.error('Please select a business')
+      return
+    }
+    setSubmitting(true)
+    try {
+      const payload = {
+        code: code.trim(),
+        partnerId: partnerId,
+        userType: userType === 'dealer' ? 'DEALER' : 'CHEMIST',
+        businessId: selectedBusiness,
+      }
+      await apiClient.post('/product-scan/manual', payload)
+      toast.success('Scan added manually')
+      setManualOpen(false)
+      refetch()
+    } catch (err) {
+      const msg = getApiErrorMessage(err, 'Failed to add scan')
+      toast.error(msg)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   return (
-    <SectionCard title="Scan History">
+    <SectionCard
+      title="Scan History"
+      action={
+        <Button
+          variant="contained"
+          size="small"
+          onClick={openManual}
+          disabled={!partnerId}
+          startIcon={<Plus size={14} />}
+        >
+          Add Scan Manually
+        </Button>
+      }
+    >
       <CommonTable
         tableKey="partner-scan-history"
         columns={columns}
@@ -111,6 +214,93 @@ export function ScanHistoryCard({ partnerId }: { partnerId: string | undefined }
         }}
         emptyTitle="No scans recorded"
       />
+      <Dialog
+        open={manualOpen}
+        onClose={() => setManualOpen(false)}
+        fullWidth
+        maxWidth="sm"
+      >
+        <DialogTitle>Add Scan Manually</DialogTitle>
+
+        <DialogContent>
+          <Box sx={{ mt: 2, display: 'grid', gap: 2 }}>
+            <TextField
+              label="Code"
+              placeholder="Enter scan code"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              fullWidth
+              size="small"
+              autoFocus
+              helperText="Enter the scanned code (manually input)"
+            />
+
+            <FormControl fullWidth size="small">
+              <InputLabel
+                id="business-select-label"
+                shrink={businessFocused || Boolean(selectedBusiness)}
+              >
+                Business
+              </InputLabel>
+              <Select
+                labelId="business-select-label"
+                value={selectedBusiness}
+                label={businessFocused || selectedBusiness ? 'Business' : ''}
+                onFocus={() => setBusinessFocused(true)}
+                onBlur={() => setBusinessFocused(false)}
+                onChange={(e) => setSelectedBusiness(String(e.target.value))}
+                displayEmpty
+                renderValue={(selected) => {
+                  if (!selected) {
+                    return ''
+                  }
+                  const match = businesses.find(
+                    (b) => (b.id ?? b.outletName) === selected,
+                  )
+                  return match?.outletName ?? String(selected)
+                }}
+              >
+                {businesses.map((b) => (
+                  <MenuItem
+                    key={b.id ?? b.outletName}
+                    value={b.id ?? b.outletName}
+                  >
+                    {b.outletName}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              label="Partner"
+              value={partnerName}
+              fullWidth
+              size="small"
+              disabled
+            />
+            <TextField
+              label="User Type"
+              value={userType.toUpperCase()}
+              fullWidth
+              size="small"
+              disabled
+            />
+          </Box>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setManualOpen(false)} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            onClick={submitManual}
+            disabled={submitting}
+            startIcon={submitting ? <CircularProgress size={16} /> : null}
+          >
+            Submit
+          </Button>
+        </DialogActions>
+      </Dialog>
     </SectionCard>
   )
 }

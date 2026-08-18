@@ -104,12 +104,10 @@ export function SchemesListPage() {
     {
       label: 'General',
       value: 'general',
-      count: schemes.filter((s) => s.type === 'general').length,
     },
     {
       label: 'Seasonal',
       value: 'seasonal',
-      count: schemes.filter((s) => s.type === 'seasonal').length,
     },
   ]
 

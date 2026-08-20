@@ -4,9 +4,13 @@ import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function usePartnerSecurityHistory(
   partnerId: string | undefined,
-  params?: { page?: number; limit?: number },
+  params?: { page?: number; limit?: number; search?: string },
 ) {
-  const { data, isFetching, error: queryError } = useGetPartnerSecurityHistoryQuery(
+  const {
+    data,
+    isFetching,
+    error: queryError,
+  } = useGetPartnerSecurityHistoryQuery(
     partnerId ? { partnerId, ...params } : skipToken,
   )
 

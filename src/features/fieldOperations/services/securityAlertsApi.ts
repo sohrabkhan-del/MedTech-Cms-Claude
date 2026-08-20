@@ -43,7 +43,9 @@ interface SecurityAlertKpisApiData {
   criticalSeverityAlerts: number
 }
 
-function mapSecurityAlertKpis(data: SecurityAlertKpisApiData): SecurityAlertKpis {
+function mapSecurityAlertKpis(
+  data: SecurityAlertKpisApiData,
+): SecurityAlertKpis {
   return {
     totalAlerts: data.totalSecurityAlerts,
     totalAlertsChange: data.totalSecurityAlertsChange,
@@ -178,7 +180,9 @@ function mapSecurityAlert(item: ApiSecurityAlertItem): SecurityAlert {
   }
 }
 
-function mapSecurityAlertDetail(item: ApiSecurityAlertDetailItem): SecurityAlertDetail {
+function mapSecurityAlertDetail(
+  item: ApiSecurityAlertDetailItem,
+): SecurityAlertDetail {
   return {
     ...mapSecurityAlert(item),
     productId: item.productId,
@@ -239,20 +243,27 @@ const securityAlertsApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map(({ id }) => ({ type: 'SecurityAlerts' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'SecurityAlerts' as const,
+                id,
+              })),
               { type: 'SecurityAlerts' as const, id: 'LIST' },
             ]
           : [{ type: 'SecurityAlerts' as const, id: 'LIST' }],
     }),
 
-    getSecurityAlertDetail: builder.query<SecurityAlertDetail | undefined, string>({
+    getSecurityAlertDetail: builder.query<
+      SecurityAlertDetail | undefined,
+      string
+    >({
       query: (id) => ({
         tag: 'SecurityAlerts',
         url: `/product-scan-security/${id}`,
         mockResolver: () => mockDelay(undefined),
       }),
       transformResponse: (
-        response: SecurityAlertDetailApiResponse | SecurityAlertDetail | undefined,
+        response:
+          SecurityAlertDetailApiResponse | SecurityAlertDetail | undefined,
       ) =>
         response && 'data' in response
           ? mapSecurityAlertDetail(response.data)
@@ -270,20 +281,22 @@ const securityAlertsApi = baseApi.injectEndpoints({
         response:
           | { success: boolean; data: SecurityAlertKpisApiData }
           | SecurityAlertKpis,
-      ) => ('data' in response ? mapSecurityAlertKpis(response.data) : response),
+      ) =>
+        'data' in response ? mapSecurityAlertKpis(response.data) : response,
       providesTags: [{ type: 'SecurityAlerts', id: 'KPIS' }],
     }),
 
     getPartnerSecurityHistory: builder.query<
       { items: SecurityAlert[]; totalItems: number },
-      { partnerId: string; page?: number; limit?: number }
+      { partnerId: string; page?: number; limit?: number; search?: string }
     >({
-      query: ({ partnerId, page, limit }) => ({
+      query: ({ partnerId, page, limit, search }) => ({
         tag: 'SecurityAlerts',
         url: `/product-scan-security/partner/${partnerId}/history`,
         params: {
           page: page ?? 1,
           limit: limit ?? 10,
+          search: search || undefined,
         },
         mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
       }),

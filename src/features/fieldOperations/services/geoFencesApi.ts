@@ -1,7 +1,15 @@
 // MOCK MODE — flip VITE_USE_MOCKS=false and confirm this endpoint's real backend path once integration starts.
 import { baseApi } from '@/store/api/baseApi'
-import { mockGeoFences, getGeoFenceById, geoFenceUserOptions } from '@/features/fieldOperations/mocks/mockGeoFences'
-import type { GeoFence, GeoFenceFormValues, GeoFenceUserType } from '@/features/fieldOperations/types/fieldOperations.types'
+import {
+  mockGeoFences,
+  getGeoFenceById,
+  geoFenceUserOptions,
+} from '@/features/fieldOperations/mocks/mockGeoFences'
+import type {
+  GeoFence,
+  GeoFenceFormValues,
+  GeoFenceUserType,
+} from '@/features/fieldOperations/types/fieldOperations.types'
 import type { PartnerZone } from '@/types/partner'
 import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
 import { mockDelay } from '@/services/mockDelay'
@@ -35,6 +43,8 @@ export interface GeoFenceQueryParams extends Partial<AnalyticsDateParams> {
   regionId?: string
   userType?: 'Dealer' | 'Chemist'
   search?: string
+  page?: number
+  limit?: number
 }
 
 interface PartnerBusinessApiItem {
@@ -83,13 +93,31 @@ const partnerUserTypeMap: Record<PartnerType, GeoFenceUserType> = {
 
 function inferZone(state?: string | null): PartnerZone {
   const normalized = state?.toLowerCase() ?? ''
-  if (['delhi', 'haryana', 'punjab', 'uttar pradesh'].some((s) => normalized.includes(s))) return 'North'
-  if (['tamil', 'kerala', 'karnataka', 'telangana', 'andhra'].some((s) => normalized.includes(s))) return 'South'
-  if (['west bengal', 'odisha', 'bihar', 'assam'].some((s) => normalized.includes(s))) return 'East'
+  if (
+    ['delhi', 'haryana', 'punjab', 'uttar pradesh'].some((s) =>
+      normalized.includes(s),
+    )
+  )
+    return 'North'
+  if (
+    ['tamil', 'kerala', 'karnataka', 'telangana', 'andhra'].some((s) =>
+      normalized.includes(s),
+    )
+  )
+    return 'South'
+  if (
+    ['west bengal', 'odisha', 'bihar', 'assam'].some((s) =>
+      normalized.includes(s),
+    )
+  )
+    return 'East'
   return 'West'
 }
 
-function mapPartnerStatus(status?: string | null, isBlocked?: boolean): GeoFence['status'] {
+function mapPartnerStatus(
+  status?: string | null,
+  isBlocked?: boolean,
+): GeoFence['status'] {
   if (isBlocked) return 'inactive'
   if (status === 'PENDING_APPROVAL') return 'pending'
   if (status === 'ACTIVE') return 'active'
@@ -137,7 +165,8 @@ function mapPartnerToGeoFence(item: PartnerApiItem): GeoFence {
 
 function buildSharedListParams(arg: GeoFenceQueryParams | void) {
   return {
-    limit: 1000,
+    page: arg?.page ?? 1,
+    limit: arg?.limit ?? 1000,
     regionId: arg?.regionId || undefined,
     preset: arg?.preset || undefined,
     startDate: arg?.startDate || undefined,
@@ -155,22 +184,59 @@ const geoFencesApi = baseApi.injectEndpoints({
       queryFn: async (arg, _api, _extra, baseQuery) => {
         const sharedParams = buildSharedListParams(arg)
         const type: PartnerType | undefined =
-          arg?.userType === 'Dealer' ? 'DEALER' : arg?.userType === 'Chemist' ? 'CHEMIST' : undefined
+          arg?.userType === 'Dealer'
+            ? 'DEALER'
+            : arg?.userType === 'Chemist'
+              ? 'CHEMIST'
+              : undefined
 
         const response = await baseQuery({
           tag: 'GeoFences',
           url: '/partners',
           params: { ...sharedParams, type },
           mockResolver: () =>
-            mockDelay({ success: true, data: { items: [], totalItems: 0, totalPages: 0, currentPage: 1, pageSize: 0 } }),
+            mockDelay({
+              success: true,
+              data: {
+                items: [],
+                totalItems: 0,
+                totalPages: 0,
+                currentPage: 1,
+                pageSize: 0,
+              },
+            }),
         })
 
         if (response.error) return { error: response.error }
 
         const data = response.data as PartnerListApiResponse | GeoFence[]
-        if (Array.isArray(data)) return { data: mockGeoFences }
+        if (Array.isArray(data)) {
+          const all = mockGeoFences.filter((fence) => {
+            const matchesType =
+              !arg?.userType || fence.userType === arg.userType
+            const matchesSearch =
+              !arg?.search ||
+              `${fence.businessName} ${fence.userName} ${fence.zone}`
+                .toLowerCase()
+                .includes(arg.search.toLowerCase())
+            return matchesType && matchesSearch
+          })
+          const page = arg?.page ?? 1
+          const limit = arg?.limit ?? 1000
+          const start = (page - 1) * limit
+          const paged = all.slice(start, start + limit) as GeoFence[] & {
+            totalItems?: number
+          }
+          paged.totalItems = all.length
+          return { data: paged }
+        }
 
-        return { data: data.data.items.map(mapPartnerToGeoFence) }
+        const mapped = data.data.items.map(mapPartnerToGeoFence)
+        const paged = mapped as GeoFence[] & {
+          totalItems?: number
+        }
+        paged.totalItems = data.data.totalItems
+        return { data: paged }
       },
       providesTags: (result) =>
         result
@@ -190,7 +256,10 @@ const geoFencesApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'GeoFences', id }],
     }),
 
-    getGeoFenceAnalyticsCards: builder.query<GeoFenceAnalyticsCards, GeoFenceQueryParams | void>({
+    getGeoFenceAnalyticsCards: builder.query<
+      GeoFenceAnalyticsCards,
+      GeoFenceQueryParams | void
+    >({
       query: (params) => ({
         tag: 'GeoFences',
         url: '/analytics-cards/geo-fence',
@@ -225,10 +294,16 @@ const geoFencesApi = baseApi.injectEndpoints({
         data: values,
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: [{ type: 'GeoFences', id: 'LIST' }, { type: 'GeoFences', id: 'ANALYTICS_CARDS' }],
+      invalidatesTags: [
+        { type: 'GeoFences', id: 'LIST' },
+        { type: 'GeoFences', id: 'ANALYTICS_CARDS' },
+      ],
     }),
 
-    updateGeoFence: builder.mutation<void, { id: string; values: GeoFenceFormValues }>({
+    updateGeoFence: builder.mutation<
+      void,
+      { id: string; values: GeoFenceFormValues }
+    >({
       query: ({ id, values }) => ({
         tag: 'GeoFences',
         url: `/geo-fences/${id}`,
@@ -243,7 +318,10 @@ const geoFencesApi = baseApi.injectEndpoints({
       ],
     }),
 
-    setGeoFenceStatus: builder.mutation<void, { id: string; status: 'active' | 'inactive' }>({
+    setGeoFenceStatus: builder.mutation<
+      void,
+      { id: string; status: 'active' | 'inactive' }
+    >({
       query: ({ id, status }) => ({
         tag: 'GeoFences',
         url: `/geo-fences/${id}/status`,

@@ -6,7 +6,12 @@ import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
-export function useGeoFences(userType?: 'Dealer' | 'Chemist', search?: string) {
+export function useGeoFences(
+  userType?: 'Dealer' | 'Chemist',
+  search?: string,
+  page?: number,
+  limit?: number,
+) {
   const { regionId: topbarRegionId, dateRange } = useRegionFilter()
   const analyticsParams = dateRangeToAnalyticsParams(dateRange)
   const { preset, startDate, endDate } = analyticsParams
@@ -20,6 +25,8 @@ export function useGeoFences(userType?: 'Dealer' | 'Chemist', search?: string) {
     endDate,
     userType,
     search,
+    page,
+    limit,
   })
   const analyticsCardsResult = useGetGeoFenceAnalyticsCardsQuery({
     ...analyticsParams,
@@ -31,11 +38,20 @@ export function useGeoFences(userType?: 'Dealer' | 'Chemist', search?: string) {
   const error = geoFencesResult.error
     ? getApiErrorMessage(geoFencesResult.error, 'Failed to load geo fences.')
     : analyticsCardsResult.error
-      ? getApiErrorMessage(analyticsCardsResult.error, 'Failed to load geo fences.')
+      ? getApiErrorMessage(
+          analyticsCardsResult.error,
+          'Failed to load geo fences.',
+        )
       : null
 
+  const pagedGeoFences = geoFencesResult.data ?? []
+  const totalCount =
+    (pagedGeoFences as (GeoFence[] & { totalItems?: number }) | undefined)
+      ?.totalItems ?? pagedGeoFences.length
+
   return {
-    geoFences: geoFencesResult.data ?? [],
+    geoFences: pagedGeoFences,
+    totalCount,
     analyticsCards: analyticsCardsResult.data ?? null,
     isLoading,
     isAnalyticsCardsLoading,

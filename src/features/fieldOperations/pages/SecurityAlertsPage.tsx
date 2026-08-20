@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import {
+  Chip,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import {
   ShieldAlert as GppMaybeIcon,
   TriangleAlert as ReportProblemOutlined,
@@ -37,16 +44,25 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
   createdAt: 'createdAt',
 }
 
+const formatAlertType = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+
+const defaultAlertFilters: AlertFilters = {
+  severity: 'all',
+  status: 'all',
+  type: '',
+}
+
 export function SecurityAlertsPage() {
   const navigate = useNavigate()
   const { regionId: topbarRegionId } = useRegionFilter()
   const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<AlertFilters>({
-    severity: 'all',
-    status: 'all',
-    type: '',
-  })
+  const [appliedFilters, setAppliedFilters] =
+    useState<AlertFilters>(defaultAlertFilters)
   const [sortColumn, setSortColumn] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
@@ -58,8 +74,14 @@ export function SecurityAlertsPage() {
     page: page + 1,
     limit: rowsPerPage,
     search: debouncedSearch,
-    severity: appliedFilters.severity !== 'all' ? appliedFilters.severity.toUpperCase() : undefined,
-    status: appliedFilters.status !== 'all' ? appliedFilters.status.toUpperCase() : undefined,
+    severity:
+      appliedFilters.severity !== 'all'
+        ? appliedFilters.severity.toUpperCase()
+        : undefined,
+    status:
+      appliedFilters.status !== 'all'
+        ? appliedFilters.status.toUpperCase()
+        : undefined,
     type: appliedFilters.type || undefined,
     regionId: topbarRegionId || undefined,
     sortBy: SORT_FIELD_MAP[sortColumn],
@@ -68,7 +90,8 @@ export function SecurityAlertsPage() {
   useRegionTopbarHeader({
     icon: <GppMaybeIcon size={20} />,
     title: 'Security Alerts',
-    subtitle: 'Real-time monitoring of suspicious activity across the platform.',
+    subtitle:
+      'Real-time monitoring of suspicious activity across the platform.',
     isLoading,
   })
 
@@ -142,7 +165,11 @@ export function SecurityAlertsPage() {
       sortable: true,
       sortValue: (row) => row.scanPartnerDetails.region,
       render: (row) => (
-        <Chip size="small" label={row.scanPartnerDetails.region} variant="outlined" />
+        <Chip
+          size="small"
+          label={row.scanPartnerDetails.region}
+          variant="outlined"
+        />
       ),
     },
     {
@@ -157,14 +184,31 @@ export function SecurityAlertsPage() {
       header: 'Alert Type',
       minWidth: 170,
       sortable: true,
-      render: (row) => row.type,
+      render: (row) => (
+        <Chip
+          label={formatAlertType(row.type)}
+          size="small"
+          color="primary"
+          variant="outlined"
+          sx={{
+            fontWeight: 700,
+            borderRadius: 1,
+            px: 0.5,
+            backgroundColor: 'rgba(25, 118, 210, 0.08)',
+          }}
+        />
+      ),
     },
     {
       key: 'createdAt',
       header: 'Alert Date & Time',
       minWidth: 160,
       sortable: true,
-      render: (row) => new Date(row.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+      render: (row) =>
+        new Date(row.createdAt).toLocaleString('en-IN', {
+          dateStyle: 'medium',
+          timeStyle: 'short',
+        }),
     },
   ]
 
@@ -305,6 +349,10 @@ export function SecurityAlertsPage() {
           setAppliedFilters(next)
           setPage(0)
         }}
+        onReset={() => {
+          setAppliedFilters(defaultAlertFilters)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
@@ -343,18 +391,6 @@ export function SecurityAlertsPage() {
               <MenuItem value="resolved">Resolved</MenuItem>
               <MenuItem value="dismissed">Dismissed</MenuItem>
             </TextField>
-            <TextField
-              label="Incident Type"
-              size="small"
-              placeholder="e.g. QR_ALREADY_CLAIMED"
-              value={draft.type}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  type: e.target.value,
-                }))
-              }
-            />
           </Stack>
         )}
       </FilterDrawer>

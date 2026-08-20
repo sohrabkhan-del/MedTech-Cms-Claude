@@ -69,9 +69,22 @@ export function GeoFenceManagementPage() {
   const { region } = useRegionFilter()
   const [tab, setTab] = useState<RuleTab>('all')
   const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
   const debouncedSearch = useDebouncedValue(search, 300)
-  const { geoFences, analyticsCards, isLoading, isAnalyticsCardsLoading, refetch } =
-    useGeoFences(tab === 'all' ? undefined : tab, debouncedSearch || undefined)
+  const {
+    geoFences,
+    totalCount,
+    analyticsCards,
+    isLoading,
+    isAnalyticsCardsLoading,
+    refetch,
+  } = useGeoFences(
+    tab === 'all' ? undefined : tab,
+    debouncedSearch || undefined,
+    page + 1,
+    rowsPerPage,
+  )
   useRegionTopbarHeader({
     icon: <FenceIcon size={20} />,
     title: 'Geo Fence Management',
@@ -83,7 +96,9 @@ export function GeoFenceManagementPage() {
   const [deactivateDealer] = useDeactivateDealerMutation()
   const [activateChemist] = useActivateChemistMutation()
   const [deactivateChemist] = useDeactivateChemistMutation()
-  const [statusOverrides, setStatusOverrides] = useState<Record<string, GeoFence['status']>>({})
+  const [statusOverrides, setStatusOverrides] = useState<
+    Record<string, GeoFence['status']>
+  >({})
 
   function clearStatusOverride(id: string) {
     setStatusOverrides((prev) => {
@@ -97,13 +112,19 @@ export function GeoFenceManagementPage() {
     setStatusOverrides((prev) => ({ ...prev, [row.id]: 'active' }))
     try {
       if (row.userType === 'Dealer') await activateDealer(row.id).unwrap()
-      else if (row.userType === 'Chemist') await activateChemist(row.id).unwrap()
+      else if (row.userType === 'Chemist')
+        await activateChemist(row.id).unwrap()
       toast.success(`${row.userType} activated successfully.`)
       await refetch()
       clearStatusOverride(row.id)
     } catch (err) {
       clearStatusOverride(row.id)
-      toast.error(getApiErrorMessage(err, `Failed to activate ${row.userType.toLowerCase()}.`))
+      toast.error(
+        getApiErrorMessage(
+          err,
+          `Failed to activate ${row.userType.toLowerCase()}.`,
+        ),
+      )
     }
   }
 
@@ -111,13 +132,19 @@ export function GeoFenceManagementPage() {
     setStatusOverrides((prev) => ({ ...prev, [row.id]: 'inactive' }))
     try {
       if (row.userType === 'Dealer') await deactivateDealer(row.id).unwrap()
-      else if (row.userType === 'Chemist') await deactivateChemist(row.id).unwrap()
+      else if (row.userType === 'Chemist')
+        await deactivateChemist(row.id).unwrap()
       toast.success(`${row.userType} deactivated successfully.`)
       await refetch()
       clearStatusOverride(row.id)
     } catch (err) {
       clearStatusOverride(row.id)
-      toast.error(getApiErrorMessage(err, `Failed to deactivate ${row.userType.toLowerCase()}.`))
+      toast.error(
+        getApiErrorMessage(
+          err,
+          `Failed to deactivate ${row.userType.toLowerCase()}.`,
+        ),
+      )
     }
   }
   const [filterOpen, setFilterOpen] = useState(false)
@@ -134,23 +161,6 @@ export function GeoFenceManagementPage() {
       ? { ...fence, status: statusOverrides[fence.id]! }
       : fence,
   )
-
-  const filteredFences = displayedFences.filter((fence) => {
-    const topbarRegionMatch = !topbarZone || fence.region === topbarZone
-    const userTypeMatch =
-      appliedFilters.userType === 'all' ||
-      fence.userType === appliedFilters.userType
-    const regionMatch =
-      appliedFilters.region === 'all' || fence.region === appliedFilters.region
-    const statusMatch =
-      appliedFilters.status === 'all' || fence.status === appliedFilters.status
-    return (
-      topbarRegionMatch &&
-      userTypeMatch &&
-      regionMatch &&
-      statusMatch
-    )
-  })
 
   const createAction = {
     label: 'Update Geo Fence Rule',
@@ -265,9 +275,10 @@ export function GeoFenceManagementPage() {
               value={analyticsCards?.activeGeoFences ?? 0}
               icon={<CheckCircleOutlined size={20} />}
               iconColor="success"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, status: 'active' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
@@ -280,9 +291,10 @@ export function GeoFenceManagementPage() {
               value={analyticsCards?.pendingVerification ?? 0}
               icon={<PendingActionsOutlined size={20} />}
               iconColor="warning"
-              onClick={() =>
+              onClick={() => {
                 setAppliedFilters((prev) => ({ ...prev, status: 'pending' }))
-              }
+                setPage(0)
+              }}
             />
           )}
         </Grid>
@@ -324,12 +336,25 @@ export function GeoFenceManagementPage() {
       <CommonTable
         tableKey="geo-fence-list"
         columns={columns}
-        rows={filteredFences}
+        rows={displayedFences}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={(nextPage) => {
+          setPage(nextPage)
+        }}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(nextRowsPerPage) => {
+          setRowsPerPage(nextRowsPerPage)
+          setPage(0)
+        }}
         loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search geo fences…"
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={(nextValue) => {
+          setSearch(nextValue)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.userType !== 'all' ? 1 : 0) +
@@ -373,7 +398,10 @@ export function GeoFenceManagementPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Geo Fences"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>

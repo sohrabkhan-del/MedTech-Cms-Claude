@@ -1,6 +1,15 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Grid, Stack, Typography, Button, Chip } from '@mui/material'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import {
+  Box,
+  Grid,
+  Stack,
+  Typography,
+  Button,
+  Chip,
+  Tooltip,
+} from '@mui/material'
 import {
   ShieldAlert as GppMaybeIcon,
   TriangleAlert as ReportProblemOutlined,
@@ -13,19 +22,46 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { CommonTable } from '@/components/common/CommonTable/CommonTable'
 import { SeverityChip } from '@/features/fieldOperations/components/SeverityChip'
-import { SEVERITY_CONFIG, STATUS_CONFIG } from '@/features/fieldOperations/severityConfig'
+import {
+  SEVERITY_CONFIG,
+  STATUS_CONFIG,
+} from '@/features/fieldOperations/severityConfig'
 import { usePartnerSecurityHistory } from '@/features/fieldOperations/hooks/usePartnerSecurityHistory'
+
+const formatCodeLabel = (value?: string | null, maxLength = 32) => {
+  if (!value) return '—'
+
+  const formatted = value
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
+
+  if (formatted.length <= maxLength) {
+    return formatted
+  }
+
+  return `${formatted.slice(0, maxLength - 1).trimEnd()}…`
+}
 
 export function SecurityAlertDetailsPage() {
   const navigate = useNavigate()
   const { userId: partnerId } = useParams<{ userId: string }>()
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const { alerts, totalItems, isLoading } = usePartnerSecurityHistory(partnerId, {
-    page: page + 1,
-    limit: rowsPerPage,
-  })
+  const debouncedSearch = useDebouncedValue(search, 300)
+
+  const { alerts, totalItems, isLoading } = usePartnerSecurityHistory(
+    partnerId,
+    {
+      page: page + 1,
+      limit: rowsPerPage,
+      search: debouncedSearch,
+    },
+  )
 
   if (isLoading && alerts.length === 0) {
     return <DetailsPageSkeleton sections={4} />
@@ -54,7 +90,16 @@ export function SecurityAlertDetailsPage() {
 
   return (
     <>
-      <Stack direction="row" sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+      <Stack
+        direction="row"
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
+      >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
             sx={{
@@ -73,7 +118,8 @@ export function SecurityAlertDetailsPage() {
           <Box>
             <Typography variant="h1">{partnerDetails.businessName}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {partnerDetails.referenceId ?? partnerDetails.id} · {partnerDetails.type}
+              {partnerDetails.referenceId ?? partnerDetails.id} ·{' '}
+              {partnerDetails.type}
             </Typography>
           </Box>
         </Stack>
@@ -91,7 +137,10 @@ export function SecurityAlertDetailsPage() {
         <SectionCard title="Partner Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Partner ID', value: partnerDetails.referenceId ?? partnerDetails.id },
+              {
+                label: 'Partner ID',
+                value: partnerDetails.referenceId ?? partnerDetails.id,
+              },
               { label: 'Business Name', value: partnerDetails.businessName },
               { label: 'Owner Name', value: partnerDetails.ownerName },
               { label: 'Partner Type', value: partnerDetails.type },
@@ -138,8 +187,64 @@ export function SecurityAlertDetailsPage() {
           <CommonTable
             tableKey="security-alert-partner-history"
             columns={[
-              { key: 'type', header: 'Alert Type', render: (row) => row.type },
-              { key: 'reason', header: 'Reason', render: (row) => row.reason },
+              {
+                key: 'type',
+                header: 'Alert Type',
+                minWidth: 170,
+                render: (row) => {
+                  const fullText = formatCodeLabel(row.type, 200)
+                  const compactText = formatCodeLabel(row.type, 28)
+
+                  return (
+                    <Tooltip title={fullText === '—' ? '—' : fullText}>
+                      <Chip
+                        label={compactText}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                        sx={{
+                          maxWidth: 180,
+                          '& .MuiChip-label': {
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            display: 'block',
+                          },
+                        }}
+                      />
+                    </Tooltip>
+                  )
+                },
+              },
+              {
+                key: 'reason',
+                header: 'Reason',
+                minWidth: 180,
+                render: (row) => {
+                  const fullText = formatCodeLabel(row.reason, 200)
+                  const compactText = formatCodeLabel(row.reason, 28)
+
+                  return (
+                    <Tooltip title={fullText === '—' ? '—' : fullText}>
+                      <Box
+                        component="span"
+                        sx={{
+                          display: 'inline-block',
+                          maxWidth: 180,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          verticalAlign: 'middle',
+                          color: 'text.primary',
+                          fontWeight: 500,
+                        }}
+                      >
+                        {compactText}
+                      </Box>
+                    </Tooltip>
+                  )
+                },
+              },
               {
                 key: 'scanPartner',
                 header: 'Scanning Partner',
@@ -164,7 +269,11 @@ export function SecurityAlertDetailsPage() {
                   <Chip
                     size="small"
                     label={STATUS_CONFIG[row.status].label}
-                    color={STATUS_CONFIG[row.status].color === 'default' ? undefined : STATUS_CONFIG[row.status].color}
+                    color={
+                      STATUS_CONFIG[row.status].color === 'default'
+                        ? undefined
+                        : STATUS_CONFIG[row.status].color
+                    }
                     variant="filled"
                   />
                 ),
@@ -174,7 +283,11 @@ export function SecurityAlertDetailsPage() {
                 key: 'createdAt',
                 header: 'Alert Date & Time',
                 sortable: true,
-                render: (row) => new Date(row.createdAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }),
+                render: (row) =>
+                  new Date(row.createdAt).toLocaleString('en-IN', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short',
+                  }),
               },
             ]}
             rows={alerts}
@@ -189,7 +302,11 @@ export function SecurityAlertDetailsPage() {
               setPage(0)
             }}
             searchPlaceholder="Search alerts…"
-            searchKeys={(row) => `${row.type} ${row.reason}`}
+            searchValue={search}
+            onSearchChange={(value) => {
+              setSearch(value)
+              setPage(0)
+            }}
             defaultSortBy="createdAt"
             defaultSortDir="desc"
             emptyTitle="No alerts recorded"

@@ -51,7 +51,6 @@ const partnerBasePath: Record<'Dealer' | 'Chemist', string> = {
 
 interface GeoFenceFilters extends Record<string, unknown> {
   userType: GeoFenceUserType | 'all'
-  region: PartnerZone | 'all'
   status: GeoFence['status'] | 'all'
 }
 
@@ -72,6 +71,11 @@ export function GeoFenceManagementPage() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const debouncedSearch = useDebouncedValue(search, 300)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({
+    userType: 'all',
+    status: 'all',
+  })
   const {
     geoFences,
     totalCount,
@@ -80,10 +84,14 @@ export function GeoFenceManagementPage() {
     isAnalyticsCardsLoading,
     refetch,
   } = useGeoFences(
-    tab === 'all' ? undefined : tab,
+    tab === 'all'
+      ? (appliedFilters.userType === 'all' ? undefined : (appliedFilters.userType as 'Dealer' | 'Chemist' | 'MR'))
+      : tab,
     debouncedSearch || undefined,
     page + 1,
     rowsPerPage,
+    undefined,
+    appliedFilters.status === 'all' ? undefined : (appliedFilters.status as 'active' | 'pending' | 'inactive'),
   )
   useRegionTopbarHeader({
     icon: <FenceIcon size={20} />,
@@ -147,12 +155,6 @@ export function GeoFenceManagementPage() {
       )
     }
   }
-  const [filterOpen, setFilterOpen] = useState(false)
-  const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({
-    userType: 'all',
-    region: 'all',
-    status: 'all',
-  })
 
   const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 
@@ -358,10 +360,9 @@ export function GeoFenceManagementPage() {
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.userType !== 'all' ? 1 : 0) +
-          (appliedFilters.region !== 'all' ? 1 : 0) +
           (appliedFilters.status !== 'all' ? 1 : 0)
         }
-        onExportClick={() => {}}
+        onExportClick={() => { }}
         createAction={createAction}
         defaultSortBy="businessName"
         actions={[
@@ -402,6 +403,13 @@ export function GeoFenceManagementPage() {
           setAppliedFilters(next)
           setPage(0)
         }}
+        onReset={() => {
+          setAppliedFilters({
+            userType: 'all',
+            status: 'all',
+          })
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
@@ -422,24 +430,7 @@ export function GeoFenceManagementPage() {
               <MenuItem value="Chemist">Chemist</MenuItem>
               <MenuItem value="MR">MR</MenuItem>
             </TextField>
-            <TextField
-              select
-              label="Region"
-              size="small"
-              value={draft.region}
-              onChange={(e) =>
-                setDraft((prev) => ({
-                  ...prev,
-                  region: e.target.value as GeoFenceFilters['region'],
-                }))
-              }
-            >
-              <MenuItem value="all">All Regions</MenuItem>
-              <MenuItem value="North">North</MenuItem>
-              <MenuItem value="South">South</MenuItem>
-              <MenuItem value="East">East</MenuItem>
-              <MenuItem value="West">West</MenuItem>
-            </TextField>
+
             <TextField
               select
               label="Status"

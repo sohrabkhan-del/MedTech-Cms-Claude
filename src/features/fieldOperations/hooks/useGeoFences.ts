@@ -7,10 +7,12 @@ import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function useGeoFences(
-  userType?: 'Dealer' | 'Chemist',
+  userType?: 'Dealer' | 'Chemist' | 'MR',
   search?: string,
   page?: number,
   limit?: number,
+  zone?: 'North' | 'South' | 'East' | 'West',
+  status?: 'active' | 'pending' | 'inactive',
 ) {
   const { regionId: topbarRegionId, dateRange } = useRegionFilter()
   const analyticsParams = dateRangeToAnalyticsParams(dateRange)
@@ -27,6 +29,8 @@ export function useGeoFences(
     search,
     page,
     limit,
+    zone,
+    status,
   })
   const analyticsCardsResult = useGetGeoFenceAnalyticsCardsQuery({
     ...analyticsParams,

@@ -45,6 +45,8 @@ export interface GeoFenceQueryParams extends Partial<AnalyticsDateParams> {
   search?: string
   page?: number
   limit?: number
+  zone?: 'North' | 'South' | 'East' | 'West'
+  status?: 'active' | 'pending' | 'inactive'
 }
 
 interface PartnerBusinessApiItem {
@@ -175,6 +177,14 @@ function buildSharedListParams(arg: GeoFenceQueryParams | void) {
   }
 }
 
+function mapStatusParam(status?: string) {
+  if (!status || status === 'all') return undefined
+  if (status === 'active') return 'ACTIVE'
+  if (status === 'pending') return 'PENDING_APPROVAL'
+  if (status === 'inactive') return 'INACTIVE'
+  return status
+}
+
 // create/update/setStatus/deleteGeoFence are currently no-ops resolving
 // immediately so the UI/hook contract is stable ahead of the real API.
 
@@ -193,7 +203,11 @@ const geoFencesApi = baseApi.injectEndpoints({
         const response = await baseQuery({
           tag: 'GeoFences',
           url: '/partners',
-          params: { ...sharedParams, type },
+          params: {
+            ...sharedParams,
+            type,
+            status: arg?.status ? mapStatusParam(arg.status) : undefined,
+          },
           mockResolver: () =>
             mockDelay({
               success: true,
@@ -219,7 +233,11 @@ const geoFencesApi = baseApi.injectEndpoints({
               `${fence.businessName} ${fence.userName} ${fence.zone}`
                 .toLowerCase()
                 .includes(arg.search.toLowerCase())
-            return matchesType && matchesSearch
+            const matchesZone =
+              !arg?.zone || fence.zone === arg.zone
+            const matchesStatus =
+              !arg?.status || fence.status === arg.status
+            return matchesType && matchesSearch && matchesZone && matchesStatus
           })
           const page = arg?.page ?? 1
           const limit = arg?.limit ?? 1000
@@ -231,7 +249,10 @@ const geoFencesApi = baseApi.injectEndpoints({
           return { data: paged }
         }
 
-        const mapped = data.data.items.map(mapPartnerToGeoFence)
+        let mapped = data.data.items.map(mapPartnerToGeoFence)
+        if (arg?.zone) {
+          mapped = mapped.filter((fence) => fence.zone === arg.zone)
+        }
         const paged = mapped as GeoFence[] & {
           totalItems?: number
         }
@@ -241,9 +262,9 @@ const geoFencesApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'GeoFences' as const, id })),
-              { type: 'GeoFences' as const, id: 'LIST' },
-            ]
+            ...result.map(({ id }) => ({ type: 'GeoFences' as const, id })),
+            { type: 'GeoFences' as const, id: 'LIST' },
+          ]
           : [{ type: 'GeoFences' as const, id: 'LIST' }],
     }),
 

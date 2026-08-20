@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Alert,
   Box,
@@ -40,7 +40,10 @@ import {
   parseBmrFile,
   parseMasterCartonFile,
 } from '@/features/inventoryManagement/mockBatchUidUpload'
-import { useUploadFactoryProductionRowsMutation } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
+import {
+  usePreviewFactoryProductionRowsMutation,
+  useUploadFactoryProductionRowsMutation,
+} from '@/features/inventoryManagement/services/factoryProductionUploadApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type {
   BmrBatchRow,
@@ -49,13 +52,15 @@ import type {
   MasterCartonLinkRow,
   MasterCartonUploadSummary,
 } from '@/types/batchUidUpload'
-import type { FactoryProductionUploadRow } from '@/types/factoryProductionUpload'
+import type {
+  FactoryProductionUploadPreview,
+  FactoryProductionUploadRow,
+} from '@/types/factoryProductionUpload'
 
 const STEP_LABELS = [
   'Upload BMR',
   'Upload Carton Linkage',
-  'Validate & Map Data',
-  'Import Confirmation',
+  'Review & Import',
   'Import Success',
 ]
 
@@ -278,6 +283,7 @@ export function BatchUidUploadTab({
   const [cartonSummary, setCartonSummary] =
     useState<MasterCartonUploadSummary | null>(null)
 
+  const [previewRows] = usePreviewFactoryProductionRowsMutation()
   const [uploadRows] = useUploadFactoryProductionRowsMutation()
   const [isProcessing, setIsProcessing] = useState(false)
   const [validateError, setValidateError] = useState<string | null>(null)
@@ -288,30 +294,151 @@ export function BatchUidUploadTab({
   } | null>(null)
 
   const mappedBatches = buildMappedBatches(batchRows)
+  const validBatchRows = useMemo(
+    () => batchRows.filter((row) => row.isValid),
+    [batchRows],
+  )
+  const rejectedBatchRows = useMemo(
+    () => batchRows.filter((row) => !row.isValid),
+    [batchRows],
+  )
+  const validCartonRows = useMemo(
+    () => cartonRows.filter((row) => row.isValid),
+    [cartonRows],
+  )
+  const rejectedCartonRows = useMemo(
+    () => cartonRows.filter((row) => !row.isValid),
+    [cartonRows],
+  )
+
+  function buildBmrSummary(rows: BmrBatchRow[]): BmrValidationSummary {
+    return {
+      totalRows: rows.length,
+      validRows: rows.filter((row) => row.isValid).length,
+      duplicateBatches: rows.filter((row) =>
+        row.validationNote?.toLowerCase().includes('duplicate'),
+      ).length,
+      invalidRanges: rows.filter(
+        (row) =>
+          !row.isValid &&
+          !row.validationNote?.toLowerCase().includes('duplicate'),
+      ).length,
+      totalUidsGenerated: rows
+        .filter((row) => row.isValid)
+        .reduce((total, row) => total + generateUidsForBatch(row).length, 0),
+    }
+  }
+
+  function buildCartonSummary(
+    rows: MasterCartonLinkRow[],
+  ): MasterCartonUploadSummary {
+    return {
+      totalRows: rows.length,
+      validRows: rows.filter((row) => row.isValid).length,
+      unknownUids: rows.filter(
+        (row) => row.validationNote === 'UID not found in this BMR import',
+      ).length,
+      duplicateUids: rows.filter((row) =>
+        row.validationNote?.toLowerCase().includes('duplicate'),
+      ).length,
+    }
+  }
+
+  function previewReasonLabel(action: string, reason?: string): string {
+    if (reason) return reason
+    if (action === 'duplicate') return 'Duplicate batch/product already exists'
+    if (action === 'skip') return 'Will not add'
+    return 'Invalid row'
+  }
+
+  function applyBackendPreviewToBmrRows(
+    rows: BmrBatchRow[],
+    preview: FactoryProductionUploadPreview,
+  ): BmrBatchRow[] {
+    const rejectedByBatch = new Map(
+      preview.rows
+        .filter((row) => !row.isValid)
+        .map((row) => [row.batchNo, row]),
+    )
+    return rows.map((row) => {
+      if (!row.isValid) return row
+      const rejected = rejectedByBatch.get(row.batchNumber)
+      if (!rejected) return row
+      return {
+        ...row,
+        isValid: false,
+        validationNote: previewReasonLabel(rejected.action, rejected.reason),
+      }
+    })
+  }
+
+  function applyKnownUidsToCartonRows(
+    rows: MasterCartonLinkRow[],
+    knownUids: Set<string>,
+  ): MasterCartonLinkRow[] {
+    const seenValidUids = new Set<string>()
+    return rows.map((row) => {
+      if (!knownUids.has(row.uid)) {
+        return {
+          ...row,
+          isValid: false,
+          validationNote: 'UID not found in this BMR import',
+        }
+      }
+      if (seenValidUids.has(row.uid)) {
+        return {
+          ...row,
+          isValid: false,
+          validationNote: 'Duplicate UID',
+        }
+      }
+      seenValidUids.add(row.uid)
+      return { ...row, isValid: true, validationNote: undefined }
+    })
+  }
 
   async function handleValidateAll() {
     if (!bmrFile || !cartonFile) return
     setIsProcessing(true)
     setValidateError(null)
     try {
-      const { rows: bmrRows, summary: bmrSummary } = await parseBmrFile(bmrFile)
+      const { rows: bmrRows } = await parseBmrFile(bmrFile)
       const knownUids = new Set(
         bmrRows
           .filter((row) => row.isValid)
           .flatMap((row) => generateUidsForBatch(row).map((u) => u.uid)),
       )
-      const { rows: linkRows, summary: linkSummary } =
-        await parseMasterCartonFile(cartonFile, knownUids)
+      const { rows: linkRows } = await parseMasterCartonFile(
+        cartonFile,
+        knownUids,
+      )
 
-      setBatchRows(bmrRows)
-      setSummary(bmrSummary)
-      setCartonRows(linkRows)
-      setCartonSummary(linkSummary)
+      const preview = await previewRows({
+        rows: toFactoryProductionRows(bmrRows, linkRows),
+      }).unwrap()
+      const reviewedBmrRows = applyBackendPreviewToBmrRows(bmrRows, preview)
+      const reviewedKnownUids = new Set(
+        reviewedBmrRows
+          .filter((row) => row.isValid)
+          .flatMap((row) => generateUidsForBatch(row).map((u) => u.uid)),
+      )
+      const reviewedCartonRows = applyKnownUidsToCartonRows(
+        linkRows,
+        reviewedKnownUids,
+      )
+      const reviewedBmrSummary = buildBmrSummary(reviewedBmrRows)
+      const reviewedCartonSummary = buildCartonSummary(reviewedCartonRows)
+
+      setBatchRows(reviewedBmrRows)
+      setSummary(reviewedBmrSummary)
+      setCartonRows(reviewedCartonRows)
+      setCartonSummary(reviewedCartonSummary)
       setActiveStep(2)
 
       const rejectedBatches =
-        bmrSummary.duplicateBatches + bmrSummary.invalidRanges
-      const rejectedLinks = linkSummary.unknownUids + linkSummary.duplicateUids
+        reviewedBmrSummary.duplicateBatches + reviewedBmrSummary.invalidRanges
+      const rejectedLinks =
+        reviewedCartonSummary.unknownUids + reviewedCartonSummary.duplicateUids
       if (rejectedBatches + rejectedLinks > 0) {
         setToast({
           severity: 'warning',
@@ -371,12 +498,17 @@ export function BatchUidUploadTab({
       return `${yyyy}-${mm}-${dd}`
     }
     const parsed = new Date(trimmed)
-    return Number.isNaN(parsed.getTime()) ? trimmed : parsed.toISOString().slice(0, 10)
+    return Number.isNaN(parsed.getTime())
+      ? trimmed
+      : parsed.toISOString().slice(0, 10)
   }
 
-  function cartonRangeByBatch(): Record<string, { start: number; end: number }> {
+  function cartonRangeByBatch(
+    sourceBatchRows = batchRows,
+    sourceCartonRows = cartonRows,
+  ): Record<string, { start: number; end: number }> {
     const batchNumberByUid = new Map<string, string>()
-    for (const row of batchRows) {
+    for (const row of sourceBatchRows) {
       if (!row.isValid) continue
       for (const generated of generateUidsForBatch(row)) {
         batchNumberByUid.set(generated.uid, row.batchNumber)
@@ -384,11 +516,13 @@ export function BatchUidUploadTab({
     }
 
     const cartonNumbersByBatch = new Map<string, number[]>()
-    for (const link of cartonRows) {
+    for (const link of sourceCartonRows) {
       if (!link.isValid) continue
       const batchNumber = batchNumberByUid.get(link.uid)
       if (!batchNumber) continue
-      const cartonNumber = Number(link.masterCartonNumber.replace(/[^0-9]/g, ''))
+      const cartonNumber = Number(
+        link.masterCartonNumber.replace(/[^0-9]/g, ''),
+      )
       if (!Number.isFinite(cartonNumber) || cartonNumber <= 0) continue
       const numbers = cartonNumbersByBatch.get(batchNumber) ?? []
       numbers.push(cartonNumber)
@@ -403,9 +537,12 @@ export function BatchUidUploadTab({
     )
   }
 
-  function toFactoryProductionRows(): FactoryProductionUploadRow[] {
-    const cartonRanges = cartonRangeByBatch()
-    return batchRows
+  function toFactoryProductionRows(
+    sourceBatchRows = batchRows,
+    sourceCartonRows = cartonRows,
+  ): FactoryProductionUploadRow[] {
+    const cartonRanges = cartonRangeByBatch(sourceBatchRows, sourceCartonRows)
+    return sourceBatchRows
       .filter((row) => row.isValid)
       .map((row) => {
         const range = cartonRanges[row.batchNumber]
@@ -437,7 +574,7 @@ export function BatchUidUploadTab({
     setValidateError(null)
     try {
       await uploadRows({ rows: toFactoryProductionRows() }).unwrap()
-      setActiveStep(4)
+      setActiveStep(3)
       onImported?.(
         batchRows.filter((row) => row.isValid),
         mappedBatches,
@@ -454,7 +591,9 @@ export function BatchUidUploadTab({
         setTimeout(onDone, 2000)
       }
     } catch (err) {
-      setValidateError(getApiErrorMessage(err, 'Failed to import the validated data.'))
+      setValidateError(
+        getApiErrorMessage(err, 'Failed to import the validated data.'),
+      )
     } finally {
       setIsProcessing(false)
     }
@@ -481,7 +620,12 @@ export function BatchUidUploadTab({
             <Stack
               direction="row"
               spacing={1.5}
-              sx={{ justifyContent: 'flex-end', mb: 1.5, flexWrap: 'wrap', rowGap: 1 }}
+              sx={{
+                justifyContent: 'flex-end',
+                mb: 1.5,
+                flexWrap: 'wrap',
+                rowGap: 1,
+              }}
             >
               <Button
                 variant="outlined"
@@ -534,10 +678,7 @@ export function BatchUidUploadTab({
             subtitle="Upload the linkage file (UID, Master Carton Number). Reference-only for now — this will be replaced by real line-side scan data."
           />
           <SectionCard title="Master Carton Linkage File">
-            <Stack
-              direction="row"
-              sx={{ justifyContent: 'flex-end', mb: 1.5 }}
-            >
+            <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 1.5 }}>
               <Button
                 variant="outlined"
                 size="small"
@@ -586,8 +727,8 @@ export function BatchUidUploadTab({
         <>
           <StepHeader
             icon={<Layers size={20} />}
-            title="Validate & Map Data"
-            subtitle="Review the validation summary for both the BMR and the Master Carton linkage. UIDs are generated as Batch Number + Serial Number for each valid batch."
+            title="Review & Import"
+            subtitle="Review what will be imported from the BMR and Master Carton linkage files before confirming."
           />
 
           <Grid container spacing={2.5}>
@@ -634,13 +775,13 @@ export function BatchUidUploadTab({
             </Alert>
           )}
 
-          <SectionCard title="BMR — Validation Summary">
+          <SectionCard title="BMR Batches — Will Be Imported">
             <CommonTable
-              tableKey="bmr-validation"
+              tableKey="bmr-valid-preview"
               columns={batchColumns}
-              rows={batchRows}
+              rows={validBatchRows}
               getRowId={(row) => row.id}
-              searchPlaceholder="Search batch rows…"
+              searchPlaceholder="Search valid batch rows…"
               searchKeys={(row) =>
                 [
                   row.productCode,
@@ -664,7 +805,8 @@ export function BatchUidUploadTab({
                   .filter((value) => value !== undefined && value !== null)
                   .join(' ')
               }
-              emptyTitle="No batch rows"
+              emptyTitle="No BMR batches will be imported"
+              emptyDescription="Every BMR row failed validation."
             />
           </SectionCard>
 
@@ -760,13 +902,13 @@ export function BatchUidUploadTab({
             </Alert>
           )}
 
-          <SectionCard title="Master Carton Linkage — Mapping">
+          <SectionCard title="Master Carton Linkage — Will Be Imported">
             <CommonTable
-              tableKey="master-carton-linkage-preview"
+              tableKey="master-carton-linkage-valid-preview"
               columns={cartonLinkColumns}
-              rows={cartonRows}
+              rows={validCartonRows}
               getRowId={(row) => row.id}
-              searchPlaceholder="Search UIDs…"
+              searchPlaceholder="Search valid UIDs…"
               searchKeys={(row) =>
                 [
                   row.uid,
@@ -776,9 +918,67 @@ export function BatchUidUploadTab({
                   .filter((value) => value !== undefined && value !== null)
                   .join(' ')
               }
-              emptyTitle="No linkage rows"
+              emptyTitle="No carton links will be imported"
+              emptyDescription="Every carton linkage row failed validation."
             />
           </SectionCard>
+
+          {(rejectedBatchRows.length > 0 || rejectedCartonRows.length > 0) && (
+            <SectionCard title="Rejected Rows">
+              <Stack spacing={2.5}>
+                {rejectedBatchRows.length > 0 && (
+                  <CommonTable
+                    tableKey="bmr-rejected-preview"
+                    columns={batchColumns}
+                    rows={rejectedBatchRows}
+                    getRowId={(row) => row.id}
+                    searchPlaceholder="Search rejected BMR rows…"
+                    searchKeys={(row) =>
+                      [
+                        row.productCode,
+                        row.batchNumber,
+                        row.productionPlanNumber,
+                        row.validationNote,
+                      ]
+                        .filter(
+                          (value) => value !== undefined && value !== null,
+                        )
+                        .join(' ')
+                    }
+                    emptyTitle="No rejected BMR rows"
+                    getRowSx={() => ({
+                      bgcolor: 'rgba(239, 68, 68, 0.08)',
+                      '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.14)' },
+                    })}
+                  />
+                )}
+
+                {rejectedCartonRows.length > 0 && (
+                  <CommonTable
+                    tableKey="master-carton-linkage-rejected-preview"
+                    columns={cartonLinkColumns}
+                    rows={rejectedCartonRows}
+                    getRowId={(row) => row.id}
+                    searchPlaceholder="Search rejected carton rows…"
+                    searchKeys={(row) =>
+                      [row.uid, row.masterCartonNumber, row.validationNote]
+                        .filter(
+                          (value) => value !== undefined && value !== null,
+                        )
+                        .join(' ')
+                    }
+                    emptyTitle="No rejected carton rows"
+                    getRowSx={() => ({
+                      bgcolor: 'rgba(239, 68, 68, 0.08)',
+                      '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.14)' },
+                    })}
+                  />
+                )}
+              </Stack>
+            </SectionCard>
+          )}
+
+          {validateError && <Alert severity="error">{validateError}</Alert>}
 
           <Stack
             direction="row"
@@ -788,78 +988,10 @@ export function BatchUidUploadTab({
             <Button variant="outlined" onClick={() => setActiveStep(1)}>
               Back
             </Button>
-            <Button variant="contained" onClick={() => setActiveStep(3)}>
-              Proceed to Import
-            </Button>
-          </Stack>
-        </>
-      )}
-
-      {activeStep === 3 && summary && cartonSummary && (
-        <>
-          <StepHeader
-            icon={<ListChecks size={20} />}
-            title="Import Confirmation"
-            subtitle="Confirm the details below before importing this data into the system."
-          />
-
-          <SectionCard title="Import Summary">
-            <Grid container spacing={2.5}>
-              <Grid size={{ xs: 12, sm: 3 }}>
-                <StatCard
-                  label="Batches to Import"
-                  value={mappedBatches.length}
-                  icon={<FileSpreadsheet size={20} />}
-                  iconColor="primary"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
-                <StatCard
-                  label="Total UIDs to Import"
-                  value={summary.totalUidsGenerated}
-                  icon={<Layers size={20} />}
-                  iconColor="secondary"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
-                <StatCard
-                  label="Valid Batches"
-                  value={summary.validRows}
-                  icon={<CircleCheck size={20} />}
-                  iconColor="success"
-                />
-              </Grid>
-              <Grid size={{ xs: 12, sm: 3 }}>
-                <StatCard
-                  label="Carton Links to Import"
-                  value={cartonSummary.validRows}
-                  icon={<Boxes size={20} />}
-                  iconColor="warning"
-                />
-              </Grid>
-            </Grid>
-          </SectionCard>
-
-          <Alert severity="info">
-            This action will permanently import the validated batches, generate
-            UIDs for each, and record the Master Carton linkage for reference.
-            Rows that failed validation have already been excluded and will not
-            be imported.
-          </Alert>
-
-          {validateError && <Alert severity="error">{validateError}</Alert>}
-
-          <Stack
-            direction="row"
-            spacing={1.5}
-            sx={{ justifyContent: 'flex-end' }}
-          >
-            <Button variant="outlined" onClick={() => setActiveStep(2)}>
-              Back
-            </Button>
             <Button
               variant="contained"
               loading={isProcessing}
+              disabled={mappedBatches.length === 0}
               onClick={handleConfirmImport}
             >
               Confirm Import
@@ -868,9 +1000,9 @@ export function BatchUidUploadTab({
         </>
       )}
 
-      {activeStep === 4 && summary && cartonSummary && (
+      {activeStep === 3 && summary && cartonSummary && (
         <SuccessDialog
-          open={activeStep === 4}
+          open={activeStep === 3}
           onClose={() => {}}
           title="Data Imported Successfully"
           description={`${mappedBatches.length} batches, ${summary.totalUidsGenerated.toLocaleString('en-IN')} UIDs, and ${cartonSummary.validRows} master carton link(s) have been imported and are now available in Product Batches.`}

@@ -34,6 +34,7 @@ export interface DispatchUploadRow {
   cartonWeight: number
   dispatchQty: number
   isValid: boolean
+  previewStatus?: 'add' | 'duplicate' | 'invalid' | 'skip'
   validationNote?: string
 }
 
@@ -42,4 +43,12 @@ export interface DispatchUploadSummary {
   validRows: number
   duplicateCartons: number
   invalidWeights: number
+}
+
+export interface DispatchUploadPreview {
+  rows: DispatchUploadRow[]
+  summary: DispatchUploadSummary & {
+    skippedRows?: number
+    existingDuplicateInvoices?: number
+  }
 }

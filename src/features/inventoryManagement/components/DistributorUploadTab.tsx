@@ -1,43 +1,137 @@
-import { useState } from 'react'
-import { Alert, Box, Button, Chip, Grid, Stack, Typography } from '@mui/material'
-import { CircleCheck, FileSpreadsheet, ListChecks, Truck } from 'lucide-react'
+import { useMemo, useState } from 'react'
+import {
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Grid,
+  Stack,
+  Typography,
+} from '@mui/material'
+import {
+  CircleAlert,
+  CircleCheck,
+  FileSpreadsheet,
+  ListChecks,
+  Truck,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { StatCard } from '@/components/common/StatCard/StatCard'
-import { CommonTable, type CommonTableColumn } from '@/components/common/CommonTable/CommonTable'
-import { parseDispatchReportFile, type DispatchInvoiceMeta } from '@/features/inventoryManagement/dispatchReportParser'
-import type { DispatchUploadRow, DispatchUploadSummary } from '@/types/distributorUpload'
+import {
+  CommonTable,
+  type CommonTableColumn,
+} from '@/components/common/CommonTable/CommonTable'
+import {
+  parseDispatchReportFile,
+  type DispatchInvoiceMeta,
+} from '@/features/inventoryManagement/dispatchReportParser'
+import { usePreviewImportMutation } from '@/features/inventoryManagement/services/distributorUploadApi'
+import type {
+  DispatchUploadPreview,
+  DispatchUploadRow,
+} from '@/types/distributorUpload'
 
 const columns: CommonTableColumn<DispatchUploadRow>[] = [
-  { key: 'srNo', header: 'Sr. No.', align: 'center', sortable: true, render: (row) => row.srNo },
-  { key: 'itemCode', header: 'Item Code', sortable: true, render: (row) => row.itemCode },
-  { key: 'itemName', header: 'Item Name', minWidth: 220, render: (row) => row.itemName },
-  { key: 'cartonNo', header: 'Carton No.', align: 'center', render: (row) => row.cartonNo },
-  { key: 'cartonWeight', header: 'Carton Weight', align: 'center', render: (row) => row.cartonWeight.toFixed(2) },
-  { key: 'dispatchQty', header: 'Dispatch Qty', align: 'center', render: (row) => row.dispatchQty },
+  {
+    key: 'srNo',
+    header: 'Sr. No.',
+    align: 'center',
+    sortable: true,
+    render: (row) => row.srNo,
+  },
+  {
+    key: 'itemCode',
+    header: 'Item Code',
+    sortable: true,
+    render: (row) => row.itemCode,
+  },
+  {
+    key: 'itemName',
+    header: 'Item Name',
+    minWidth: 220,
+    render: (row) => row.itemName,
+  },
+  {
+    key: 'cartonNo',
+    header: 'Carton No.',
+    align: 'center',
+    render: (row) => row.cartonNo,
+  },
+  {
+    key: 'cartonWeight',
+    header: 'Carton Weight',
+    align: 'center',
+    render: (row) => row.cartonWeight.toFixed(2),
+  },
+  {
+    key: 'dispatchQty',
+    header: 'Dispatch Qty',
+    align: 'center',
+    render: (row) => row.dispatchQty,
+  },
   {
     key: 'status',
-    header: 'Status',
-    render: (row) => (
-      <Chip label={row.isValid ? 'Valid' : row.validationNote} size="small" color={row.isValid ? 'success' : 'error'} variant="filled" />
-    ),
+    header: 'Decision',
+    sortValue: (row) => row.previewStatus ?? (row.isValid ? 'add' : 'invalid'),
+    render: (row) => {
+      const status = row.previewStatus ?? (row.isValid ? 'add' : 'invalid')
+      const label =
+        status === 'add'
+          ? 'Will Add'
+          : status === 'duplicate'
+            ? 'Duplicate'
+            : status === 'skip'
+              ? 'Will Not Add'
+              : 'Invalid'
+      const color =
+        status === 'add'
+          ? 'success'
+          : status === 'duplicate'
+            ? 'warning'
+            : 'error'
+      return <Chip label={label} size="small" color={color} variant="filled" />
+    },
+  },
+  {
+    key: 'validationNote',
+    header: 'Reason',
+    minWidth: 220,
+    render: (row) => row.validationNote || '—',
   },
 ]
 
 interface DistributorUploadTabProps {
-  onImported?: (rows: DispatchUploadRow[], uploadFileName: string, invoiceMeta: DispatchInvoiceMeta) => void
+  onImported?: (
+    rows: DispatchUploadRow[],
+    uploadFileName: string,
+    invoiceMeta: DispatchInvoiceMeta,
+  ) => void
   /** Called immediately after a successful import, to leave the wizard. */
   onDone?: () => void
 }
 
-export function DistributorUploadTab({ onImported, onDone }: DistributorUploadTabProps = {}) {
+export function DistributorUploadTab({
+  onImported,
+  onDone,
+}: DistributorUploadTabProps = {}) {
   const [file, setFile] = useState<File | null>(null)
   const [meta, setMeta] = useState<DispatchInvoiceMeta | null>(null)
   const [rows, setRows] = useState<DispatchUploadRow[]>([])
-  const [summary, setSummary] = useState<DispatchUploadSummary | null>(null)
+  const [summary, setSummary] = useState<
+    DispatchUploadPreview['summary'] | null
+  >(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [previewImport, { isLoading: isPreviewing }] =
+    usePreviewImportMutation()
+  const rejectedRows = summary ? summary.totalRows - summary.validRows : 0
+  const validRows = useMemo(() => rows.filter((row) => row.isValid), [rows])
+  const rejectedPreviewRows = useMemo(
+    () => rows.filter((row) => !row.isValid),
+    [rows],
+  )
 
   async function handleUpload() {
     if (!file) return
@@ -45,11 +139,18 @@ export function DistributorUploadTab({ onImported, onDone }: DistributorUploadTa
     setParseError(null)
     try {
       const parsed = await parseDispatchReportFile(file)
+      const preview = await previewImport({
+        rows: parsed.rows,
+        uploadFileName: file.name,
+        invoiceMeta: parsed.meta,
+      }).unwrap()
       setMeta(parsed.meta)
-      setRows(parsed.rows)
-      setSummary(parsed.summary)
+      setRows(preview.rows)
+      setSummary(preview.summary)
     } catch (err) {
-      setParseError(err instanceof Error ? err.message : 'Could not parse the file.')
+      setParseError(
+        err instanceof Error ? err.message : 'Could not parse the file.',
+      )
     } finally {
       setIsProcessing(false)
     }
@@ -92,21 +193,32 @@ export function DistributorUploadTab({ onImported, onDone }: DistributorUploadTa
         <Box>
           <Typography variant="h1">Upload Dispatch Loading Report</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Upload the Dispatch Loading Report (.xlsx / .xls) exactly as exported — customer,
-            transporter, invoice details, and carton line items are all read directly from the file.
+            Upload the Dispatch Loading Report (.xlsx / .xls) exactly as
+            exported — customer, transporter, invoice details, and carton line
+            items are all read directly from the file.
           </Typography>
         </Box>
       </Stack>
 
       <SectionCard title="Dispatch Loading Report File">
-        <FileDropzone file={file} onSelect={setFile} onRemove={resetUpload} accept=".xls,.xlsx" />
+        <FileDropzone
+          file={file}
+          onSelect={setFile}
+          onRemove={resetUpload}
+          accept=".xls,.xlsx"
+        />
       </SectionCard>
 
       {parseError && <Alert severity="error">{parseError}</Alert>}
 
       {!summary && (
         <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
-          <Button variant="contained" disabled={!file} loading={isProcessing} onClick={handleUpload}>
+          <Button
+            variant="contained"
+            disabled={!file}
+            loading={isProcessing || isPreviewing}
+            onClick={handleUpload}
+          >
             Upload & Preview
           </Button>
         </Stack>
@@ -129,44 +241,113 @@ export function DistributorUploadTab({ onImported, onDone }: DistributorUploadTa
 
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 3 }}>
-              <StatCard label="Total Rows" value={summary.totalRows} icon={<FileSpreadsheet size={20} />} iconColor="primary" />
+              <StatCard
+                label="Total Rows"
+                value={summary.totalRows}
+                icon={<FileSpreadsheet size={20} />}
+                iconColor="primary"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 3 }}>
-              <StatCard label="Valid Rows" value={summary.validRows} icon={<CircleCheck size={20} />} iconColor="success" />
+              <StatCard
+                label="Will Add"
+                value={summary.validRows}
+                icon={<CircleCheck size={20} />}
+                iconColor="success"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 3 }}>
-              <StatCard label="Duplicate Cartons" value={summary.duplicateCartons} icon={<ListChecks size={20} />} iconColor="warning" />
+              <StatCard
+                label="Duplicate Cartons"
+                value={summary.duplicateCartons}
+                icon={<ListChecks size={20} />}
+                iconColor="warning"
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 3 }}>
-              <StatCard label="Invalid Weights" value={summary.invalidWeights} icon={<ListChecks size={20} />} iconColor="error" />
+              <StatCard
+                label="Will Not Add"
+                value={summary.totalRows - summary.validRows}
+                icon={<ListChecks size={20} />}
+                iconColor="error"
+              />
             </Grid>
           </Grid>
 
-          {summary.duplicateCartons + summary.invalidWeights > 0 && (
-            <Alert severity="warning">
-              {summary.duplicateCartons} duplicate carton number(s) and {summary.invalidWeights} row(s) with an invalid carton weight were found.
-              Only valid rows will be imported.
+          {rejectedRows > 0 && (
+            <Alert
+              severity={summary.validRows > 0 ? 'warning' : 'error'}
+              icon={<CircleAlert size={20} />}
+            >
+              {summary.duplicateCartons > 0
+                ? `${summary.duplicateCartons} duplicate row(s) found`
+                : `${rejectedRows} row(s) will not be added`}
+              {summary.existingDuplicateInvoices
+                ? ` against ${summary.existingDuplicateInvoices} existing invoice upload(s)`
+                : ''}
+              . Only rows marked Will Add will be imported.
             </Alert>
           )}
 
-          <SectionCard title="Uploaded Carton Data">
+          <SectionCard title="Rows Will Be Added">
             <CommonTable
-              tableKey="dispatch-upload-preview"
+              tableKey="dispatch-upload-valid-preview"
               columns={columns}
-              rows={rows}
+              rows={validRows}
               getRowId={(row) => row.id}
-              searchPlaceholder="Search carton rows…"
-              searchKeys={(row) => `${row.itemCode} ${row.itemName} ${row.cartonNo}`}
+              searchPlaceholder="Search valid carton rows…"
+              searchKeys={(row) =>
+                `${row.itemCode} ${row.itemName} ${row.cartonNo}`
+              }
               defaultSortBy="srNo"
-              emptyTitle="No carton rows"
+              emptyTitle="No valid carton rows"
+              emptyDescription="Every row in this preview is duplicate, invalid, or skipped."
             />
           </SectionCard>
 
-          <Stack direction="row" spacing={1.5} sx={{ justifyContent: 'flex-end' }}>
+          {rejectedPreviewRows.length > 0 && (
+            <SectionCard title="Duplicate / Invalid Rows">
+              <CommonTable
+                tableKey="dispatch-upload-rejected-preview"
+                columns={columns}
+                rows={rejectedPreviewRows}
+                getRowId={(row) => row.id}
+                searchPlaceholder="Search duplicate or invalid rows…"
+                searchKeys={(row) =>
+                  `${row.itemCode} ${row.itemName} ${row.cartonNo} ${row.validationNote ?? ''}`
+                }
+                defaultSortBy="srNo"
+                emptyTitle="No duplicate or invalid rows"
+                getRowSx={(row) => ({
+                  bgcolor:
+                    row.previewStatus === 'duplicate'
+                      ? 'rgba(245, 158, 11, 0.08)'
+                      : 'rgba(239, 68, 68, 0.08)',
+                  '&:hover': {
+                    bgcolor:
+                      row.previewStatus === 'duplicate'
+                        ? 'rgba(245, 158, 11, 0.14)'
+                        : 'rgba(239, 68, 68, 0.14)',
+                  },
+                })}
+              />
+            </SectionCard>
+          )}
+
+          <Stack
+            direction="row"
+            spacing={1.5}
+            sx={{ justifyContent: 'flex-end' }}
+          >
             <Button variant="outlined" onClick={resetUpload}>
               Cancel
             </Button>
-            <Button variant="contained" loading={isProcessing} onClick={handleConfirmImport}>
+            <Button
+              variant="contained"
+              loading={isProcessing}
+              disabled={summary.validRows === 0}
+              onClick={handleConfirmImport}
+            >
               Confirm Import
             </Button>
           </Stack>

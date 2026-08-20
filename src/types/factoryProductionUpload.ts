@@ -31,3 +31,20 @@ export interface FactoryProductionUploadRowRecord extends FactoryProductionUploa
   id: string
   uploadBatchId: string
 }
+
+export interface FactoryProductionPreviewRow extends FactoryProductionUploadRow {
+  id: string
+  rowNo: number
+  action: 'add' | 'skip' | 'duplicate' | 'invalid'
+  isValid: boolean
+  reason?: string
+}
+
+export interface FactoryProductionUploadPreview {
+  rows: FactoryProductionPreviewRow[]
+  totalRows: number
+  addableRows: number
+  duplicateRows: number
+  invalidRows: number
+  skippedRows: number
+}

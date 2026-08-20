@@ -100,6 +100,8 @@ interface CommonTableProps<T> {
   onDownloadTemplateClick?: () => void
   /** When provided, makes each row clickable (hover highlight + Pointer cursor) and calls this with the clicked row. */
   onRowClick?: (row: T) => void
+  /** Optional row-level styling hook for preview/error states. */
+  getRowSx?: (row: T) => Record<string, unknown> | undefined
   createAction?: CommonTableCreateAction
   emptyTitle?: string
   emptyDescription?: string
@@ -145,6 +147,7 @@ export function CommonTable<T>({
   onImportClick,
   onDownloadTemplateClick,
   onRowClick,
+  getRowSx,
   createAction,
   emptyTitle = 'No records found',
   emptyDescription = 'Try adjusting your search or filters.',
@@ -159,7 +162,8 @@ export function CommonTable<T>({
   onRowsPerPageChange,
 }: CommonTableProps<T>) {
   const navigate = useNavigate()
-  const isServerPaginated = totalCount !== undefined && onPageChange !== undefined
+  const isServerPaginated =
+    totalCount !== undefined && onPageChange !== undefined
   const [search, setSearch] = useState('')
   const activeSearch = searchValue ?? search
   const [localPage, setLocalPage] = useState(0)
@@ -170,7 +174,9 @@ export function CommonTable<T>({
   const rowsPerPage = isServerPaginated
     ? (controlledRowsPerPage ?? rowsPerPageOptions[0] ?? 10)
     : localRowsPerPage
-  const setPage = isServerPaginated ? (onPageChange ?? (() => {})) : setLocalPage
+  const setPage = isServerPaginated
+    ? (onPageChange ?? (() => {}))
+    : setLocalPage
   const setRowsPerPage = (next: number) => {
     if (isServerPaginated) {
       onRowsPerPageChange?.(next)
@@ -237,7 +243,10 @@ export function CommonTable<T>({
 
   const pagedRows = useMemo(() => {
     if (isServerPaginated) return sortedRows
-    return sortedRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+    return sortedRows.slice(
+      page * rowsPerPage,
+      page * rowsPerPage + rowsPerPage,
+    )
   }, [sortedRows, page, rowsPerPage, isServerPaginated])
 
   const handleSort = (columnKey: string) => {
@@ -547,7 +556,10 @@ export function CommonTable<T>({
                       key={getRowId(row)}
                       hover={!!onRowClick}
                       onClick={onRowClick ? () => onRowClick(row) : undefined}
-                      sx={onRowClick ? { cursor: 'pointer' } : undefined}
+                      sx={{
+                        ...(getRowSx?.(row) ?? {}),
+                        ...(onRowClick ? { cursor: 'pointer' } : {}),
+                      }}
                     >
                       {visibleColumns.map((col) => (
                         <TableCell
@@ -585,7 +597,9 @@ export function CommonTable<T>({
             <Box sx={{ borderTop: '1px solid', borderColor: 'divider' }}>
               <TablePagination
                 component="div"
-                count={isServerPaginated ? (totalCount ?? 0) : sortedRows.length}
+                count={
+                  isServerPaginated ? (totalCount ?? 0) : sortedRows.length
+                }
                 page={page}
                 onPageChange={(_, newPage) => setPage(newPage)}
                 rowsPerPage={rowsPerPage}

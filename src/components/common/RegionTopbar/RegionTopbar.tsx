@@ -65,16 +65,46 @@ export function RegionTopbar({
     }
   }, [])
 
+  // useLayoutEffect(() => {
+  //   const updateIndicator = () => {
+  //     const el = tabRefs.current[activeIndex]
+  //     if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth })
+  //   }
+  //   updateIndicator()
+  //   window.addEventListener('resize', updateIndicator)
+  //   return () => window.removeEventListener('resize', updateIndicator)
+  // }, [activeIndex])
+
   useLayoutEffect(() => {
     const updateIndicator = () => {
       const el = tabRefs.current[activeIndex]
       if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth })
     }
-    updateIndicator()
-    window.addEventListener('resize', updateIndicator)
-    return () => window.removeEventListener('resize', updateIndicator)
-  }, [activeIndex])
 
+    updateIndicator()
+
+    // Recalc on window resize
+    window.addEventListener('resize', updateIndicator)
+
+    // Recalc when tab becomes visible again after being backgrounded
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') updateIndicator()
+    })
+
+    // Recalc if the tab element itself resizes (e.g. text/width changes after regions load)
+    const el = tabRefs.current[activeIndex]
+    let ro: ResizeObserver | undefined
+    if (el && typeof ResizeObserver !== 'undefined') {
+      ro = new ResizeObserver(updateIndicator)
+      ro.observe(el)
+    }
+
+    return () => {
+      window.removeEventListener('resize', updateIndicator)
+      document.removeEventListener('visibilitychange', updateIndicator)
+      ro?.disconnect()
+    }
+  }, [activeIndex, regions])
   return (
     <Stack
       direction={{ xs: 'column', md: 'row' }}

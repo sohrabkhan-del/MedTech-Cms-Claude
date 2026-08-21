@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Card, Grid, Skeleton, Stack } from '@mui/material'
+import { Box, Card, Grid, Skeleton, Stack } from '@mui/material'
 import { PartnerSummaryHeader } from '@/features/userManagement/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/userManagement/components/PartnerStatisticsCards'
@@ -10,6 +10,7 @@ import { PointsHistoryCard } from '@/features/userManagement/components/PointsHi
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
 import { RedemptionHistoryCard } from '@/features/userManagement/components/RedemptionHistoryCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { ActiveSessionsCard } from '@/features/userManagement/components/ActiveSessionsCard'
 import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
 import {
   useGetPartnerWalletBalanceQuery,
@@ -106,6 +107,12 @@ export function ChemistDetailsPage() {
               />
             </Grid>
           </Grid>
+
+          {chemistId && (
+            <Box sx={{ mb: 3 }}>
+              <ActiveSessionsCard userId={chemistId} />
+            </Box>
+          )}
         </>
       ) : (
         <>

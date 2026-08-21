@@ -1,4 +1,4 @@
-import { Card, Grid, Skeleton, Stack, Typography } from '@mui/material'
+import { Box, Card, Grid, Skeleton, Stack, Typography } from '@mui/material'
 import { useNavigate, useParams } from 'react-router-dom'
 import { PartnerSummaryHeader } from '@/features/userManagement/components/PartnerSummaryHeader'
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
@@ -10,6 +10,7 @@ import { PointsHistoryCard } from '@/features/userManagement/components/PointsHi
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
 import { RedemptionHistoryCard } from '@/features/userManagement/components/RedemptionHistoryCard'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
+import { ActiveSessionsCard } from '@/features/userManagement/components/ActiveSessionsCard'
 import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
 import {
   useGetPartnerWalletBalanceQuery,
@@ -109,6 +110,12 @@ export function DealerDetailsPage() {
               />
             </Grid>
           </Grid>
+
+          {dealerId && (
+            <Box sx={{ mb: 3 }}>
+              <ActiveSessionsCard userId={dealerId} />
+            </Box>
+          )}
         </>
       ) : (
         <>

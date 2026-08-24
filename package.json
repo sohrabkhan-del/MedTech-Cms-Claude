@@ -43,6 +43,7 @@
     "swiper": "^14.0.7",
     "tslib": "^2.8.1",
     "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

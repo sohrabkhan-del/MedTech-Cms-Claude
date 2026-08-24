@@ -11,10 +11,12 @@ import {
 import {
   CircleAlert,
   CircleCheck,
+  Download,
   FileSpreadsheet,
   ListChecks,
   Truck,
 } from 'lucide-react'
+import * as XLSX from 'xlsx-js-style'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
@@ -173,6 +175,111 @@ export function DistributorUploadTab({
     setParseError(null)
   }
 
+  function handleDownloadTemplate() {
+    const wb = XLSX.utils.book_new()
+
+    // ── Style helpers ──────────────────────────────────────────────────
+    const thinBorder = {
+      top: { style: 'thin' }, bottom: { style: 'thin' },
+      left: { style: 'thin' }, right: { style: 'thin' },
+    }
+    const grayFill = { fgColor: { rgb: 'D9D9D9' } }
+    const labelStyle = {
+      font: { name: 'Calibri', sz: 10, bold: true },
+      fill: grayFill,
+      border: thinBorder,
+      alignment: { vertical: 'bottom' },
+    }
+    const smallLabelStyle = {
+      font: { name: 'Calibri', sz: 10, bold: true },
+      border: thinBorder,
+      alignment: { vertical: 'bottom' },
+    }
+    const valueStyle = {
+      font: { name: 'Calibri', sz: 10 },
+      border: thinBorder,
+      alignment: { vertical: 'bottom' },
+    }
+    const titleStyle = (sz: number) => ({
+      font: { name: 'Calibri', sz, bold: true },
+      alignment: { horizontal: 'center', vertical: 'center' },
+    })
+    const tableHeaderStyle = {
+      font: { name: 'Calibri', sz: 10, bold: true },
+      fill: grayFill,
+      border: thinBorder,
+      alignment: { horizontal: 'center', vertical: 'center' },
+    }
+    const cellStyle = {
+      font: { name: 'Calibri', sz: 10 },
+      border: thinBorder,
+      alignment: { horizontal: 'center', vertical: 'center' },
+    }
+    const totalStyle = {
+      font: { name: 'Calibri', sz: 10, bold: true },
+      border: thinBorder,
+      alignment: { horizontal: 'center', vertical: 'center' },
+    }
+
+    // ── Sheet data (row 8 = table header, data starts row 9) ─────────────
+    const NUM_SAMPLE_ROWS = 1
+    const firstDataRow = 9
+    const lastDataRow = firstDataRow + NUM_SAMPLE_ROWS - 1
+    const totalRow = lastDataRow + 1
+
+    const data: any[][] = []
+    data[0] = ['MEDTECH', , , 'DISPATCH LOADING REPORT', , , 'Format No.', 'FOR/7.5/05']
+    data[1] = [, , , , , , 'Rev. No.', '00']
+    data[2] = [, , , , , , 'Rev. Date', '01-Jan-2024']
+    data[3] = ['CUSTOMER NAME :', '<Customer Name>', , 'TRANSPORTER :', '<Transporter Name>']
+    data[4] = ['INVOICE NO :', '<Invoice No.>', , 'TOTAL BOX QTY :', 0]
+    data[5] = ['VEHICLE NO :', , , 'DATE :', '<DD-Mon-YYYY>'] // Vehicle No. left blank, matches sample
+    data[6] = []
+    data[7] = ['Sr. No.', 'Item Code', 'Item Name', 'Carton No', 'Carton Weight', 'Dispatch Qty']
+    data[8] = [1, 'ITEM-001', 'Sample Product Name', 1001, 12.5, 10]
+    data[9] = ['Total', , , , { f: `SUM(E${firstDataRow}:E${lastDataRow})` }, { f: `SUM(F${firstDataRow}:F${lastDataRow})` }]
+
+    const ws = XLSX.utils.aoa_to_sheet(data)
+
+    // ── Merges (match sample exactly) ─────────────────────────────────────
+    ws['!merges'] = [
+      { s: { r: 0, c: 0 }, e: { r: 1, c: 1 } }, // A1:B2 MEDTECH
+      { s: { r: 0, c: 2 }, e: { r: 1, c: 3 } }, // C1:D2 title
+      { s: { r: 3, c: 1 }, e: { r: 3, c: 2 } }, // B4:C4
+      { s: { r: 3, c: 4 }, e: { r: 3, c: 5 } }, // E4:F4
+      { s: { r: 4, c: 1 }, e: { r: 4, c: 2 } }, // B5:C5
+      { s: { r: 4, c: 4 }, e: { r: 4, c: 5 } }, // E5:F5
+      { s: { r: 5, c: 1 }, e: { r: 5, c: 2 } }, // B6:C6
+      { s: { r: 5, c: 4 }, e: { r: 5, c: 5 } }, // E6:F6
+      { s: { r: totalRow - 1, c: 0 }, e: { r: totalRow - 1, c: 3 } }, // A:D on Total row
+    ]
+
+    // ── Apply cell styles ─────────────────────────────────────────────────
+    const set = (addr: string, style: any) => { if (ws[addr]) ws[addr].s = style }
+
+    set('A1', titleStyle(14))
+    set('C1', titleStyle(16))
+      ;['E1', 'E2', 'E3'].forEach((a) => set(a, smallLabelStyle))
+      ;['F1', 'F2', 'F3'].forEach((a) => set(a, valueStyle))
+
+      ;['A4', 'D4', 'A5', 'D5', 'A6', 'D6'].forEach((a) => set(a, labelStyle))
+      ;['B4', 'E4', 'B5', 'E5', 'B6', 'E6'].forEach((a) => set(a, valueStyle))
+
+      ;['A8', 'B8', 'C8', 'D8', 'E8', 'F8'].forEach((a) => set(a, tableHeaderStyle))
+      ;['A9', 'B9', 'C9', 'D9', 'E9', 'F9'].forEach((a) => set(a, cellStyle))
+
+      ;[`A${totalRow}`, `E${totalRow}`, `F${totalRow}`].forEach((a) => set(a, totalStyle))
+
+    // ── Column widths (match sample) ────────────────────────────────────────
+    ws['!cols'] = [
+      { wch: 8 }, { wch: 12 }, { wch: 40 },
+      { wch: 12 }, { wch: 14 }, { wch: 14 },
+    ]
+
+    XLSX.utils.book_append_sheet(wb, ws, 'DLR')
+    XLSX.writeFile(wb, 'dispatch-loading-report-template.xlsx')
+  }
+
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
@@ -201,6 +308,16 @@ export function DistributorUploadTab({
       </Stack>
 
       <SectionCard title="Dispatch Loading Report File">
+        <Stack direction="row" sx={{ justifyContent: 'flex-end', mb: 1.5 }}>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Download size={16} />}
+            onClick={handleDownloadTemplate}
+          >
+            Download Template
+          </Button>
+        </Stack>
         <FileDropzone
           file={file}
           onSelect={setFile}

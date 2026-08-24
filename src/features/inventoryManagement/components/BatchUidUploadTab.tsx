@@ -991,7 +991,7 @@ export function BatchUidUploadTab({
             <Button
               variant="contained"
               loading={isProcessing}
-              disabled={mappedBatches.length === 0}
+              disabled={validBatchRows.length === 0}
               onClick={handleConfirmImport}
             >
               Confirm Import

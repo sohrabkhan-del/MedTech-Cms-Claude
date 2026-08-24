@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, Chip, Grid, Stack, TextField, Typography } from '@mui/material'
-import { Factory as FactoryOutlined, UploadCloud } from 'lucide-react'
+import { Factory as FactoryOutlined, Layers, UploadCloud } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
@@ -237,6 +237,13 @@ export function FactoryUploadListPage() {
           mb: 2.5,
         }}
       >
+        <Button
+          variant="outlined"
+          startIcon={<Layers size={18} />}
+          onClick={() => navigate('/inventory/factory-inventory-upload/uploads')}
+        >
+          Uploaded Inventory
+        </Button>
         <Button
           variant="contained"
           startIcon={<UploadCloud size={18} />}

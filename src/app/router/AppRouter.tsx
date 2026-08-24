@@ -41,6 +41,7 @@ import { ProductDetailsPage } from '@/features/inventoryManagement/pages/Product
 import { ProductFormPage } from '@/features/inventoryManagement/pages/ProductFormPage'
 import { FactoryUploadListPage } from '@/features/inventoryManagement/pages/FactoryUploadListPage'
 import { FactoryUploadFormPage } from '@/features/inventoryManagement/pages/FactoryUploadFormPage'
+import { FactoryUploadBatchListPage } from '@/features/inventoryManagement/pages/FactoryUploadBatchListPage'
 import { BatchUidUploadPage } from '@/features/inventoryManagement/pages/BatchUidUploadPage'
 import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryUploadDetailsPage'
 import { FactoryProductionUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryProductionUploadDetailsPage'
@@ -436,6 +437,10 @@ export function AppRouter() {
           <Route
             path="/inventory/factory-inventory-upload/upload-bmr"
             element={<BatchUidUploadPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload/uploads"
+            element={<FactoryUploadBatchListPage />}
           />
           <Route
             path="/inventory/factory-inventory-upload/upload/:uploadId"

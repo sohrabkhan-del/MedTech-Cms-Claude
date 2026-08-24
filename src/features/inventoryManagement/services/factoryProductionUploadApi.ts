@@ -1,6 +1,9 @@
 import { baseApi } from '@/store/api/baseApi'
 import type {
   FactoryProductionUploadBatch,
+  FactoryProductionUploadBatchDetail,
+  FactoryProductionUploadBatchList,
+  FactoryProductionUploadBatchSummary,
   FactoryProductionUploadPreview,
   FactoryProductionUploadRow,
   FactoryProductionUploadRowRecord,
@@ -41,6 +44,15 @@ export interface FactoryProductionUploadRowsQueryParams {
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
   startDate?: string
+  endDate?: string
+}
+
+export interface FactoryProductionUploadBatchesQueryParams {
+  page?: number
+  limit?: number
+  /** ISO date (YYYY-MM-DD) — include batches uploaded on/after this day. */
+  startDate?: string
+  /** ISO date (YYYY-MM-DD) — include batches uploaded on/before this day. */
   endDate?: string
 }
 
@@ -348,9 +360,9 @@ const factoryProductionUploadApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'FactoryProductionUpload', id: 'LIST' }],
     }),
 
-    /** GET /products/upload/{id} — the upload batch record created for this upload event. */
+    /** GET /products/upload/{id} — the upload batch record (with its rows embedded) for this upload event. */
     getFactoryProductionUploadBatch: builder.query<
-      FactoryProductionUploadBatch,
+      FactoryProductionUploadBatchDetail,
       string
     >({
       query: (id) => ({
@@ -362,8 +374,98 @@ const factoryProductionUploadApi = baseApi.injectEndpoints({
           )
         },
       }),
+      transformResponse: (
+        response:
+          | { success: boolean; data: FactoryProductionUploadBatchDetail }
+          | FactoryProductionUploadBatchDetail,
+      ): FactoryProductionUploadBatchDetail =>
+        'data' in response ? response.data : response,
       providesTags: (_result, _error, id) => [
         { type: 'FactoryProductionUpload', id },
+      ],
+    }),
+
+    /** GET /products/upload?page&limit&startDate&endDate — paginated list of every upload batch (headers only, no rows). */
+    getFactoryProductionUploadBatches: builder.query<
+      FactoryProductionUploadBatchList,
+      FactoryProductionUploadBatchesQueryParams | void
+    >({
+      query: (params) => ({
+        tag: 'FactoryProductionUpload',
+        url: '/products/upload',
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 20,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
+        },
+        mockResolver: () => {
+          throw new Error(
+            'Factory production upload has no mock mode — real API only.',
+          )
+        },
+      }),
+      transformResponse: (
+        response:
+          | {
+              success: boolean
+              data: {
+                data: FactoryProductionUploadBatchSummary[]
+                total: number
+                page: number
+                pageSize: number
+                totalPages: number
+              }
+            }
+          | {
+              data: FactoryProductionUploadBatchSummary[]
+              total: number
+              page: number
+              pageSize: number
+              totalPages: number
+            },
+      ): FactoryProductionUploadBatchList => {
+        const payload = 'success' in response ? response.data : response
+        return {
+          items: payload.data ?? [],
+          total: payload.total ?? 0,
+          page: payload.page ?? 1,
+          pageSize: payload.pageSize ?? 0,
+          totalPages: payload.totalPages ?? 0,
+        }
+      },
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map((batch) => ({
+                type: 'FactoryProductionUpload' as const,
+                id: batch.id,
+              })),
+              { type: 'FactoryProductionUpload' as const, id: 'UPLOADS' },
+            ]
+          : [{ type: 'FactoryProductionUpload' as const, id: 'UPLOADS' }],
+    }),
+
+    /** DELETE /products/upload/{id} — removes the whole upload batch and every product/row imported from it. */
+    deleteFactoryProductionUploadBatch: builder.mutation<
+      { success: boolean },
+      string
+    >({
+      query: (id) => ({
+        tag: 'FactoryProductionUpload',
+        url: `/products/upload/${id}`,
+        method: 'DELETE',
+        mockResolver: () => {
+          throw new Error(
+            'Factory production upload has no mock mode — real API only.',
+          )
+        },
+      }),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'FactoryProductionUpload', id },
+        { type: 'FactoryProductionUpload', id: 'UPLOADS' },
+        { type: 'FactoryProductionUpload', id: 'LIST' },
+        { type: 'FactoryProductionUpload', id: 'KPIS' },
       ],
     }),
 
@@ -408,6 +510,8 @@ export const {
   usePreviewFactoryProductionRowsMutation,
   useUploadFactoryProductionRowsMutation,
   useGetFactoryProductionUploadBatchQuery,
+  useGetFactoryProductionUploadBatchesQuery,
+  useDeleteFactoryProductionUploadBatchMutation,
   useGetFactoryProductionUploadRowsByBatchQuery,
   useGetFactoryProductionBatchByNumberQuery,
   useGetFactoryProductionUploadRowsQuery,

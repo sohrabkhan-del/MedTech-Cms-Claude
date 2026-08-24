@@ -30,6 +30,36 @@ export interface FactoryProductionUploadBatch {
 export interface FactoryProductionUploadRowRecord extends FactoryProductionUploadRow {
   id: string
   uploadBatchId: string
+  productId?: string
+  uploadedBy?: string
+  isDeleted?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+/** Upload-batch header as returned by the list endpoint GET /products/upload (no rows). */
+export interface FactoryProductionUploadBatchSummary {
+  id: string
+  totalRows: number
+  uploadedBy: string
+  isDeleted: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+/** Full upload-batch record returned by GET /products/upload/{id}, with its rows embedded. */
+export interface FactoryProductionUploadBatchDetail
+  extends FactoryProductionUploadBatchSummary {
+  rows: FactoryProductionUploadRowRecord[]
+}
+
+/** Paginated list of upload batches from GET /products/upload?page&limit. */
+export interface FactoryProductionUploadBatchList {
+  items: FactoryProductionUploadBatchSummary[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
 }
 
 export interface FactoryProductionPreviewRow extends FactoryProductionUploadRow {

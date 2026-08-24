@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Stack, TextField, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import { Factory as FactoryOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -11,48 +10,73 @@ import {
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useFactoryProductionUploadDetail } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadDetail'
-import { useFactoryProductionUploadRows } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadRows'
+import { formatDate } from '@/utils/formatDate'
 import type { FactoryProductionUploadRowRecord } from '@/types/factoryProductionUpload'
 
 const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
   { key: 'productCode', header: 'Product Code', minWidth: 130, render: (row) => row.productCode },
-  { key: 'batchNo', header: 'Batch No.', minWidth: 160, render: (row) => row.batchNo },
+  {
+    key: 'batchNo',
+    header: 'Batch No.',
+    minWidth: 160,
+    sortable: true,
+    sortValue: (row) => row.batchNo,
+    render: (row) => (
+      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{row.batchNo}</Typography>
+    ),
+  },
   {
     key: 'productionPlanNumber',
     header: 'Production Plan No.',
     minWidth: 160,
     render: (row) => row.productionPlanNumber,
   },
-  { key: 'batchIssuedDate', header: 'Batch Issued Date', minWidth: 130, render: (row) => row.batchIssuedDate },
+  {
+    key: 'batchIssuedDate',
+    header: 'Batch Issued Date',
+    minWidth: 130,
+    sortable: true,
+    sortValue: (row) => row.batchIssuedDate,
+    render: (row) => formatDate(row.batchIssuedDate),
+  },
   { key: 'batchIssuedByName', header: 'Batch Issued By', minWidth: 130, render: (row) => row.batchIssuedByName },
   { key: 'month', header: 'Month', minWidth: 90, render: (row) => row.month },
-  { key: 'qty', header: 'Qty', align: 'center', render: (row) => row.qty.toLocaleString('en-IN') },
+  {
+    key: 'qty',
+    header: 'Qty',
+    align: 'center',
+    sortable: true,
+    sortValue: (row) => row.qty,
+    render: (row) => row.qty?.toLocaleString('en-IN') ?? '-',
+  },
   {
     key: 'sampleQty',
     header: 'Sample Qty',
     align: 'center',
     minWidth: 100,
-    render: (row) => row.sampleQty.toLocaleString('en-IN'),
+    render: (row) => row.sampleQty?.toLocaleString('en-IN') ?? '-',
   },
   { key: 'plugType', header: 'Plug Type', minWidth: 100, render: (row) => row.plugType },
   { key: 'domestic', header: 'Domestic', minWidth: 90, render: (row) => row.domestic },
   { key: 'export', header: 'Export', minWidth: 90, render: (row) => row.export },
-  { key: 'assyLineNo', header: 'Assy Line No.', minWidth: 110, render: (row) => row.assyLineNo },
+  { key: 'assyLineNo', header: 'Assy Line No.', minWidth: 110, render: (row) => row.assyLineNo || '-' },
   {
     key: 'batchCompletedDate',
     header: 'Batch Completed Date',
     minWidth: 150,
-    render: (row) => row.batchCompletedDate,
+    render: (row) => formatDate(row.batchCompletedDate),
   },
   {
     key: 'producedQty',
     header: 'Produced Qty',
     align: 'center',
     minWidth: 110,
-    render: (row) => row.producedQty.toLocaleString('en-IN'),
+    sortable: true,
+    sortValue: (row) => row.producedQty,
+    render: (row) => row.producedQty?.toLocaleString('en-IN') ?? '-',
   },
-  { key: 'startSerialNumber', header: 'Start Serial', align: 'center', render: (row) => row.startSerialNumber },
-  { key: 'endSerialNumber', header: 'End Serial', align: 'center', render: (row) => row.endSerialNumber },
+  { key: 'startSerialNumber', header: 'Start Serial', align: 'center', minWidth: 110, render: (row) => row.startSerialNumber },
+  { key: 'endSerialNumber', header: 'End Serial', align: 'center', minWidth: 110, render: (row) => row.endSerialNumber },
   {
     key: 'masterCartonStartNo',
     header: 'Master Carton Start No',
@@ -74,9 +98,6 @@ export function FactoryProductionUploadDetailsPage() {
   const { uploadId } = useParams<{ uploadId: string }>()
   const { batch, isLoading, error } = useFactoryProductionUploadDetail(uploadId)
 
-  const [batchNoQuery, setBatchNoQuery] = useState('')
-  const { rows, isFetching: areRowsLoading } = useFactoryProductionUploadRows(batchNoQuery)
-
   if (isLoading) {
     return <DetailsPageSkeleton sections={2} />
   }
@@ -91,6 +112,8 @@ export function FactoryProductionUploadDetailsPage() {
       />
     )
   }
+
+  const rows = batch.rows ?? []
 
   return (
     <>
@@ -114,9 +137,9 @@ export function FactoryProductionUploadDetailsPage() {
             <FactoryOutlined size={20} />
           </Box>
           <Box>
-            <Typography variant="h1">{batch.uploadFileName}</Typography>
+            <Typography variant="h1">Upload Batch</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {batch.uploadedAt}
+              Uploaded {formatDate(batch.createdAt)} · {batch.totalRows.toLocaleString('en-IN')} row(s)
             </Typography>
           </Box>
         </Stack>
@@ -127,36 +150,27 @@ export function FactoryProductionUploadDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Upload ID', value: batch.id },
-              { label: 'File Name', value: batch.uploadFileName },
-              { label: 'Uploaded At', value: batch.uploadedAt },
-              { label: 'Total Rows', value: batch.totalRows },
+              { label: 'Total Rows', value: batch.totalRows.toLocaleString('en-IN') },
+              { label: 'Uploaded At', value: formatDate(batch.createdAt) },
+              { label: 'Last Updated', value: formatDate(batch.updatedAt) },
             ]}
           />
         </SectionCard>
 
-        <SectionCard title="Look Up Batch Rows">
-          <Stack spacing={2}>
-            <TextField
-              label="Batch No."
-              size="small"
-              placeholder="e.g. S0H6-2-2504-00023"
-              value={batchNoQuery}
-              onChange={(e) => setBatchNoQuery(e.target.value)}
-              sx={{ maxWidth: 320 }}
-            />
-            <CommonTable
-              tableKey="factory-production-upload-rows"
-              columns={rowColumns}
-              rows={rows}
-              loading={areRowsLoading}
-              getRowId={(row) => row.id}
-              searchPlaceholder="Search rows…"
-              searchKeys={(row) => `${row.productCode} ${row.batchNo}`}
-              emptyTitle={
-                batchNoQuery ? 'No rows found for this batch number' : 'Enter a batch number to look up its rows'
-              }
-            />
-          </Stack>
+        <SectionCard title="Batch Rows">
+          <CommonTable
+            tableKey="factory-production-upload-rows"
+            columns={rowColumns}
+            rows={rows}
+            loading={isLoading}
+            getRowId={(row) => row.id}
+            searchPlaceholder="Search by product code or batch number…"
+            searchKeys={(row) =>
+              `${row.productCode} ${row.batchNo} ${row.productionPlanNumber}`
+            }
+            emptyTitle="No rows in this upload"
+            emptyDescription="This upload batch does not contain any rows."
+          />
         </SectionCard>
       </Stack>
     </>

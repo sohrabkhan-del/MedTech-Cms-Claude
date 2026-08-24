@@ -7,23 +7,26 @@ import {
 
 const uuidMessage = 'Enter a valid UUID'
 
+// Allows an empty string OR a value matching the pattern — for fields that
+// are optional but should still be well-formed when the user does fill them in.
+const optionalPattern = (regex: RegExp, message: string) =>
+  z.string().refine((val) => val === '' || regex.test(val), { message })
+
 export const dealerBusinessSchema = z.object({
   id: z.string().optional(),
-  outletName: z.string().min(2, 'Godown/outlet name is required'),
+  outletName: z.string().optional(),
   userName: z.string().optional(),
-  panNumber: z
-    .string()
-    .regex(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Enter a valid PAN number'),
-  drugLicenseNumber: z.string().min(1, 'Drug license number is required'),
-  drugLicenseExpiry: z.string().min(1, 'Drug license expiry is required'),
+  panNumber: optionalPattern(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Enter a valid PAN number'),
+  drugLicenseNumber: z.string().optional(),
+  drugLicenseExpiry: z.string().optional(),
   addressType: z.enum(['SHOP', 'GODOWN', 'OTHER']),
-  addressLine1: z.string().min(1, 'Address line 1 is required'),
+  addressLine1: z.string().optional(),
   addressLine2: z.string().optional(),
   landmark: z.string().optional(),
-  city: z.string().min(2, 'City is required'),
-  district: z.string().min(1, 'District is required'),
-  state: z.string().min(1, 'State is required'),
-  pincode: z.string().regex(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  state: z.string().optional(),
+  pincode: optionalPattern(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
   scanRadius: z.string().optional(),
@@ -58,19 +61,20 @@ export const dealerBusinessDefaults: DealerBusinessValues = {
 
 // Fields marked "API" map 1:1 to POST /partners/create's body (type: 'DEALER')
 // and are sent on submit.
+//
+// Compulsory fields: phone, email, regionId, assignedMedicalRepresentativeId.
+// Everything else is optional (format is still checked where a pattern applies).
 export const dealerFormSchema = z.object({
   // --- API: identity / business ---
-  businessName: z.string().min(2, 'Business/shop name is required'),
-  ownerFirstName: z.string().min(1, 'Owner first name is required'),
-  ownerLastName: z.string().min(1, 'Owner last name is required'),
+  businessName: z.string().optional(),
+  ownerFirstName: z.string().optional(),
+  ownerLastName: z.string().optional(),
   email: z.string().email('Enter a valid email address'),
   phone: z.string().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
-  country: z.string().min(1, 'Country code is required'),
+  country: z.string().optional(),
 
   // --- API: licensing ---
-  gstNumber: z
-    .string()
-    .regex(/^[0-9A-Z]{15}$/, 'Enter a valid 15-character GST number'),
+  gstNumber: optionalPattern(/^[0-9A-Z]{15}$/, 'Enter a valid 15-character GST number'),
 
   // --- API: profile ---
   profileImageUrl: z.string().optional(),
@@ -81,6 +85,8 @@ export const dealerFormSchema = z.object({
   notes: z.string().optional(),
 
   // --- API: outlets, one per business/godown location ---
+  // The array itself still needs at least one entry (the UI always renders
+  // one godown block by default); the fields *within* each godown are optional.
   businesses: z
     .array(dealerBusinessSchema)
     .min(1, 'Add at least one business/godown'),
@@ -122,32 +128,32 @@ export interface DealerApiPayload {
 export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
   return {
     type: 'DEALER',
-    businessName: values.businessName,
+    businessName: values.businessName ?? '',
     ownerName: [values.ownerFirstName, values.ownerLastName].filter(Boolean).join(' '),
     profileImage: toProfileImagePayload(values.profileImageUrl),
     email: values.email,
     phone: values.phone,
-    country: values.country,
-    gstNumber: values.gstNumber,
+    country: values.country || '91',
+    gstNumber: values.gstNumber ?? '',
     regionId: values.regionId,
     assignedMedicalRepresentativeId: values.assignedMedicalRepresentativeId,
     notes: values.notes,
     businesses: values.businesses.map((business) => ({
       id: business.id || undefined,
-      outletName: business.outletName,
+      outletName: business.outletName ?? '',
       userName: business.userName || undefined,
-      panNumber: business.panNumber,
-      drugLicenseNumber: business.drugLicenseNumber,
-      drugLicenseExpiry: business.drugLicenseExpiry,
+      panNumber: business.panNumber ?? '',
+      drugLicenseNumber: business.drugLicenseNumber ?? '',
+      drugLicenseExpiry: business.drugLicenseExpiry ?? '',
       addressType: business.addressType,
-      addressLine1: business.addressLine1,
+      addressLine1: business.addressLine1 ?? '',
       addressLine2: business.addressLine2,
       landmark: business.landmark,
-      city: business.city,
-      district: business.district,
-      state: business.state,
+      city: business.city ?? '',
+      district: business.district ?? '',
+      state: business.state ?? '',
       country: 'India',
-      pincode: business.pincode,
+      pincode: business.pincode ?? '',
       latitude: business.latitude ? Number(business.latitude) : undefined,
       longitude: business.longitude ? Number(business.longitude) : undefined,
       scanRadius: business.scanRadius ? Number(business.scanRadius) : undefined,

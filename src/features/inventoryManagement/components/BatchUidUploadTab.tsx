@@ -160,6 +160,20 @@ const batchColumns: CommonTableColumn<BmrBatchRow>[] = [
     render: (row) => row.endSerialNumber,
   },
   {
+    key: 'masterCartonStartNo',
+    header: 'Master Carton Start No',
+    align: 'center',
+    minWidth: 160,
+    render: (row) => row.masterCartonStartNo,
+  },
+  {
+    key: 'masterCartonEndNo',
+    header: 'Master Carton End No',
+    align: 'center',
+    minWidth: 160,
+    render: (row) => row.masterCartonEndNo,
+  },
+  {
     key: 'status',
     header: 'Status',
     minWidth: 120,
@@ -563,8 +577,8 @@ export function BatchUidUploadTab({
           producedQty: row.producedQty,
           startSerialNumber: Number(row.startSerialNumber),
           endSerialNumber: Number(row.endSerialNumber),
-          masterCartonStartNo: range?.start ?? 0,
-          masterCartonEndNo: range?.end ?? 0,
+          masterCartonStartNo: row.masterCartonStartNo || range?.start || 0,
+          masterCartonEndNo: row.masterCartonEndNo || range?.end || 0,
         }
       })
   }
@@ -800,6 +814,8 @@ export function BatchUidUploadTab({
                   row.producedQty,
                   row.startSerialNumber,
                   row.endSerialNumber,
+                  row.masterCartonStartNo,
+                  row.masterCartonEndNo,
                   row.isValid ? 'Valid' : row.validationNote,
                 ]
                   .filter((value) => value !== undefined && value !== null)

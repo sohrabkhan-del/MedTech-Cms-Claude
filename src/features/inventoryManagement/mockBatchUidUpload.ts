@@ -31,6 +31,12 @@ const HEADER_ALIASES: Record<string, keyof RawBmrRecord> = {
   'produced qty': 'producedQty',
   'start serial number': 'startSerialNumber',
   'end serial number': 'endSerialNumber',
+  'master carton start no.': 'masterCartonStartNo',
+  'master carton start no': 'masterCartonStartNo',
+  mastercartonstartno: 'masterCartonStartNo',
+  'master carton end no.': 'masterCartonEndNo',
+  'master carton end no': 'masterCartonEndNo',
+  mastercartonendno: 'masterCartonEndNo',
 }
 
 interface RawBmrRecord {
@@ -50,6 +56,8 @@ interface RawBmrRecord {
   producedQty: string
   startSerialNumber: string
   endSerialNumber: string
+  masterCartonStartNo: string
+  masterCartonEndNo: string
 }
 
 function normalizeHeader(header: string): string {
@@ -73,6 +81,8 @@ const BMR_TEMPLATE_HEADERS = [
   'Produced Qty',
   'Start Serial Number',
   'End Serial Number',
+  'Master Carton Start No',
+  'Master Carton End No',
 ]
 
 const BMR_TEMPLATE_SAMPLE_ROW = [
@@ -92,6 +102,8 @@ const BMR_TEMPLATE_SAMPLE_ROW = [
   990,
   '294878',
   '294878',
+  1,
+  10,
 ]
 
 /** Downloads a blank .xlsx with the exact column headers `parseBmrFile` expects, plus one sample row. */
@@ -232,6 +244,8 @@ export async function parseBmrFile(file: File): Promise<ParsedBmrResult> {
         producedQty: Number(record.producedQty) || 0,
         startSerialNumber,
         endSerialNumber,
+        masterCartonStartNo: Number(record.masterCartonStartNo) || 0,
+        masterCartonEndNo: Number(record.masterCartonEndNo) || 0,
         isValid,
         validationNote,
       }

@@ -16,6 +16,8 @@ export interface BmrBatchRow {
   producedQty: number
   startSerialNumber: string
   endSerialNumber: string
+  masterCartonStartNo: number
+  masterCartonEndNo: number
   isValid: boolean
   validationNote?: string
 }

@@ -24,7 +24,7 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
-import { useRegionFilter } from '@/contexts/RegionFilterContext'
+
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/contexts/ToastContext'
@@ -42,7 +42,6 @@ import type {
   GeoFence,
   GeoFenceUserType,
 } from '@/features/fieldOperations/types/fieldOperations.types'
-import type { PartnerZone } from '@/types/partner'
 
 const partnerBasePath: Record<'Dealer' | 'Chemist', string> = {
   Dealer: '/partners/dealers',
@@ -65,7 +64,7 @@ const RULE_TABS: { label: string; value: RuleTab }[] = [
 export function GeoFenceManagementPage() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { region } = useRegionFilter()
+
   const [tab, setTab] = useState<RuleTab>('all')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
@@ -84,11 +83,13 @@ export function GeoFenceManagementPage() {
     isAnalyticsCardsLoading,
     refetch,
   } = useGeoFences(
-    tab === 'all'
-      ? appliedFilters.userType === 'all'
-        ? undefined
-        : (appliedFilters.userType as 'Dealer' | 'Chemist' | 'MR')
-      : tab,
+    // Narrow userType so we never pass 'MR' to useGeoFences (it expects Dealer|Chemist)
+    ((): 'Dealer' | 'Chemist' | undefined => {
+      if (tab !== 'all') return tab as 'Dealer' | 'Chemist'
+      if (appliedFilters.userType === 'all') return undefined
+      if (appliedFilters.userType === 'MR') return undefined
+      return appliedFilters.userType as 'Dealer' | 'Chemist'
+    })(),
     debouncedSearch || undefined,
     page + 1,
     rowsPerPage,
@@ -159,8 +160,6 @@ export function GeoFenceManagementPage() {
       )
     }
   }
-
-  const topbarZone = region === 'All India' ? null : (region as PartnerZone)
 
   const displayedFences = geoFences.map((fence) =>
     statusOverrides[fence.id]

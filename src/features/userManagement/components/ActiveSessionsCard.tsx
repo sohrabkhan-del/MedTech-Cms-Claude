@@ -26,6 +26,7 @@ import {
 } from '@/features/systemUsers/services/sessionsApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import type { UserSession } from '@/features/systemUsers/types/session.types'
 
 function formatReason(reason: string) {
   if (!reason) return 'Inactive'

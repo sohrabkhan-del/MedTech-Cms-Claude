@@ -212,7 +212,12 @@ const scanFeedApi = baseApi.injectEndpoints({
     }),
 
     getScanEventsByBatch: builder.query<
-      { items: ScanEvent[]; totalItems: number; uploadBatchFileName?: string },
+      {
+        items: ScanEvent[]
+        totalItems: number
+        uploadBatchFileName?: string
+        uploadFileName?: string
+      },
       ScanFeedByBatchQueryParams
     >({
       query: ({ uploadBatchId, ...params }) => ({
@@ -226,7 +231,7 @@ const scanFeedApi = baseApi.injectEndpoints({
         },
         mockResolver: () =>
           mockDelay({
-            items: [],  
+            items: [],
             totalItems: 0,
             uploadBatchFileName: undefined,
           }),

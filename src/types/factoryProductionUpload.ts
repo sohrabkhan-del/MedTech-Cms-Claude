@@ -44,12 +44,13 @@ export interface FactoryProductionUploadBatchSummary {
   uploadedBy: string
   isDeleted: boolean
   createdAt: string
+  fileName?: string
+  uploadFileName: string
   updatedAt: string
 }
 
 /** Full upload-batch record returned by GET /products/upload/{id}, with its rows embedded. */
-export interface FactoryProductionUploadBatchDetail
-  extends FactoryProductionUploadBatchSummary {
+export interface FactoryProductionUploadBatchDetail extends FactoryProductionUploadBatchSummary {
   rows: FactoryProductionUploadRowRecord[]
 }
 

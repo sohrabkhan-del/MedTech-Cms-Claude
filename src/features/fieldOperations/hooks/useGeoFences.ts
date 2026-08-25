@@ -5,9 +5,10 @@ import {
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import type { GeoFence } from '@/types/geoFence'
 
 export function useGeoFences(
-  userType?: 'Dealer' | 'Chemist' | 'MR',
+  userType?: 'Dealer' | 'Chemist',
   search?: string,
   page?: number,
   limit?: number,

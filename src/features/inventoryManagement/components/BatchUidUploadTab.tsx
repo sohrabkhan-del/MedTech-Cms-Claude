@@ -46,10 +46,7 @@ import {
   parseBmrFile,
   parseMasterCartonFile,
 } from '@/features/inventoryManagement/mockBatchUidUpload'
-import {
-  usePreviewFactoryProductionRowsMutation,
-  useUploadFactoryProductionRowsMutation,
-} from '@/features/inventoryManagement/services/factoryProductionUploadApi'
+import { usePreviewFactoryProductionRowsMutation } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type {
   BmrBatchRow,
@@ -304,7 +301,7 @@ export function BatchUidUploadTab({
     useState<MasterCartonUploadSummary | null>(null)
 
   const [previewRows] = usePreviewFactoryProductionRowsMutation()
-  const [uploadRows] = useUploadFactoryProductionRowsMutation()
+
   const [isProcessing, setIsProcessing] = useState(false)
   const [validateError, setValidateError] = useState<string | null>(null)
   const [toast, setToast] = useState<{
@@ -603,10 +600,6 @@ export function BatchUidUploadTab({
     setIsProcessing(true)
     setValidateError(null)
     try {
-      const result = await uploadRows({
-        rows: toFactoryProductionRows(),
-        fileName: uploadFileName,
-      }).unwrap()
       setActiveStep(3)
       onImported?.(
         batchRows.filter((row) => row.isValid),

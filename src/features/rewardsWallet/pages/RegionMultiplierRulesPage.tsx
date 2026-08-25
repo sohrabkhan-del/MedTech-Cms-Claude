@@ -26,12 +26,21 @@ import {
 
 type PartnerType = 'Dealer' | 'Chemist'
 
-const PARTNER_TYPE_STYLES: Record<PartnerType, { bg: string; text: string; main: string }> = {
+const PARTNER_TYPE_STYLES: Record<
+  PartnerType,
+  { bg: string; text: string; main: string }
+> = {
   Dealer: { bg: 'primary.light', text: 'primary.dark', main: 'primary.main' },
-  Chemist: { bg: 'secondary.light', text: 'secondary.dark', main: 'secondary.main' },
+  Chemist: {
+    bg: 'secondary.light',
+    text: 'secondary.dark',
+    main: 'secondary.main',
+  },
 }
 
-const MULTIPLIER_OPTIONS = Array.from({ length: 37 }, (_, i) => Number((1 + i * 0.25).toFixed(2)))
+const MULTIPLIER_OPTIONS = Array.from({ length: 37 }, (_, i) =>
+  Number((1 + i * 0.25).toFixed(2)),
+)
 const MAX_MULTIPLIER = 10
 
 const PARTNER_TYPE_TABS: { label: string; value: PartnerType }[] = [
@@ -58,10 +67,14 @@ export function RegionMultiplierRulesPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { data: regions = [], isFetching: isLoading } = useGetGlobalRegionMultipliersQuery()
-  const [bulkUpdate, { isLoading: isSaving }] = useBulkUpdateRegionMultipliersMutation()
+  const { data: regions = [], isFetching: isLoading } =
+    useGetGlobalRegionMultipliersQuery()
+  const [bulkUpdate, { isLoading: isSaving }] =
+    useBulkUpdateRegionMultipliersMutation()
 
-  const partnerType: PartnerType = isPartnerType(searchParams.get('partnerType'))
+  const partnerType: PartnerType = isPartnerType(
+    searchParams.get('partnerType'),
+  )
     ? (searchParams.get('partnerType') as PartnerType)
     : 'Dealer'
 
@@ -76,7 +89,10 @@ export function RegionMultiplierRulesPage() {
   // Tracks BOTH dealer and chemist edits together (even though only one tab
   // is shown at a time) since the real bulk endpoint requires both values
   // per region in the same request.
-  const [values, setValues] = useState<Record<string, RegionMultiplierValue> | null>(null)
+  const [values, setValues] = useState<Record<
+    string,
+    RegionMultiplierValue
+  > | null>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
 
   const activeValueByRegion = useMemo(
@@ -86,7 +102,9 @@ export function RegionMultiplierRulesPage() {
           region.regionId,
           {
             dealerMultiplier: closestMultiplierOption(region.dealerMultiplier),
-            chemistMultiplier: closestMultiplierOption(region.chemistMultiplier),
+            chemistMultiplier: closestMultiplierOption(
+              region.chemistMultiplier,
+            ),
           },
         ]),
       ),
@@ -143,7 +161,10 @@ export function RegionMultiplierRulesPage() {
   const overLimitRegionIds = useMemo(
     () =>
       regions
-        .filter((region) => (currentValues[region.regionId]?.[field] ?? 0) > MAX_MULTIPLIER)
+        .filter(
+          (region) =>
+            (currentValues[region.regionId]?.[field] ?? 0) > MAX_MULTIPLIER,
+        )
         .map((region) => region.regionId),
     [regions, currentValues, field],
   )
@@ -181,7 +202,9 @@ export function RegionMultiplierRulesPage() {
       setValues(null)
       toast.success(`${partnerType} region multipliers updated successfully.`)
     } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Failed to update region multipliers.'))
+      toast.error(
+        getApiErrorMessage(err, 'Failed to update region multipliers.'),
+      )
     }
   }
 
@@ -196,7 +219,11 @@ export function RegionMultiplierRulesPage() {
         Back to Point Value Rules
       </Button>
 
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', mb: 2.5 }}>
+      <Stack
+        direction="row"
+        spacing={1.5}
+        sx={{ alignItems: 'center', mb: 2.5 }}
+      >
         <Box
           sx={{
             width: 40,
@@ -215,8 +242,8 @@ export function RegionMultiplierRulesPage() {
         <Box>
           <Typography variant="h1">Region Multiplier Rules</Typography>
           <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-            Bulk-edit the region multiplier applied to every product in a region, per partner
-            type.
+            Bulk-edit the region multiplier applied to every product in a
+            region, per partner type.
           </Typography>
         </Box>
       </Stack>
@@ -224,21 +251,35 @@ export function RegionMultiplierRulesPage() {
       <Alert
         severity="warning"
         icon={<ShieldAlert size={20} />}
-        sx={{ mb: 3, alignItems: 'flex-start', '& .MuiAlert-message': { width: '100%' } }}
+        sx={{
+          mb: 3,
+          alignItems: 'flex-start',
+          '& .MuiAlert-message': { width: '100%' },
+        }}
       >
-        <AlertTitle sx={{ fontWeight: 700 }}>This is a major, high-impact operation</AlertTitle>
+        <AlertTitle sx={{ fontWeight: 700 }}>
+          This is a major, high-impact operation
+        </AlertTitle>
         <Typography sx={{ fontSize: '0.8125rem' }}>
-          Region multipliers apply instantly to <strong>every product rule</strong> configured
-          for the affected region(s) — but only for the <strong>{partnerType}</strong> partner
-          type selected below. Dealer and Chemist multipliers are configured independently.
-          Changing a multiplier will immediately recalculate how many reward points partners earn
-          in that region going forward. Existing wallet balances and already-issued Points are
-          not retroactively adjusted. Please double-check the values below before saving.
+          Region multipliers apply instantly to{' '}
+          <strong>every product rule</strong> configured for the affected
+          region(s) — but only for the <strong>{partnerType}</strong> partner
+          type selected below. Dealer and Chemist multipliers are configured
+          independently. Changing a multiplier will immediately recalculate how
+          many reward points partners earn in that region going forward.
+          Existing wallet balances and already-issued Points are not
+          retroactively adjusted. Please double-check the values below before
+          saving.
         </Typography>
       </Alert>
 
       <Box sx={{ mb: 3 }}>
-        <ModularTabs tabs={PARTNER_TYPE_TABS} value={partnerType} onChange={setPartnerType} />
+        <ModularTabs
+          tabs={PARTNER_TYPE_TABS}
+          value={partnerType}
+          onChange={setPartnerType}
+          variant="filled"
+        />
       </Box>
 
       <Grid container spacing={3}>
@@ -250,7 +291,11 @@ export function RegionMultiplierRulesPage() {
               backgroundColor: PARTNER_TYPE_STYLES[partnerType].bg,
             }}
           >
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', mb: 2 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', mb: 2 }}
+            >
               <Typography
                 sx={{
                   fontWeight: 700,
@@ -286,8 +331,14 @@ export function RegionMultiplierRulesPage() {
                 const isChanged = changedRegionIds.includes(region.regionId)
                 return (
                   <Grid key={region.regionId} size={{ xs: 6, sm: 3 }}>
-                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mb: 0.5 }}>
-                      <Typography sx={{ fontSize: '0.6875rem', color: 'text.secondary' }}>
+                    <Stack
+                      direction="row"
+                      spacing={0.5}
+                      sx={{ alignItems: 'center', mb: 0.5 }}
+                    >
+                      <Typography
+                        sx={{ fontSize: '0.6875rem', color: 'text.secondary' }}
+                      >
                         {region.regionName}
                       </Typography>
                       {isChanged && (
@@ -324,12 +375,21 @@ export function RegionMultiplierRulesPage() {
                           )
                         }
                         slotProps={{
-                          htmlInput: { step: 0.25, min: 0, max: MAX_MULTIPLIER },
+                          htmlInput: {
+                            step: 0.25,
+                            min: 0,
+                            max: MAX_MULTIPLIER,
+                          },
                           input: {
-                            endAdornment: <InputAdornment position="end">x</InputAdornment>,
+                            endAdornment: (
+                              <InputAdornment position="end">x</InputAdornment>
+                            ),
                           },
                         }}
-                        sx={{ backgroundColor: 'background.paper', borderRadius: `${radius.sm}px` }}
+                        sx={{
+                          backgroundColor: 'background.paper',
+                          borderRadius: `${radius.sm}px`,
+                        }}
                       />
                     )}
                   </Grid>
@@ -418,9 +478,9 @@ export function RegionMultiplierRulesPage() {
       >
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Alert severity="warning" sx={{ fontSize: '0.75rem' }}>
-            This will affect point values for every {partnerType} product rule across{' '}
-            {changedRegionIds.length} region{changedRegionIds.length === 1 ? '' : 's'}, effective
-            immediately.
+            This will affect point values for every {partnerType} product rule
+            across {changedRegionIds.length} region
+            {changedRegionIds.length === 1 ? '' : 's'}, effective immediately.
           </Alert>
           <Stack spacing={1}>
             {changedRegionIds.map((regionId) => {
@@ -434,13 +494,21 @@ export function RegionMultiplierRulesPage() {
                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
                     {region?.regionName ?? regionId}
                   </Typography>
-                  <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
+                  <Stack
+                    direction="row"
+                    spacing={1}
+                    sx={{ alignItems: 'center' }}
+                  >
                     <Chip
                       size="small"
                       variant="outlined"
                       label={`${activeValueByRegion.get(regionId)?.[field] ?? 1}x`}
                     />
-                    <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+                    <Typography
+                      sx={{ fontSize: '0.75rem', color: 'text.disabled' }}
+                    >
+                      →
+                    </Typography>
                     <Chip
                       size="small"
                       color="warning"

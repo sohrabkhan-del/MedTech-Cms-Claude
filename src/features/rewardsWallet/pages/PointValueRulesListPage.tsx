@@ -77,7 +77,9 @@ export function PointValueRulesListPage() {
     }
   }, [])
 
-  const { rules, kpis, isLoading } = useProductPointRules(appliedFilters.regionId)
+  const { rules, kpis, isLoading } = useProductPointRules(
+    appliedFilters.regionId,
+  )
 
   useRegionTopbarHeader({
     icon: <Points size={20} />,
@@ -96,7 +98,10 @@ export function PointValueRulesListPage() {
         new Map(
           rules
             .filter((r) => r.categoryId)
-            .map((r) => [r.categoryId as string, r.categoryName ?? r.categoryId as string]),
+            .map((r) => [
+              r.categoryId as string,
+              r.categoryName ?? (r.categoryId as string),
+            ]),
         ).entries(),
       ),
     [rules],
@@ -130,7 +135,9 @@ export function PointValueRulesListPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() => navigate(`/rewards-wallet/point-value-rules/${row.productId}`)}
+          onClick={() =>
+            navigate(`/rewards-wallet/point-value-rules/${row.productId}`)
+          }
         >
           {row.productName}
         </Typography>
@@ -195,7 +202,9 @@ export function PointValueRulesListPage() {
           ) : (
             <StatCard
               label="Total Outstanding Point Liability"
-              value={(kpis?.totalOutstandingPointLiability ?? 0).toLocaleString('en-IN')}
+              value={(kpis?.totalOutstandingPointLiability ?? 0).toLocaleString(
+                'en-IN',
+              )}
               icon={<Landmark size={20} />}
               iconColor="primary"
             />
@@ -254,12 +263,15 @@ export function PointValueRulesListPage() {
           tabs={PARTNER_TYPE_TABS}
           value={partnerTypeTab}
           onChange={setPartnerTypeTab}
+          variant="filled"
         />
         <Button
           variant="outlined"
           color="secondary"
           endIcon={<ChevronRight size={16} />}
-          onClick={() => navigate('/rewards-wallet/point-value-rules/region-multipliers')}
+          onClick={() =>
+            navigate('/rewards-wallet/point-value-rules/region-multipliers')
+          }
           sx={{
             fontSize: '0.8125rem',
             fontWeight: 600,
@@ -284,7 +296,9 @@ export function PointValueRulesListPage() {
           getRowId={(row) => row.productId}
           loading={isLoading}
           searchPlaceholder="Search by product name or code…"
-          searchKeys={(row) => `${row.productCode} ${row.productName} ${row.categoryName ?? ''}`}
+          searchKeys={(row) =>
+            `${row.productCode} ${row.productName} ${row.categoryName ?? ''}`
+          }
           onFilterClick={() => setFilterOpen(true)}
           filterCount={
             (appliedFilters.categoryId !== 'all' ? 1 : 0) +
@@ -300,7 +314,9 @@ export function PointValueRulesListPage() {
             {
               label: 'Edit',
               onClick: (row) =>
-                navigate(`/rewards-wallet/point-value-rules/${row.productId}/edit-base-value`),
+                navigate(
+                  `/rewards-wallet/point-value-rules/${row.productId}/edit-base-value`,
+                ),
             },
           ]}
           emptyTitle="No Point value rules configured"

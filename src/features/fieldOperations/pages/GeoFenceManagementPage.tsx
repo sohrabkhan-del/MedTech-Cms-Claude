@@ -85,13 +85,17 @@ export function GeoFenceManagementPage() {
     refetch,
   } = useGeoFences(
     tab === 'all'
-      ? (appliedFilters.userType === 'all' ? undefined : (appliedFilters.userType as 'Dealer' | 'Chemist' | 'MR'))
+      ? appliedFilters.userType === 'all'
+        ? undefined
+        : (appliedFilters.userType as 'Dealer' | 'Chemist' | 'MR')
       : tab,
     debouncedSearch || undefined,
     page + 1,
     rowsPerPage,
     undefined,
-    appliedFilters.status === 'all' ? undefined : (appliedFilters.status as 'active' | 'pending' | 'inactive'),
+    appliedFilters.status === 'all'
+      ? undefined
+      : (appliedFilters.status as 'active' | 'pending' | 'inactive'),
   )
   useRegionTopbarHeader({
     icon: <FenceIcon size={20} />,
@@ -328,7 +332,7 @@ export function GeoFenceManagementPage() {
 
       <Box sx={{ mb: 2.5, mt: 7 }}>
         <ModularTabs
-          variant="underline"
+          variant="filled"
           tabs={RULE_TABS}
           value={tab}
           onChange={setTab}
@@ -362,7 +366,7 @@ export function GeoFenceManagementPage() {
           (appliedFilters.userType !== 'all' ? 1 : 0) +
           (appliedFilters.status !== 'all' ? 1 : 0)
         }
-        onExportClick={() => { }}
+        onExportClick={() => {}}
         createAction={createAction}
         defaultSortBy="businessName"
         actions={[

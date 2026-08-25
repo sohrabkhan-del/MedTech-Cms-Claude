@@ -14,11 +14,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import {
-  Coins as Points,
-  Pencil,
-  RotateCcw,
-} from 'lucide-react'
+import { Coins as Points, Pencil, RotateCcw } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
@@ -316,7 +312,10 @@ export function PointValueRuleDetailsPage() {
     try {
       await Promise.all(
         overriddenRegions.map((region) =>
-          resetRegionMultiplier({ id: productId, regionId: region.regionId }).unwrap(),
+          resetRegionMultiplier({
+            id: productId,
+            regionId: region.regionId,
+          }).unwrap(),
         ),
       )
       await refetchDetail()
@@ -457,7 +456,7 @@ export function PointValueRuleDetailsPage() {
                 tabs={PARTNER_TYPE_TABS}
                 value={activeTab}
                 onChange={setActiveTab}
-                variant="outlined"
+                variant="filled"
                 fontSize="0.8125rem"
               />
               <Button

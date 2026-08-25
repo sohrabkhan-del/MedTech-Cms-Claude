@@ -180,8 +180,10 @@ export function DistributorUploadTab({
 
     // ── Style helpers ──────────────────────────────────────────────────
     const thinBorder = {
-      top: { style: 'thin' }, bottom: { style: 'thin' },
-      left: { style: 'thin' }, right: { style: 'thin' },
+      top: { style: 'thin' },
+      bottom: { style: 'thin' },
+      left: { style: 'thin' },
+      right: { style: 'thin' },
     }
     const grayFill = { fgColor: { rgb: 'D9D9D9' } }
     const labelStyle = {
@@ -228,16 +230,45 @@ export function DistributorUploadTab({
     const totalRow = lastDataRow + 1
 
     const data: any[][] = []
-    data[0] = ['MEDTECH', , , 'DISPATCH LOADING REPORT', , , 'Format No.', 'FOR/7.5/05']
+    data[0] = [
+      'MEDTECH',
+      ,
+      ,
+      'DISPATCH LOADING REPORT',
+      ,
+      ,
+      'Format No.',
+      'FOR/7.5/05',
+    ]
     data[1] = [, , , , , , 'Rev. No.', '00']
     data[2] = [, , , , , , 'Rev. Date', '01-Jan-2024']
-    data[3] = ['CUSTOMER NAME :', '<Customer Name>', , 'TRANSPORTER :', '<Transporter Name>']
+    data[3] = [
+      'CUSTOMER NAME :',
+      '<Customer Name>',
+      ,
+      'TRANSPORTER :',
+      '<Transporter Name>',
+    ]
     data[4] = ['INVOICE NO :', '<Invoice No.>', , 'TOTAL BOX QTY :', 0]
     data[5] = ['VEHICLE NO :', , , 'DATE :', '<DD-Mon-YYYY>'] // Vehicle No. left blank, matches sample
     data[6] = []
-    data[7] = ['Sr. No.', 'Item Code', 'Item Name', 'Carton No', 'Carton Weight', 'Dispatch Qty']
+    data[7] = [
+      'Sr. No.',
+      'Item Code',
+      'Item Name',
+      'Carton No',
+      'Carton Weight',
+      'Dispatch Qty',
+    ]
     data[8] = [1, 'ITEM-001', 'Sample Product Name', 1001, 12.5, 10]
-    data[9] = ['Total', , , , { f: `SUM(E${firstDataRow}:E${lastDataRow})` }, { f: `SUM(F${firstDataRow}:F${lastDataRow})` }]
+    data[9] = [
+      'Total',
+      ,
+      ,
+      ,
+      { f: `SUM(E${firstDataRow}:E${lastDataRow})` },
+      { f: `SUM(F${firstDataRow}:F${lastDataRow})` },
+    ]
 
     const ws = XLSX.utils.aoa_to_sheet(data)
 
@@ -255,25 +286,35 @@ export function DistributorUploadTab({
     ]
 
     // ── Apply cell styles ─────────────────────────────────────────────────
-    const set = (addr: string, style: any) => { if (ws[addr]) ws[addr].s = style }
+    const set = (addr: string, style: any) => {
+      if (ws[addr]) ws[addr].s = style
+    }
 
     set('A1', titleStyle(14))
     set('C1', titleStyle(16))
-      ;['E1', 'E2', 'E3'].forEach((a) => set(a, smallLabelStyle))
-      ;['F1', 'F2', 'F3'].forEach((a) => set(a, valueStyle))
+    ;['E1', 'E2', 'E3'].forEach((a) => set(a, smallLabelStyle))
+    ;['F1', 'F2', 'F3'].forEach((a) => set(a, valueStyle))
 
-      ;['A4', 'D4', 'A5', 'D5', 'A6', 'D6'].forEach((a) => set(a, labelStyle))
-      ;['B4', 'E4', 'B5', 'E5', 'B6', 'E6'].forEach((a) => set(a, valueStyle))
+    ;['A4', 'D4', 'A5', 'D5', 'A6', 'D6'].forEach((a) => set(a, labelStyle))
+    ;['B4', 'E4', 'B5', 'E5', 'B6', 'E6'].forEach((a) => set(a, valueStyle))
 
-      ;['A8', 'B8', 'C8', 'D8', 'E8', 'F8'].forEach((a) => set(a, tableHeaderStyle))
-      ;['A9', 'B9', 'C9', 'D9', 'E9', 'F9'].forEach((a) => set(a, cellStyle))
+    ;['A8', 'B8', 'C8', 'D8', 'E8', 'F8'].forEach((a) =>
+      set(a, tableHeaderStyle),
+    )
+    ;['A9', 'B9', 'C9', 'D9', 'E9', 'F9'].forEach((a) => set(a, cellStyle))
 
-      ;[`A${totalRow}`, `E${totalRow}`, `F${totalRow}`].forEach((a) => set(a, totalStyle))
+    ;[`A${totalRow}`, `E${totalRow}`, `F${totalRow}`].forEach((a) =>
+      set(a, totalStyle),
+    )
 
     // ── Column widths (match sample) ────────────────────────────────────────
     ws['!cols'] = [
-      { wch: 8 }, { wch: 12 }, { wch: 40 },
-      { wch: 12 }, { wch: 14 }, { wch: 14 },
+      { wch: 8 },
+      { wch: 12 },
+      { wch: 40 },
+      { wch: 12 },
+      { wch: 14 },
+      { wch: 14 },
     ]
 
     XLSX.utils.book_append_sheet(wb, ws, 'DLR')
@@ -359,7 +400,7 @@ export function DistributorUploadTab({
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 3 }}>
               <StatCard
-                label="Total Rows"
+                label="Total Products"
                 value={summary.totalRows}
                 icon={<FileSpreadsheet size={20} />}
                 iconColor="primary"

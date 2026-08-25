@@ -25,7 +25,10 @@ function toIsoDate(date: Date): string {
   return date.toISOString().slice(0, 10)
 }
 
-const DATE_PRESETS: { label: string; getRange: () => { fromDate: string; toDate: string } }[] = [
+const DATE_PRESETS: {
+  label: string
+  getRange: () => { fromDate: string; toDate: string }
+}[] = [
   {
     label: 'Today',
     getRange: () => {
@@ -240,7 +243,9 @@ export function FactoryUploadListPage() {
         <Button
           variant="outlined"
           startIcon={<Layers size={18} />}
-          onClick={() => navigate('/inventory/factory-inventory-upload/uploads')}
+          onClick={() =>
+            navigate('/inventory/factory-inventory-upload/uploads')
+          }
         >
           Uploaded Inventory
         </Button>
@@ -288,6 +293,11 @@ export function FactoryUploadListPage() {
         rows={rows}
         loading={isLoading}
         getRowId={(row) => row.id}
+        onRowClick={(row) =>
+          navigate(
+            `/inventory/factory-inventory-upload/upload/${row.uploadBatchId}`,
+          )
+        }
         searchPlaceholder="Search by product code or batch number…"
         searchValue={search}
         onSearchChange={(value) => {
@@ -336,11 +346,16 @@ export function FactoryUploadListPage() {
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
-            <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ flexWrap: 'wrap', rowGap: 1 }}
+            >
               {DATE_PRESETS.map((preset) => {
                 const range = preset.getRange()
                 const selected =
-                  draft.fromDate === range.fromDate && draft.toDate === range.toDate
+                  draft.fromDate === range.fromDate &&
+                  draft.toDate === range.toDate
                 return (
                   <Chip
                     key={preset.label}
@@ -348,9 +363,7 @@ export function FactoryUploadListPage() {
                     size="small"
                     color={selected ? 'primary' : 'default'}
                     variant={selected ? 'filled' : 'outlined'}
-                    onClick={() =>
-                      setDraft((prev) => ({ ...prev, ...range }))
-                    }
+                    onClick={() => setDraft((prev) => ({ ...prev, ...range }))}
                   />
                 )
               })}

@@ -7,6 +7,16 @@ import { isAxiosError } from 'axios'
  */
 export function getApiErrorMessage(err: unknown, fallback: string): string {
   if (isAxiosError(err)) return err.response?.data?.message ?? err.message
+
+  // RTK Query / fetch / serialized error shapes sometimes come through as
+  // plain objects: { data: { message: '...' }, status: ... }
+  if (err && typeof err === 'object') {
+    const anyErr = err as any
+    if (anyErr.response?.data?.message) return anyErr.response.data.message
+    if (anyErr.data?.message) return anyErr.data.message
+    if (typeof anyErr.message === 'string') return anyErr.message
+  }
+
   if (err instanceof Error) return err.message
   return fallback
 }

@@ -277,6 +277,7 @@ export function SchemesListPage() {
           value={tab}
           onChange={setTab}
           fontSize={'0.875rem'}
+          variant="filled"
         />
       </Box>
 

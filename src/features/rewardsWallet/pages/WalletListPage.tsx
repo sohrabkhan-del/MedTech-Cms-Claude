@@ -9,7 +9,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
-import { Wallet as WalletIcon, Coins as Points, Repeat2, Clock3 } from 'lucide-react'
+import {
+  Wallet as WalletIcon,
+  Coins as Points,
+  Repeat2,
+  Clock3,
+} from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
 import {
@@ -30,7 +35,10 @@ import type {
   WalletPartnerType,
 } from '@/features/rewardsWallet/services/walletPartnersApi'
 
-const statusConfig: Record<string, { label: string; color: 'success' | 'default' | 'error' }> = {
+const statusConfig: Record<
+  string,
+  { label: string; color: 'success' | 'default' | 'error' }
+> = {
   ACTIVE: { label: 'Active', color: 'success' },
   INACTIVE: { label: 'Inactive', color: 'default' },
   SUSPENDED: { label: 'Suspended', color: 'error' },
@@ -91,7 +99,8 @@ export function WalletListPage() {
     }
   }, [])
 
-  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const effectiveRegionId =
+    appliedFilters.regionId || topbarRegionId || undefined
 
   const { wallets, totalItems, isLoading } = useWalletPartners({
     page: page + 1,
@@ -155,19 +164,25 @@ export function WalletListPage() {
       key: 'availableBalance',
       header: 'Available Balance',
       align: 'center',
-      render: (row) => <WalletBalanceCell partnerId={row.id} field="totalPoints" />,
+      render: (row) => (
+        <WalletBalanceCell partnerId={row.id} field="totalPoints" />
+      ),
     },
     {
       key: 'pointsEarned',
       header: 'Points Earned',
       align: 'center',
-      render: (row) => <WalletBalanceCell partnerId={row.id} field="totalPointsEarned" />,
+      render: (row) => (
+        <WalletBalanceCell partnerId={row.id} field="totalPointsEarned" />
+      ),
     },
     {
       key: 'pointsRedeemed',
       header: 'Points Redeemed',
       align: 'center',
-      render: (row) => <WalletBalanceCell partnerId={row.id} field="totalPointsRedeemed" />,
+      render: (row) => (
+        <WalletBalanceCell partnerId={row.id} field="totalPointsRedeemed" />
+      ),
     },
     {
       key: 'lastUpdated',
@@ -247,6 +262,7 @@ export function WalletListPage() {
         <ModularTabs
           tabs={USER_TYPE_TABS}
           value={userTypeTab}
+          variant="filled"
           onChange={(value) => {
             setUserTypeTab(value)
             setPage(0)

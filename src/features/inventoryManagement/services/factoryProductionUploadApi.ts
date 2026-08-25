@@ -45,11 +45,14 @@ export interface FactoryProductionUploadRowsQueryParams {
   sortOrder?: 'asc' | 'desc'
   startDate?: string
   endDate?: string
+  /** Scope the listing to a single upload batch (the upload id). Omit for all batches. */
+  uploadBatchId?: string
 }
 
 export interface FactoryProductionUploadBatchesQueryParams {
   page?: number
   limit?: number
+  search?: string
   /** ISO date (YYYY-MM-DD) — include batches uploaded on/after this day. */
   startDate?: string
   /** ISO date (YYYY-MM-DD) — include batches uploaded on/before this day. */
@@ -274,6 +277,7 @@ const factoryProductionUploadApi = baseApi.injectEndpoints({
           sortOrder: params?.sortOrder ?? 'desc',
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
+          uploadBatchId: params?.uploadBatchId || undefined,
         },
         mockResolver: () => {
           throw new Error(
@@ -396,6 +400,7 @@ const factoryProductionUploadApi = baseApi.injectEndpoints({
         params: {
           page: params?.page ?? 1,
           limit: params?.limit ?? 20,
+          search: params?.search || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
         },

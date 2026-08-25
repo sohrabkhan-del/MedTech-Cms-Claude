@@ -237,6 +237,7 @@ export function RejectedRequestsListPage() {
         <ModularTabs
           tabs={REQUEST_TYPE_TABS}
           value={requestTypeTab}
+          variant="filled"
           onChange={(next) => {
             setRequestTypeTab(next)
             setPage(0)

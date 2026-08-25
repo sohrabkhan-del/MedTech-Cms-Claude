@@ -75,13 +75,16 @@ export function ApprovalRequestsListPage() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
-  const { requests, totalItems, kpis, decide, isLoading } = useApprovalRequests({
-    page: page + 1,
-    limit: rowsPerPage,
-    search,
-    type: requestTypeTab === 'all' ? undefined : requestTypeTab,
-    status: appliedFilters.status === 'all' ? undefined : appliedFilters.status,
-  })
+  const { requests, totalItems, kpis, decide, isLoading } = useApprovalRequests(
+    {
+      page: page + 1,
+      limit: rowsPerPage,
+      search,
+      type: requestTypeTab === 'all' ? undefined : requestTypeTab,
+      status:
+        appliedFilters.status === 'all' ? undefined : appliedFilters.status,
+    },
+  )
   useRegionTopbarHeader({
     icon: <RuleIcon size={20} />,
     title: 'Approval Requests',
@@ -225,6 +228,7 @@ export function ApprovalRequestsListPage() {
         <ModularTabs
           tabs={REQUEST_TYPE_TABS}
           value={requestTypeTab}
+          variant="filled"
           onChange={(next) => {
             setRequestTypeTab(next)
             setPage(0)

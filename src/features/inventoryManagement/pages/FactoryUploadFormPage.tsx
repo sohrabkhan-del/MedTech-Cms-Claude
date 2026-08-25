@@ -211,7 +211,7 @@ export function FactoryUploadFormPage() {
             <Grid container spacing={2.5}>
               <Grid size={{ xs: 12, sm: 3 }}>
                 <StatCard
-                  label="Total Rows"
+                  label="Total Products"
                   value={preview.totalRows}
                   icon={<FileSpreadsheet size={20} />}
                   iconColor="primary"

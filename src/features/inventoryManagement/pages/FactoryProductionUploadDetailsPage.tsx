@@ -1,5 +1,17 @@
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Stack, Typography } from '@mui/material'
+import { useState } from 'react'
+import { useEffect } from 'react'
+import {
+  Box,
+  Stack,
+  Typography,
+  Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+} from '@mui/material'
 import { Factory as FactoryOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -11,10 +23,24 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useFactoryProductionUploadDetail } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadDetail'
 import { formatDate } from '@/utils/formatDate'
-import type { FactoryProductionUploadRowRecord } from '@/types/factoryProductionUpload'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import type {
+  FactoryProductionUploadRowRecord,
+  FactoryProductionUploadBatchSummary,
+} from '@/types/factoryProductionUpload'
+import { useDeleteFactoryProductionUploadBatchMutation } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
+import { useGetFactoryProductionUploadRowsQuery } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
+import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { skipToken } from '@reduxjs/toolkit/query/react'
 
 const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
-  { key: 'productCode', header: 'Product Code', minWidth: 130, render: (row) => row.productCode },
+  {
+    key: 'productCode',
+    header: 'Product Code',
+    minWidth: 130,
+    render: (row) => row.productCode,
+  },
   {
     key: 'batchNo',
     header: 'Batch No.',
@@ -22,7 +48,9 @@ const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
     sortable: true,
     sortValue: (row) => row.batchNo,
     render: (row) => (
-      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>{row.batchNo}</Typography>
+      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
+        {row.batchNo}
+      </Typography>
     ),
   },
   {
@@ -39,7 +67,12 @@ const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
     sortValue: (row) => row.batchIssuedDate,
     render: (row) => formatDate(row.batchIssuedDate),
   },
-  { key: 'batchIssuedByName', header: 'Batch Issued By', minWidth: 130, render: (row) => row.batchIssuedByName },
+  {
+    key: 'batchIssuedByName',
+    header: 'Batch Issued By',
+    minWidth: 130,
+    render: (row) => row.batchIssuedByName,
+  },
   { key: 'month', header: 'Month', minWidth: 90, render: (row) => row.month },
   {
     key: 'qty',
@@ -56,10 +89,30 @@ const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
     minWidth: 100,
     render: (row) => row.sampleQty?.toLocaleString('en-IN') ?? '-',
   },
-  { key: 'plugType', header: 'Plug Type', minWidth: 100, render: (row) => row.plugType },
-  { key: 'domestic', header: 'Domestic', minWidth: 90, render: (row) => row.domestic },
-  { key: 'export', header: 'Export', minWidth: 90, render: (row) => row.export },
-  { key: 'assyLineNo', header: 'Assy Line No.', minWidth: 110, render: (row) => row.assyLineNo || '-' },
+  {
+    key: 'plugType',
+    header: 'Plug Type',
+    minWidth: 100,
+    render: (row) => row.plugType,
+  },
+  {
+    key: 'domestic',
+    header: 'Domestic',
+    minWidth: 90,
+    render: (row) => row.domestic,
+  },
+  {
+    key: 'export',
+    header: 'Export',
+    minWidth: 90,
+    render: (row) => row.export,
+  },
+  {
+    key: 'assyLineNo',
+    header: 'Assy Line No.',
+    minWidth: 110,
+    render: (row) => row.assyLineNo || '-',
+  },
   {
     key: 'batchCompletedDate',
     header: 'Batch Completed Date',
@@ -75,8 +128,20 @@ const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
     sortValue: (row) => row.producedQty,
     render: (row) => row.producedQty?.toLocaleString('en-IN') ?? '-',
   },
-  { key: 'startSerialNumber', header: 'Start Serial', align: 'center', minWidth: 110, render: (row) => row.startSerialNumber },
-  { key: 'endSerialNumber', header: 'End Serial', align: 'center', minWidth: 110, render: (row) => row.endSerialNumber },
+  {
+    key: 'startSerialNumber',
+    header: 'Start Serial',
+    align: 'center',
+    minWidth: 110,
+    render: (row) => row.startSerialNumber,
+  },
+  {
+    key: 'endSerialNumber',
+    header: 'End Serial',
+    align: 'center',
+    minWidth: 110,
+    render: (row) => row.endSerialNumber,
+  },
   {
     key: 'masterCartonStartNo',
     header: 'Master Carton Start No',
@@ -97,6 +162,44 @@ export function FactoryProductionUploadDetailsPage() {
   const navigate = useNavigate()
   const { uploadId } = useParams<{ uploadId: string }>()
   const { batch, isLoading, error } = useFactoryProductionUploadDetail(uploadId)
+  const toast = useToast()
+  const [batchToDelete, setBatchToDelete] =
+    useState<FactoryProductionUploadBatchSummary | null>(null)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [deleteBatch, { isLoading: isDeleting }] =
+    useDeleteFactoryProductionUploadBatchMutation()
+
+  const debouncedSearch = useDebouncedValue(search, 200)
+  const isSearching = debouncedSearch.trim().length > 0
+
+  // Server-side search scoped to this upload batch. When there's no query we
+  // fall back to the rows embedded in the batch detail (fetched already).
+  const { data: searchRowsData, isFetching: isFetchingSearch } =
+    useGetFactoryProductionUploadRowsQuery(
+      isSearching && uploadId
+        ? {
+            uploadBatchId: uploadId,
+            search: debouncedSearch,
+            page: page + 1,
+            limit: rowsPerPage,
+          }
+        : skipToken,
+    )
+
+  useEffect(() => {
+    console.log(
+      'debouncedSearch ->',
+      debouncedSearch,
+      'isSearching ->',
+      isSearching,
+    )
+  }, [debouncedSearch, isSearching])
+
+  useEffect(() => {
+    console.log('searchRowsData ->', searchRowsData)
+  }, [searchRowsData])
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={2} />
@@ -113,13 +216,20 @@ export function FactoryProductionUploadDetailsPage() {
     )
   }
 
-  const rows = batch.rows ?? []
+  const clientRows = batch.rows ?? []
+  const rows = isSearching ? (searchRowsData?.items ?? []) : clientRows
 
   return (
     <>
       <Stack
         direction="row"
-        sx={{ alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 2, mb: 3 }}
+        sx={{
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: 2,
+          mb: 3,
+        }}
       >
         <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
           <Box
@@ -139,10 +249,22 @@ export function FactoryProductionUploadDetailsPage() {
           <Box>
             <Typography variant="h1">Upload Batch</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Uploaded {formatDate(batch.createdAt)} · {batch.totalRows.toLocaleString('en-IN')} row(s)
+              Uploaded {formatDate(batch.createdAt)} ·{' '}
+              {batch.totalRows.toLocaleString('en-IN')} row(s)
             </Typography>
           </Box>
         </Stack>
+
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => batch && setBatchToDelete(batch)}
+            disabled={!batch}
+          >
+            Delete
+          </Button>
+        </Box>
       </Stack>
 
       <Stack spacing={3}>
@@ -150,7 +272,10 @@ export function FactoryProductionUploadDetailsPage() {
           <DetailFieldGrid
             fields={[
               { label: 'Upload ID', value: batch.id },
-              { label: 'Total Rows', value: batch.totalRows.toLocaleString('en-IN') },
+              {
+                label: 'Total Products',
+                value: batch.totalRows.toLocaleString('en-IN'),
+              },
               { label: 'Uploaded At', value: formatDate(batch.createdAt) },
               { label: 'Last Updated', value: formatDate(batch.updatedAt) },
             ]}
@@ -162,17 +287,72 @@ export function FactoryProductionUploadDetailsPage() {
             tableKey="factory-production-upload-rows"
             columns={rowColumns}
             rows={rows}
-            loading={isLoading}
+            loading={isSearching && isFetchingSearch}
+            searchValue={search}
+            onSearchChange={(v) => {
+              console.log('CommonTable onSearchChange ->', v)
+              setSearch(v)
+              setPage(0)
+            }}
+            totalCount={
+              isSearching ? (searchRowsData?.totalItems ?? 0) : undefined
+            }
+            page={isSearching ? page : undefined}
+            onPageChange={isSearching ? setPage : undefined}
+            rowsPerPage={isSearching ? rowsPerPage : undefined}
+            onRowsPerPageChange={
+              isSearching
+                ? (n) => {
+                    setRowsPerPage(n)
+                    setPage(0)
+                  }
+                : undefined
+            }
             getRowId={(row) => row.id}
             searchPlaceholder="Search by product code or batch number…"
-            searchKeys={(row) =>
-              `${row.productCode} ${row.batchNo} ${row.productionPlanNumber}`
-            }
             emptyTitle="No rows in this upload"
             emptyDescription="This upload batch does not contain any rows."
           />
         </SectionCard>
       </Stack>
+
+      <Dialog
+        open={!!batchToDelete}
+        onClose={() => setBatchToDelete(null)}
+        aria-labelledby="delete-upload-dialog-title"
+      >
+        <DialogTitle id="delete-upload-dialog-title">Delete upload</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Are you sure you want to delete upload {batchToDelete?.id}? This
+            will remove every row imported by this upload and cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setBatchToDelete(null)} disabled={isDeleting}>
+            Cancel
+          </Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={async () => {
+              if (!batchToDelete) return
+              try {
+                await deleteBatch(batchToDelete.id).unwrap()
+                toast.success('Upload deleted', 'Deleted')
+                setBatchToDelete(null)
+                navigate('/inventory/factory-inventory-upload')
+              } catch (e) {
+                const msg = getApiErrorMessage(e, 'Failed to delete upload.')
+                toast.error(msg)
+              }
+            }}
+            disabled={isDeleting}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }

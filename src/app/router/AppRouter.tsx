@@ -45,6 +45,7 @@ import { FactoryUploadBatchListPage } from '@/features/inventoryManagement/pages
 import { BatchUidUploadPage } from '@/features/inventoryManagement/pages/BatchUidUploadPage'
 import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryUploadDetailsPage'
 import { FactoryProductionUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryProductionUploadDetailsPage'
+import { FactoryProductionUploadScansPage } from '@/features/inventoryManagement/pages/FactoryProductionUploadScansPage'
 import { FactoryContainerPage } from '@/features/inventoryManagement/pages/FactoryContainerPage'
 import { FactoryBoxPage } from '@/features/inventoryManagement/pages/FactoryBoxPage'
 import { DistributorUploadPage } from '@/features/inventoryManagement/pages/DistributorUploadPage'
@@ -444,6 +445,12 @@ export function AppRouter() {
           />
           <Route
             path="/inventory/factory-inventory-upload/upload/:uploadId"
+            // element={<FactoryProductionUploadDetailsPage />}
+            element={<FactoryProductionUploadScansPage />}
+          />
+          <Route
+            path="/inventory/factory-inventory-upload/upload/:uploadId/scans"
+            // element={<FactoryProductionUploadScansPage />}
             element={<FactoryProductionUploadDetailsPage />}
           />
           <Route
@@ -578,8 +585,14 @@ export function AppRouter() {
             path="/settings/general"
             element={<AppearanceSettingsPage />}
           /> */}
-          <Route path="/ui" element={<UiShowcaseLandingPage category="component" />} />
-          <Route path="/ui/templates" element={<UiShowcaseLandingPage category="page-template" />} />
+          <Route
+            path="/ui"
+            element={<UiShowcaseLandingPage category="component" />}
+          />
+          <Route
+            path="/ui/templates"
+            element={<UiShowcaseLandingPage category="page-template" />}
+          />
           <Route path="/ui/:slug" element={<UiComponentDemoPage />} />
           <Route path="/settings/profile" element={<ProfileSettingsPage />} />
           <Route path="/system-users/admin" element={<AdminListPage />} />

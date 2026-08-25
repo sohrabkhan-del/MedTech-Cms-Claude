@@ -10,11 +10,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material'
-import {
-  Ban,
-  CircleCheck,
-  Megaphone,
-} from 'lucide-react'
+import { Ban, CircleCheck, Megaphone } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
@@ -88,12 +84,14 @@ export function ProductCatalogDetailsPage() {
       {
         label: 'Chemists',
         value: 'CHEMIST' as const,
-        count: allInterestedUsers.filter((row) => row.userType === 'Chemist').length,
+        count: allInterestedUsers.filter((row) => row.userType === 'Chemist')
+          .length,
       },
       {
         label: 'Dealers',
         value: 'DEALER' as const,
-        count: allInterestedUsers.filter((row) => row.userType === 'Dealer').length,
+        count: allInterestedUsers.filter((row) => row.userType === 'Dealer')
+          .length,
       },
     ],
     [allInterestedUsers],
@@ -350,6 +348,7 @@ export function ProductCatalogDetailsPage() {
               tabs={interestedUserTabs}
               value={interestedUserTab}
               onChange={setInterestedUserTab}
+              variant="filled"
             />
           </Box>
 

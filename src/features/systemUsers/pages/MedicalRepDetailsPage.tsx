@@ -121,14 +121,8 @@ export function MedicalRepDetailsPage() {
   const { mrId } = useParams<{ mrId: string }>()
   const navigate = useNavigate()
   const toast = useToast()
-  const {
-    mr,
-    setStatus,
-    remove,
-    isLoading,
-    isStatusUpdating,
-    isDeleting,
-  } = useMedicalRepDetail(mrId)
+  const { mr, setStatus, remove, isLoading, isStatusUpdating, isDeleting } =
+    useMedicalRepDetail(mrId)
   const [partnerTab, setPartnerTab] = useState<PartnerTab>('CHEMIST')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [replacementMrId, setReplacementMrId] = useState('')
@@ -493,6 +487,7 @@ export function MedicalRepDetailsPage() {
               tabs={PARTNER_TABS}
               value={partnerTab}
               onChange={setPartnerTab}
+              variant="filled"
             />
           </Box>
 
@@ -535,8 +530,8 @@ export function MedicalRepDetailsPage() {
           </Typography>
         ) : replacementOptions.length === 0 ? (
           <Typography variant="body1" sx={{ color: 'error.main' }}>
-            No other MR is available. Deletion is blocked until a replacement
-            MR exists.
+            No other MR is available. Deletion is blocked until a replacement MR
+            exists.
           </Typography>
         ) : (
           <Stack spacing={2}>

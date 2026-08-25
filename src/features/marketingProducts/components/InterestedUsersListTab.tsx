@@ -152,7 +152,7 @@ export function InterestedUsersListTab({
           }}
           onClick={() =>
             navigate(
-              `/marketing-products/products-catelog/${row.showcaseProductId}`
+              `/marketing-products/products-catelog/${row.showcaseProductId}`,
             )
           }
         >
@@ -178,12 +178,6 @@ export function InterestedUsersListTab({
       minWidth: 140,
       sortable: true,
       render: (row) => row.requestedDate,
-    },
-    {
-      key: 'handledBy',
-      header: 'Handled By',
-      minWidth: 140,
-      render: (row) => row.handledBy || '-',
     },
   ]
 

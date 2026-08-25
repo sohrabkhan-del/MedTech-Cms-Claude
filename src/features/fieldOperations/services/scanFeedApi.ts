@@ -19,6 +19,16 @@ export interface ScanFeedQueryParams {
   sortOrder?: 'asc' | 'desc'
 }
 
+export interface ScanFeedByBatchQueryParams {
+  /** The upload batch id — path param for /product-scan/batch/:uploadBatchId. */
+  uploadBatchId: string
+  page?: number
+  limit?: number
+  search?: string
+  /** Filters by partner type, e.g. 'DEALER' | 'CHEMIST'. Omit for all. */
+  partnerType?: string
+}
+
 interface ApiScanEventItem {
   id: string
   referenceId: string
@@ -181,7 +191,44 @@ const scanFeedApi = baseApi.injectEndpoints({
       ) => (response && 'data' in response ? mapScanEventDetail(response.data) : response),
       providesTags: (_result, _error, id) => [{ type: 'ScanFeed', id }],
     }),
+
+    getScanEventsByBatch: builder.query<
+      { items: ScanEvent[]; totalItems: number },
+      ScanFeedByBatchQueryParams
+    >({
+      query: ({ uploadBatchId, ...params }) => ({
+        tag: 'ScanFeed',
+        url: `/product-scan/batch/${uploadBatchId}`,
+        params: {
+          page: params.page ?? 1,
+          limit: params.limit ?? 10,
+          search: params.search || undefined,
+          partnerType: params.partnerType || undefined,
+        },
+        mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
+      }),
+      transformResponse: (
+        response: ScanFeedListApiResponse | { items: ScanEvent[]; totalItems: number },
+      ) =>
+        'success' in response
+          ? {
+              items: response.data.items.map(mapScanEvent),
+              totalItems: response.data.totalItems,
+            }
+          : response,
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.items.map(({ id }) => ({ type: 'ScanFeed' as const, id })),
+              { type: 'ScanFeed' as const, id: 'LIST' },
+            ]
+          : [{ type: 'ScanFeed' as const, id: 'LIST' }],
+    }),
   }),
 })
 
-export const { useGetScanEventsQuery, useGetScanEventDetailQuery } = scanFeedApi
+export const {
+  useGetScanEventsQuery,
+  useGetScanEventDetailQuery,
+  useGetScanEventsByBatchQuery,
+} = scanFeedApi

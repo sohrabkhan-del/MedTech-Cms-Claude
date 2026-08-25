@@ -27,6 +27,7 @@ import {
   useGetFactoryProductionUploadBatchesQuery,
 } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
 import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import { formatExactDateTime } from '@/utils/formatLastUpdated'
 import type { FactoryProductionUploadBatchSummary } from '@/types/factoryProductionUpload'
 
@@ -85,6 +86,7 @@ const DATE_PRESETS: {
 export function FactoryUploadBatchListPage() {
   const navigate = useNavigate()
   const toast = useToast()
+  const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(20)
   const [filterOpen, setFilterOpen] = useState(false)
@@ -96,6 +98,7 @@ export function FactoryUploadBatchListPage() {
   const { data, isFetching } = useGetFactoryProductionUploadBatchesQuery({
     page: page + 1,
     limit: rowsPerPage,
+    search: search || undefined,
     startDate: appliedFilters.fromDate || undefined,
     endDate: appliedFilters.toDate || undefined,
   })
@@ -110,14 +113,17 @@ export function FactoryUploadBatchListPage() {
   const openDetail = (id: string) =>
     navigate(`/inventory/factory-inventory-upload/upload/${id}`)
 
+  const openScans = (id: string) =>
+    navigate(`/inventory/factory-inventory-upload/upload/${id}/scans`)
+
   const handleConfirmDelete = async () => {
     if (!batchToDelete) return
     try {
       await deleteBatch(batchToDelete.id).unwrap()
       toast.success('Upload batch and its products were deleted.')
       setBatchToDelete(null)
-    } catch {
-      toast.error('Failed to delete upload batch.')
+    } catch (e) {
+      toast.error(getApiErrorMessage(e, 'Failed to delete upload batch.'))
     }
   }
 
@@ -135,7 +141,7 @@ export function FactoryUploadBatchListPage() {
             cursor: 'pointer',
             '&:hover': { textDecoration: 'underline' },
           }}
-          onClick={() => openDetail(row.id)}
+          onClick={() => openScans(row.id)}
         >
           {row.id}
         </Typography>
@@ -143,7 +149,7 @@ export function FactoryUploadBatchListPage() {
     },
     {
       key: 'totalRows',
-      header: 'Total Rows',
+      header: 'Total Products',
       align: 'center',
       minWidth: 110,
       render: (row) => row.totalRows.toLocaleString('en-IN'),
@@ -205,11 +211,17 @@ export function FactoryUploadBatchListPage() {
         rows={batches}
         loading={isFetching}
         getRowId={(row) => row.id}
-        hideSearch
+        searchValue={search}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
+
         onFilterClick={() => setFilterOpen(true)}
         filterCount={appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0}
         actions={[
-          { label: 'View', onClick: (row) => openDetail(row.id) },
+          { label: 'Scan Details', onClick: (row) => openScans(row.id) },
+          { label: 'Upload Details', onClick: (row) => openDetail(row.id) },
           {
             label: 'Delete',
             onClick: (row) => setBatchToDelete(row),

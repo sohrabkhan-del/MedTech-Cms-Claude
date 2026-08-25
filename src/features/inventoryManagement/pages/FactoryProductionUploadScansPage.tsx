@@ -207,10 +207,13 @@ export function FactoryProductionUploadScansPage() {
           <DetailFieldGrid
             fields={[
               {
-                  label: 'File Name',
-                  value:
-                    overallData?.uploadBatchFileName || uploadBatch?.uploadFileName || uploadId || 'N/A',
-                },
+                label: 'File Name',
+                value:
+                  overallData?.uploadBatchFileName ||
+                  uploadBatch?.uploadFileName ||
+                  uploadId ||
+                  'N/A',
+              },
               {
                 label: 'Total Scans',
                 value: totalItems.toLocaleString('en-IN'),

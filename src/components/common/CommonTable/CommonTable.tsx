@@ -590,6 +590,21 @@ export function CommonTable<T>({
                       )}
                     </TableRow>
                   ))}
+                  {/* Render empty rows so table keeps consistent height when page has few rows */}
+                  {rowsPerPage > 0 &&
+                    pagedRows.length < rowsPerPage &&
+                    Array.from({ length: rowsPerPage - pagedRows.length }).map(
+                      (_, idx) => (
+                        <TableRow key={`empty-${idx}`} sx={{ height: 48 }}>
+                          <TableCell
+                            colSpan={
+                              visibleColumns.length +
+                              (actions && actions.length > 0 ? 1 : 0)
+                            }
+                          />
+                        </TableRow>
+                      ),
+                    )}
                 </TableBody>
               </Table>
             </TableContainer>

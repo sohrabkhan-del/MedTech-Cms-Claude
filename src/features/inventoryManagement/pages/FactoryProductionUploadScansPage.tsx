@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { ScanResultChip } from '@/features/fieldOperations/components/ScanResultChip'
 import { useGetScanEventsByBatchQuery } from '@/features/fieldOperations/services/scanFeedApi'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
+import { useFactoryProductionUploadDetail } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadDetail'
 import type { ScanEvent } from '@/types/scanFeed'
 
 type ScanTab = 'all' | 'dealer' | 'chemist'
@@ -48,17 +49,18 @@ export function FactoryProductionUploadScansPage() {
   // Also fetch an overall total (no partnerType filter) so the UI can show
   // the combined scan count across Dealers + Chemists even when a tab is
   // selected. Use a small page/limit to keep payload minimal.
-  const { data: overallData } = useGetScanEventsByBatchQuery(
-    {
-      uploadBatchId: uploadId ?? '',
-      page: 1,
-      limit: 1,
-      search: debouncedSearch || undefined,
-    },
-    { skip: !uploadId },
-  )
+  const { data: overallData } = useGetScanEventsByBatchQuery({
+    uploadBatchId: uploadId ?? '',
+    page: 1,
+    limit: 1,
+    search: debouncedSearch || undefined,
+  })
+
+  console.log('overallData', overallData)
 
   const totalItems = overallData?.totalItems ?? data?.totalItems ?? 0
+
+  const { batch: uploadBatch } = useFactoryProductionUploadDetail(uploadId)
 
   const openScan = (scanId: string) =>
     navigate(`/field-operations/live-scan-feed/${scanId}`)
@@ -204,7 +206,11 @@ export function FactoryProductionUploadScansPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Upload Batch ID', value: uploadId },
+              {
+                  label: 'File Name',
+                  value:
+                    overallData?.uploadBatchFileName || uploadBatch?.uploadFileName || uploadId || 'N/A',
+                },
               {
                 label: 'Total Scans',
                 value: totalItems.toLocaleString('en-IN'),

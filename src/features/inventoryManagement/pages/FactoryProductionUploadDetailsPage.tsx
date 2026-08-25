@@ -271,13 +271,12 @@ export function FactoryProductionUploadDetailsPage() {
         <SectionCard title="Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Upload ID', value: batch.id },
+              { label: 'Upload ID', value: batch.fileName },
               {
                 label: 'Total Products',
                 value: batch.totalRows.toLocaleString('en-IN'),
               },
               { label: 'Uploaded At', value: formatDate(batch.createdAt) },
-              { label: 'Last Updated', value: formatDate(batch.updatedAt) },
             ]}
           />
         </SectionCard>
@@ -324,8 +323,18 @@ export function FactoryProductionUploadDetailsPage() {
         <DialogTitle id="delete-upload-dialog-title">Delete upload</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Are you sure you want to delete upload {batchToDelete?.id}? This
-            will remove every row imported by this upload and cannot be undone.
+            Are you sure you want to delete upload{' '}
+            <Typography
+              component="span"
+              sx={{
+                fontWeight: 700,
+                color: 'text.primary',
+              }}
+            >
+              {batchToDelete?.fileName}
+            </Typography>
+            ? This will remove every row imported by this upload and cannot be
+            undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>

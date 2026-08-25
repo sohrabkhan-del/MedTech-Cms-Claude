@@ -129,22 +129,33 @@ export function FactoryUploadBatchListPage() {
 
   const columns: CommonTableColumn<FactoryProductionUploadBatchSummary>[] = [
     {
-      key: 'id',
-      header: 'Batch ID',
-      minWidth: 300,
+      key: 'fileName',
+      header: 'Filename',
+      minWidth: 200,
+      align: 'center',
       render: (row) => (
-        <Typography
+        <Box
           sx={{
-            fontFamily: 'monospace',
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            cursor: 'pointer',
-            '&:hover': { textDecoration: 'underline' },
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
           }}
           onClick={() => openScans(row.id)}
         >
-          {row.id}
-        </Typography>
+          <Typography
+            sx={{
+              fontFamily: 'monospace',
+              fontSize: '0.75rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+          >
+            {String(
+              (row as any).fileName ?? (row as any).uploadFileName ?? '-',
+            ) || '-'}
+          </Typography>
+        </Box>
       ),
     },
     {
@@ -154,17 +165,12 @@ export function FactoryUploadBatchListPage() {
       minWidth: 110,
       render: (row) => row.totalRows.toLocaleString('en-IN'),
     },
+
     {
       key: 'createdAt',
       header: 'Uploaded At',
       minWidth: 180,
       render: (row) => formatExactDateTime(toDate(row.createdAt)),
-    },
-    {
-      key: 'updatedAt',
-      header: 'Last Updated',
-      minWidth: 180,
-      render: (row) => formatExactDateTime(toDate(row.updatedAt)),
     },
   ]
 
@@ -220,8 +226,8 @@ export function FactoryUploadBatchListPage() {
         onFilterClick={() => setFilterOpen(true)}
         filterCount={appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0}
         actions={[
-          { label: 'Scan Details', onClick: (row) => openScans(row.id) },
-          { label: 'Upload Details', onClick: (row) => openDetail(row.id) },
+          { label: 'Scan Details', onClick: (row) => openDetail(row.id) },
+          { label: 'Upload Details', onClick: (row) => openScans(row.id) },
           {
             label: 'Delete',
             onClick: (row) => setBatchToDelete(row),

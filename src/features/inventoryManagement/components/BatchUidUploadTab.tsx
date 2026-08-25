@@ -10,6 +10,12 @@ import {
   StepLabel,
   Stepper,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  TextField,
 } from '@mui/material'
 import {
   Boxes,
@@ -584,15 +590,28 @@ export function BatchUidUploadTab({
   }
 
   async function handleConfirmImport() {
+    // Open filename dialog before performing upload
+    setUploadDialogOpen(true)
+  }
+
+  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  const [uploadFileName, setUploadFileName] = useState<string>(
+    bmrFile?.name ?? 'bmr-upload.xlsx',
+  )
+
+  async function performUpload() {
     setIsProcessing(true)
     setValidateError(null)
     try {
-      await uploadRows({ rows: toFactoryProductionRows() }).unwrap()
+      const result = await uploadRows({
+        rows: toFactoryProductionRows(),
+        fileName: uploadFileName,
+      }).unwrap()
       setActiveStep(3)
       onImported?.(
         batchRows.filter((row) => row.isValid),
         mappedBatches,
-        bmrFile?.name ?? 'bmr-upload.xlsx',
+        uploadFileName,
         countContainersByBatch(),
       )
       setToast({
@@ -604,6 +623,7 @@ export function BatchUidUploadTab({
       if (onDone) {
         setTimeout(onDone, 2000)
       }
+      setUploadDialogOpen(false)
     } catch (err) {
       setValidateError(
         getApiErrorMessage(err, 'Failed to import the validated data.'),
@@ -1034,6 +1054,37 @@ export function BatchUidUploadTab({
         severity={toast?.severity ?? 'success'}
         onClose={() => setToast(null)}
       />
+      <Dialog
+        open={uploadDialogOpen}
+        onClose={() => setUploadDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>Confirm upload filename</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Enter a filename to associate with this upload (this will be sent to
+            the ingestion API).
+          </DialogContentText>
+          <TextField
+            fullWidth
+            label="Filename"
+            value={uploadFileName}
+            onChange={(e) => setUploadFileName(e.target.value)}
+            size="small"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            onClick={performUpload}
+            disabled={isProcessing}
+          >
+            Confirm & Upload
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   )
 }

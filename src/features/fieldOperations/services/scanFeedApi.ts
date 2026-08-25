@@ -81,6 +81,7 @@ interface ScanFeedListApiResponse {
   data: {
     items: ApiScanEventItem[]
     totalItems: number
+    uploadBatchFileName?: string
     totalPages: number
     currentPage: number
     pageSize: number
@@ -138,7 +139,7 @@ function mapScanEventDetail(item: ApiScanEventDetailItem): ScanEventDetail {
 const scanFeedApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getScanEvents: builder.query<
-      { items: ScanEvent[]; totalItems: number },
+      { items: ScanEvent[]; totalItems: number; uploadBatchFileName?: string },
       ScanFeedQueryParams | void
     >({
       query: (params) => ({
@@ -160,21 +161,36 @@ const scanFeedApi = baseApi.injectEndpoints({
           sortBy: params?.sortBy || undefined,
           sortOrder: params?.sortOrder || undefined,
         },
-        mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
+        mockResolver: () =>
+          mockDelay({
+            items: [],
+            totalItems: 0,
+            uploadBatchFileName: undefined,
+          }),
       }),
       transformResponse: (
-        response: ScanFeedListApiResponse | { items: ScanEvent[]; totalItems: number },
+        response:
+          | ScanFeedListApiResponse
+          | {
+              items: ScanEvent[]
+              totalItems: number
+              uploadBatchFileName?: string
+            },
       ) =>
         'success' in response
           ? {
               items: response.data.items.map(mapScanEvent),
               totalItems: response.data.totalItems,
+              uploadBatchFileName: response.data.uploadBatchFileName,
             }
           : response,
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map(({ id }) => ({ type: 'ScanFeed' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'ScanFeed' as const,
+                id,
+              })),
               { type: 'ScanFeed' as const, id: 'LIST' },
             ]
           : [{ type: 'ScanFeed' as const, id: 'LIST' }],
@@ -188,12 +204,15 @@ const scanFeedApi = baseApi.injectEndpoints({
       }),
       transformResponse: (
         response: ScanEventDetailApiResponse | ScanEventDetail | undefined,
-      ) => (response && 'data' in response ? mapScanEventDetail(response.data) : response),
+      ) =>
+        response && 'data' in response
+          ? mapScanEventDetail(response.data)
+          : response,
       providesTags: (_result, _error, id) => [{ type: 'ScanFeed', id }],
     }),
 
     getScanEventsByBatch: builder.query<
-      { items: ScanEvent[]; totalItems: number },
+      { items: ScanEvent[]; totalItems: number; uploadBatchFileName?: string },
       ScanFeedByBatchQueryParams
     >({
       query: ({ uploadBatchId, ...params }) => ({
@@ -205,21 +224,36 @@ const scanFeedApi = baseApi.injectEndpoints({
           search: params.search || undefined,
           partnerType: params.partnerType || undefined,
         },
-        mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
+        mockResolver: () =>
+          mockDelay({
+            items: [],  
+            totalItems: 0,
+            uploadBatchFileName: undefined,
+          }),
       }),
       transformResponse: (
-        response: ScanFeedListApiResponse | { items: ScanEvent[]; totalItems: number },
+        response:
+          | ScanFeedListApiResponse
+          | {
+              items: ScanEvent[]
+              totalItems: number
+              uploadBatchFileName?: string
+            },
       ) =>
         'success' in response
           ? {
               items: response.data.items.map(mapScanEvent),
               totalItems: response.data.totalItems,
+              uploadBatchFileName: response.data.uploadBatchFileName,
             }
           : response,
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map(({ id }) => ({ type: 'ScanFeed' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'ScanFeed' as const,
+                id,
+              })),
               { type: 'ScanFeed' as const, id: 'LIST' },
             ]
           : [{ type: 'ScanFeed' as const, id: 'LIST' }],

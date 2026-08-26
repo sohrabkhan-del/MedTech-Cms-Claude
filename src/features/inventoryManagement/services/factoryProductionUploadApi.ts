@@ -347,9 +347,9 @@ const factoryProductionUploadApi = baseApi.injectEndpoints({
     >({
       query: ({ rows, fileName }) => ({
         tag: 'FactoryProductionUpload',
-        // Use external ingestion endpoint — absolute URL so axios/fetch will
-        // call it directly instead of the app's baseApi host.
-        url: 'http://ec2-16-171-110-170.eu-north-1.compute.amazonaws.com:3336/api/v1/products/upload',
+        // Use the app's configured API base URL (apiClient) instead of an
+        // absolute external URL so requests go through the same host/auth.
+        url: '/products/upload',
         method: 'POST',
         data: { rows: rows.map(toApiRow), fileName },
         mockResolver: () => {

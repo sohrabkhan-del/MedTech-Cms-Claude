@@ -25,6 +25,8 @@ import {
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useGetPartnerScanHistoryQuery } from '@/features/userManagement/services/partnerActivityApi'
 import type { PartnerScanHistoryRow } from '@/features/userManagement/services/partnerActivityApi'
+import { useAppDispatch } from '@/app/store/hooks'
+import { baseApi } from '@/store/api/baseApi'
 import { useToast } from '@/contexts/ToastContext'
 import { apiClient } from '@/services/apiClient'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
@@ -110,6 +112,7 @@ export function ScanHistoryCard({
 
   const { data, isFetching, refetch } = result
   const toast = useToast()
+  const dispatch = useAppDispatch()
 
   // determine user type and load partner details for businesses
   const userType = window.location.pathname.toLowerCase().includes('/chemists')
@@ -163,6 +166,16 @@ export function ScanHistoryCard({
       toast.success('Scan added manually')
       setManualOpen(false)
       refetch()
+      // A manual scan credits reward points, so the partner's Points History
+      // (a sibling card subscribed to the Wallets tag) is now stale — invalidate
+      // it so it refetches alongside the scan history above.
+      if (partnerId) {
+        dispatch(
+          baseApi.util.invalidateTags([
+            { type: 'Wallets', id: `PARTNER_${partnerId}` },
+          ]),
+        )
+      }
     } catch (err) {
       const msg = getApiErrorMessage(err, 'Failed to add scan')
       toast.error(msg)
@@ -221,6 +234,7 @@ export function ScanHistoryCard({
         maxWidth="sm"
       >
         <DialogTitle>Add Scan Manually</DialogTitle>
+
 
         <DialogContent>
           <Box sx={{ mt: 2, display: 'grid', gap: 2 }}>

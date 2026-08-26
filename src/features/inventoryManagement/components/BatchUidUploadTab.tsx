@@ -604,17 +604,22 @@ export function BatchUidUploadTab({
     try {
       // perform API upload
       const rowsToUpload = toFactoryProductionRows()
-      console.log(
-        'Uploading rows count:',
-        rowsToUpload.length,
-        'fileName:',
-        uploadFileName,
-      )
+      // Carton linkage (UID → Master Carton Number) is sent in the SAME
+      // /products/upload call as the BMR rows. Only valid links are included,
+      // and the carton number is coerced to the numeric form the API expects.
+      const cartonLinkageItems = validCartonRows
+        .map((row) => ({
+          uid: row.uid,
+          masterCartonNumber: Number(
+            row.masterCartonNumber.replace(/[^0-9]/g, ''),
+          ),
+        }))
+        .filter((item) => item.masterCartonNumber > 0)
       const batch = await uploadRows({
         rows: rowsToUpload,
         fileName: uploadFileName,
+        cartonLinkage: { items: cartonLinkageItems },
       }).unwrap()
-      console.log('Upload API response:', batch)
 
       // Ensure API returned a created batch record (id). Some backends
       // return `uploadBatchId` instead of `id` — accept either as success.

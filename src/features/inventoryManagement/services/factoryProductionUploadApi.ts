@@ -9,9 +9,26 @@ import type {
   FactoryProductionUploadRowRecord,
 } from '@/types/factoryProductionUpload'
 
+export interface FactoryProductionCartonLinkageItem {
+  uid: string
+  masterCartonNumber: number
+}
+
 export interface UploadFactoryProductionRowsArgs {
   rows: FactoryProductionUploadRow[]
   fileName?: string
+  /** UID → Master Carton Number linkage, sent alongside the BMR rows in the same
+   *  POST /products/upload call. Omitted by the single-file manifest flow. */
+  cartonLinkage?: { items: FactoryProductionCartonLinkageItem[] }
+}
+
+export interface CartonLinkageItem {
+  uid: string
+  masterCartonNumber: number
+}
+
+export interface UploadFactoryProductionRowsArgsWithCarton extends UploadFactoryProductionRowsArgs {
+  cartonLinkage?: { items: CartonLinkageItem[] }
 }
 
 /** The upload API expects PascalCase keys; internal state/UI stay camelCase. */
@@ -343,15 +360,15 @@ const factoryProductionUploadApi = baseApi.injectEndpoints({
     /** POST /products/upload — persists the batch of rows exactly as parsed from the .xls file. */
     uploadFactoryProductionRows: builder.mutation<
       FactoryProductionUploadBatch,
-      UploadFactoryProductionRowsArgs
+      UploadFactoryProductionRowsArgsWithCarton
     >({
-      query: ({ rows, fileName }) => ({
+      query: ({ rows, fileName, cartonLinkage }) => ({
         tag: 'FactoryProductionUpload',
         // Use the app's configured API base URL (apiClient) instead of an
         // absolute external URL so requests go through the same host/auth.
         url: '/products/upload',
         method: 'POST',
-        data: { rows: rows.map(toApiRow), fileName },
+        data: { rows: rows.map(toApiRow), fileName, cartonLinkage },
         mockResolver: () => {
           throw new Error(
             'Factory production upload has no mock mode — real API only.',

@@ -105,7 +105,7 @@ interface CommonTableProps<T> {
   createAction?: CommonTableCreateAction
   emptyTitle?: string
   emptyDescription?: string
-  rowsPerPageOptions?: number[]
+  rowsPerPageOptions?: Array<number | { value: number; label: string }>
   defaultSortBy?: string
   defaultSortDir?: SortDirection
   /**
@@ -170,12 +170,16 @@ export function CommonTable<T>({
   const [search, setSearch] = useState('')
   const activeSearch = searchValue ?? search
   const [localPage, setLocalPage] = useState(0)
+  const extractOptionValue = (
+    opt: number | { value: number; label: string } | undefined,
+  ) => (typeof opt === 'number' ? opt : opt?.value ?? 10)
+
   const [localRowsPerPage, setLocalRowsPerPage] = useState(
-    rowsPerPageOptions[0] ?? 10,
+    extractOptionValue(rowsPerPageOptions[0]),
   )
   const page = isServerPaginated ? (controlledPage ?? 0) : localPage
   const rowsPerPage = isServerPaginated
-    ? (controlledRowsPerPage ?? rowsPerPageOptions[0] ?? 10)
+    ? (controlledRowsPerPage ?? extractOptionValue(rowsPerPageOptions[0]))
     : localRowsPerPage
   const setPage = isServerPaginated
     ? (onPageChange ?? (() => {}))

@@ -1097,8 +1097,7 @@ export function BatchUidUploadTab({
         <DialogTitle>Confirm upload filename</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
-            Enter a filename to associate with this upload (this will be sent to
-            the ingestion API).
+            Enter a filename to associate with this upload .
           </DialogContentText>
           <TextField
             fullWidth

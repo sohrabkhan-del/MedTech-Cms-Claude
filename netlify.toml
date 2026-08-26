@@ -1,0 +1,18 @@
+# Netlify configuration for the site
+[build]
+  command = "npm run build"
+  publish = "dist"
+  environment = { NODE_ENV = "production" }
+
+[functions]
+  node_bundler = "esbuild"
+
+# Increase timeout for the products-upload function (requires Netlify Pro and support enable)
+[functions."products-upload"]
+  timeout = 26
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = true

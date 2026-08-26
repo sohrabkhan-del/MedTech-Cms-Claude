@@ -97,10 +97,11 @@ export function ShowcaseProductsListTab({
   useEffect(() => {
     if (!totalCount) return
     setRowsPerPageOptions((base) => {
-      const opts = Array.from(new Set([...base, totalCount])).sort(
-        (a, b) => a - b,
-      )
-      return opts
+      const baseValues = base.map((o) => (typeof o === 'number' ? o : o.value))
+      const setVals = new Set<number>([...baseValues, totalCount])
+      const vals = Array.from(setVals).sort((a, b) => a - b)
+      // Map totalCount to a labeled "All (total)" option
+      return vals.map((v) => (v === totalCount ? { value: v, label: `All (${v})` } : v))
     })
 
     if (totalCount > 0 && totalCount < rowsPerPage) {

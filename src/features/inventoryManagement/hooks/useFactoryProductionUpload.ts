@@ -15,8 +15,10 @@ import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 /** Parses a single .xls/.xlsx file client-side, then POSTs its rows to /products/upload as-is. */
 export function useFactoryProductionUpload() {
   const toast = useToast()
-  const [previewRows, { isLoading: isPreviewing }] = usePreviewFactoryProductionRowsMutation()
-  const [uploadRows, { isLoading: isUploading }] = useUploadFactoryProductionRowsMutation()
+  const [previewRows, { isLoading: isPreviewing }] =
+    usePreviewFactoryProductionRowsMutation()
+  const [uploadRows, { isLoading: isUploading }] =
+    useUploadFactoryProductionRowsMutation()
   const [error, setError] = useState<string | null>(null)
 
   const previewFile = useCallback(
@@ -24,10 +26,15 @@ export function useFactoryProductionUpload() {
       setError(null)
       try {
         const rows = await parseFactoryProductionFile(file)
+        console.log('Parsed upload file, rows:', rows.length, rows[0])
         const preview = await previewRows({ rows }).unwrap()
+        console.log('Preview response:', preview)
         return preview
       } catch (err) {
-        const message = getApiErrorMessage(err, 'Preview failed. Please try again.')
+        const message = getApiErrorMessage(
+          err,
+          'Preview failed. Please try again.',
+        )
         setError(message)
         toast.error(message)
         return null
@@ -37,15 +44,21 @@ export function useFactoryProductionUpload() {
   )
 
   const uploadRowsFromPreview = useCallback(
-    async (rows: FactoryProductionUploadRow[]): Promise<FactoryProductionUploadBatch | null> => {
+    async (
+      rows: FactoryProductionUploadRow[],
+    ): Promise<FactoryProductionUploadBatch | null> => {
       setError(null)
       try {
+        console.log('Uploading rows (count):', rows.length)
         const batch = await uploadRows({ rows }).unwrap()
         console.log('POST /products/upload response:', batch)
         toast.success('File uploaded successfully.')
         return batch
       } catch (err) {
-        const message = getApiErrorMessage(err, 'Upload failed. Please try again.')
+        const message = getApiErrorMessage(
+          err,
+          'Upload failed. Please try again.',
+        )
         setError(message)
         toast.error(message)
         return null
@@ -54,5 +67,11 @@ export function useFactoryProductionUpload() {
     [uploadRows, toast],
   )
 
-  return { previewFile, uploadRowsFromPreview, isPreviewing, isUploading, error }
+  return {
+    previewFile,
+    uploadRowsFromPreview,
+    isPreviewing,
+    isUploading,
+    error,
+  }
 }

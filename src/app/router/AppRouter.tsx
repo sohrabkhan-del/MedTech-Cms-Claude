@@ -433,7 +433,7 @@ export function AppRouter() {
           />
           <Route
             path="/inventory/factory-inventory-upload/new"
-            element={<FactoryUploadFormPage />}
+            element={<BatchUidUploadPage />}
           />
           <Route
             path="/inventory/factory-inventory-upload/upload-bmr"

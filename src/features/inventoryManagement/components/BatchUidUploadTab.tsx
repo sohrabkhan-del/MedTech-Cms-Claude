@@ -47,6 +47,7 @@ import {
   parseMasterCartonFile,
 } from '@/features/inventoryManagement/mockBatchUidUpload'
 import { usePreviewFactoryProductionRowsMutation } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
+import { useUploadFactoryProductionRowsMutation } from '@/features/inventoryManagement/services/factoryProductionUploadApi'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type {
   BmrBatchRow,
@@ -301,6 +302,7 @@ export function BatchUidUploadTab({
     useState<MasterCartonUploadSummary | null>(null)
 
   const [previewRows] = usePreviewFactoryProductionRowsMutation()
+  const [uploadRows] = useUploadFactoryProductionRowsMutation()
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [validateError, setValidateError] = useState<string | null>(null)
@@ -601,6 +603,33 @@ export function BatchUidUploadTab({
     setValidateError(null)
     try {
       setActiveStep(3)
+      // perform API upload
+      const rowsToUpload = toFactoryProductionRows()
+      console.log(
+        'Uploading rows count:',
+        rowsToUpload.length,
+        'fileName:',
+        uploadFileName,
+      )
+      const batch = await uploadRows({
+        rows: rowsToUpload,
+        fileName: uploadFileName,
+      }).unwrap()
+      console.log('Upload API response:', batch)
+
+      // Ensure API returned a created batch record (id) before marking success
+      if (!batch || !(batch as any).id) {
+        const backendMsg = (batch as any)?.message ?? 'Upload failed.'
+        setValidateError(backendMsg)
+        setToast({
+          severity: 'warning',
+          title: 'Upload incomplete',
+          message: backendMsg,
+        })
+        setUploadDialogOpen(false)
+        return
+      }
+
       onImported?.(
         batchRows.filter((row) => row.isValid),
         mappedBatches,

@@ -72,16 +72,17 @@ export function ProductDetailsPage() {
   const [movementPage, setMovementPage] = useState(0)
   const [movementRowsPerPage, setMovementRowsPerPage] = useState(10)
 
-  const { data: movementData, isFetching: isMovementLoading } = useGetProductMovementHistoryQuery(
-    productId
-      ? {
-          id: productId,
-          page: movementPage + 1,
-          limit: movementRowsPerPage,
-          search: debouncedMovementSearch || undefined,
-        }
-      : skipToken,
-  )
+  const { data: movementData, isFetching: isMovementLoading } =
+    useGetProductMovementHistoryQuery(
+      productId
+        ? {
+            id: productId,
+            page: movementPage + 1,
+            limit: movementRowsPerPage,
+            search: debouncedMovementSearch || undefined,
+          }
+        : skipToken,
+    )
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={6} />
@@ -151,18 +152,12 @@ export function ProductDetailsPage() {
                 label: 'Status',
                 value: <StatusBadge status={product.status} />,
               },
-              {
-                label: 'Dealer Container Points',
-                value: product.dealerContainerPoints,
-              },
+
               {
                 label: 'Dealer Product Points',
                 value: product.dealerProductPoints,
               },
-              {
-                label: 'Chemist Container Points',
-                value: product.chemistContainerPoints,
-              },
+
               {
                 label: 'Chemist Product Points',
                 value: product.chemistProductPoints,

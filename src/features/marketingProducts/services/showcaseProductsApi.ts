@@ -5,7 +5,10 @@ import {
   showcaseProductKpis,
   showcaseCategoryOptions,
 } from '@/features/marketingProducts/mockShowcaseProducts'
-import type { ShowcaseProduct, ShowcaseVisibility } from '@/types/showcaseProduct'
+import type {
+  ShowcaseProduct,
+  ShowcaseVisibility,
+} from '@/types/showcaseProduct'
 import type { ShowcaseProductApiPayload } from '@/features/marketingProducts/showcaseProductFormSchema'
 import { mockDelay } from '@/services/mockDelay'
 import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
@@ -127,7 +130,9 @@ function mapStatusParam(status?: 'active' | 'inactive' | 'all') {
   return status === 'active'
 }
 
-function filterMockProducts(params?: ShowcaseProductQueryParams): ShowcaseProduct[] {
+function filterMockProducts(
+  params?: ShowcaseProductQueryParams,
+): ShowcaseProduct[] {
   return mockShowcaseProducts.filter((product) => {
     const searchMatch =
       !params?.search ||
@@ -138,16 +143,23 @@ function filterMockProducts(params?: ShowcaseProductQueryParams): ShowcaseProduc
       params.categoryId === 'all' ||
       params.categoryId.split(',').includes(product.categoryId ?? '')
     const visibleToMatch =
-      !params?.visibleTo || params.visibleTo === 'all' || product.visibleTo.includes(params.visibleTo)
+      !params?.visibleTo ||
+      params.visibleTo === 'all' ||
+      product.visibleTo.includes(params.visibleTo)
     const statusMatch =
-      !params?.status || params.status === 'all' || (params.status === 'active' ? product.isActive : !product.isActive)
+      !params?.status ||
+      params.status === 'all' ||
+      (params.status === 'active' ? product.isActive : !product.isActive)
     return searchMatch && categoryMatch && visibleToMatch && statusMatch
   })
 }
 
 const showcaseProductsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getShowcaseProducts: builder.query<ShowcaseProduct[], ShowcaseProductQueryParams | void>({
+    getShowcaseProducts: builder.query<
+      { items: ShowcaseProduct[]; totalItems: number },
+      ShowcaseProductQueryParams | void
+    >({
       query: (params) => ({
         tag: 'ShowcaseProducts',
         url: '/showcase-products',
@@ -155,8 +167,14 @@ const showcaseProductsApi = baseApi.injectEndpoints({
           page: params?.page ?? 1,
           limit: params?.limit ?? 10,
           search: params?.search || undefined,
-          categoryId: params?.categoryId && params.categoryId !== 'all' ? params.categoryId : undefined,
-          visibleTo: params?.visibleTo && params.visibleTo !== 'all' ? params.visibleTo : undefined,
+          categoryId:
+            params?.categoryId && params.categoryId !== 'all'
+              ? params.categoryId
+              : undefined,
+          visibleTo:
+            params?.visibleTo && params.visibleTo !== 'all'
+              ? params.visibleTo
+              : undefined,
           isActive: mapStatusParam(params?.status),
           sortBy: params?.sortBy || undefined,
           sortOrder: params?.sortOrder ?? 'desc',
@@ -164,31 +182,58 @@ const showcaseProductsApi = baseApi.injectEndpoints({
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
         },
-        mockResolver: () => mockDelay(filterMockProducts(params ?? undefined)),
+        mockResolver: () =>
+          mockDelay(
+            (() => {
+              const items = filterMockProducts(params ?? undefined)
+              return { items, totalItems: items.length }
+            })(),
+          ),
       }),
       transformResponse: (
-        response: ShowcaseProductListApiResponse | ShowcaseProduct[],
+        response:
+          | ShowcaseProductListApiResponse
+          | ShowcaseProduct[]
+          | { items: ShowcaseProduct[]; totalItems: number },
       ) =>
         Array.isArray(response)
-          ? response
-          : response.data.items.map(mapShowcaseProductItem),
+          ? {
+              items: response.map(mapShowcaseProductItem),
+              totalItems: response.length,
+            }
+          : 'data' in response
+            ? {
+                items: response.data.items.map(mapShowcaseProductItem),
+                totalItems: response.data.totalItems,
+              }
+            : {
+                items: response.items.map(mapShowcaseProductItem),
+                totalItems: response.totalItems,
+              },
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({ type: 'ShowcaseProducts' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'ShowcaseProducts' as const,
+                id,
+              })),
               { type: 'ShowcaseProducts' as const, id: 'LIST' },
             ]
           : [{ type: 'ShowcaseProducts' as const, id: 'LIST' }],
     }),
 
-    getShowcaseProductDetail: builder.query<ShowcaseProduct | undefined, string>({
+    getShowcaseProductDetail: builder.query<
+      ShowcaseProduct | undefined,
+      string
+    >({
       query: (id) => ({
         tag: 'ShowcaseProducts',
         url: `/showcase-products/${id}`,
         mockResolver: () => mockDelay(getShowcaseProductById(id)),
       }),
       transformResponse: (
-        response: ShowcaseProductDetailApiResponse | ShowcaseProduct | undefined,
+        response:
+          ShowcaseProductDetailApiResponse | ShowcaseProduct | undefined,
       ) =>
         response && 'data' in response
           ? mapShowcaseProductItem(response.data)
@@ -196,7 +241,10 @@ const showcaseProductsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'ShowcaseProducts', id }],
     }),
 
-    getShowcaseProductKpis: builder.query<ShowcaseProductKpis, AnalyticsDateParams | void>({
+    getShowcaseProductKpis: builder.query<
+      ShowcaseProductKpis,
+      AnalyticsDateParams | void
+    >({
       query: (params) => ({
         tag: 'ShowcaseProducts',
         url: '/analytics-cards/showcase-products',
@@ -284,10 +332,16 @@ const showcaseProductsApi = baseApi.injectEndpoints({
         data: payload,
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: [{ type: 'ShowcaseProducts', id: 'LIST' }, { type: 'ShowcaseProducts', id: 'KPIS' }],
+      invalidatesTags: [
+        { type: 'ShowcaseProducts', id: 'LIST' },
+        { type: 'ShowcaseProducts', id: 'KPIS' },
+      ],
     }),
 
-    updateShowcaseProduct: builder.mutation<void, { id: string; payload: ShowcaseProductApiPayload }>({
+    updateShowcaseProduct: builder.mutation<
+      void,
+      { id: string; payload: ShowcaseProductApiPayload }
+    >({
       query: ({ id, payload }) => ({
         tag: 'ShowcaseProducts',
         url: `/showcase-products/${id}`,

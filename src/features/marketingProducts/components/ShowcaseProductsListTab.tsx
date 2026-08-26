@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Chip,
@@ -42,6 +42,7 @@ interface ProductFilters extends Record<string, unknown> {
 const SORT_FIELD_MAP: Partial<Record<string, string>> = {
   name: 'name',
   mrp: 'mrp',
+  createdAt: 'createdAt',
 }
 
 interface ShowcaseProductsListTabProps {
@@ -60,8 +61,13 @@ export function ShowcaseProductsListTab({
     visibleTo: 'all',
     status: 'all',
   })
-  const [sortColumn, setSortColumn] = useState('name')
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
+  const [sortColumn, setSortColumn] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [rowsPerPageOptions, setRowsPerPageOptions] = useState<number[]>([
+    10, 20, 50,
+  ])
 
   const debouncedSearch = useDebouncedValue(search, 300)
 
@@ -70,17 +76,38 @@ export function ShowcaseProductsListTab({
       ? appliedFilters.categories.map((c) => c.id).join(',')
       : 'all'
 
-  const { products, kpis, isLoading, isKpisLoading, deleteProduct } =
-    useShowcaseProducts({
-      page: 1,
-      limit: 10,
-      search: debouncedSearch,
-      categoryId: categoryIdParam,
-      visibleTo: appliedFilters.visibleTo,
-      status: appliedFilters.status,
-      sortBy: SORT_FIELD_MAP[sortColumn],
-      sortOrder,
+  const {
+    products,
+    totalCount,
+    kpis,
+    isLoading,
+    isKpisLoading,
+    deleteProduct,
+  } = useShowcaseProducts({
+    page: page + 1,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    categoryId: categoryIdParam,
+    visibleTo: appliedFilters.visibleTo,
+    status: appliedFilters.status,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
+
+  useEffect(() => {
+    if (!totalCount) return
+    setRowsPerPageOptions((base) => {
+      const opts = Array.from(new Set([...base, totalCount])).sort(
+        (a, b) => a - b,
+      )
+      return opts
     })
+
+    if (totalCount > 0 && totalCount < rowsPerPage) {
+      setRowsPerPage(totalCount)
+      setPage(0)
+    }
+  }, [totalCount])
 
   const showcaseProductKpis = kpis ?? {
     totalProducts: 0,
@@ -237,6 +264,15 @@ export function ShowcaseProductsListTab({
         searchPlaceholder="Search by product name or code…"
         searchValue={search}
         onSearchChange={setSearch}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(n) => {
+          setRowsPerPage(n)
+          setPage(0)
+        }}
+        rowsPerPageOptions={rowsPerPageOptions}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.categories.length > 0 ? 1 : 0) +
@@ -249,7 +285,9 @@ export function ShowcaseProductsListTab({
           to: '/marketing-products/products-catelog/new',
         }}
         defaultSortBy="name"
-        defaultSortDir="asc"
+        defaultSortBy={sortColumn}
+        defaultSortDir={sortOrder}
+        rowsPerPageOptions={[10, 20, 50]}
         actions={[
           {
             label: 'View Product Details',

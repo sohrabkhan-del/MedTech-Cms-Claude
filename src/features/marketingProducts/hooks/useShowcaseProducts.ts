@@ -26,17 +26,28 @@ export function useShowcaseProducts(params?: ShowcaseProductQueryParams) {
   const isLoading = productsResult.isFetching
   const isKpisLoading = kpisResult.isLoading
   const error = productsResult.error
-    ? getApiErrorMessage(productsResult.error, 'Failed to load showcase products.')
+    ? getApiErrorMessage(
+        productsResult.error,
+        'Failed to load showcase products.',
+      )
     : kpisResult.error
-      ? getApiErrorMessage(kpisResult.error, 'Failed to load showcase products.')
+      ? getApiErrorMessage(
+          kpisResult.error,
+          'Failed to load showcase products.',
+        )
       : null
 
   async function deleteProduct(id: string) {
     await deleteShowcaseProductMutation(id).unwrap()
   }
 
+  const data = productsResult.data
+  const products = data?.items ?? []
+  const totalCount = data?.totalItems ?? products.length
+
   return {
-    products: productsResult.data ?? [],
+    products,
+    totalCount,
     kpis: kpisResult.data ?? null,
     isLoading,
     isKpisLoading,

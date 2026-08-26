@@ -172,7 +172,7 @@ export function CommonTable<T>({
   const [localPage, setLocalPage] = useState(0)
   const extractOptionValue = (
     opt: number | { value: number; label: string } | undefined,
-  ) => (typeof opt === 'number' ? opt : opt?.value ?? 10)
+  ) => (typeof opt === 'number' ? opt : (opt?.value ?? 10))
 
   const [localRowsPerPage, setLocalRowsPerPage] = useState(
     extractOptionValue(rowsPerPageOptions[0]),

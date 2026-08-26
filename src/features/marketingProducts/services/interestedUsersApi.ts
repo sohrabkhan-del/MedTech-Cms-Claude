@@ -61,6 +61,14 @@ interface InterestedUserListApiResponse {
   }
 }
 
+/** Paginated list result: the mapped page of leads plus the server's grand
+ *  total (`totalItems`) so the table's count reflects all matches, not just
+ *  the current page. */
+export interface InterestedUserListResult {
+  items: InterestedUserLead[]
+  totalItems: number
+}
+
 interface InterestedUserDetailApiResponse {
   success: boolean
   data: InterestedUserApiItem
@@ -305,7 +313,7 @@ function optimisticallyPatchLead(
           'getInterestedUsers',
           listArgs,
           (draft) => {
-            const lead = draft.find((item) => item.id === id)
+            const lead = draft.items.find((item) => item.id === id)
             if (lead) patch(lead)
           },
         ),
@@ -319,7 +327,7 @@ function optimisticallyPatchLead(
 const interestedUsersApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getInterestedUsers: builder.query<
-      InterestedUserLead[],
+      InterestedUserListResult,
       InterestedUserQueryParams | void
     >({
       query: (params) => ({
@@ -355,15 +363,19 @@ const interestedUsersApi = baseApi.injectEndpoints({
       }),
       transformResponse: async (
         response: InterestedUserListApiResponse | InterestedUserLead[],
-      ) => {
-        if (Array.isArray(response)) return response
+      ): Promise<InterestedUserListResult> => {
+        if (Array.isArray(response))
+          return { items: response, totalItems: response.length }
         await loadRegions()
-        return response.data.items.map(mapInterestedUserItem)
+        return {
+          items: response.data.items.map(mapInterestedUserItem),
+          totalItems: response.data.totalItems,
+        }
       },
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.items.map(({ id }) => ({
                 type: 'InterestedUsers' as const,
                 id,
               })),

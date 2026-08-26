@@ -65,9 +65,9 @@ export function ShowcaseProductsListTab({
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const [rowsPerPageOptions, setRowsPerPageOptions] = useState<number[]>([
-    10, 20, 50,
-  ])
+  const [rowsPerPageOptions, setRowsPerPageOptions] = useState<
+    Array<number | { value: number; label: string }>
+  >([10, 20, 50])
 
   const debouncedSearch = useDebouncedValue(search, 300)
 
@@ -101,7 +101,9 @@ export function ShowcaseProductsListTab({
       const setVals = new Set<number>([...baseValues, totalCount])
       const vals = Array.from(setVals).sort((a, b) => a - b)
       // Map totalCount to a labeled "All (total)" option
-      return vals.map((v) => (v === totalCount ? { value: v, label: `All (${v})` } : v))
+      return vals.map((v) =>
+        v === totalCount ? { value: v, label: `All (${v})` } : v,
+      )
     })
 
     if (totalCount > 0 && totalCount < rowsPerPage) {

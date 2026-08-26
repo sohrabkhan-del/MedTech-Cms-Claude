@@ -39,12 +39,14 @@ export function ProductCategoryListPage() {
   })
   const [sortColumn, setSortColumn] = useState('categoryName')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
 
   const debouncedSearch = useDebouncedValue(search, 300)
 
-  const { categories, isLoading } = useProductCategories({
-    page: 1,
-    limit: 10,
+  const { categories, totalItems, isLoading } = useProductCategories({
+    page: page + 1,
+    limit: rowsPerPage,
     search: debouncedSearch,
     status: appliedFilters.status,
     sortBy: SORT_FIELD_MAP[sortColumn],
@@ -119,6 +121,14 @@ export function ProductCategoryListPage() {
           setSortColumn(columnKey)
           setSortOrder(dir)
         }}
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         tableKey="product-categories-list"
         columns={columns}
         rows={filteredCategories}
@@ -126,7 +136,10 @@ export function ProductCategoryListPage() {
         getRowId={(row) => row.id}
         searchPlaceholder="Search categories…"
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.status !== 'all' ? 1 : 0) +
@@ -144,7 +157,10 @@ export function ProductCategoryListPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Categories"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>

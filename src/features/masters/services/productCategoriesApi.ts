@@ -80,10 +80,18 @@ export interface ProductCategoryQueryParams {
   sortOrder?: 'asc' | 'desc'
 }
 
+/** Paginated list result: the mapped page of categories plus the server's
+ *  grand total (`totalItems`) so the table can show the true count, not just
+ *  the current page's length. */
+export interface ProductCategoryListResult {
+  items: ProductCategory[]
+  totalItems: number
+}
+
 const productCategoriesApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getProductCategories: builder.query<
-      ProductCategory[],
+      ProductCategoryListResult,
       ProductCategoryQueryParams | void
     >({
       query: (params) => ({
@@ -101,14 +109,17 @@ const productCategoriesApi = baseApi.injectEndpoints({
       }),
       transformResponse: (
         response: CategoryListApiResponse | ProductCategory[],
-      ) =>
+      ): ProductCategoryListResult =>
         Array.isArray(response)
-          ? response
-          : response.data.items.map(mapCategoryItem),
+          ? { items: response, totalItems: response.length }
+          : {
+              items: response.data.items.map(mapCategoryItem),
+              totalItems: response.data.totalItems,
+            },
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.items.map(({ id }) => ({
                 type: 'ProductCategories' as const,
                 id,
               })),

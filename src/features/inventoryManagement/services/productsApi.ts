@@ -48,6 +48,14 @@ interface ProductListApiResponse {
   }
 }
 
+/** Paginated list result: the mapped page of products plus the server's grand
+ *  total (`totalItems`) so the table's count reflects all matches, not just
+ *  the current page. */
+export interface ProductListResult {
+  items: Product[]
+  totalItems: number
+}
+
 interface ProductDetailApiResponse {
   success: boolean
   message?: string
@@ -215,7 +223,7 @@ function mapStatusParam(status?: string) {
 
 const productsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getProducts: builder.query<Product[], ProductQueryParams | void>({
+    getProducts: builder.query<ProductListResult, ProductQueryParams | void>({
       query: (params) => ({
         tag: 'Products',
         url: '/products',
@@ -234,13 +242,18 @@ const productsApi = baseApi.injectEndpoints({
         },
         mockResolver: () => mockDelay(mockProducts),
       }),
-      transformResponse: (response: ProductListApiResponse | Product[]) =>
+      transformResponse: (
+        response: ProductListApiResponse | Product[],
+      ): ProductListResult =>
         Array.isArray(response)
-          ? response
-          : response.data.items.map(mapProductItem),
+          ? { items: response, totalItems: response.length }
+          : {
+              items: response.data.items.map(mapProductItem),
+              totalItems: response.data.totalItems,
+            },
       providesTags: (result) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Products' as const, id })), { type: 'Products' as const, id: 'LIST' }]
+          ? [...result.items.map(({ id }) => ({ type: 'Products' as const, id })), { type: 'Products' as const, id: 'LIST' }]
           : [{ type: 'Products' as const, id: 'LIST' }],
     }),
 

@@ -78,7 +78,7 @@ export function useSchemeForm(
           dealerBasePoints: gift.dealerBasePoints,
           chemistBasePoints: gift.chemistBasePoints,
         })),
-        masterProductOptions: (productsResult.data ?? []).map((product) => ({
+        masterProductOptions: (productsResult.data?.items ?? []).map((product) => ({
           id: product.id,
           name: product.productName || product.productCode || product.id,
           code: product.productCode,

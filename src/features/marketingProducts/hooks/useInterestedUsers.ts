@@ -57,7 +57,8 @@ export function useInterestedUsers(params?: InterestedUserQueryParams) {
   }
 
   return {
-    leads: leadsResult.data ?? [],
+    leads: leadsResult.data?.items ?? [],
+    totalItems: leadsResult.data?.totalItems ?? 0,
     kpis: kpisResult.data ?? null,
     isLoading,
     isKpisLoading,

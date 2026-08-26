@@ -22,14 +22,19 @@ export function useProducts(params?: ProductQueryParams) {
   const [importedProducts, setImportedProducts] = useState<Product[]>([])
   const [importedKpiDelta, setImportedKpiDelta] = useState(0)
 
-  const isLoading = productsResult.isLoading || kpisResult.isLoading
+  const isLoading =
+    productsResult.isLoading ||
+    productsResult.isFetching ||
+    kpisResult.isLoading ||
+    kpisResult.isFetching
   const error = productsResult.error
     ? getApiErrorMessage(productsResult.error, 'Failed to load products.')
     : kpisResult.error
       ? getApiErrorMessage(kpisResult.error, 'Failed to load products.')
       : null
 
-  const products = [...importedProducts, ...(productsResult.data ?? [])]
+  const products = [...importedProducts, ...(productsResult.data?.items ?? [])]
+  const totalItems = productsResult.data?.totalItems ?? 0
   const baseKpis = kpisResult.data
   const kpis: ProductKpis | null = baseKpis
     ? {
@@ -48,5 +53,5 @@ export function useProducts(params?: ProductQueryParams) {
     [importProductsMutation],
   )
 
-  return { products, kpis, isLoading, error, importProducts }
+  return { products, totalItems, kpis, isLoading, error, importProducts }
 }

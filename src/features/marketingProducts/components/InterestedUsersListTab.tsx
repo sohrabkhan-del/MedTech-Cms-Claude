@@ -67,6 +67,8 @@ export function InterestedUsersListTab({
   })
   const [sortColumn, setSortColumn] = useState('requestedDate')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
   const [actionDialog, setActionDialog] = useState<{
     mode: 'follow-up' | 'close'
     leadId: string
@@ -75,21 +77,35 @@ export function InterestedUsersListTab({
 
   const debouncedSearch = useDebouncedValue(search, 300)
 
-  const { leads, kpis, isLoading, isKpisLoading, followUp, close, remove } =
-    useInterestedUsers({
-      page: 1,
-      limit: 10,
-      search: debouncedSearch,
-      status: appliedFilters.leadStatus,
-      userType: appliedFilters.userType,
-      regionId: topbarRegionId || undefined,
-      sortBy: SORT_FIELD_MAP[sortColumn],
-      sortOrder,
-    })
+  const {
+    leads,
+    totalItems,
+    kpis,
+    isLoading,
+    isKpisLoading,
+    followUp,
+    close,
+    remove,
+  } = useInterestedUsers({
+    page: page + 1,
+    limit: rowsPerPage,
+    search: debouncedSearch,
+    status: appliedFilters.leadStatus,
+    userType: appliedFilters.userType,
+    regionId: topbarRegionId || undefined,
+    sortBy: SORT_FIELD_MAP[sortColumn],
+    sortOrder,
+  })
 
   useEffect(() => {
     onLoadingChange?.(isLoading)
   }, [isLoading, onLoadingChange])
+
+  // The topbar region control lives outside this component; when it changes the
+  // result set changes, so snap back to the first page to avoid an out-of-range page.
+  useEffect(() => {
+    setPage(0)
+  }, [topbarRegionId])
 
   async function handleActionSubmit(note: string) {
     if (!actionDialog) return
@@ -240,6 +256,14 @@ export function InterestedUsersListTab({
           setSortColumn(columnKey)
           setSortOrder(dir)
         }}
+        totalCount={totalItems}
+        page={page}
+        onPageChange={setPage}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={(next) => {
+          setRowsPerPage(next)
+          setPage(0)
+        }}
         tableKey="interested-users-list"
         columns={columns}
         rows={leads}
@@ -247,7 +271,10 @@ export function InterestedUsersListTab({
         getRowId={(row) => row.id}
         searchPlaceholder="Search by user name or product…"
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={(value) => {
+          setSearch(value)
+          setPage(0)
+        }}
         onFilterClick={() => setFilterOpen(true)}
         filterCount={
           (appliedFilters.leadStatus !== 'all' ? 1 : 0) +
@@ -285,7 +312,10 @@ export function InterestedUsersListTab({
         onClose={() => setFilterOpen(false)}
         title="Filter Interested Users"
         value={appliedFilters}
-        onApply={setAppliedFilters}
+        onApply={(next) => {
+          setAppliedFilters(next)
+          setPage(0)
+        }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>

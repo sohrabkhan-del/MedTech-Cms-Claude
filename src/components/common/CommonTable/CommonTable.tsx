@@ -126,6 +126,8 @@ interface CommonTableProps<T> {
   onPageChange?: (page: number) => void
   rowsPerPage?: number
   onRowsPerPageChange?: (rowsPerPage: number) => void
+  /** When true, renders empty filler rows so the table keeps a consistent height. Defaults to false. */
+  fillEmptyRows?: boolean
 }
 
 export function CommonTable<T>({
@@ -160,6 +162,7 @@ export function CommonTable<T>({
   onPageChange,
   rowsPerPage: controlledRowsPerPage,
   onRowsPerPageChange,
+  fillEmptyRows = false,
 }: CommonTableProps<T>) {
   const navigate = useNavigate()
   const isServerPaginated =
@@ -591,7 +594,8 @@ export function CommonTable<T>({
                     </TableRow>
                   ))}
                   {/* Render empty rows so table keeps consistent height when page has few rows */}
-                  {rowsPerPage > 0 &&
+                  {fillEmptyRows &&
+                    rowsPerPage > 0 &&
                     pagedRows.length < rowsPerPage &&
                     Array.from({ length: rowsPerPage - pagedRows.length }).map(
                       (_, idx) => (

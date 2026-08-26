@@ -40,7 +40,7 @@ import { ProductListPage } from '@/features/inventoryManagement/pages/ProductLis
 import { ProductDetailsPage } from '@/features/inventoryManagement/pages/ProductDetailsPage'
 import { ProductFormPage } from '@/features/inventoryManagement/pages/ProductFormPage'
 import { FactoryUploadListPage } from '@/features/inventoryManagement/pages/FactoryUploadListPage'
-import { FactoryUploadFormPage } from '@/features/inventoryManagement/pages/FactoryUploadFormPage'
+
 import { FactoryUploadBatchListPage } from '@/features/inventoryManagement/pages/FactoryUploadBatchListPage'
 import { BatchUidUploadPage } from '@/features/inventoryManagement/pages/BatchUidUploadPage'
 import { FactoryUploadDetailsPage } from '@/features/inventoryManagement/pages/FactoryUploadDetailsPage'

@@ -11,7 +11,8 @@ export function InterestedUsersPage() {
   useRegionTopbarHeader({
     icon: <Users size={20} />,
     title: 'Interested Users',
-    subtitle: 'Manage leads from Dealers and Chemists who have expressed interest in showcase products.',
+    subtitle:
+      'Manage leads from Dealers and Chemists who have expressed interest in showcase products.',
     isLoading,
   })
 
@@ -20,6 +21,9 @@ export function InterestedUsersPage() {
   }
 
   return (
-    <InterestedUsersListTab onViewLead={handleViewLead} onLoadingChange={setIsLoading} />
+    <InterestedUsersListTab
+      onViewLead={handleViewLead}
+      onLoadingChange={setIsLoading}
+    />
   )
 }

@@ -9,6 +9,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material'
+import { formatDate } from '@/utils/formatDate'
 import {
   Wallet as WalletIcon,
   Coins as Points,
@@ -82,6 +83,11 @@ export function WalletListPage() {
   })
   const [sortColumn, setSortColumn] = useState('businessName')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+  // default to showing latest updates first
+  useEffect(() => {
+    setSortColumn('lastUpdated')
+    setSortOrder('desc')
+  }, [])
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
@@ -187,8 +193,13 @@ export function WalletListPage() {
     {
       key: 'lastUpdated',
       header: 'Last Updated',
-      minWidth: 160,
-      render: (row) => row.lastUpdated,
+      minWidth: 180,
+      render: (row) => {
+        if (!row.lastUpdated) return '-'
+        const d = new Date(row.lastUpdated)
+        if (Number.isNaN(d.getTime())) return row.lastUpdated
+        return `${formatDate(row.lastUpdated)} ${d.toLocaleTimeString('en-IN')}`
+      },
     },
     {
       key: 'status',

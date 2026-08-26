@@ -102,13 +102,37 @@ export function ProductCatalogDetailsPage() {
       key: 'userName',
       header: 'User Name',
       minWidth: 160,
-      render: (row) => row.userName,
+      render: (row) => (
+        <Typography
+          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer' }}
+          onClick={(e) => {
+            e.stopPropagation()
+            navigate(
+              `/partners/${row.userType === 'Chemist' ? 'chemists' : 'dealers'}/${row.userId}`,
+            )
+          }}
+        >
+          {row.userName}
+        </Typography>
+      ),
     },
     {
       key: 'businessName',
       header: 'Business Name',
       minWidth: 160,
-      render: (row) => row.businessName,
+      render: (row) => (
+        <Typography
+          sx={{ fontWeight: 600, fontSize: '0.8125rem', cursor: 'pointer' }}
+          onClick={(e) => {
+            e.stopPropagation()
+            navigate(
+              `/partners/${row.userType === 'Chemist' ? 'chemists' : 'dealers'}/${row.userId}`,
+            )
+          }}
+        >
+          {row.businessName}
+        </Typography>
+      ),
     },
     {
       key: 'userType',
@@ -359,6 +383,11 @@ export function ProductCatalogDetailsPage() {
             rows={interestedUsers}
             loading={isInterestedUsersLoading}
             getRowId={(row) => row.id}
+            onRowClick={(row) =>
+              navigate(
+                `/partners/${row.userType === 'Chemist' ? 'chemists' : 'dealers'}/${row.userId}`,
+              )
+            }
             searchPlaceholder="Search by user name or business name…"
             searchValue={interestedUserSearch}
             onSearchChange={setInterestedUserSearch}

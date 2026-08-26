@@ -284,10 +284,10 @@ export function ShowcaseProductsListTab({
           label: 'Create Product',
           to: '/marketing-products/products-catelog/new',
         }}
-        defaultSortBy="name"
+
         defaultSortBy={sortColumn}
         defaultSortDir={sortOrder}
-        rowsPerPageOptions={[10, 20, 50]}
+
         actions={[
           {
             label: 'View Product Details',

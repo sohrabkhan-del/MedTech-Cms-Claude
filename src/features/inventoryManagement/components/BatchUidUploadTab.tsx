@@ -602,7 +602,6 @@ export function BatchUidUploadTab({
     setIsProcessing(true)
     setValidateError(null)
     try {
-      setActiveStep(3)
       // perform API upload
       const rowsToUpload = toFactoryProductionRows()
       console.log(
@@ -617,8 +616,13 @@ export function BatchUidUploadTab({
       }).unwrap()
       console.log('Upload API response:', batch)
 
-      // Ensure API returned a created batch record (id) before marking success
-      if (!batch || !(batch as any).id) {
+      // Ensure API returned a created batch record (id). Some backends
+      // return `uploadBatchId` instead of `id` — accept either as success.
+      const returnedId =
+        (batch as any)?.id ??
+        (batch as any)?.uploadBatchId ??
+        (batch as any)?.upload_batch_id
+      if (!batch || !returnedId) {
         const backendMsg = (batch as any)?.message ?? 'Upload failed.'
         setValidateError(backendMsg)
         setToast({
@@ -629,6 +633,9 @@ export function BatchUidUploadTab({
         setUploadDialogOpen(false)
         return
       }
+
+      // show success step/dialog only after API confirms
+      setActiveStep(3)
 
       onImported?.(
         batchRows.filter((row) => row.isValid),

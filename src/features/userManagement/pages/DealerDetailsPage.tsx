@@ -4,7 +4,6 @@ import { PartnerSummaryHeader } from '@/features/userManagement/components/Partn
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/userManagement/components/PartnerStatisticsCards'
 import { LocationCard } from '@/features/userManagement/components/LocationCard'
-import { PointsManagementCard } from '@/features/userManagement/components/PointsManagementCard'
 import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistoryCard'
 import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
@@ -12,23 +11,19 @@ import { RedemptionHistoryCard } from '@/features/userManagement/components/Rede
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { ActiveSessionsCard } from '@/features/userManagement/components/ActiveSessionsCard'
 import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
-import {
-  useGetPartnerWalletBalanceQuery,
-  useCreditPartnerWalletMutation,
-} from '@/features/rewardsWallet/services/walletPartnersApi'
-import { useToast } from '@/contexts/ToastContext'
-import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function DealerDetailsPage() {
   const { dealerId } = useParams<{ dealerId: string }>()
   const navigate = useNavigate()
-  const toast = useToast()
-  const { dealer, isLoading, activate, deactivate, remove, isUpdatingStatus, isDeleting } =
-    useDealerDetail(dealerId)
-  const { data: walletBalance } = useGetPartnerWalletBalanceQuery(dealerId ?? '', {
-    skip: !dealerId,
-  })
-  const [creditWallet] = useCreditPartnerWalletMutation()
+  const {
+    dealer,
+    isLoading,
+    activate,
+    deactivate,
+    remove,
+    isUpdatingStatus,
+    isDeleting,
+  } = useDealerDetail(dealerId)
 
   if (!isLoading && !dealer) {
     return (
@@ -39,27 +34,6 @@ export function DealerDetailsPage() {
         onAction={() => navigate('/partners/dealers')}
       />
     )
-  }
-
-  const handleAdjustPoints = async (
-    type: 'credit' | 'debit',
-    points: number,
-    reason: string,
-  ) => {
-    if (!dealerId) return
-    try {
-      await creditWallet({
-        partnerId: dealerId,
-        points,
-        note: reason,
-        type,
-      }).unwrap()
-      toast.success(
-        type === 'credit' ? 'Points added successfully.' : 'Points removed successfully.',
-      )
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Failed to adjust points.'))
-    }
   }
 
   return (
@@ -83,7 +57,10 @@ export function DealerDetailsPage() {
             isDeleting={isDeleting}
           />
 
-          <PartnerDetailsFieldsCard partner={dealer} shopLabel="Business Name" />
+          <PartnerDetailsFieldsCard
+            partner={dealer}
+            shopLabel="Business Name"
+          />
 
           <PartnerStatisticsCards partner={dealer} />
 
@@ -101,16 +78,6 @@ export function DealerDetailsPage() {
               </Grid>
             ))}
           </Grid>
-
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={12}>
-              <PointsManagementCard
-                currentBalance={walletBalance?.totalPoints ?? dealer.availablePoints}
-                onAdjust={handleAdjustPoints}
-              />
-            </Grid>
-          </Grid>
-
           {dealerId && (
             <Box sx={{ mb: 3 }}>
               <ActiveSessionsCard userId={dealerId} />
@@ -122,7 +89,11 @@ export function DealerDetailsPage() {
           <Stack
             direction={{ xs: 'column', md: 'row' }}
             spacing={2}
-            sx={{ justifyContent: 'space-between', alignItems: { md: 'center' }, mb: 2 }}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: { md: 'center' },
+              mb: 2,
+            }}
           >
             <Skeleton variant="text" width={220} height={32} />
             <Skeleton variant="rounded" width={180} height={36} />
@@ -148,8 +119,8 @@ export function DealerDetailsPage() {
       )}
 
       <Stack spacing={3}>
-        <ScanHistoryCard partnerId={dealerId} />
         <PointsHistoryCard partnerId={dealerId} />
+        <ScanHistoryCard partnerId={dealerId} />
         <RedemptionHistoryCard partnerId={dealerId} />
         <InterestedProductsCard partnerId={dealerId} />
       </Stack>

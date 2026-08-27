@@ -33,13 +33,6 @@ import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
 import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
 
-const resultColor: Record<string, 'success' | 'warning' | 'error' | 'default'> =
-  {
-    SUCCESS: 'success',
-    DUPLICATE: 'warning',
-    FAILED: 'error',
-  }
-
 const columns: CommonTableColumn<PartnerScanHistoryRow>[] = [
   {
     key: 'scannedAt',
@@ -62,25 +55,48 @@ const columns: CommonTableColumn<PartnerScanHistoryRow>[] = [
     header: 'Reward Points',
     align: 'center',
     sortable: true,
-    render: (row) => (
-      <Typography
-        component="span"
-        sx={{ fontWeight: 700, fontSize: 'inherit', color: 'success.main' }}
-      >
-        +{row.rewardPointsEarned.toLocaleString('en-IN')}
-      </Typography>
-    ),
+    render: (row) => {
+      const value = Number(row.rewardPointsEarned ?? 0)
+
+      if (row.scanResult === 'SUCCESS') {
+        return (
+          <Typography
+            component="span"
+            sx={{ fontWeight: 700, fontSize: 'inherit', color: 'success.main' }}
+          >
+            +{value.toLocaleString('en-IN')}
+          </Typography>
+        )
+      }
+
+      // Only zero values should be shown in red; non-zero non-success use warning
+      const color = value === 0 ? 'error.main' : 'success.main'
+      return (
+        <Typography
+          component="span"
+          sx={{ fontWeight: 700, fontSize: 'inherit', color }}
+        >
+          {value.toLocaleString('en-IN')}
+        </Typography>
+      )
+    },
   },
   {
     key: 'scanResult',
     header: 'Scan Result',
-    render: (row) => (
-      <Chip
-        label={row.scanResult}
-        size="small"
-        color={resultColor[row.scanResult] ?? 'default'}
-      />
-    ),
+    render: (row) => {
+      const text = String(row.scanResult ?? '')
+      const isSuccess =
+        row.scanResultType === 'SUCCESS' ||
+        text.toLowerCase().includes('success')
+      return (
+        <Chip
+          label={row.scanResult}
+          size="small"
+          color={isSuccess ? 'success' : 'error'}
+        />
+      )
+    },
   },
 ]
 
@@ -234,7 +250,6 @@ export function ScanHistoryCard({
         maxWidth="sm"
       >
         <DialogTitle>Add Scan Manually</DialogTitle>
-
 
         <DialogContent>
           <Box sx={{ mt: 2, display: 'grid', gap: 2 }}>

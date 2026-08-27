@@ -90,6 +90,10 @@ interface PartnerDealerItem {
   status?: string | null
   approvalStatus?: string | null
   isBlocked?: boolean
+  totalScans?: number | null
+  pointsEarned?: number | null
+  totalRedemption?: number | null
+  interestedProductCount?: number | null
   business?: Array<{
     id: string
     outletName?: string | null
@@ -267,6 +271,7 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
     regionName: item.region?.name ?? undefined,
     onboardedBy: mapOnboardedBy(business?.onboardedByType),
     availablePoints: 0,
+    pointsEarned: item.pointsEarned ?? 0,
     assignedMr:
       item.assignedMedicalRepresentative?.fullName ??
       item.assignedMedicalRepresentativeId ??
@@ -276,13 +281,16 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
       item.assignedMedicalRepresentativeId ??
       undefined,
     assignedMrName: item.assignedMedicalRepresentative?.fullName ?? undefined,
-    assignedMrCode: item.assignedMedicalRepresentative?.employeeCode ?? undefined,
+    assignedMrCode:
+      item.assignedMedicalRepresentative?.employeeCode ?? undefined,
     assignedMrPhone: item.assignedMedicalRepresentative?.phone ?? undefined,
     assignedMrEmail: item.assignedMedicalRepresentative?.email ?? undefined,
     notes: item.notes ?? undefined,
     registeredAddress: address || '-',
-    totalScans: 0,
-    totalRedemptions: 0,
+    totalScans: item.totalScans ?? 0,
+    totalRedemptions: item.totalRedemption ?? 0,
+    totalRedemption: item.totalRedemption ?? 0,
+    interestedProductCount: item.interestedProductCount ?? 0,
     scanHistory: [],
     PointsHistory: [],
     interestedProducts: [],
@@ -366,7 +374,8 @@ const dealerApi = baseApi.injectEndpoints({
           mockDelay({ items: mockDealers, totalItems: mockDealers.length }),
       }),
       transformResponse: (
-        response: PartnerListApiResponse | { items: Dealer[]; totalItems: number },
+        response:
+          PartnerListApiResponse | { items: Dealer[]; totalItems: number },
       ) =>
         'success' in response
           ? {
@@ -377,7 +386,10 @@ const dealerApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map(({ id }) => ({ type: 'Partners' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'Partners' as const,
+                id,
+              })),
               { type: 'Partners' as const, id: 'LIST' },
             ]
           : [{ type: 'Partners' as const, id: 'LIST' }],
@@ -545,7 +557,12 @@ const dealerApi = baseApi.injectEndpoints({
     /** Partial update — only the geo fence fields on the dealer's business record. */
     updateDealerGeoFence: builder.mutation<
       void,
-      { id: string; businessId: string; scanRadius: number; bufferRadius: number }
+      {
+        id: string
+        businessId: string
+        scanRadius: number
+        bufferRadius: number
+      }
     >({
       query: ({ id, businessId, scanRadius, bufferRadius }) => ({
         tag: 'Partners',
@@ -586,9 +603,7 @@ const dealerApi = baseApi.injectEndpoints({
         method: 'DELETE',
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: 'Partners', id },
-      ],
+      invalidatesTags: (_result, _error, { id }) => [{ type: 'Partners', id }],
     }),
   }),
 })

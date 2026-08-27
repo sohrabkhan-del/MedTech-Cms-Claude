@@ -44,17 +44,31 @@ export function RegionTopbar({
   const tabRefs = useRef<(HTMLButtonElement | null)[]>([])
   const [indicator, setIndicator] = useState({ left: 0, width: 0 })
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
-  const activeIndex = Math.max(
-    regions.findIndex((option) => option.name === region),
-    0,
-  )
+
+  // -1 when `region` doesn't match anything currently loaded (e.g. fallback vs
+  // fetched list mismatch, or fetch still in flight). We no longer clamp this
+  // to 0 — clamping was silently highlighting the first tab even when no
+  // button actually matched `region`, which is the "wrong tab lit up" bug.
+  const activeIndex = regions.findIndex((option) => option.name === region)
 
   useEffect(() => {
     let ignore = false
 
     getRegions()
       .then((options) => {
-        if (!ignore && options.length > 0) setRegions(options)
+        if (!ignore && options.length > 0) {
+          // Sanity check: duplicate/missing ids will scramble tabRefs indices
+          // and React's reconciliation of the keyed buttons below.
+          const ids = options.map((o) => o.id)
+          const uniqueIds = new Set(ids)
+          if (uniqueIds.size !== ids.length || ids.some((id) => !id)) {
+            console.warn(
+              '[regions] received regions with missing or duplicate ids',
+              options,
+            )
+          }
+          setRegions(options)
+        }
       })
       .catch((error) => {
         console.warn('[regions] failed to load regions, using fallback', error)
@@ -65,20 +79,26 @@ export function RegionTopbar({
     }
   }, [])
 
-  // useLayoutEffect(() => {
-  //   const updateIndicator = () => {
-  //     const el = tabRefs.current[activeIndex]
-  //     if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth })
-  //   }
-  //   updateIndicator()
-  //   window.addEventListener('resize', updateIndicator)
-  //   return () => window.removeEventListener('resize', updateIndicator)
-  // }, [activeIndex])
-
   useLayoutEffect(() => {
+    if (activeIndex < 0) {
+      // No matching region loaded yet — hide the pill instead of falsely
+      // highlighting tab 0.
+      setIndicator({ left: 0, width: 0 })
+      return
+    }
+
     const updateIndicator = () => {
       const el = tabRefs.current[activeIndex]
       if (el) setIndicator({ left: el.offsetLeft, width: el.offsetWidth })
+    }
+
+    // Named handler so removeEventListener actually matches what was added.
+    // (Previously this was an inline arrow fn passed to addEventListener but
+    // `updateIndicator` was passed to removeEventListener — different
+    // references, so the listener was never removed and piled up on every
+    // effect re-run, eventually causing the indicator to flicker/disappear.)
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') updateIndicator()
     }
 
     updateIndicator()
@@ -87,9 +107,7 @@ export function RegionTopbar({
     window.addEventListener('resize', updateIndicator)
 
     // Recalc when tab becomes visible again after being backgrounded
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') updateIndicator()
-    })
+    document.addEventListener('visibilitychange', handleVisibilityChange)
 
     // Recalc if the tab element itself resizes (e.g. text/width changes after regions load)
     const el = tabRefs.current[activeIndex]
@@ -101,10 +119,11 @@ export function RegionTopbar({
 
     return () => {
       window.removeEventListener('resize', updateIndicator)
-      document.removeEventListener('visibilitychange', updateIndicator)
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
       ro?.disconnect()
     }
   }, [activeIndex, regions])
+
   return (
     <Stack
       direction={{ xs: 'column', md: 'row' }}

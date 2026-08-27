@@ -10,12 +10,19 @@ interface PartnerStatisticsCardsProps {
 export function PartnerStatisticsCards({
   partner,
 }: PartnerStatisticsCardsProps) {
+  const totalScans = partner.totalScans ?? 0
+  const pointsEarned = partner.pointsEarned ?? partner.availablePoints ?? 0
+  const totalRedemption =
+    partner.totalRedemption ?? partner.totalRedemptions ?? 0
+  const interestedProductCount =
+    partner.interestedProductCount ?? partner.interestedProducts?.length ?? 0
+
   return (
     <Grid container spacing={3} sx={{ mb: 3 }}>
       <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
         <StatCard
           label="Total Scans"
-          value={partner.totalScans.toLocaleString('en-IN')}
+          value={totalScans.toLocaleString('en-IN')}
           icon={<ScanLine size={20} />}
           iconColor="primary"
         />
@@ -23,7 +30,7 @@ export function PartnerStatisticsCards({
       <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
         <StatCard
           label="Points Earned"
-          value={partner.availablePoints.toLocaleString('en-IN')}
+          value={pointsEarned.toLocaleString('en-IN')}
           icon={<Star size={20} />}
           iconColor="secondary"
         />
@@ -31,7 +38,7 @@ export function PartnerStatisticsCards({
       <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
         <StatCard
           label="Total Redemptions"
-          value={partner.totalRedemptions.toLocaleString('en-IN')}
+          value={totalRedemption.toLocaleString('en-IN')}
           icon={<Gift size={20} />}
           iconColor="success"
         />
@@ -39,7 +46,7 @@ export function PartnerStatisticsCards({
       <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
         <StatCard
           label="Interested Products"
-          value={partner.interestedProducts.length}
+          value={interestedProductCount.toLocaleString('en-IN')}
           icon={<Package size={20} />}
           iconColor="info"
         />

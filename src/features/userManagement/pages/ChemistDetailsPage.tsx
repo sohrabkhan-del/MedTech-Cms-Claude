@@ -4,7 +4,6 @@ import { PartnerSummaryHeader } from '@/features/userManagement/components/Partn
 import { PartnerDetailsFieldsCard } from '@/features/userManagement/components/PartnerDetailsFieldsCard'
 import { PartnerStatisticsCards } from '@/features/userManagement/components/PartnerStatisticsCards'
 import { LocationCard } from '@/features/userManagement/components/LocationCard'
-import { PointsManagementCard } from '@/features/userManagement/components/PointsManagementCard'
 import { ScanHistoryCard } from '@/features/userManagement/components/ScanHistoryCard'
 import { PointsHistoryCard } from '@/features/userManagement/components/PointsHistoryCard'
 import { InterestedProductsCard } from '@/features/userManagement/components/InterestedProductsCard'
@@ -12,23 +11,19 @@ import { RedemptionHistoryCard } from '@/features/userManagement/components/Rede
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { ActiveSessionsCard } from '@/features/userManagement/components/ActiveSessionsCard'
 import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
-import {
-  useGetPartnerWalletBalanceQuery,
-  useCreditPartnerWalletMutation,
-} from '@/features/rewardsWallet/services/walletPartnersApi'
-import { useToast } from '@/contexts/ToastContext'
-import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 export function ChemistDetailsPage() {
   const { chemistId } = useParams<{ chemistId: string }>()
   const navigate = useNavigate()
-  const toast = useToast()
-  const { chemist, isLoading, activate, deactivate, remove, isUpdatingStatus, isDeleting } =
-    useChemistDetail(chemistId)
-  const { data: walletBalance } = useGetPartnerWalletBalanceQuery(chemistId ?? '', {
-    skip: !chemistId,
-  })
-  const [creditWallet] = useCreditPartnerWalletMutation()
+  const {
+    chemist,
+    isLoading,
+    activate,
+    deactivate,
+    remove,
+    isUpdatingStatus,
+    isDeleting,
+  } = useChemistDetail(chemistId)
 
   if (!isLoading && !chemist) {
     return (
@@ -39,27 +34,6 @@ export function ChemistDetailsPage() {
         onAction={() => navigate('/partners/chemists')}
       />
     )
-  }
-
-  const handleAdjustPoints = async (
-    type: 'credit' | 'debit',
-    points: number,
-    reason: string,
-  ) => {
-    if (!chemistId) return
-    try {
-      await creditWallet({
-        partnerId: chemistId,
-        points,
-        note: reason,
-        type,
-      }).unwrap()
-      toast.success(
-        type === 'credit' ? 'Points added successfully.' : 'Points removed successfully.',
-      )
-    } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Failed to adjust points.'))
-    }
   }
 
   return (
@@ -98,16 +72,6 @@ export function ChemistDetailsPage() {
               />
             </Grid>
           </Grid>
-
-          <Grid container spacing={3} sx={{ mb: 3 }}>
-            <Grid size={12}>
-              <PointsManagementCard
-                currentBalance={walletBalance?.totalPoints ?? chemist.availablePoints}
-                onAdjust={handleAdjustPoints}
-              />
-            </Grid>
-          </Grid>
-
           {chemistId && (
             <Box sx={{ mb: 3 }}>
               <ActiveSessionsCard userId={chemistId} />
@@ -119,7 +83,11 @@ export function ChemistDetailsPage() {
           <Stack
             direction={{ xs: 'column', md: 'row' }}
             spacing={2}
-            sx={{ justifyContent: 'space-between', alignItems: { md: 'center' }, mb: 2 }}
+            sx={{
+              justifyContent: 'space-between',
+              alignItems: { md: 'center' },
+              mb: 2,
+            }}
           >
             <Skeleton variant="text" width={220} height={32} />
             <Skeleton variant="rounded" width={180} height={36} />
@@ -145,8 +113,8 @@ export function ChemistDetailsPage() {
       )}
 
       <Stack spacing={3}>
-        <ScanHistoryCard partnerId={chemistId} />
         <PointsHistoryCard partnerId={chemistId} />
+        <ScanHistoryCard partnerId={chemistId} />
         <RedemptionHistoryCard partnerId={chemistId} />
         <InterestedProductsCard partnerId={chemistId} />
       </Stack>

@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import { Typography } from '@mui/material'
+import { PointsManagementCard } from './PointsManagementCard'
+import { useCreditPartnerWalletMutation } from '@/features/rewardsWallet/services/walletPartnersApi'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import {
   CommonTable,
@@ -37,7 +39,7 @@ const columns: CommonTableColumn<PartnerPointsHistoryRow>[] = [
         }}
       >
         {row.type === 'credit' ? '+' : '-'}
-        {row.points.toLocaleString('en-IN')}
+        {Number(row.points ?? 0).toLocaleString('en-IN')}
       </Typography>
     ),
   },
@@ -51,11 +53,15 @@ const columns: CommonTableColumn<PartnerPointsHistoryRow>[] = [
     header: 'Current Balance',
     align: 'center',
     sortable: true,
-    render: (row) => row.balanceAfter.toLocaleString('en-IN'),
+    render: (row) => Number(row.balanceAfter ?? 0).toLocaleString('en-IN'),
   },
 ]
 
-export function PointsHistoryCard({ partnerId }: { partnerId: string | undefined }) {
+export function PointsHistoryCard({
+  partnerId,
+}: {
+  partnerId: string | undefined
+}) {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 300)
   const [sortBy, setSortBy] = useState('createdAt')
@@ -76,8 +82,27 @@ export function PointsHistoryCard({ partnerId }: { partnerId: string | undefined
       : skipToken,
   )
 
+  const [creditPartnerWallet, creditResult] = useCreditPartnerWalletMutation()
+
   return (
     <SectionCard title="Points History">
+      <PointsManagementCard
+        currentBalance={data?.items?.[0]?.balanceAfter ?? 0}
+        onAdjust={async (type, Points, reason) => {
+          if (!partnerId) return
+          try {
+            await creditPartnerWallet({
+              partnerId,
+              points: Points,
+              note: reason,
+              type,
+            }).unwrap()
+          } catch (err) {
+            // swallow — UI that opens the modal should handle errors via toasts
+          }
+        }}
+      />
+
       <CommonTable
         tableKey="partner-Points-history"
         columns={columns}

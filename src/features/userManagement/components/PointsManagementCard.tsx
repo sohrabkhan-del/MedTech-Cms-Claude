@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import {
+  Box,
   Button,
-  Card,
   Divider,
   Stack,
   TextField,
@@ -15,17 +15,21 @@ interface PointsManagementCardProps {
   onAdjust: (type: 'credit' | 'debit', Points: number, reason: string) => void
 }
 
-function SummaryRow({ label, value }: { label: string; value: string }) {
+function SummaryRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
         {label}
       </Typography>
-      <Typography
-        sx={{ fontWeight: 600, fontSize: '0.875rem', textAlign: 'right' }}
-      >
-        {value}
-      </Typography>
+      {typeof value === 'string' ? (
+        <Typography
+          sx={{ fontWeight: 600, fontSize: '0.875rem', textAlign: 'right' }}
+        >
+          {value}
+        </Typography>
+      ) : (
+        <Box sx={{ textAlign: 'right' }}>{value}</Box>
+      )}
     </Stack>
   )
 }
@@ -66,7 +70,7 @@ export function PointsManagementCard({
       : currentBalance - (value || 0)
 
   return (
-    <Card sx={{ p: 3, height: '100%' }}>
+    <Box sx={{ py: 3, height: '100%' }}>
       <Stack
         direction="row"
         sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}
@@ -161,7 +165,24 @@ export function PointsManagementCard({
             />
             <SummaryRow
               label="Points"
-              value={`${mode === 'credit' ? '+' : '-'}${value.toLocaleString('en-IN')}`}
+              value={
+                <Typography
+                  sx={{
+                    fontWeight: 600,
+                    fontSize: '0.875rem',
+                    textAlign: 'right',
+                    color:
+                      value === 0
+                        ? 'error.main'
+                        : mode === 'credit'
+                          ? 'success.main'
+                          : 'error.main',
+                  }}
+                >
+                  {mode === 'credit' ? '+' : '-'}
+                  {value.toLocaleString('en-IN')}
+                </Typography>
+              }
             />
             <SummaryRow label="Reason" value={reason.trim()} />
             <Divider />
@@ -176,6 +197,6 @@ export function PointsManagementCard({
           </Stack>
         </Modal>
       )}
-    </Card>
+    </Box>
   )
 }

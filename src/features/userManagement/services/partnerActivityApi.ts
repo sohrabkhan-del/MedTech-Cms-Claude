@@ -55,7 +55,10 @@ interface ScanHistoryApiItem {
   scanResultType: string
   scanStatus: string
   scannedCode: string
-  productDetails?: { productCode?: string | null; productCategory?: string | null } | null
+  productDetails?: {
+    productCode?: string | null
+    productCategory?: string | null
+  } | null
   region?: string | null
   rewardPointsEarned: number
 }
@@ -107,7 +110,9 @@ export interface PartnerInterestedProductRow {
   requestedDate: string
 }
 
-function mapInterestedProduct(item: InterestedProductApiItem): PartnerInterestedProductRow {
+function mapInterestedProduct(
+  item: InterestedProductApiItem,
+): PartnerInterestedProductRow {
   return {
     id: item.id,
     productName: item.productSnapshot?.name ?? '-',
@@ -176,7 +181,9 @@ export interface PartnerPointsHistoryRow {
   createdAt: string
 }
 
-function mapWalletTransaction(item: WalletTransactionApiItem): PartnerPointsHistoryRow {
+function mapWalletTransaction(
+  item: WalletTransactionApiItem,
+): PartnerPointsHistoryRow {
   return {
     id: item.id,
     type: item.type,
@@ -217,10 +224,14 @@ const partnerActivityApi = baseApi.injectEndpoints({
     >({
       query: ({ partnerId, ...params }) => ({
         tag: 'ShowcaseProducts',
-        ...pagedQuery(`/showcase-products/interests/partner/${partnerId}`)(params),
+        ...pagedQuery(`/showcase-products/interests/partner/${partnerId}`)(
+          params,
+        ),
         mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
       }),
-      transformResponse: (response: PagedApiResponse<InterestedProductApiItem>) => ({
+      transformResponse: (
+        response: PagedApiResponse<InterestedProductApiItem>,
+      ) => ({
         items: response.data.items.map(mapInterestedProduct),
         totalItems: response.data.totalItems,
       }),
@@ -260,7 +271,9 @@ const partnerActivityApi = baseApi.injectEndpoints({
         ...pagedQuery(`/admin/wallet/${partnerId}/transactions`)(params),
         mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
       }),
-      transformResponse: (response: PagedApiResponse<WalletTransactionApiItem>) => ({
+      transformResponse: (
+        response: PagedApiResponse<WalletTransactionApiItem>,
+      ) => ({
         items: response.data.items.map(mapWalletTransaction),
         totalItems: response.data.totalItems,
       }),

@@ -11,11 +11,9 @@ export function PartnerStatisticsCards({
   partner,
 }: PartnerStatisticsCardsProps) {
   const totalScans = partner.totalScans ?? 0
-  const pointsEarned = partner.pointsEarned ?? partner.availablePoints ?? 0
-  const totalRedemption =
-    partner.totalRedemption ?? partner.totalRedemptions ?? 0
-  const interestedProductCount =
-    partner.interestedProductCount ?? partner.interestedProducts?.length ?? 0
+  const pointsEarned = partner.availablePoints ?? 0
+  const totalRedemption = partner.totalRedemptions ?? 0
+  const interestedProductCount = partner.interestedProducts?.length ?? 0
 
   return (
     <Grid container spacing={3} sx={{ mb: 3 }}>

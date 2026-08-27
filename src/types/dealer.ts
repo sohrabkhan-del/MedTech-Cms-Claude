@@ -8,7 +8,10 @@ export interface Godown {
 }
 
 export interface Dealer extends PartnerBase {
+  pointsEarned?: number
   activeOrders: number
+  totalRedemption?: number
+  interestedProductCount?: number
   liveDeliveries: boolean
   godowns: Godown[]
 }

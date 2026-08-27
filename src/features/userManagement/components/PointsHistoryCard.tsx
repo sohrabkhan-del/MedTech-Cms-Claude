@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import { Typography } from '@mui/material'
-import { PointsManagementCard } from './PointsManagementCard'
-import { useCreditPartnerWalletMutation } from '@/features/rewardsWallet/services/walletPartnersApi'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import {
   CommonTable,
@@ -11,6 +9,13 @@ import {
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useGetPartnerPointsHistoryQuery } from '@/features/userManagement/services/partnerActivityApi'
 import type { PartnerPointsHistoryRow } from '@/features/userManagement/services/partnerActivityApi'
+import {
+  useGetPartnerWalletBalanceQuery,
+  useCreditPartnerWalletMutation,
+} from '@/features/rewardsWallet/services/walletPartnersApi'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { PointsManagementCard } from './PointsManagementCard'
 
 const columns: CommonTableColumn<PartnerPointsHistoryRow>[] = [
   {
@@ -39,7 +44,7 @@ const columns: CommonTableColumn<PartnerPointsHistoryRow>[] = [
         }}
       >
         {row.type === 'credit' ? '+' : '-'}
-        {Number(row.points ?? 0).toLocaleString('en-IN')}
+        {(row.points ?? 0).toLocaleString('en-IN')}
       </Typography>
     ),
   },
@@ -53,7 +58,7 @@ const columns: CommonTableColumn<PartnerPointsHistoryRow>[] = [
     header: 'Current Balance',
     align: 'center',
     sortable: true,
-    render: (row) => Number(row.balanceAfter ?? 0).toLocaleString('en-IN'),
+    render: (row) => (row.balanceAfter ?? 0).toLocaleString('en-IN'),
   },
 ]
 
@@ -62,12 +67,19 @@ export function PointsHistoryCard({
 }: {
   partnerId: string | undefined
 }) {
+  const toast = useToast()
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 300)
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(20)
+
+  const { data: walletBalance } = useGetPartnerWalletBalanceQuery(
+    partnerId ?? '',
+    { skip: !partnerId },
+  )
+  const [creditWallet] = useCreditPartnerWalletMutation()
 
   const { data, isFetching } = useGetPartnerPointsHistoryQuery(
     partnerId
@@ -82,27 +94,30 @@ export function PointsHistoryCard({
       : skipToken,
   )
 
-  const [creditPartnerWallet, creditResult] = useCreditPartnerWalletMutation()
+  const handleAdjustPoints = async (
+    type: 'credit' | 'debit',
+    points: number,
+    reason: string,
+  ) => {
+    if (!partnerId) return
+    try {
+      await creditWallet({ partnerId, points, note: reason, type }).unwrap()
+      toast.success(
+        type === 'credit'
+          ? 'Points added successfully.'
+          : 'Points removed successfully.',
+      )
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to adjust points.'))
+    }
+  }
 
   return (
     <SectionCard title="Points History">
       <PointsManagementCard
-        currentBalance={data?.items?.[0]?.balanceAfter ?? 0}
-        onAdjust={async (type, Points, reason) => {
-          if (!partnerId) return
-          try {
-            await creditPartnerWallet({
-              partnerId,
-              points: Points,
-              note: reason,
-              type,
-            }).unwrap()
-          } catch (err) {
-            // swallow — UI that opens the modal should handle errors via toasts
-          }
-        }}
+        currentBalance={walletBalance?.totalPoints ?? 0}
+        onAdjust={handleAdjustPoints}
       />
-
       <CommonTable
         tableKey="partner-Points-history"
         columns={columns}

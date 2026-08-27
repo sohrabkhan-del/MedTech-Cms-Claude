@@ -22,7 +22,8 @@ import { useApprovalRequestDetail } from '@/features/userManagement/hooks/useApp
 export function ApprovalRequestDetailsPage() {
   const navigate = useNavigate()
   const { requestId } = useParams<{ requestId: string }>()
-  const { request, decide, isLoading, isDeciding } = useApprovalRequestDetail(requestId)
+  const { request, decide, isLoading, isDeciding } =
+    useApprovalRequestDetail(requestId)
   const [dialog, setDialog] = useState<{
     open: boolean
     action: 'approve' | 'reject'
@@ -93,7 +94,7 @@ export function ApprovalRequestDetailsPage() {
           <Box>
             <Typography variant="h1">{request.applicantName}</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {request.id} · {request.requestType}
+              {request.requestType}
             </Typography>
           </Box>
         </Stack>
@@ -314,7 +315,9 @@ export function ApprovalRequestDetailsPage() {
 
       <Modal
         open={dialog.open}
-        onClose={() => !isDeciding && setDialog({ open: false, action: 'approve' })}
+        onClose={() =>
+          !isDeciding && setDialog({ open: false, action: 'approve' })
+        }
         title={
           dialog.action === 'approve' ? 'Approve Request' : 'Reject Request'
         }

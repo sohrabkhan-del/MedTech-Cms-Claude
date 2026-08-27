@@ -9,6 +9,7 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { SerialRangeDialog } from '@/components/common/SerialRangeDialog'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useFactoryProductionUploadRowsList } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadRowsList'
@@ -87,6 +88,11 @@ export function FactoryUploadListPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [serialRangeTarget, setSerialRangeTarget] = useState<{
+    batchNo: string
+    startSerialNumber: string | number
+    endSerialNumber: string | number
+  } | null>(null)
 
   const { rows, totalItems, isLoading } = useFactoryProductionUploadRowsList({
     page: page + 1,
@@ -125,7 +131,24 @@ export function FactoryUploadListPage() {
       sortable: true,
       sortValue: (row) => row.batchNo,
       render: (row) => (
-        <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={(event) => {
+            event.stopPropagation()
+            setSerialRangeTarget({
+              batchNo: row.batchNo,
+              startSerialNumber: row.startSerialNumber,
+              endSerialNumber: row.endSerialNumber,
+            })
+          }}
+        >
           {row.batchNo}
         </Typography>
       ),
@@ -247,7 +270,7 @@ export function FactoryUploadListPage() {
             navigate('/inventory/factory-inventory-upload/uploads')
           }
         >
-          Uploaded Inventory
+          View Inventory Excel
         </Button>
         <Button
           variant="contained"
@@ -332,6 +355,15 @@ export function FactoryUploadListPage() {
         ]}
         emptyTitle="No batches found"
         emptyDescription="Try adjusting your filters or search terms."
+      />
+
+      <SerialRangeDialog
+        open={Boolean(serialRangeTarget)}
+        onClose={() => setSerialRangeTarget(null)}
+        prefix={serialRangeTarget?.batchNo ?? ''}
+        startSerial={serialRangeTarget?.startSerialNumber ?? ''}
+        endSerial={serialRangeTarget?.endSerialNumber ?? ''}
+        title="Combined Batch Serial Range"
       />
 
       <FilterDrawer<UploadRowFilters>

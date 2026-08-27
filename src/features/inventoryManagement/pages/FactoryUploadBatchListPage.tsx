@@ -202,7 +202,7 @@ export function FactoryUploadBatchListPage() {
             <FactoryOutlined size={20} />
           </Box>
           <Box>
-            <Typography variant="h1">Uploaded Inventory</Typography>
+            <Typography variant="h1">Inventory Excel Upload list</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               Every factory production upload batch. Deleting a batch removes
               all products imported from it.

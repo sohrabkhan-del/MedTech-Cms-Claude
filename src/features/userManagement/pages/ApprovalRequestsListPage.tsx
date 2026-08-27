@@ -36,6 +36,11 @@ import type { PartnerZone } from '@/types/partner'
 
 type RequestTypeTab = 'all' | RequestType
 
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  submittedDate: 'createdAt',
+  createdAt: 'createdAt',
+}
+
 const REQUEST_TYPE_TABS: { label: string; value: RequestTypeTab }[] = [
   { label: 'All', value: 'all' },
   { label: 'Chemist', value: 'Chemist' },
@@ -72,6 +77,8 @@ export function ApprovalRequestsListPage() {
     request: null,
   })
   const [remarks, setRemarks] = useState('')
+  const [sortColumn, setSortColumn] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
@@ -83,6 +90,8 @@ export function ApprovalRequestsListPage() {
       type: requestTypeTab === 'all' ? undefined : requestTypeTab,
       status:
         appliedFilters.status === 'all' ? undefined : appliedFilters.status,
+      sortBy: sortColumn,
+      sortOrder,
     },
   )
   useRegionTopbarHeader({
@@ -160,6 +169,11 @@ export function ApprovalRequestsListPage() {
       key: 'submittedDate',
       header: 'Submitted Date',
       minWidth: 140,
+      sortable: true,
+      sortValue: (row) => {
+        const date = new Date(row.requestCreatedDate || row.submittedDate)
+        return Number.isNaN(date.getTime()) ? 0 : date.getTime()
+      },
       render: (row) => row.submittedDate,
     },
     {
@@ -263,7 +277,14 @@ export function ApprovalRequestsListPage() {
           (appliedFilters.fromDate || appliedFilters.toDate ? 1 : 0)
         }
         onExportClick={() => {}}
-        defaultSortBy="submittedDate"
+        defaultSortBy="createdAt"
+        defaultSortDir="desc"
+        onSortChange={(columnKey, dir) => {
+          const apiSortBy = SORT_FIELD_MAP[columnKey] ?? columnKey
+          setSortColumn(apiSortBy)
+          setSortOrder(dir)
+          setPage(0)
+        }}
         actions={[
           {
             label: 'View Details',

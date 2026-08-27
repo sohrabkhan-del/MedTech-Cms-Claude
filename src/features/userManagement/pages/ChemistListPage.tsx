@@ -60,6 +60,7 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
   ownerName: 'ownerFirstName',
   city: 'city',
   status: 'status',
+  createdAt: 'createdAt',
 }
 
 export function ChemistListPage() {
@@ -78,7 +79,7 @@ export function ChemistListPage() {
     assignedMedicalRepresentativeId: '',
     regionId: '',
   })
-  const [sortColumn, setSortColumn] = useState('shopName')
+  const [sortColumn, setSortColumn] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -97,7 +98,8 @@ export function ChemistListPage() {
     }
   }, [])
 
-  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const effectiveRegionId =
+    appliedFilters.regionId || topbarRegionId || undefined
   const debouncedSearch = useDebouncedValue(search, 300)
 
   const { chemists, totalItems, kpis, isLoading } = useChemists({
@@ -302,15 +304,19 @@ export function ChemistListPage() {
                   .join('; ')}`,
               )
             } else {
-              toast.success(`Imported ${result.created} chemist(s) successfully.`)
+              toast.success(
+                `Imported ${result.created} chemist(s) successfully.`,
+              )
             }
           } catch (err) {
             toast.error(getApiErrorMessage(err, 'Failed to import chemists.'))
           }
         }}
-        onDownloadTemplateClick={() => downloadPartnerBulkTemplate('chemist-bulk-upload-template')}
+        onDownloadTemplateClick={() =>
+          downloadPartnerBulkTemplate('chemist-bulk-upload-template')
+        }
         createAction={{ label: 'Create Chemist', to: '/partners/chemists/new' }}
-        defaultSortBy="shopName"
+        defaultSortBy="createdAt"
         defaultSortDir="desc"
         actions={[
           {
@@ -329,7 +335,9 @@ export function ChemistListPage() {
                 await activateChemist(row.id).unwrap()
                 toast.success('Chemist activated successfully.')
               } catch (err) {
-                toast.error(getApiErrorMessage(err, 'Failed to activate chemist.'))
+                toast.error(
+                  getApiErrorMessage(err, 'Failed to activate chemist.'),
+                )
               }
             },
           },
@@ -342,7 +350,9 @@ export function ChemistListPage() {
                 await deactivateChemist(row.id).unwrap()
                 toast.success('Chemist deactivated successfully.')
               } catch (err) {
-                toast.error(getApiErrorMessage(err, 'Failed to deactivate chemist.'))
+                toast.error(
+                  getApiErrorMessage(err, 'Failed to deactivate chemist.'),
+                )
               }
             },
           },
@@ -366,7 +376,9 @@ export function ChemistListPage() {
             <Autocomplete
               options={mrOptions}
               getOptionLabel={(option) =>
-                option.employeeCode ? `${option.name} (${option.employeeCode})` : option.name
+                option.employeeCode
+                  ? `${option.name} (${option.employeeCode})`
+                  : option.name
               }
               isOptionEqualToValue={(option, value) => option.id === value.id}
               value={
@@ -381,7 +393,11 @@ export function ChemistListPage() {
                 }))
               }
               renderInput={(params) => (
-                <TextField {...params} label="Assigned MR" placeholder="Search medical representatives…" />
+                <TextField
+                  {...params}
+                  label="Assigned MR"
+                  placeholder="Search medical representatives…"
+                />
               )}
             />
             <TextField

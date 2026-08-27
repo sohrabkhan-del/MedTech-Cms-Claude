@@ -44,6 +44,7 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
   name: 'firstName',
   email: 'email',
   status: 'status',
+  createdAt: 'createdAt',
 }
 
 function formatPhoneNumber(phone?: string | null) {
@@ -75,7 +76,7 @@ export function AdminListPage() {
     status: 'all',
     regionId: '',
   })
-  const [sortColumn, setSortColumn] = useState('name')
+  const [sortColumn, setSortColumn] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
   const effectiveRegionId =
@@ -276,7 +277,7 @@ export function AdminListPage() {
           (appliedFilters.regionId.trim() ? 1 : 0)
         }
         createAction={{ label: 'Create Admin', to: '/system-users/admin/new' }}
-        defaultSortBy="name"
+        defaultSortBy="createdAt"
         actions={[
           {
             label: 'View Details',

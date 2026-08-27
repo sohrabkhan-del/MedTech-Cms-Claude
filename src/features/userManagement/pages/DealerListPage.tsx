@@ -60,6 +60,7 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
   ownerName: 'ownerFirstName',
   city: 'city',
   status: 'status',
+  createdAt: 'createdAt',
 }
 
 export function DealerListPage() {
@@ -78,7 +79,7 @@ export function DealerListPage() {
     assignedMedicalRepresentativeId: '',
     regionId: '',
   })
-  const [sortColumn, setSortColumn] = useState('shopName')
+  const [sortColumn, setSortColumn] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
@@ -97,7 +98,8 @@ export function DealerListPage() {
     }
   }, [])
 
-  const effectiveRegionId = appliedFilters.regionId || topbarRegionId || undefined
+  const effectiveRegionId =
+    appliedFilters.regionId || topbarRegionId || undefined
   const debouncedSearch = useDebouncedValue(search, 300)
 
   const { dealers, totalItems, kpis, isLoading } = useDealers({
@@ -303,15 +305,19 @@ export function DealerListPage() {
                   .join('; ')}`,
               )
             } else {
-              toast.success(`Imported ${result.created} dealer(s) successfully.`)
+              toast.success(
+                `Imported ${result.created} dealer(s) successfully.`,
+              )
             }
           } catch (err) {
             toast.error(getApiErrorMessage(err, 'Failed to import dealers.'))
           }
         }}
-        onDownloadTemplateClick={() => downloadPartnerBulkTemplate('dealer-bulk-upload-template')}
+        onDownloadTemplateClick={() =>
+          downloadPartnerBulkTemplate('dealer-bulk-upload-template')
+        }
         createAction={{ label: 'Create Dealer', to: '/partners/dealers/new' }}
-        defaultSortBy="shopName"
+        defaultSortBy="createdAt"
         defaultSortDir="desc"
         actions={[
           {
@@ -330,7 +336,9 @@ export function DealerListPage() {
                 await activateDealer(row.id).unwrap()
                 toast.success('Dealer activated successfully.')
               } catch (err) {
-                toast.error(getApiErrorMessage(err, 'Failed to activate dealer.'))
+                toast.error(
+                  getApiErrorMessage(err, 'Failed to activate dealer.'),
+                )
               }
             },
           },
@@ -343,7 +351,9 @@ export function DealerListPage() {
                 await deactivateDealer(row.id).unwrap()
                 toast.success('Dealer deactivated successfully.')
               } catch (err) {
-                toast.error(getApiErrorMessage(err, 'Failed to deactivate dealer.'))
+                toast.error(
+                  getApiErrorMessage(err, 'Failed to deactivate dealer.'),
+                )
               }
             },
           },
@@ -367,7 +377,9 @@ export function DealerListPage() {
             <Autocomplete
               options={mrOptions}
               getOptionLabel={(option) =>
-                option.employeeCode ? `${option.name} (${option.employeeCode})` : option.name
+                option.employeeCode
+                  ? `${option.name} (${option.employeeCode})`
+                  : option.name
               }
               isOptionEqualToValue={(option, value) => option.id === value.id}
               value={
@@ -382,7 +394,11 @@ export function DealerListPage() {
                 }))
               }
               renderInput={(params) => (
-                <TextField {...params} label="Assigned MR" placeholder="Search medical representatives…" />
+                <TextField
+                  {...params}
+                  label="Assigned MR"
+                  placeholder="Search medical representatives…"
+                />
               )}
             />
             <TextField

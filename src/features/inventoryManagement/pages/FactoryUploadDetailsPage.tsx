@@ -1,4 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom'
+import { useState } from 'react'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import {
   Factory as FactoryOutlined,
@@ -12,6 +13,7 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { SerialRangeDialog } from '@/components/common/SerialRangeDialog'
 import { useFactoryBatchDetail } from '@/features/inventoryManagement/hooks/useFactoryBatchDetail'
 import { getChemistByShopName } from '@/features/userManagement/mockChemists'
 import { getDealerByShopName } from '@/features/userManagement/mockDealers'
@@ -115,6 +117,7 @@ export function FactoryUploadDetailsPage() {
   const { batchId } = useParams<{ batchId: string }>()
   const { batch, isLoading } = useFactoryBatchDetail(batchId)
   const scanColumns = buildScanColumns(navigate)
+  const [serialRangeOpen, setSerialRangeOpen] = useState(false)
 
   if (isLoading) {
     return <DetailsPageSkeleton sections={2} />
@@ -159,7 +162,18 @@ export function FactoryUploadDetailsPage() {
             <FactoryOutlined size={20} />
           </Box>
           <Box>
-            <Typography variant="h1">{batch.batchNumber}</Typography>
+            <Typography
+              variant="h1"
+              onClick={() => setSerialRangeOpen(true)}
+              sx={{
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                '&:hover': { textDecoration: 'underline' },
+              }}
+            >
+              {batch.batchNumber}
+            </Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
               {batch.batchDate}
             </Typography>
@@ -177,6 +191,15 @@ export function FactoryUploadDetailsPage() {
           </Button>
         </Stack>
       </Stack>
+
+      <SerialRangeDialog
+        open={serialRangeOpen}
+        onClose={() => setSerialRangeOpen(false)}
+        prefix={batch.batchNumber}
+        startSerial={batch.startSerialNumber}
+        endSerial={batch.endSerialNumber}
+        title="Combined Batch Serial Range"
+      />
 
       <Stack spacing={3}>
         <SectionCard title="Summary">

@@ -21,6 +21,7 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
+import { SerialRangeDialog } from '@/components/common/SerialRangeDialog'
 import { useFactoryProductionUploadDetail } from '@/features/inventoryManagement/hooks/useFactoryProductionUploadDetail'
 import { formatDate } from '@/utils/formatDate'
 import { useToast } from '@/contexts/ToastContext'
@@ -34,130 +35,6 @@ import { useGetFactoryProductionUploadRowsQuery } from '@/features/inventoryMana
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 
-const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
-  {
-    key: 'productCode',
-    header: 'Product Code',
-    minWidth: 130,
-    render: (row) => row.productCode,
-  },
-  {
-    key: 'batchNo',
-    header: 'Batch No.',
-    minWidth: 160,
-    sortable: true,
-    sortValue: (row) => row.batchNo,
-    render: (row) => (
-      <Typography sx={{ fontWeight: 600, fontSize: '0.8125rem' }}>
-        {row.batchNo}
-      </Typography>
-    ),
-  },
-  {
-    key: 'productionPlanNumber',
-    header: 'Production Plan No.',
-    minWidth: 160,
-    render: (row) => row.productionPlanNumber,
-  },
-  {
-    key: 'batchIssuedDate',
-    header: 'Batch Issued Date',
-    minWidth: 130,
-    sortable: true,
-    sortValue: (row) => row.batchIssuedDate,
-    render: (row) => formatDate(row.batchIssuedDate),
-  },
-  {
-    key: 'batchIssuedByName',
-    header: 'Batch Issued By',
-    minWidth: 130,
-    render: (row) => row.batchIssuedByName,
-  },
-  { key: 'month', header: 'Month', minWidth: 90, render: (row) => row.month },
-  {
-    key: 'qty',
-    header: 'Qty',
-    align: 'center',
-    sortable: true,
-    sortValue: (row) => row.qty,
-    render: (row) => row.qty?.toLocaleString('en-IN') ?? '-',
-  },
-  {
-    key: 'sampleQty',
-    header: 'Sample Qty',
-    align: 'center',
-    minWidth: 100,
-    render: (row) => row.sampleQty?.toLocaleString('en-IN') ?? '-',
-  },
-  {
-    key: 'plugType',
-    header: 'Plug Type',
-    minWidth: 100,
-    render: (row) => row.plugType,
-  },
-  {
-    key: 'domestic',
-    header: 'Domestic',
-    minWidth: 90,
-    render: (row) => row.domestic,
-  },
-  {
-    key: 'export',
-    header: 'Export',
-    minWidth: 90,
-    render: (row) => row.export,
-  },
-  {
-    key: 'assyLineNo',
-    header: 'Assy Line No.',
-    minWidth: 110,
-    render: (row) => row.assyLineNo || '-',
-  },
-  {
-    key: 'batchCompletedDate',
-    header: 'Batch Completed Date',
-    minWidth: 150,
-    render: (row) => formatDate(row.batchCompletedDate),
-  },
-  {
-    key: 'producedQty',
-    header: 'Produced Qty',
-    align: 'center',
-    minWidth: 110,
-    sortable: true,
-    sortValue: (row) => row.producedQty,
-    render: (row) => row.producedQty?.toLocaleString('en-IN') ?? '-',
-  },
-  {
-    key: 'startSerialNumber',
-    header: 'Start Serial',
-    align: 'center',
-    minWidth: 110,
-    render: (row) => row.startSerialNumber,
-  },
-  {
-    key: 'endSerialNumber',
-    header: 'End Serial',
-    align: 'center',
-    minWidth: 110,
-    render: (row) => row.endSerialNumber,
-  },
-  {
-    key: 'masterCartonStartNo',
-    header: 'Master Carton Start No',
-    align: 'center',
-    minWidth: 150,
-    render: (row) => row.masterCartonStartNo,
-  },
-  {
-    key: 'masterCartonEndNo',
-    header: 'Master Carton End No',
-    align: 'center',
-    minWidth: 150,
-    render: (row) => row.masterCartonEndNo,
-  },
-]
-
 export function FactoryProductionUploadDetailsPage() {
   const navigate = useNavigate()
   const { uploadId } = useParams<{ uploadId: string }>()
@@ -168,8 +45,154 @@ export function FactoryProductionUploadDetailsPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [serialRangeTarget, setSerialRangeTarget] = useState<{
+    batchNo: string
+    startSerialNumber: string | number
+    endSerialNumber: string | number
+  } | null>(null)
   const [deleteBatch, { isLoading: isDeleting }] =
     useDeleteFactoryProductionUploadBatchMutation()
+
+  const rowColumns: CommonTableColumn<FactoryProductionUploadRowRecord>[] = [
+    {
+      key: 'productCode',
+      header: 'Product Code',
+      minWidth: 130,
+      render: (row) => row.productCode,
+    },
+    {
+      key: 'batchNo',
+      header: 'Batch No.',
+      minWidth: 160,
+      sortable: true,
+      sortValue: (row) => row.batchNo,
+      render: (row) => (
+        <Typography
+          sx={{
+            fontWeight: 600,
+            fontSize: '0.8125rem',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            '&:hover': { textDecoration: 'underline' },
+          }}
+          onClick={(event) => {
+            event.stopPropagation()
+            setSerialRangeTarget({
+              batchNo: row.batchNo,
+              startSerialNumber: row.startSerialNumber,
+              endSerialNumber: row.endSerialNumber,
+            })
+          }}
+        >
+          {row.batchNo}
+        </Typography>
+      ),
+    },
+    {
+      key: 'productionPlanNumber',
+      header: 'Production Plan No.',
+      minWidth: 160,
+      render: (row) => row.productionPlanNumber,
+    },
+    {
+      key: 'batchIssuedDate',
+      header: 'Batch Issued Date',
+      minWidth: 130,
+      sortable: true,
+      sortValue: (row) => row.batchIssuedDate,
+      render: (row) => formatDate(row.batchIssuedDate),
+    },
+    {
+      key: 'batchIssuedByName',
+      header: 'Batch Issued By',
+      minWidth: 130,
+      render: (row) => row.batchIssuedByName,
+    },
+    { key: 'month', header: 'Month', minWidth: 90, render: (row) => row.month },
+    {
+      key: 'qty',
+      header: 'Qty',
+      align: 'center',
+      sortable: true,
+      sortValue: (row) => row.qty,
+      render: (row) => row.qty?.toLocaleString('en-IN') ?? '-',
+    },
+    {
+      key: 'sampleQty',
+      header: 'Sample Qty',
+      align: 'center',
+      minWidth: 100,
+      render: (row) => row.sampleQty?.toLocaleString('en-IN') ?? '-',
+    },
+    {
+      key: 'plugType',
+      header: 'Plug Type',
+      minWidth: 100,
+      render: (row) => row.plugType,
+    },
+    {
+      key: 'domestic',
+      header: 'Domestic',
+      minWidth: 90,
+      render: (row) => row.domestic,
+    },
+    {
+      key: 'export',
+      header: 'Export',
+      minWidth: 90,
+      render: (row) => row.export,
+    },
+    {
+      key: 'assyLineNo',
+      header: 'Assy Line No.',
+      minWidth: 110,
+      render: (row) => row.assyLineNo || '-',
+    },
+    {
+      key: 'batchCompletedDate',
+      header: 'Batch Completed Date',
+      minWidth: 150,
+      render: (row) => formatDate(row.batchCompletedDate),
+    },
+    {
+      key: 'producedQty',
+      header: 'Produced Qty',
+      align: 'center',
+      minWidth: 110,
+      sortable: true,
+      sortValue: (row) => row.producedQty,
+      render: (row) => row.producedQty?.toLocaleString('en-IN') ?? '-',
+    },
+    {
+      key: 'startSerialNumber',
+      header: 'Start Serial',
+      align: 'center',
+      minWidth: 110,
+      render: (row) => row.startSerialNumber,
+    },
+    {
+      key: 'endSerialNumber',
+      header: 'End Serial',
+      align: 'center',
+      minWidth: 110,
+      render: (row) => row.endSerialNumber,
+    },
+    {
+      key: 'masterCartonStartNo',
+      header: 'Master Carton Start No',
+      align: 'center',
+      minWidth: 150,
+      render: (row) => row.masterCartonStartNo,
+    },
+    {
+      key: 'masterCartonEndNo',
+      header: 'Master Carton End No',
+      align: 'center',
+      minWidth: 150,
+      render: (row) => row.masterCartonEndNo,
+    },
+  ]
 
   const debouncedSearch = useDebouncedValue(search, 200)
   const isSearching = debouncedSearch.trim().length > 0
@@ -247,10 +270,9 @@ export function FactoryProductionUploadDetailsPage() {
             <FactoryOutlined size={20} />
           </Box>
           <Box>
-            <Typography variant="h1">Upload Batch</Typography>
+            <Typography variant="h1">Inventory Excel Upload</Typography>
             <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              Uploaded {formatDate(batch.createdAt)} ·{' '}
-              {batch.totalRows.toLocaleString('en-IN')} row(s)
+              Uploaded {formatDate(batch.createdAt)}
             </Typography>
           </Box>
         </Stack>
@@ -280,6 +302,15 @@ export function FactoryProductionUploadDetailsPage() {
             ]}
           />
         </SectionCard>
+
+        <SerialRangeDialog
+          open={Boolean(serialRangeTarget)}
+          onClose={() => setSerialRangeTarget(null)}
+          prefix={serialRangeTarget?.batchNo ?? ''}
+          startSerial={serialRangeTarget?.startSerialNumber ?? ''}
+          endSerial={serialRangeTarget?.endSerialNumber ?? ''}
+          title="Combined Batch Serial Range"
+        />
 
         <SectionCard title="Batch Rows">
           <CommonTable

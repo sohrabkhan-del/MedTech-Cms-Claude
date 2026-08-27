@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MedTech Life — App Flows</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0F2540; --ink-soft:#2E4870; --paper:#F5F7FA; --surface:#FFFFFF;
+    --line:#E2E6EC; --accent:#E07A3F; --accent-soft:#FBE7D8;
+    --success:#2F9E7D; --success-soft:#DCF3EA; --muted:#64748B;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--paper); font-family:'Inter',sans-serif; color:var(--ink); padding:0 40px 80px;}
+
+  /* ---- Tab bar ---- */
+  .tabbar{position:sticky; top:0; z-index:50; background:var(--paper); padding:24px 0 16px; margin:0 -40px; padding-left:40px; padding-right:40px; border-bottom:1px solid var(--line);}
+  .tabbar-inner{max-width:1600px; margin:0 auto; display:flex; gap:8px;}
+  .tabbtn{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; padding:11px 20px; border-radius:10px; border:1.5px solid var(--line); background:var(--surface); color:var(--muted); cursor:pointer;}
+  .tabbtn.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .page-head{max-width:1400px; margin:32px auto 0;}
+  .eyebrow{font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--accent); margin:0 0 8px;}
+  h1{font-family:'Space Grotesk',sans-serif; font-size:30px; margin:0 0 8px; font-weight:700;}
+  .sub{color:var(--muted); font-size:15px; margin:0; max-width:680px; line-height:1.6;}
+
+  .row{max-width:1600px; margin:0 auto; display:flex; align-items:flex-start; gap:0; overflow-x:auto; padding:24px 4px 24px;}
+  .step{display:flex; flex-direction:column; align-items:center; flex-shrink:0;}
+  .caption{margin-top:20px; text-align:center; width:300px;}
+  .caption .name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px; margin:0 0 4px;}
+  .caption .desc{font-size:12px; color:var(--muted); margin:0; line-height:1.5;}
+  .arrow{display:flex; align-items:center; justify-content:center; width:56px; flex-shrink:0; color:var(--line); padding-top:280px;}
+  .arrow svg{width:32px; height:14px;}
+
+  .phone{width:300px; height:620px; border-radius:42px; background:#0B1220; padding:11px; box-shadow:0 24px 60px -20px rgba(15,37,64,.35), 0 4px 12px rgba(15,37,64,.1); flex-shrink:0;}
+  .screen{width:100%; height:100%; background:var(--surface); border-radius:32px; overflow:hidden; position:relative; display:flex; flex-direction:column;}
+  .notch{position:absolute; top:0; left:50%; transform:translateX(-50%); width:112px; height:20px; background:#0B1220; border-radius:0 0 13px 13px; z-index:5;}
+
+  .bracket{position:relative; width:80px; height:80px;}
+  .bracket::before,.bracket::after,.bracket i::before,.bracket i::after{content:'';position:absolute; width:20px; height:20px; border-color:var(--surface); border-style:solid; border-width:0;}
+  .bracket::before{top:0;left:0;border-top-width:3px;border-left-width:3px;border-radius:6px 0 0 0;}
+  .bracket::after{top:0;right:0;border-top-width:3px;border-right-width:3px;border-radius:0 6px 0 0;}
+  .bracket i{display:block; position:absolute; inset:0;}
+  .bracket i::before{bottom:0;left:0;border-bottom-width:3px;border-left-width:3px;border-radius:0 0 0 6px;}
+  .bracket i::after{bottom:0;right:0;border-bottom-width:3px;border-right-width:3px;border-radius:0 0 6px 0;}
+  .bracket .mark{position:absolute; inset:16px; display:flex; align-items:center; justify-content:center;}
+  .bracket .mark svg{width:32px; height:32px;}
+
+  .splash{background:var(--ink); color:#fff; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;}
+  .splash .bracket::before,.splash .bracket::after,.splash .bracket i::before,.splash .bracket i::after{border-color:var(--accent);}
+  .splash-word{font-family:'Space Grotesk',sans-serif; font-size:20px; font-weight:700; text-align:center; line-height:1.3;}
+  .splash-word span{display:block; font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:10.5px; letter-spacing:.14em; color:var(--accent); margin-top:8px; text-transform:uppercase;}
+  .loader{width:110px; height:3px; background:rgba(255,255,255,.14); border-radius:3px; overflow:hidden; position:absolute; bottom:52px;}
+  .loader::after{content:'';display:block; width:40%; height:100%; background:var(--accent); border-radius:3px;}
+
+  .light-splash{background:#fff !important;}
+  .grad-blob{position:absolute; border-radius:50%; filter:blur(30px); opacity:.55;}
+  .blob-blue{width:220px; height:220px; top:-70px; left:-60px; background:radial-gradient(circle, #2456C9, transparent 70%);}
+  .blob-orange{width:240px; height:240px; bottom:-90px; right:-70px; background:radial-gradient(circle, var(--accent), transparent 70%);}
+  .logo-raw{width:180px; height:auto; position:relative; z-index:2;}
+  .splash-word.light span{color:var(--ink-soft);}
+  .loader.light{background:rgba(15,37,64,.1);}
+  .logo-plate{background:#fff; border-radius:16px; padding:18px 22px; display:flex; align-items:center; justify-content:center;}
+  .logo-plate img{width:170px; height:auto; display:block;}
+
+  .carousel{flex:1; display:flex; flex-direction:column;}
+  .car-top{display:flex; justify-content:space-between; align-items:center; padding:24px 20px 0;}
+  .car-step{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted);}
+  .skip{font-size:12px; color:var(--muted); font-weight:500;}
+  .car-art{flex:1; display:flex; align-items:center; justify-content:center;}
+  .art-ring{width:170px; height:170px; border-radius:50%; background:var(--accent-soft); display:flex; align-items:center; justify-content:center;}
+  .art-ring svg{width:74px; height:74px;}
+  .car-body{padding:8px 26px 0;}
+  .car-body h3{font-family:'Space Grotesk',sans-serif; font-size:19px; margin:0 0 10px; text-align:center;}
+  .car-body p{font-size:12.5px; color:var(--muted); text-align:center; line-height:1.6; margin:0;}
+  .dots{display:flex; gap:6px; justify-content:center; margin:20px 0 4px;}
+  .dot{width:6px; height:6px; border-radius:50%; background:var(--line);}
+  .dot.active{width:20px; border-radius:4px; background:var(--accent);}
+  .car-bottom{padding:18px 26px 30px;}
+  .btn{display:block; width:100%; text-align:center; padding:14px; border-radius:12px; font-weight:600; font-size:13.5px; border:none; cursor:default;}
+  .btn-primary{background:var(--ink); color:#fff;}
+  .btn-ghost{background:var(--paper); color:var(--ink); margin-top:10px;}
+
+  .login{flex:1; padding:40px 22px 26px; display:flex; flex-direction:column;}
+  .login .bracket{margin:0 auto 16px;}
+  .login .bracket .mark svg{color:var(--ink);}
+  .login-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:17px; text-align:center; margin:0 0 2px;}
+  .login-sub{font-size:12px; color:var(--muted); text-align:center; margin:0 0 24px;}
+  .tabs{display:flex; background:var(--paper); border-radius:12px; padding:4px; margin-bottom:22px;}
+  .tab{flex:1; text-align:center; padding:9px 0; border-radius:9px; font-size:12px; font-weight:600; color:var(--muted);}
+  .tab.active{background:var(--surface); color:var(--ink); box-shadow:0 2px 6px rgba(15,37,64,.08);}
+  .field-label{font-size:11px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 8px;}
+  .field{width:100%; border:1.5px solid var(--line); border-radius:10px; padding:13px 14px; font-size:14.5px; font-family:'IBM Plex Mono',monospace; margin-bottom:18px; color:var(--ink);}
+  .hint{font-size:11px; color:var(--muted); margin-top:-10px; margin-bottom:18px;}
+  .login-cta{margin-top:auto;}
+
+  .otp-screen{flex:1; padding:40px 22px 26px; display:flex; flex-direction:column;}
+  .back{font-size:12px; color:var(--muted); margin:0 0 22px;}
+  .otp-icon{width:56px; height:56px; border-radius:16px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; margin-bottom:18px;}
+  .otp-icon svg{width:26px; height:26px;}
+  .otp-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; margin:0 0 6px;}
+  .otp-sub{font-size:12.5px; color:var(--muted); margin:0 0 28px; line-height:1.5;}
+  .otp-sub b{color:var(--ink); font-weight:600;}
+  .otp-row{display:flex; gap:9px; margin-bottom:14px;}
+  .otp-box{width:46px; height:52px; border:1.5px solid var(--line); border-radius:10px; display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:17px;}
+  .otp-box.filled{border-color:var(--ink); background:var(--paper);}
+  .otp-box.cursor{border-color:var(--accent);}
+  .resend{font-size:11.5px; color:var(--accent); font-weight:600; margin:0 0 auto;}
+  .resend span{color:var(--muted); font-weight:400;}
+  .otp-cta{margin-top:20px;}
+
+  .choose{flex:1; padding:40px 22px 26px; display:flex; flex-direction:column;}
+  .choose-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; margin:6px 0 2px;}
+  .choose-sub{font-size:12.5px; color:var(--muted); margin:0 0 26px; line-height:1.5;}
+  .opt{border:1.5px solid var(--line); border-radius:14px; padding:16px; display:flex; align-items:center; gap:14px; margin-bottom:14px;}
+  .opt.selected{border-color:var(--ink); background:var(--paper);}
+  .opt-icon{width:42px; height:42px; border-radius:11px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .opt-icon svg{width:20px; height:20px;}
+  .opt-text .t{font-weight:600; font-size:13.5px; margin:0 0 2px;}
+  .opt-text .d{font-size:11.5px; color:var(--muted); margin:0;}
+  .radio{width:18px; height:18px; border-radius:50%; border:1.5px solid var(--line); margin-left:auto; flex-shrink:0; position:relative;}
+  .radio.on{border-color:var(--ink);}
+  .radio.on::after{content:'';position:absolute; inset:3px; border-radius:50%; background:var(--ink);}
+  .choose-cta{margin-top:auto;}
+
+  .branch-head{max-width:1600px; margin:8px auto 0; padding-left:4px;}
+  .branch-head .eyebrow{margin-bottom:6px;}
+  .branch-head h2{font-family:'Space Grotesk',sans-serif; font-size:20px; margin:0 0 6px; font-weight:700;}
+  .branch-head p{font-size:13px; color:var(--muted); margin:0 0 8px; max-width:600px; line-height:1.6;}
+  .branch-row{max-width:1600px; margin:0 auto; display:flex; align-items:flex-start; gap:56px; padding:10px 4px 10px; overflow-x:auto;}
+
+  .pin{flex:1; padding:40px 22px 26px; display:flex; flex-direction:column; align-items:center;}
+  .pin-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:17px; margin:4px 0 2px;}
+  .pin-sub{font-size:12px; color:var(--muted); margin:0 0 26px;}
+  .pin-dots{display:flex; gap:13px; margin-bottom:32px;}
+  .pin-dot{width:13px; height:13px; border-radius:50%; border:1.5px solid var(--ink);}
+  .pin-dot.filled{background:var(--ink);}
+  .keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; width:100%;}
+  .key{aspect-ratio:1; border-radius:50%; background:var(--paper); display:flex; align-items:center; justify-content:center; font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:500; color:var(--ink);}
+  .key.ghost{background:transparent;}
+
+  .bio{flex:1; padding:40px 22px 26px; display:flex; flex-direction:column; align-items:center;}
+  .bio-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:17px; margin:4px 0 2px;}
+  .bio-sub{font-size:12px; color:var(--muted); margin:0 0 40px; text-align:center;}
+  .bio-ring{width:150px; height:150px; border-radius:50%; border:2px dashed var(--line); display:flex; align-items:center; justify-content:center; margin-bottom:40px;}
+  .bio-ring-inner{width:104px; height:104px; border-radius:50%; background:var(--accent-soft); display:flex; align-items:center; justify-content:center;}
+  .bio-ring-inner svg{width:48px; height:48px;}
+  .bio-status{font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--muted); letter-spacing:.03em;}
+  .bio-alt{margin-top:auto; font-size:12px; color:var(--accent); font-weight:600;}
+
+  .success{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:0 30px; text-align:center;}
+  .success-ring{width:84px; height:84px; border-radius:50%; background:var(--success-soft); display:flex; align-items:center; justify-content:center; margin-bottom:22px;}
+  .success-ring svg{width:38px; height:38px;}
+  .success-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:20px; margin:0 0 8px;}
+  .success-sub{font-size:12.5px; color:var(--muted); line-height:1.6; margin:0 0 30px;}
+  .success-sub b{color:var(--ink); font-weight:600;}
+  .success .btn{position:absolute; bottom:32px; left:26px; right:26px; width:auto;}
+
+  /* ---- MR journey specific ---- */
+  .mr-dash{flex:1; padding:36px 20px 20px; display:flex; flex-direction:column;}
+  .mr-hi{font-size:11.5px; color:var(--muted); margin:0 0 2px;}
+  .mr-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; margin:0 0 20px;}
+  .mr-cards{display:flex; gap:10px; margin-bottom:22px;}
+  .mr-card{flex:1; background:var(--paper); border-radius:12px; padding:12px;}
+  .mr-card .n{font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:20px; margin:0;}
+  .mr-card .l{font-size:10.5px; color:var(--muted); margin:2px 0 0;}
+  .mr-add{display:flex; align-items:center; justify-content:center; gap:8px; background:var(--ink); color:#fff; border-radius:12px; padding:13px; font-size:13px; font-weight:600; margin-bottom:20px;}
+  .mr-list-title{font-size:11px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 12px;}
+  .mr-item{display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--line);}
+  .type-tag{display:inline-block; font-size:8.5px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; padding:2px 7px; border-radius:10px; margin-bottom:4px;}
+  .type-tag.chemist{background:#DDEAFB; color:#185FA5;}
+  .type-tag.dealer{background:var(--accent-soft); color:var(--accent);}
+  .mr-item-icon{width:34px; height:34px; border-radius:9px; background:var(--accent-soft); flex-shrink:0; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12px; color:var(--accent);}
+  .mr-item-text .t{font-size:12.5px; font-weight:600; margin:0 0 2px;}
+  .mr-item-text .d{font-size:10.5px; color:var(--muted); margin:0;}
+  .chip{margin-left:auto; font-size:9.5px; font-weight:600; padding:4px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.02em;}
+  .chip.approved{background:var(--success-soft); color:var(--success);}
+  .chip.pending{background:var(--accent-soft); color:var(--accent);}
+  .chip.rejected{background:#FBE2E2; color:#C23A3A;}
+
+  .type-pick{flex:1; padding:40px 22px 26px; display:flex; flex-direction:column;}
+  .type-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:18px; margin:6px 0 2px;}
+  .type-sub{font-size:12.5px; color:var(--muted); margin:0 0 26px;}
+  .type-card{border:1.5px solid var(--line); border-radius:14px; padding:20px 16px; margin-bottom:14px; text-align:center;}
+  .type-card.selected{border-color:var(--ink); background:var(--paper);}
+  .type-card svg{width:30px; height:30px; margin-bottom:10px;}
+  .type-card .t{font-weight:600; font-size:14px; margin:0 0 4px;}
+  .type-card .d{font-size:11.5px; color:var(--muted); margin:0;}
+
+  .form-screen{flex:1; padding:34px 20px 20px; display:flex; flex-direction:column; overflow-y:auto; min-height:0; scrollbar-width:none;}
+  .form-screen::-webkit-scrollbar{display:none;}
+  .form-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:17px; margin:0 0 2px;}
+  .form-sub{font-size:11.5px; color:var(--muted); margin:0 0 18px;}
+  .form-field{margin-bottom:14px;}
+  .form-field .fl{font-size:10.5px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em; margin:0 0 6px;}
+  .form-field .fv{width:100%; border:1.5px solid var(--line); border-radius:9px; padding:11px 12px; font-size:12.5px; font-family:'IBM Plex Mono',monospace; color:var(--ink);}
+  .form-section{font-size:9.5px; font-weight:700; color:var(--accent); text-transform:uppercase; letter-spacing:.05em; margin:2px 0 10px; padding-top:14px; border-top:1px solid var(--line);}
+  .form-section.first{border-top:none; padding-top:0;}
+  .fv-icon{display:flex; align-items:center; gap:8px;}
+  .fv-icon svg{width:14px; height:14px; flex-shrink:0;}
+
+  .flyout-scrim{flex:1; background:rgba(15,37,64,.5); display:flex; flex-direction:column; justify-content:flex-end;}
+  .flyout-panel{background:var(--surface); border-radius:20px 20px 0 0; padding:10px 20px 24px; max-height:82%; overflow-y:auto; scrollbar-width:none;}
+  .flyout-panel::-webkit-scrollbar{display:none;}
+  .flyout-handle{width:36px; height:4px; border-radius:4px; background:var(--line); margin:0 auto 16px;}
+
+  .doc-screen{flex:1; padding:34px 20px 20px; display:flex; flex-direction:column; overflow-y:auto; min-height:0; scrollbar-width:none;}
+  .doc-screen::-webkit-scrollbar{display:none;}
+  .doc-tile{border:1.5px dashed var(--line); border-radius:12px; padding:16px; display:flex; align-items:center; gap:12px; margin-bottom:12px;}
+  .doc-tile.done{border-style:solid; border-color:var(--success); background:var(--success-soft);}
+  .doc-icon{width:34px; height:34px; border-radius:9px; background:var(--surface); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .doc-icon svg{width:16px; height:16px;}
+  .doc-text .t{font-size:12.5px; font-weight:600; margin:0 0 2px;}
+  .doc-text .d{font-size:10.5px; color:var(--muted); margin:0;}
+  .doc-check{margin-left:auto; width:20px; height:20px; border-radius:50%; background:var(--success); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .doc-check svg{width:11px; height:11px;}
+
+  .map-screen{flex:1; display:flex; flex-direction:column;}
+  .map-canvas{flex:1; background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0/28px 28px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/28px 28px,
+      var(--paper); position:relative;}
+  .map-pin{position:absolute; top:44%; left:50%; transform:translate(-50%,-100%);}
+  .map-pin svg{width:38px; height:38px; color:var(--accent);}
+  .map-accuracy{position:absolute; top:44%; left:50%; width:120px; height:120px; border-radius:50%; background:rgba(224,122,63,.12); border:1.5px solid rgba(224,122,63,.3); transform:translate(-50%,-50%);}
+  .map-panel{padding:20px 20px 26px; background:var(--surface);}
+  .map-badge{display:inline-flex; align-items:center; gap:6px; font-size:10.5px; font-weight:600; color:var(--success); background:var(--success-soft); padding:5px 10px; border-radius:20px; margin-bottom:12px;}
+  .map-title{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14.5px; margin:0 0 4px;}
+  .map-sub{font-size:11px; color:var(--muted); margin:0 0 16px;}
+
+  .review-screen{flex:1; padding:34px 20px 20px; display:flex; flex-direction:column; overflow-y:auto; min-height:0; scrollbar-width:none;}
+  .review-screen::-webkit-scrollbar{display:none;}
+  .rev-block{margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid var(--line);}
+  .rev-block .h{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .rev-block .h .t{font-size:11px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
+  .rev-block .h .e{font-size:11px; color:var(--accent); font-weight:600;}
+  .rev-block .v{font-size:12.5px; line-height:1.6;}
+  .rev-block .v span{color:var(--muted);}
+  .confirm-row{display:flex; align-items:flex-start; gap:8px; font-size:11px; color:var(--muted); margin-bottom:16px;}
+  .confirm-row .cb{width:15px; height:15px; border-radius:4px; background:var(--ink); flex-shrink:0; margin-top:1px;}
+  .rev-check-row{display:flex; align-items:center; gap:8px; font-size:11.5px; padding:5px 0;}
+  .rev-check-row svg{width:14px; height:14px; color:var(--success); flex-shrink:0;}
+  .rev-check-row span{margin-left:auto; font-size:10px; color:var(--muted); font-family:'IBM Plex Mono',monospace;}
+
+  .status-screen{flex:1; padding:34px 20px 20px; display:flex; flex-direction:column; overflow-y:auto; min-height:0; scrollbar-width:none;}
+  .status-screen::-webkit-scrollbar{display:none;}
+  .status-card{border:1.5px solid var(--line); border-radius:14px; padding:16px; margin-bottom:16px;}
+  .status-card .top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;}
+  .status-card .name{font-weight:600; font-size:13.5px; margin:0 0 2px;}
+  .status-card .id{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--muted); margin:0;}
+  .timeline{display:flex; flex-direction:column; gap:0;}
+  .tstep{display:flex; gap:10px; position:relative;}
+  .tstep .dotwrap{display:flex; flex-direction:column; align-items:center;}
+  .tstep .d2{width:9px; height:9px; border-radius:50%; background:var(--success); flex-shrink:0; margin-top:3px;}
+  .tstep.pending .d2{background:var(--line); border:1.5px solid var(--muted);}
+  .tstep .ln{width:1.5px; flex:1; background:var(--line); margin:2px 0;}
+  .tstep .body{padding-bottom:16px;}
+  .tstep .body .t{font-size:12px; font-weight:600; margin:0 0 2px;}
+  .tstep .body .d{font-size:10.5px; color:var(--muted); margin:0;}
+  .status-msg{display:flex; flex-direction:column; align-items:center; text-align:center; border-radius:14px; padding:20px 18px; margin-top:10px; width:100%;}
+  .status-msg .icon-circle{width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-bottom:12px; flex-shrink:0;}
+  .status-msg svg{width:20px; height:20px;}
+  .status-msg .mt{font-size:13px; font-weight:700; margin:0 0 6px;}
+  .status-msg .mb{font-size:11px; line-height:1.6; margin:0; max-width:220px;}
+  .status-msg.reject{background:#FBE2E2;}
+  .status-msg.reject .icon-circle{background:#F5C2C2;}
+  .status-msg.reject svg{color:#8A2A2A;}
+  .status-msg.reject .mt,.status-msg.reject .mb{color:#8A2A2A;}
+  .status-msg.approve{background:var(--success-soft);}
+  .status-msg.approve .icon-circle{background:#BEE6D7;}
+  .status-msg.approve svg{color:#1F5F49;}
+  .status-msg.approve .mt,.status-msg.approve .mb{color:#1F5F49;}
+
+  /* ---- MR shell: header + footer nav ---- */
+  .mr-shell{flex:1; display:flex; flex-direction:column; min-height:0;}
+  .mr-header{display:flex; align-items:center; gap:11px; padding:20px 20px 0;}
+  .mr-avatar{width:38px; height:38px; border-radius:50%; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12.5px; flex-shrink:0;}
+  .mr-header-text .n{font-weight:600; font-size:13px; margin:0;}
+  .mr-header-text .m{font-size:10px; color:var(--muted); margin:2px 0 0; font-family:'IBM Plex Mono',monospace;}
+  .mr-bell{margin-left:auto; width:32px; height:32px; border-radius:9px; background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0; position:relative;}
+  .mr-bell svg{width:15px; height:15px; color:var(--ink-soft);}
+  .mr-bell .dot{position:absolute; top:7px; right:7px; width:5px; height:5px; border-radius:50%; background:var(--accent);}
+
+  .mr-body{flex:1; overflow-y:auto; min-height:0; scrollbar-width:none;}
+  .mr-body::-webkit-scrollbar{display:none;}
+  .mr-stats{display:flex; gap:10px; padding:16px 20px 0;}
+  .stat-box{flex:1; border-radius:13px; padding:13px;}
+  .stat-box.onboarded{background:var(--success-soft);}
+  .stat-box.pending{background:var(--accent-soft);}
+  .stat-box .n{font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:22px; margin:0;}
+  .stat-box.onboarded .n{color:var(--success);}
+  .stat-box.pending .n{color:var(--accent);}
+  .stat-box .l{font-size:10px; margin:3px 0 0; font-weight:600;}
+  .stat-box.onboarded .l{color:var(--success);}
+  .stat-box.pending .l{color:var(--accent);}
+
+  .mr-cta{display:flex; align-items:center; justify-content:center; gap:8px; background:var(--accent); color:#fff; border-radius:12px; padding:12px; font-size:12.5px; font-weight:600; margin:12px 20px 4px;}
+
+  .mr-section-head{display:flex; justify-content:space-between; align-items:center; padding:16px 20px 8px;}
+  .mr-section-head .t{font-size:10.5px; font-weight:600; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.04em;}
+  .mr-section-head .link{font-size:10.5px; font-weight:600; color:var(--accent);}
+  .seg{display:flex; background:var(--paper); border-radius:9px; padding:3px;}
+  .seg-btn{padding:5px 10px; border-radius:6px; font-size:10px; font-weight:600; color:var(--muted);}
+  .seg-btn.active{background:var(--surface); color:var(--ink); box-shadow:0 1px 4px rgba(15,37,64,.08);}
+
+  .task-item{display:flex; gap:9px; align-items:flex-start; padding:8px 20px;}
+  .task-dot{width:7px; height:7px; border-radius:50%; background:var(--accent); margin-top:5px; flex-shrink:0;}
+  .task-text .t{font-size:11.5px; font-weight:600; margin:0 0 2px;}
+  .task-text .d{font-size:10px; color:var(--muted); margin:0;}
+
+  .filter-row{display:flex; gap:7px; padding:0 20px 10px; overflow-x:auto;}
+  .filter-pill{flex-shrink:0; padding:5px 11px; border-radius:20px; font-size:10px; font-weight:600; border:1px solid var(--line); color:var(--muted);}
+  .filter-pill.active{background:var(--ink); color:#fff; border-color:var(--ink);}
+
+  .footer-nav{display:flex; border-top:1px solid var(--line); padding:10px 0 22px; background:var(--surface);}
+  .fn-item{flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--muted); font-size:8.5px; font-weight:600;}
+  .fn-item svg{width:18px; height:18px;}
+  .fn-icon{width:36px; height:26px; border-radius:9px; display:flex; align-items:center; justify-content:center;}
+  .fn-item.active{color:var(--ink);}
+  .fn-item.active svg{color:var(--accent);}
+  .fn-item.active .fn-icon{background:var(--accent-soft);}
+
+  /* ---- Wizard stepper (editable steps) ---- */
+  .stepper{display:flex; align-items:center; gap:6px; margin-bottom:6px;}
+  .step-seg{flex:1; height:3px; border-radius:3px; background:var(--line);}
+  .step-seg.done{background:var(--success);}
+  .step-seg.current{background:var(--accent);}
+  .stepper-label{font-size:10.5px; color:var(--muted); margin:0 0 18px;}
+  .stepper-label b{color:var(--ink); font-weight:600;}
+
+  /* ---- Nudge / success screen ---- */
+  .nudge{flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:30px 26px; text-align:center;}
+  .nudge-stat{width:100%; background:var(--paper); border-radius:12px; padding:13px 14px;}
+  .nudge-stat .row2{display:flex; justify-content:space-between; font-size:11px; margin-bottom:8px; color:var(--muted);}
+  .nudge-stat .row2 b{font-family:'IBM Plex Mono',monospace; color:var(--ink);}
+  .progress-track{height:6px; background:var(--line); border-radius:6px; overflow:hidden;}
+  .progress-fill{height:100%; background:var(--accent); border-radius:6px; width:95%;}
+  .nudge-actions{width:100%; margin-top:20px;}
+  .btn-ghost2{background:transparent; border:1.5px solid var(--line); color:var(--ink); margin-top:10px;}
+  .btn-ghost2.danger-btn{border-color:#F5C2C2; color:#C23A3A;}
+
+  /* ---- Improved status tracker ---- */
+  .status-card2{display:flex; align-items:center; gap:12px; padding:13px; border:1.5px solid var(--line); border-radius:14px; margin-bottom:20px;}
+  .status-card2 .avt{width:38px; height:38px; border-radius:10px; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:12px; font-family:'Space Grotesk',sans-serif; flex-shrink:0;}
+  .status-card2 .info .n{font-weight:600; font-size:12.5px; margin:0 0 2px;}
+  .status-card2 .info .m{font-size:10px; color:var(--muted); margin:0;}
+  .status-card2 .chip{margin-left:auto;}
+
+  .itl-step{display:flex; gap:12px;}
+  .itl-icon{width:28px; height:28px; border-radius:50%; background:var(--success-soft); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .itl-icon svg{width:14px; height:14px; color:var(--success);}
+  .itl-step.pending .itl-icon{background:var(--line);}
+  .itl-step.pending .itl-icon svg{color:var(--muted);}
+  .itl-step.rejected .itl-icon{background:#FBE2E2;}
+  .itl-step.rejected .itl-icon svg{color:#C23A3A;}
+  .itl-line{width:1.5px; flex:1; background:var(--line); margin:2px 0 2px 13.25px; min-height:14px;}
+  .itl-line.done{background:var(--success);}
+  .itl-body{padding-bottom:16px;}
+  .itl-body .t{font-size:12px; font-weight:600; margin:0 0 2px;}
+  .itl-body .d{font-size:10px; color:var(--muted); margin:0;}
+
+  /* ---- App topbar + greeting card ---- */
+  .app-topbar{display:flex; align-items:center; gap:9px; padding:18px 20px 0;}
+  .bracket.sm{width:26px; height:26px;}
+  .bracket.sm::before,.bracket.sm::after,.bracket.sm i::before,.bracket.sm i::after{width:9px; height:9px; border-width:0;}
+  .bracket.sm::before{border-top-width:2px; border-left-width:2px;}
+  .bracket.sm::after{border-top-width:2px; border-right-width:2px;}
+  .bracket.sm i::before{border-bottom-width:2px; border-left-width:2px;}
+  .bracket.sm i::after{border-bottom-width:2px; border-right-width:2px;}
+  .bracket.sm .mark{inset:5px;}
+  .bracket.sm .mark svg{width:14px; height:14px;}
+  .app-logo .bracket::before,.app-logo .bracket::after,.app-logo .bracket i::before,.app-logo .bracket i::after{border-color:var(--ink);}
+  .app-name{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:13px;}
+  .topbar-icons{margin-left:auto; display:flex; gap:8px;}
+  .ti-btn{width:30px; height:30px; border-radius:9px; background:var(--paper); display:flex; align-items:center; justify-content:center; position:relative;}
+  .ti-btn svg{width:15px; height:15px; color:var(--ink-soft);}
+  .ti-btn .dot{position:absolute; top:6px; right:6px; width:5px; height:5px; border-radius:50%; background:var(--accent);}
+
+  .greet-card{display:flex; align-items:center; gap:11px; background:var(--paper); border-radius:14px; margin:14px 20px 0; padding:12px 14px;}
+  .mr-header-text .g{font-size:10px; color:var(--muted); margin:0;}
+  .mr-header-text .n{font-weight:600; font-size:13px; margin:2px 0 0;}
+  .mr-header-text .m{font-size:9.5px; color:var(--muted); margin:2px 0 0; font-family:'IBM Plex Mono',monospace;}
+
+  /* ---- Formatted task cards ---- */
+  .task-card{border:1px solid var(--line); border-radius:12px; padding:11px 13px; margin:0 20px 10px;}
+  .task-card-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .task-card-top .t{font-size:12px; font-weight:600; margin:0;}
+  .tag{font-size:9px; font-weight:600; padding:3px 9px; border-radius:20px; text-transform:uppercase; letter-spacing:.02em;}
+  .tag.followup{background:var(--accent-soft); color:var(--accent);}
+  .tag.newlead{background:#DDEAFB; color:#185FA5;}
+  .task-card .d{display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--muted); margin:0;}
+  .task-card .d svg{width:12px; height:12px; flex-shrink:0;}
+
+  /* ---- Dealer/Chemist journey ---- */
+  .banner{position:relative; height:150px; margin:16px 0 0; background:var(--accent-soft); display:flex; flex-direction:column; justify-content:flex-end; padding:16px 20px;}
+  .banner-badge{display:inline-block; align-self:flex-start; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:4px 10px; border-radius:20px; background:rgba(255,255,255,.85); color:var(--accent); margin-bottom:auto;}
+  .banner .bt{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:var(--accent); line-height:1.3;}
+  .banner-dots{display:flex; gap:5px; justify-content:center; margin:9px 20px 0;}
+  .banner-dots .d{width:5px; height:5px; border-radius:50%; background:var(--line);}
+  .banner-dots .d.on{width:15px; border-radius:4px; background:var(--accent);}
+
+  .hero-scan{display:flex; align-items:center; gap:13px; background:var(--ink); border-radius:16px; margin:14px 20px 0; padding:16px;}
+  .hero-scan .ic{width:50px; height:50px; border-radius:13px; background:rgba(224,122,63,.18); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .hero-scan .ic svg{width:25px; height:25px; color:var(--accent);}
+  .hero-scan .tx{flex:1;}
+  .hero-scan .tx .t{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; color:#fff; margin:0 0 3px;}
+  .hero-scan .tx .d{font-size:11px; color:rgba(255,255,255,.6); margin:0;}
+  .hero-scan .arrow-cta{width:34px; height:34px; border-radius:50%; background:var(--accent); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .hero-scan .arrow-cta svg{width:16px; height:16px; color:#fff;}
+
+  .scan-btn{display:flex; align-items:center; justify-content:center; gap:9px; width:fit-content; margin:14px auto 0; background:var(--accent); color:#fff; border:none; border-radius:14px; padding:15px 30px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; box-shadow:0 10px 20px -8px rgba(224,122,63,.55);}
+  .scan-btn svg{width:19px; height:19px; flex-shrink:0;}
+
+  .h-scroll{display:flex; gap:10px; padding:0 20px 4px; overflow-x:auto; scrollbar-width:none;}
+  .h-scroll::-webkit-scrollbar{display:none;}
+  .scheme-mini{flex-shrink:0; width:148px; border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .scheme-mini .sb{height:54px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center;}
+  .scheme-mini .sb svg{width:20px; height:20px; color:var(--accent);}
+  .scheme-mini .sc-body{padding:9px 10px;}
+  .scheme-mini .t{font-size:11px; font-weight:600; margin:0 0 2px;}
+  .scheme-mini .d{font-size:9px; color:var(--muted); margin:0 0 8px;}
+  .scheme-mini .btn2{width:100%; text-align:center; padding:6px; border-radius:7px; font-size:9.5px; font-weight:600; background:var(--ink); color:#fff;}
+  .scheme-mini .btn2.joined{background:var(--success-soft); color:var(--success);}
+
+  .launch-mini{flex-shrink:0; width:128px; border:1px solid var(--line); border-radius:12px; overflow:hidden; position:relative;}
+  .launch-badge{position:absolute; top:7px; left:7px; font-size:8px; font-weight:700; background:var(--ink); color:#fff; padding:3px 8px; border-radius:12px; text-transform:uppercase; z-index:2;}
+  .launch-mini .li{height:68px; background:var(--paper); display:flex; align-items:center; justify-content:center;}
+  .launch-mini .li svg{width:22px; height:22px; color:var(--muted);}
+  .launch-mini .lc{padding:8px 9px;}
+  .launch-mini .t{font-size:10.5px; font-weight:600; margin:0 0 2px;}
+  .launch-mini .d{font-size:9px; color:var(--muted); margin:0;}
+
+  .pt-row{display:flex; gap:10px; padding:14px 20px 0;}
+  .pt-box{flex:1; border-radius:13px; padding:13px; background:var(--paper);}
+  .pt-box .n{font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:20px; margin:0;}
+  .pt-box .l{font-size:10px; color:var(--muted); margin:3px 0 0; font-weight:600;}
+  .pt-box.seasonal{background:var(--accent-soft);}
+  .pt-box.seasonal .n,.pt-box.seasonal .l{color:var(--accent);}
+  .pt-box .exp{font-size:9px; color:var(--accent); margin-top:3px; font-weight:600;}
+
+  .qa-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px 20px 4px;}
+  .qa-item{border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:6px;}
+  .qa-item svg{width:19px; height:19px; color:var(--accent);}
+  .qa-item span{font-size:10.5px; font-weight:600;}
+
+  .scan-view{flex:1; background:#0B1220; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative;}
+  .scan-frame{width:186px; height:186px; position:relative;}
+  .scan-frame::before,.scan-frame::after,.scan-frame i::before,.scan-frame i::after{content:''; position:absolute; width:32px; height:32px; border-color:var(--accent); border-style:solid; border-width:0;}
+  .scan-frame::before{top:0; left:0; border-top-width:3px; border-left-width:3px; border-radius:10px 0 0 0;}
+  .scan-frame::after{top:0; right:0; border-top-width:3px; border-right-width:3px; border-radius:0 10px 0 0;}
+  .scan-frame i{display:block; position:absolute; inset:0;}
+  .scan-frame i::before{bottom:0; left:0; border-bottom-width:3px; border-left-width:3px; border-radius:0 0 0 10px;}
+  .scan-frame i::after{bottom:0; right:0; border-bottom-width:3px; border-right-width:3px; border-radius:0 0 10px 0;}
+  .scan-hint{color:#fff; opacity:.65; font-size:11px; margin-top:20px;}
+  .barcode{position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:120px; height:52px; background:#fff; border-radius:4px; display:flex; align-items:center; justify-content:center; gap:2px; padding:0 8px; overflow:hidden;}
+  .barcode span{display:block; width:2px; height:34px; background:#0B1220;}
+  .barcode span:nth-child(2n){width:3px;}
+  .barcode span:nth-child(3n){width:1px;}
+  .scan-line{position:absolute; left:4px; right:4px; height:2px; background:var(--accent); top:50%; box-shadow:0 0 6px var(--accent);}
+  .success-ring.accent{background:var(--accent-soft);}
+  .success-ring.danger{background:#FBE2E2;}
+  .pt-earn-card{width:100%; border:1px solid var(--line); border-radius:14px; padding:20px; margin-bottom:16px;}
+  .pt-earn-card .n{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:26px; color:var(--accent); margin:0 0 6px;}
+  .pt-earn-card .tag{font-size:10.5px; color:var(--muted); margin:0;}
+  .scan-controls{display:flex; justify-content:space-between; align-items:center; width:100%; padding:0 34px 34px; position:absolute; bottom:0;}
+  .scan-ctrl{width:40px; height:40px; border-radius:50%; background:rgba(255,255,255,.14); display:flex; align-items:center; justify-content:center;}
+  .scan-ctrl svg{width:17px; height:17px; color:#fff;}
+  .scan-capture{width:60px; height:60px; border-radius:50%; border:3px solid #fff; display:flex; align-items:center; justify-content:center;}
+  .scan-capture i{width:48px; height:48px; border-radius:50%; background:#fff; display:block;}
+
+  .split-card{width:100%; border:1px solid var(--line); border-radius:12px; padding:0 14px; margin-bottom:16px;}
+  .split-row{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line); font-size:12px; text-align:left;}
+  .split-row:last-child{border-bottom:none;}
+  .split-row .lbl b{display:block; color:var(--ink); font-weight:500; font-size:12px;}
+  .split-row .lbl span{font-size:9.5px; color:var(--accent);}
+  .split-row .val{font-family:'IBM Plex Mono',monospace; font-weight:500; color:var(--success);}
+  .split-row.seasonal .val{color:var(--accent);}
+
+  .ledger-item{display:flex; align-items:center; gap:10px; padding:10px 20px; border-bottom:1px solid var(--line);}
+  .ledger-icon{width:34px; height:34px; border-radius:9px; background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .ledger-icon.redeem{background:#FBE2E2; color:#C23A3A;}
+  .ledger-icon svg{width:16px; height:16px; color:var(--ink-soft);}
+  .ledger-text .t{font-size:12px; font-weight:600; margin:0 0 2px;}
+  .ledger-text .d{font-size:10px; color:var(--muted); margin:0;}
+  .ledger-val{margin-left:auto; text-align:right; min-width:56px;}
+  .ledger-val .n{font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:12.5px; color:var(--success); display:block;}
+  .ledger-val .tag{display:block; font-size:8.5px; color:var(--accent); font-weight:600; margin-top:2px;}
+  .ledger-val.negative .n{color:#C23A3A;}
+  .ledger-val.negative .tag{color:#C23A3A;}
+
+  .cat-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:16px 20px;}
+  .cat-card{border:1px solid var(--line); border-radius:12px; overflow:hidden;}
+  .cat-card.locked{opacity:.5;}
+  .cat-img{height:72px; background:var(--paper); display:flex; align-items:center; justify-content:center;}
+  .cat-img svg{width:24px; height:24px; color:var(--muted);}
+  .cat-info{padding:9px 10px;}
+  .cat-info .t{font-size:11px; margin:0 0 3px;}
+  .cat-info .p{font-size:11px; font-weight:600; font-family:'IBM Plex Mono',monospace; margin:0;}
+  .cat-info .locked-txt{font-size:9px; color:var(--muted); margin:0;}
+  .cat-info .mv{font-size:9px; color:var(--muted); margin:0 0 2px;}
+  .cat-card{position:relative;}
+  .cat-discount{position:absolute; top:7px; left:7px; z-index:2; font-size:9px; font-weight:700; background:var(--accent); color:#fff; padding:3px 7px; border-radius:10px;}
+  .strike{text-decoration:line-through; color:var(--muted); font-weight:400; margin-right:3px;}
+  .search-bar{display:flex; align-items:center; gap:8px; border:1.5px solid var(--line); border-radius:10px; padding:10px 12px;}
+  .search-bar svg{width:15px; height:15px; color:var(--muted); flex-shrink:0;}
+  .search-bar input{border:none; padding:0; font-size:12px; flex:1;}
+
+  .detail-img{height:150px; background:var(--paper); display:flex; align-items:center; justify-content:center; border-radius:14px; margin:0 20px;}
+  .detail-img svg{width:44px; height:44px; color:var(--muted);}
+  .detail-body{padding:16px 20px;}
+  .detail-body .t{font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:16px; margin:0 0 6px;}
+  .detail-body .d{font-size:11.5px; color:var(--muted); line-height:1.6; margin:0 0 14px;}
+  .detail-cost{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin-bottom:16px;}
+  .detail-cost .l{font-size:11px; color:var(--muted);}
+  .detail-cost .v{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:15px;}
+
+  .addr-card{border:1px solid var(--line); border-radius:12px; padding:12px 14px; margin-bottom:16px;}
+  .addr-card .l{font-size:10px; color:var(--muted); text-transform:uppercase; font-weight:600; letter-spacing:.04em; margin:0 0 6px;}
+  .addr-card .v{font-size:12px; line-height:1.5; margin:0;}
+
+  .order-item{display:flex; align-items:center; gap:10px; padding:11px 20px; border-bottom:1px solid var(--line);}
+  .order-icon{width:34px; height:34px; border-radius:9px; background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .order-icon svg{width:16px; height:16px; color:var(--ink-soft);}
+  .order-text .t{font-size:12px; font-weight:600; margin:0 0 2px;}
+  .order-text .d{font-size:10px; color:var(--muted); margin:0;}
+  .order-card{border-bottom:1px solid var(--line); padding:11px 20px;}
+  .order-card .row1{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .order-card .row2{display:flex; align-items:center; padding-left:44px;}
+  .order-card .row2 .chip{margin-left:0;}
+  .order-card .chev{margin-left:auto;}
+  .chev{width:14px; height:14px; color:var(--muted); flex-shrink:0; margin-left:6px;}
+  .scan-detail-hero{display:flex; align-items:center; gap:12px; padding:18px 0 20px;}
+  .scan-detail-hero .t{font-weight:600; font-size:13.5px; margin:0 0 2px;}
+  .scan-detail-hero .d{font-size:10.5px; color:var(--accent); margin:0;}
+  .detail-rows{border-top:1px solid var(--line);}
+  .dr{display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--line); font-size:12px;}
+  .dr .l{color:var(--muted);}
+  .dr .v{font-weight:500; text-align:right;}
+  .dr .v.mono{font-family:'IBM Plex Mono',monospace; font-size:11px;}
+  .order-detail-hero{display:flex; align-items:center; gap:12px; padding:14px 0 18px;}
+  .order-detail-hero .t{font-weight:600; font-size:13.5px; margin:0 0 2px;}
+  .order-detail-hero .d{font-size:10.5px; color:var(--muted); margin:0;}
+
+  .scheme-card{border:1px solid var(--line); border-radius:14px; margin:0 20px 14px; overflow:hidden;}
+  .scheme-banner{height:66px; background:var(--accent-soft); display:flex; align-items:center; justify-content:center;}
+  .scheme-banner svg{width:24px; height:24px; color:var(--accent);}
+  .scheme-body{padding:12px 14px;}
+  .scheme-body .t{font-weight:600; font-size:13px; margin:0 0 3px;}
+  .scheme-body .d{font-size:10.5px; color:var(--muted); margin:0 0 10px;}
+  .scheme-btn{width:100%; text-align:center; padding:9px; border-radius:9px; font-size:11.5px; font-weight:600; background:var(--ink); color:#fff;}
+  .scheme-btn.joined{background:var(--success-soft); color:var(--success);}
+  .scheme-card.carousel-card{flex-shrink:0; width:212px; margin:0;}
+  .ad-card{position:relative;}
+  .ad-tag{position:absolute; top:8px; right:8px; z-index:2; font-size:8px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; background:rgba(15,37,64,.7); color:#fff; padding:3px 7px; border-radius:8px;}
+
+  .term-row{display:flex; gap:8px; font-size:11px; padding:7px 0; border-bottom:1px solid var(--line);}
+  .term-row svg{width:13px; height:13px; color:var(--success); flex-shrink:0; margin-top:2px;}
+
+  .tracker-card{border:1px solid var(--line); border-radius:13px; padding:13px 14px; margin:0 20px 12px;}
+  .tracker-card .top{display:flex; justify-content:space-between; margin-bottom:4px;}
+  .tracker-card .t{font-weight:600; font-size:12px;}
+  .tracker-card .pts{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:13px; color:var(--accent);}
+  .tracker-card .exp{font-size:9.5px; color:var(--muted);}
+  .scheme-row{display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--line);}
+  .scheme-row .dot{width:8px; height:8px; border-radius:50%; background:var(--line); flex-shrink:0;}
+  .scheme-row .dot.active{background:var(--success);}
+  .scheme-row .rt{flex:1;}
+  .scheme-row .rt .t{font-size:12.5px; font-weight:600; margin:0 0 2px;}
+  .scheme-row .rt .d{font-size:10px; color:var(--muted); margin:0;}
+  .sr-item{border-bottom:1px solid var(--line); padding:10px 0;}
+  .sr-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+  .sr-top .t{font-size:12px; font-weight:600; margin:0;}
+  .sr-item .d{font-size:10px; color:var(--muted); margin:0; font-family:'IBM Plex Mono',monospace;}
+
+  .goal-cards{display:flex; gap:8px; margin-bottom:18px;}
+  .goal-card{flex:1; background:var(--paper); border-radius:12px; padding:12px 8px; text-align:center;}
+  .goal-card .n{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:19px; margin:0;}
+  .goal-card .l{font-size:9px; color:var(--muted); font-weight:600; margin:4px 0 0; text-transform:uppercase; letter-spacing:.02em;}
+
+  .month-stat{display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); font-size:12px;}
+  .month-stat .m{flex:1; font-weight:500;}
+  .month-stat .n{font-family:'IBM Plex Mono',monospace; font-weight:600; color:var(--ink);}
+  .month-stat .trend{font-size:10.5px; font-weight:700; min-width:52px; text-align:right;}
+  .month-stat .trend.up{color:var(--success);}
+  .month-stat .trend.down{color:#C23A3A;}
+
+  .type-split{display:flex; gap:10px; margin-bottom:10px;}
+  .type-split-card{flex:1; border:1px solid var(--line); border-radius:12px; padding:12px; display:flex; align-items:center; gap:10px;}
+  .type-split-card .ic{width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .type-split-card.dealer .ic{background:#DCEFEF; color:#1C8C8C;}
+  .type-split-card.chemist .ic{background:#EDE5F7; color:#7C5CBF;}
+  .type-split-card .n{font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:17px; margin:0;}
+  .type-split-card .l{font-size:9.5px; color:var(--muted); margin:2px 0 0; font-weight:600;}
+  .split-bar{height:8px; border-radius:6px; overflow:hidden; display:flex;}
+  .split-bar .seg.dealer{background:#1C8C8C;}
+  .split-bar .seg.chemist{background:#7C5CBF;}
+  .split-caption{font-size:10px; color:var(--muted); margin:6px 0 4px;}
+
+  .notif-item{display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); position:relative;}
+  .notif-item.unread{background:var(--paper); margin:0 -20px; padding:12px 20px; border-bottom:1px solid var(--surface);}
+  .notif-icon{width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .notif-icon svg{width:17px; height:17px;}
+  .notif-icon.approve{background:var(--success-soft); color:var(--success);}
+  .notif-icon.reject{background:#FBE2E2; color:#C23A3A;}
+  .notif-icon.info{background:var(--accent-soft); color:var(--accent);}
+  .notif-text .t{font-size:12.5px; font-weight:600; margin:0 0 2px;}
+  .notif-text .d{font-size:10.5px; color:var(--muted); margin:0 0 4px; line-height:1.4;}
+  .notif-text .ts{font-size:9.5px; color:var(--muted); margin:0; font-family:'IBM Plex Mono',monospace;}
+
+  .profile-card{display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:14px; padding:14px; margin:14px 20px 0;}
+  .profile-avt{width:44px; height:44px; border-radius:11px; background:var(--ink); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:14px; flex-shrink:0;}
+  .profile-list{padding:16px 20px;}
+  .profile-row{display:flex; align-items:center; gap:10px; padding:11px 0; border-bottom:1px solid var(--line); font-size:12px;}
+  .profile-row svg{width:16px; height:16px; color:var(--ink-soft);}
+  .profile-row.danger{color:#C23A3A;}
+  .profile-row.danger svg{color:#C23A3A;}
+  .profile-row .chev{margin-left:auto;}
+
+  .wh-card{position:relative; border:1px solid var(--line); border-radius:14px; padding:14px 40px 14px 14px; margin-bottom:12px;}
+  .wh-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;}
+  .wh-top .t{font-weight:600; font-size:13px; margin:0;}
+  .wh-card .d{display:flex; align-items:center; gap:5px; font-size:10.5px; color:var(--muted); margin:0 0 10px;}
+  .wh-card .d svg{flex-shrink:0;}
+  .wh-stats{display:flex; gap:16px; font-size:10.5px; color:var(--muted);}
+  .wh-stats b{font-family:'IBM Plex Mono',monospace; color:var(--ink); font-weight:600;}
+  .wh-chev{position:absolute; top:50%; right:14px; transform:translateY(-50%);}
+
+  .wh-action{display:flex; align-items:center; gap:12px; border:1px solid var(--line); border-radius:13px; padding:12px 14px; margin-bottom:10px;}
+  .wh-action-icon{width:38px; height:38px; border-radius:10px; background:var(--paper); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--ink-soft);}
+  .wh-action-text{flex:1;}
+  .wh-action-text .t{font-size:12.5px; font-weight:600; margin:0 0 2px;}
+  .wh-action-text .d{font-size:10px; color:var(--muted); margin:0;}
+  .wh-action.danger .wh-action-icon{background:#FBE2E2; color:#C23A3A;}
+  .wh-action.danger .wh-action-text .t{color:#C23A3A;}
+
+  .textarea-field{width:100%; border:1.5px solid var(--line); border-radius:10px; padding:13px 14px; font-size:12.5px; font-family:'Inter',sans-serif; color:var(--ink); line-height:1.6; resize:none;}
+  .textarea-field::placeholder{color:var(--muted);}
+  .dropdown-field{display:flex; justify-content:space-between; align-items:center; width:100%; border:1.5px solid var(--line); border-radius:10px; padding:13px 14px; font-size:12.5px; color:var(--ink); background:var(--paper); margin-bottom:16px;}
+  .dropdown-field svg{color:var(--muted); flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="tabbar">
+  <div class="tabbar-inner">
+    <button class="tabbtn active" onclick="showTab('login', this)">Login journey</button>
+    <button class="tabbtn" onclick="showTab('mr', this)">MR journey</button>
+    <button class="tabbtn" onclick="showTab('dealer', this)">Dealer journey</button>
+  </div>
+</div>
+
+<!-- ============ TAB 1 — LOGIN JOURNEY ============ -->
+<div id="tab-login" class="tab-panel active">
+
+<div class="page-head">
+  <p class="eyebrow">Flow 01 — Entry</p>
+  <h1>Splash → USP carousel → Login → Secure account</h1>
+  <p class="sub">Shared by all three roles. Dealer, Chemist and MR authenticate through the same door — the role tab picked at login determines which journey the OTP routes into. Mobile entry and OTP verification are separate screens; after verification the user chooses PIN or biometric, then lands on a shared success screen before Home.</p>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="splash light-splash">
+        <div class="grad-blob blob-blue"></div>
+        <div class="grad-blob blob-orange"></div>
+        <img class="logo-raw" src="data:image/png;base64,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" alt="MedTech Life logo"/>
+        <div class="splash-word light"><span>Partner App</span></div>
+        <div class="loader light"></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">01 · Splash screen</p><p class="desc">White background with soft blurred gradient blobs in the logo's blue and the app's coral accent, plus the actual MedTech Life logo. Auto-advances after ~1.5s.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="carousel">
+        <div class="car-top"><span class="car-step">1 / 3</span><span class="skip">Skip</span></div>
+        <div class="car-art"><div class="art-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="1.6"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div></div>
+        <div class="car-body"><h3>Scan what you sell</h3><p>Every MedTech Life product carries a code. Scan it once and points land in your account automatically.</p></div>
+        <div class="dots"><span class="dot active"></span><span class="dot"></span><span class="dot"></span></div>
+        <div class="car-bottom"><button class="btn btn-primary">Next</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">02 · USP slide 1 of 3</p><p class="desc">Scan-to-earn — the core loop of the app.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="carousel">
+        <div class="car-top"><span class="car-step">2 / 3</span><span class="skip">Skip</span></div>
+        <div class="car-art"><div class="art-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="1.6"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div></div>
+        <div class="car-body"><h3>Join seasonal schemes</h3><p>Opt in to Diwali, New Year and other time-bound schemes for bonus points — tracked separately, with their own expiry.</p></div>
+        <div class="dots"><span class="dot"></span><span class="dot active"></span><span class="dot"></span></div>
+        <div class="car-bottom"><button class="btn btn-primary">Next</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">03 · USP slide 2 of 3</p><p class="desc">Seasonal schemes — time-bound bonus points.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="carousel">
+        <div class="car-top"><span class="car-step">3 / 3</span><span class="skip">&nbsp;</span></div>
+        <div class="car-art"><div class="art-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="1.6"><path d="M20 12v8H4v-8M2 7h20v5H2V7zM12 7v13M12 7c-1.5-3-6-3-6 0s4.5 3 6 0zM12 7c1.5-3 6-3 6 0s-4.5 3-6 0z"/></svg></div></div>
+        <div class="car-body"><h3>Redeem real rewards</h3><p>Trade your points for products from the gift catalog — a new pick unlocks every time your balance grows.</p></div>
+        <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot active"></span></div>
+        <div class="car-bottom"><button class="btn btn-primary">Get started</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">04 · USP slide 3 of 3</p><p class="desc">Gift catalog — the redemption payoff. Ends the carousel.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="login">
+        <div class="bracket"><i></i><div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="#0F2540" stroke-width="2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3" fill="#0F2540" stroke="none"/></svg></div></div>
+        <p class="login-title">Welcome</p>
+        <p class="login-sub">Log in to scan, earn and redeem</p>
+        <div class="tabs"><div class="tab active">Dealer</div><div class="tab">Chemist</div><div class="tab">MR</div></div>
+        <p class="field-label">Mobile number</p>
+        <div class="field">98765 43210</div>
+        <p class="hint">We'll send a one-time code to verify this number.</p>
+        <div class="login-cta"><button class="btn btn-primary">Send OTP</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">05 · Login — mobile entry</p><p class="desc">Role tab + mobile number only. OTP verification is a separate next screen.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="otp-screen">
+        <p class="back">&larr; Back</p>
+        <div class="otp-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div>
+        <p class="otp-title">Enter verification code</p>
+        <p class="otp-sub">We've sent a 4-digit code to<br><b>+91 98765 43210</b></p>
+        <div class="otp-row">
+          <div class="otp-box filled">4</div><div class="otp-box filled">2</div><div class="otp-box filled">9</div><div class="otp-box cursor">·</div>
+        </div>
+        <p class="resend">Resend code <span>in 0:24</span></p>
+        <div class="otp-cta"><button class="btn btn-primary">Verify</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">06 · OTP verification</p><p class="desc">Dedicated screen. Shows the number being verified, resend timer, and a back option to edit it.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="success">
+        <div class="success-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div>
+        <p class="success-title">OTP verified</p>
+        <p class="success-sub">Your number has been confirmed.</p>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">06b · OTP verified</p><p class="desc">Brief confirmation between OTP entry and security setup — auto-advances to the next screen after a moment.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="choose">
+        <p class="choose-title">Secure your account</p>
+        <p class="choose-sub">Choose how you'd like to log in next time. You can change this later from Profile.</p>
+        <div class="opt selected">
+          <div class="opt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="2"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 018 0v3"/></svg></div>
+          <div class="opt-text"><p class="t">PIN</p><p class="d">Set a 4-digit code</p></div>
+          <div class="radio on"></div>
+        </div>
+        <div class="opt">
+          <div class="opt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="9" cy="10" r="1" fill="#E07A3F" stroke="none"/><circle cx="15" cy="10" r="1" fill="#E07A3F" stroke="none"/><path d="M9 15c1 1 5 1 6 0"/></svg></div>
+          <div class="opt-text"><p class="t">Biometric</p><p class="d">Face unlock, using your device</p></div>
+          <div class="radio"></div>
+        </div>
+        <div class="choose-cta"><button class="btn btn-primary">Continue</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">07 · Choose security method</p><p class="desc">Either path is valid — selecting one branches into the matching setup screen below.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">Branches from step 07</p>
+  <h2>Setup completes down one of two paths, then converges</h2>
+  <p>Whichever method is selected on the previous screen leads to its own setup screen. Both paths land on the same success screen before Home.</p>
+</div>
+
+<div class="branch-row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="pin">
+        <p class="pin-title">Set your PIN</p>
+        <p class="pin-sub">Enter a 4-digit code</p>
+        <div class="pin-dots">
+          <div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot filled"></div><div class="pin-dot"></div>
+        </div>
+        <div class="keypad">
+          <div class="key">1</div><div class="key">2</div><div class="key">3</div>
+          <div class="key">4</div><div class="key">5</div><div class="key">6</div>
+          <div class="key">7</div><div class="key">8</div><div class="key">9</div>
+          <div class="key ghost"></div><div class="key">0</div><div class="key ghost">&#9003;</div>
+        </div>
+        <p class="bio-alt">Set up Face ID instead</p>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">07a · PIN setup</p><p class="desc">Shown if PIN was selected. Confirms with a second entry, then continues. "Set up Face ID instead" mirrors the fallback link on 07b.</p></div>
+  </div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="bio">
+        <p class="bio-title">Set up Face unlock</p>
+        <p class="bio-sub">Use your device's face recognition instead of a PIN</p>
+        <div class="bio-ring"><div class="bio-ring-inner"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="9" cy="10" r="1" fill="#E07A3F" stroke="none"/><circle cx="15" cy="10" r="1" fill="#E07A3F" stroke="none"/><path d="M9 15c1 1 5 1 6 0"/></svg></div></div>
+        <p class="bio-status">WAITING FOR DEVICE PROMPT&hellip;</p>
+        <p class="bio-alt">Set up a PIN instead</p>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">07b · Face unlock setup</p><p class="desc">Shown if Biometric was selected. Triggers the OS-native Face ID prompt; falls back to PIN if unsupported.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="success">
+        <div class="success-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div>
+        <p class="success-title">You're all set</p>
+        <p class="success-sub">Your <b>Dealer</b> account for<br><b>Sharma Medical Store</b> is ready.<br>Start scanning to earn your first points.</p>
+        <button class="btn btn-primary">Go to Home</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">08 · Onboarding complete</p><p class="desc">Reached from either 07a or 07b. Single convergence point before the role's Home/Dashboard.</p></div>
+  </div>
+
+</div>
+
+</div>
+
+<!-- ============ TAB 2 — MR JOURNEY ============ -->
+<div id="tab-mr" class="tab-panel">
+
+<div class="page-head">
+  <p class="eyebrow">Flow 02 — MR journey</p>
+  <h1>Dashboard → onboard a new partner → status tracking</h1>
+  <p class="sub">The dashboard carries a header (MR name, ID, zone) and a footer nav, since it's the MR's home base. Onboarded/pending are the only two stats, color-coded; onboarding is a three-step editable wizard; submission ends on a nudge toward the monthly target instead of a flat confirmation; and the tracker uses an icon timeline with a partner summary card.</p>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="mr-shell">
+        <div class="app-topbar">
+          <div class="topbar-icons">
+            <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+            <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot"></span></div>
+          </div>
+        </div>
+
+        <div class="greet-card">
+          <div class="mr-avatar">RV</div>
+          <div class="mr-header-text"><p class="g">Good afternoon</p><p class="n">Rohit Verma</p><p class="m">ID: MR-2049 &middot; Zone: Mumbai West</p></div>
+        </div>
+
+        <div class="mr-body">
+          <div class="mr-stats">
+            <div class="stat-box onboarded"><p class="n">18</p><p class="l">Onboarded</p></div>
+            <div class="stat-box pending"><p class="n">3</p><p class="l">Pending approval</p></div>
+          </div>
+          <div class="mr-cta">+ &nbsp;Onboard new partner</div>
+
+          <div class="mr-section-head"><span class="t">Today's tasks</span><div class="seg"><span class="seg-btn active">Dealer</span><span class="seg-btn">Chemist</span></div></div>
+          <div class="task-card">
+            <div class="task-card-top"><p class="t">Patel Distributors</p><span class="tag followup">Follow-up</span></div>
+            <p class="d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z"/></svg>Vashi &middot; awaiting GST copy</p>
+          </div>
+          <div class="task-card">
+            <div class="task-card-top"><p class="t">Kher Traders</p><span class="tag newlead">New lead</span></div>
+            <p class="d"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>Bandra &middot; 3:00 PM visit</p>
+          </div>
+
+          <div class="mr-section-head"><span class="t">Recent activity</span></div>
+          <div class="filter-row">
+            <span class="filter-pill active">All</span><span class="filter-pill">Approved</span><span class="filter-pill">In review</span><span class="filter-pill">Rejected</span>
+          </div>
+          <div class="mr-item" style="padding:9px 20px"><div class="mr-item-text"><span class="type-tag chemist">Chemist</span><p class="t">Sharma Medical Store</p><p class="d">Andheri East</p></div><span class="chip approved">Approved</span></div>
+          <div class="mr-item" style="padding:9px 20px"><div class="mr-item-text"><span class="type-tag chemist">Chemist</span><p class="t">Gupta Pharma</p><p class="d">Thane</p></div><span class="chip rejected">Rejected</span></div>
+        </div>
+
+        <div class="footer-nav">
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6"/></svg></div>Partners</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>Activity</div>
+          <div class="fn-item active"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div>Home</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L4 6v6c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6l-8-4z"/><path d="M9 12l2 2 4-4"/></svg></div>Goal</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">01 · MR dashboard</p><p class="desc">Consistent app topbar (logo, search, alerts) sits above a separate greeting card for the MR's own details, so the two never compete. Today's tasks are cards tagged Follow-up or New lead.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="type-pick">
+        <p class="type-title">Who are you onboarding?</p>
+        <p class="type-sub">This sets the fields and labels on the next screens</p>
+        <div class="type-card selected">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="1.8"><path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6"/></svg>
+          <p class="t">Dealer</p><p class="d">Warehouse-based distributor</p>
+        </div>
+        <div class="type-card">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="1.8"><path d="M4 10V6a2 2 0 012-2h12a2 2 0 012 2v4M3 10h18l-1 10H4L3 10z"/></svg>
+          <p class="t">Chemist</p><p class="d">Retail shop-based buyer</p>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">02 · Partner type</p><p class="desc">Dealer or Chemist — drives "Warehouse" vs "Shop" labels downstream.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="form-title">Basic details</p>
+        <div class="stepper"><div class="step-seg current"></div><div class="step-seg"></div><div class="step-seg"></div></div>
+        <p class="stepper-label">Step <b>1 of 3</b> &middot; Chemist &middot; every step stays editable until you submit</p>
+        <p class="form-section first">Business info</p>
+        <div class="form-field"><p class="fl">Shop name</p><div class="fv">Sharma Medical Store</div></div>
+        <div class="form-field"><p class="fl">Owner name</p><div class="fv">Anil Sharma</div></div>
+        <p class="form-section">Contact &amp; compliance</p>
+        <div class="form-field"><p class="fl">Phone number</p><div class="fv fv-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><path d="M22 16.9v3a2 2 0 01-2.2 2 19.8 19.8 0 01-8.6-3.1 19.5 19.5 0 01-6-6A19.8 19.8 0 012.1 4.2 2 2 0 014.1 2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2.1L8 9.7a16 16 0 006 6l1.2-1.2a2 2 0 012.1-.5c.9.3 1.8.5 2.7.6a2 2 0 011.7 2z"/></svg>98765 43210</div></div>
+        <div class="form-field"><p class="fl">GST number</p><div class="fv">27ABCDE1234F1Z5</div></div>
+        <div class="form-field"><p class="fl">Drug license no.</p><div class="fv">MH-DL-88213</div></div>
+        <div style="margin-top:auto"><button class="btn btn-primary">Continue</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">03 · Basic details form</p><p class="desc">Scrollable form. Full field list: name, contact, address, GST, license, business type.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="doc-screen">
+        <p class="form-title">Upload documents</p>
+        <div class="stepper"><div class="step-seg done"></div><div class="step-seg current"></div><div class="step-seg"></div></div>
+        <p class="stepper-label" style="margin-bottom:18px">Step <b>2 of 3</b> &middot; tap "Basic details" below to go back and edit</p>
+        <div class="doc-tile done">
+          <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div>
+          <div class="doc-text"><p class="t">GST certificate</p><p class="d">gst_cert.pdf</p></div>
+          <div class="doc-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+        </div>
+        <div class="doc-tile done">
+          <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div>
+          <div class="doc-text"><p class="t">Drug license</p><p class="d">license_copy.jpg</p></div>
+          <div class="doc-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></div>
+        </div>
+        <div class="doc-tile">
+          <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+          <div class="doc-text"><p class="t">Shop photo</p><p class="d">Tap to capture</p></div>
+        </div>
+        <div class="doc-tile">
+          <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+          <div class="doc-text"><p class="t">Owner ID proof</p><p class="d">Tap to upload</p></div>
+        </div>
+        <div style="margin-top:auto; padding-top:8px"><button class="btn btn-primary">Continue</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">04 · Document upload</p><p class="desc">Camera capture or gallery. Completed tiles turn green with a checkmark.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="map-screen">
+        <div class="map-canvas">
+          <div class="map-accuracy"></div>
+          <div class="map-pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z"/></svg></div>
+        </div>
+        <div class="map-panel">
+          <div class="stepper"><div class="step-seg done"></div><div class="step-seg done"></div><div class="step-seg current"></div></div>
+          <p class="stepper-label" style="margin-bottom:10px">Step <b>3 of 3</b> &middot; final step before review</p>
+          <span class="map-badge">&#9679;&nbsp; GPS accuracy: 6m</span>
+          <p class="map-title">Confirm shop location</p>
+          <p class="map-sub">Capture must happen on-site. Manual pin adjustment is limited to a small radius.</p>
+          <button class="btn btn-primary">Lock this location</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">05 · Location mapping</p><p class="desc">Step 3 of 3. Auto-GPS with accuracy radius; geo-lock is required before proceeding.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="review-screen">
+        <p class="form-title">Review &amp; submit</p>
+        <p class="form-sub" style="margin-bottom:18px">Check everything before sending for approval</p>
+        <div class="rev-block">
+          <div class="h"><span class="t">Basic details</span><span class="e">Edit</span></div>
+          <p class="v">Sharma Medical Store<br><span>Anil Sharma · 98765 43210</span></p>
+        </div>
+        <div class="rev-block">
+          <div class="h"><span class="t">Documents · 4 of 4</span><span class="e">Edit</span></div>
+          <div class="rev-check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>GST certificate<span>gst_cert.pdf</span></div>
+          <div class="rev-check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>Drug license<span>license_copy.jpg</span></div>
+          <div class="rev-check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>Shop photo<span>shop_front.jpg</span></div>
+          <div class="rev-check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>Owner ID proof<span>aadhaar.pdf</span></div>
+        </div>
+        <div class="rev-block">
+          <div class="h"><span class="t">Call details</span><span class="e">Edit</span></div>
+          <div class="rev-check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>98765 43210 verified<span>Anil Sharma</span></div>
+        </div>
+        <div class="rev-block">
+          <div class="h"><span class="t">Location tagging</span><span class="e">Edit</span></div>
+          <div class="rev-check-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>Andheri East, Mumbai<span>6m accuracy</span></div>
+        </div>
+        <div class="confirm-row"><div class="cb"></div><span>I confirm these details were verified on-site.</span></div>
+        <div style="margin-top:auto"><button class="btn btn-primary">Submit for approval</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">06 · Review &amp; submit</p><p class="desc">Summary of all sections with edit links, plus an on-site verification checkbox.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="nudge">
+        <div class="success-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div>
+        <p class="success-title">Nice work, Rohit</p>
+        <p class="success-sub">Sharma Medical Store is sent for approval.<br><b>Tracking ID: MTL-20493</b></p>
+        <div class="nudge-stat">
+          <div class="row2"><span>This month</span><b>19 partners</b></div>
+          <div class="progress-track"><div class="progress-fill"></div></div>
+        </div>
+        <div class="nudge-actions">
+          <button class="btn mr-cta" style="margin:0 0 0">+ &nbsp;Onboard another partner</button>
+          <button class="btn btn-ghost2">View status</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">07 · Submission nudge</p><p class="desc">Tracking ID plus a progress nudge toward the MR's monthly target — encourages the next onboarding right away.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-screen">
+        <p class="form-title">Status tracker</p>
+        <p class="form-sub" style="margin-bottom:18px">Chemist onboarding</p>
+        <div class="status-card2">
+          <div class="avt">GP</div>
+          <div class="info"><p class="n">Gupta Pharma</p><p class="m">Chemist &middot; Thane</p></div>
+          <span class="chip rejected">Rejected</span>
+        </div>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div><div class="itl-line done"></div></div>
+          <div class="itl-body"><p class="t">Submitted</p><p class="d">14 Aug, 11:20 AM</p></div>
+        </div>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div><div class="itl-line done"></div></div>
+          <div class="itl-body"><p class="t">Under review</p><p class="d">14 Aug, 3:45 PM</p></div>
+        </div>
+        <div class="itl-step rejected">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6L6 18"/></svg></div></div>
+          <div class="itl-body"><p class="t">Rejected</p><p class="d">15 Aug, 10:02 AM</p></div>
+        </div>
+        <div class="status-msg reject">
+          <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+          <p class="mt">Reason for rejection</p>
+          <p class="mb">Drug license image is blurred and unreadable. Please re-upload a clear copy.</p>
+        </div>
+        <div style="margin-top:auto"><button class="btn btn-primary">Edit &amp; resubmit</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">08 · Status tracker — rejected</p><p class="desc">Partner summary card plus an icon-based timeline. Rejection reason renders as a proper formatted message, not a plain line, and routes into edit &amp; resubmit.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="status-screen">
+        <p class="form-title">Status tracker</p>
+        <p class="form-sub" style="margin-bottom:18px">Dealer onboarding</p>
+        <div class="status-card2">
+          <div class="avt" style="background:var(--success-soft); color:var(--success)">PD</div>
+          <div class="info"><p class="n">Patel Distributors</p><p class="m">Dealer &middot; Vashi</p></div>
+          <span class="chip approved">Approved</span>
+        </div>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div><div class="itl-line done"></div></div>
+          <div class="itl-body"><p class="t">Submitted</p><p class="d">12 Aug, 10:05 AM</p></div>
+        </div>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div><div class="itl-line done"></div></div>
+          <div class="itl-body"><p class="t">Under review</p><p class="d">12 Aug, 4:30 PM</p></div>
+        </div>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div></div>
+          <div class="itl-body"><p class="t">Approved</p><p class="d">13 Aug, 9:15 AM</p></div>
+        </div>
+        <div class="status-msg approve">
+          <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 13l4 4L19 7"/></svg></div>
+          <p class="mt">Partner is live</p>
+          <p class="mb">Patel Distributors can now log in and start scanning products to earn points.</p>
+        </div>
+        <div style="margin-top:auto"><button class="btn btn-primary">Back to dashboard</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">08b · Status tracker — approved</p><p class="desc">Same layout, success case. A matching formatted message confirms the partner is live rather than leaving the timeline to speak for itself.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">From footer nav</p>
+  <h2>Partners → Activity → Goal</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to dashboard</p>
+        <p class="form-title">Partners</p>
+        <p class="form-sub" style="margin-bottom:14px">Everyone you've onboarded so far</p>
+        <div class="tabs" style="margin-bottom:14px"><div class="tab active">Dealer</div><div class="tab">Chemist</div></div>
+        <div class="mr-item"><div class="mr-item-text"><span class="type-tag dealer">Dealer</span><p class="t">Patel Distributors</p><p class="d">Vashi &middot; onboarded 12 Aug</p></div><span class="chip approved">Approved</span></div>
+        <div class="mr-item"><div class="mr-item-text"><span class="type-tag dealer">Dealer</span><p class="t">Kher Traders</p><p class="d">Bandra &middot; onboarded 20 Aug</p></div><span class="chip pending">Under review</span></div>
+        <div class="mr-item"><div class="mr-item-text"><span class="type-tag dealer">Dealer</span><p class="t">Mehta Surgicals</p><p class="d">Powai &middot; onboarded 5 Aug</p></div><span class="chip approved">Approved</span></div>
+        <div class="mr-item"><div class="mr-item-text"><span class="type-tag dealer">Dealer</span><p class="t">Raheja Distributors</p><p class="d">Malad &middot; onboarded 28 Jul</p></div><span class="chip approved">Approved</span></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">09 · Partners</p><p class="desc">Full listing behind the footer nav's "Partners" icon, filterable by Dealer/Chemist — same list-item styling as the dashboard preview, just complete.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen" style="padding-left:0; padding-right:0">
+        <div style="padding:0 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:4px">
+          <p class="back" style="margin:0">&larr; Back to dashboard</p>
+          <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+        </div>
+        <p class="form-title" style="padding:0 20px">Activity</p>
+        <p class="form-sub" style="padding:0 20px; margin-bottom:12px">All submissions, across every partner</p>
+        <div class="filter-row" style="padding:0 20px 12px"><span class="filter-pill active">All</span><span class="filter-pill">Approved</span><span class="filter-pill">In review</span><span class="filter-pill">Rejected</span></div>
+        <div class="mr-item" style="padding:9px 20px"><div class="mr-item-text"><span class="type-tag chemist">Chemist</span><p class="t">Sharma Medical Store</p><p class="d">Andheri East &middot; 22 Aug</p></div><span class="chip approved">Approved</span></div>
+        <div class="mr-item" style="padding:9px 20px"><div class="mr-item-text"><span class="type-tag chemist">Chemist</span><p class="t">Gupta Pharma</p><p class="d">Thane &middot; 15 Aug</p></div><span class="chip rejected">Rejected</span></div>
+        <div class="mr-item" style="padding:9px 20px"><div class="mr-item-text"><span class="type-tag dealer">Dealer</span><p class="t">Kher Traders</p><p class="d">Bandra &middot; 20 Aug</p></div><span class="chip pending">Under review</span></div>
+        <div class="mr-item" style="padding:9px 20px"><div class="mr-item-text"><span class="type-tag dealer">Dealer</span><p class="t">Patel Distributors</p><p class="d">Vashi &middot; 12 Aug</p></div><span class="chip approved">Approved</span></div>
+        <div class="mr-item" style="padding:9px 20px"><div class="mr-item-text"><span class="type-tag dealer">Dealer</span><p class="t">Mehta Surgicals</p><p class="d">Powai &middot; 5 Aug</p></div><span class="chip approved">Approved</span></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">10 · Activity</p><p class="desc">Same recent-activity component as the dashboard, expanded into a full log. The filter icon opens the panel on the right.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="flyout-scrim">
+        <div class="flyout-panel">
+          <div class="flyout-handle"></div>
+          <p class="form-title" style="margin-bottom:2px">Filter activity</p>
+          <p class="form-sub" style="margin-bottom:16px">Narrow down by partner type or date</p>
+          <p class="form-section first">Partner type</p>
+          <div class="fv" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">All partners<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <p class="form-section">Date range</p>
+          <div style="display:flex; gap:10px; margin-bottom:8px">
+            <div class="fv" style="flex:1">From</div>
+            <div class="fv" style="flex:1">To</div>
+          </div>
+          <p class="form-section">Status</p>
+          <div class="filter-row" style="padding:0 0 20px">
+            <span class="filter-pill active">All</span><span class="filter-pill">Approved</span><span class="filter-pill">In review</span><span class="filter-pill">Rejected</span>
+          </div>
+          <button class="btn btn-primary">Apply filters</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">10a · Activity filter</p><p class="desc">Identical bottom-sheet pattern to the Dealer journey's 04a filter — partner type, date range, and status.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to dashboard</p>
+        <p class="form-title">Goal</p>
+        <p class="form-sub" style="margin-bottom:14px">Onboarding totals</p>
+        <div class="goal-cards">
+          <div class="goal-card"><p class="n">19</p><p class="l">This month</p></div>
+          <div class="goal-card"><p class="n">142</p><p class="l">This year</p></div>
+          <div class="goal-card"><p class="n">312</p><p class="l">All time</p></div>
+        </div>
+        <p class="form-section first">By partner type</p>
+        <div class="type-split">
+          <div class="type-split-card dealer">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V8l9-5 9 5v13M3 21h18M9 21v-6h6v6"/></svg></div>
+            <div><p class="n">11</p><p class="l">Dealer</p></div>
+          </div>
+          <div class="type-split-card chemist">
+            <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10V6a2 2 0 012-2h12a2 2 0 012 2v4M3 10h18l-1 10H4L3 10z"/></svg></div>
+            <div><p class="n">8</p><p class="l">Chemist</p></div>
+          </div>
+        </div>
+        <div class="split-bar"><div class="seg dealer" style="width:58%"></div><div class="seg chemist" style="width:42%"></div></div>
+        <p class="split-caption">58% Dealer &middot; 42% Chemist</p>
+        <p class="form-section">Past months</p>
+        <div class="month-stat"><span class="m">August 2026</span><span class="n">19</span><span class="trend up">&#9650; 6%</span></div>
+        <div class="month-stat"><span class="m">July 2026</span><span class="n">22</span><span class="trend up">&#9650; 22%</span></div>
+        <div class="month-stat"><span class="m">June 2026</span><span class="n">18</span><span class="trend down">&#9660; 14%</span></div>
+        <div class="month-stat"><span class="m">May 2026</span><span class="n">21</span><span class="trend up">&#9650; 5%</span></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">11 · Goal</p><p class="desc">Three totals up top (month, year, all-time) instead of a single target bar. Past months show raw counts with a percentage change vs the prior month, not a met/missed judgment.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">Also from Dashboard</p>
+  <h2>Notifications</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to dashboard</p>
+        <p class="form-title">Notifications</p>
+        <p class="form-sub" style="margin-bottom:16px">Today</p>
+        <div class="notif-item unread">
+          <div class="notif-icon reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></div>
+          <div class="notif-text"><p class="t">Gupta Pharma was rejected</p><p class="d">Drug license image unreadable — tap to edit &amp; resubmit</p><p class="ts">10:02 AM</p></div>
+        </div>
+        <div class="notif-item unread">
+          <div class="notif-icon approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 13l4 4L19 7"/></svg></div>
+          <div class="notif-text"><p class="t">Patel Distributors approved</p><p class="d">Your onboarding submission is now live</p><p class="ts">9:15 AM</p></div>
+        </div>
+        <p class="form-sub" style="margin:18px 0 12px">Earlier</p>
+        <div class="notif-item">
+          <div class="notif-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>
+          <div class="notif-text"><p class="t">Monthly target achieved</p><p class="d">This month you have achieved 20 partner onboardings — great work!</p><p class="ts">Yesterday, 6:00 PM</p></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M12 18v-6M9 15h6"/></svg></div>
+          <div class="notif-text"><p class="t">Document reupload needed</p><p class="d">Gupta Pharma's drug license needs a clearer copy before resubmission</p><p class="ts">Yesterday, 2:30 PM</p></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg></div>
+          <div class="notif-text"><p class="t">Sharma Medical Store under review</p><p class="d">Admin has started reviewing this submission</p><p class="ts">18 Aug, 3:45 PM</p></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12 · Notifications</p><p class="desc">Approval/rejection updates, monthly achievement, document reupload prompts, and status changes — grouped by day, unread items highlighted.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to notifications</p>
+        <p class="form-title">Reupload document</p>
+        <p class="form-sub" style="margin-bottom:16px">Gupta Pharma &middot; Drug license</p>
+        <div class="status-msg reject" style="width:100%; margin-bottom:18px">
+          <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+          <p class="mt">Previous upload rejected</p>
+          <p class="mb">Drug license image is blurred and unreadable. Please upload a clear, well-lit copy.</p>
+        </div>
+        <p class="form-section first">Current file</p>
+        <div class="doc-tile" style="margin-bottom:16px">
+          <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#C23A3A" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg></div>
+          <div class="doc-text"><p class="t">license_copy.jpg</p><p class="d">Rejected &middot; unreadable</p></div>
+        </div>
+        <p class="form-section">Upload new copy</p>
+        <div class="doc-tile" style="margin-bottom:20px">
+          <div class="doc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="1.8"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg></div>
+          <div class="doc-text"><p class="t">Drug license</p><p class="d">Tap to capture or upload</p></div>
+        </div>
+        <button class="btn btn-primary">Resubmit document</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12b · Reupload document</p><p class="desc">Reached from the notification or the rejected partner's status tracker. Shows the rejected file for reference alongside the fresh upload slot.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="success">
+        <div class="success-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div>
+        <p class="success-title">Resubmitted</p>
+        <p class="success-sub">Gupta Pharma's drug license has been resent for approval.<br><b>Tracking ID: MTL-20493</b></p>
+        <button class="btn btn-primary">Back to dashboard</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12c · Resubmission confirmed</p><p class="desc">The missing success state after "Resubmit document" — confirms the corrected file was sent back for review, same tracking ID as the original submission.</p></div>
+  </div>
+
+</div>
+
+</div>
+
+
+<!-- ============ TAB 3 — DEALER / CHEMIST JOURNEY ============ -->
+<div id="tab-dealer" class="tab-panel">
+
+<div class="page-head">
+  <p class="eyebrow">Flow 03 — Dealer / Chemist journey</p>
+  <h1>Home → scan to earn → catalog, schemes, redemptions</h1>
+  <p class="sub">Same app chrome as the MR journey: a fixed topbar (logo, search, alerts) and a bottom nav with Home always in the same visual slot. Home is the hub — Scan, Catalog and Seasonal schemes are its three spokes, each shown below as its own short flow.</p>
+</div>
+
+<div class="branch-head" style="margin-top:0">
+  <p class="eyebrow">Spoke 1</p>
+  <h2>Home → scan → points earned → ledger</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="mr-shell">
+        <div class="app-topbar">
+          <div class="topbar-icons">
+            <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+            <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot"></span></div>
+          </div>
+        </div>
+
+        <div class="greet-card">
+          <div class="mr-avatar">PD</div>
+          <div class="mr-header-text"><p class="g">Good afternoon</p><p class="n">Patel Distributors</p><p class="m">Dealer &middot; Vashi</p></div>
+        </div>
+
+        <div class="mr-body">
+          <div class="banner">
+            <span class="banner-badge">Running scheme</span>
+            <span class="bt">Buy 10, get 2 free — this week only</span>
+          </div>
+          <div class="banner-dots"><span class="d on"></span><span class="d"></span><span class="d"></span></div>
+
+          <button class="scan-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg>
+            Scan product
+          </button>
+
+          <div class="pt-row">
+            <div class="pt-box"><p class="n">4,280</p><p class="l">Regular points</p></div>
+            <div class="pt-box seasonal"><p class="n">960</p><p class="l">Seasonal points</p><p class="exp">Expires in 12 days</p></div>
+          </div>
+
+          <div class="mr-section-head"><span class="t">Recent scans</span><span class="link">View all</span></div>
+          <div class="ledger-item" style="padding:9px 20px"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">BP Monitor X200</p><p class="d">Today, 2:14 PM</p></div><div class="ledger-val"><span class="n">+50</span><span class="tag">Regular</span></div></div>
+          <div class="ledger-item" style="padding:9px 20px"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Digital Thermometer</p><p class="d">Yesterday, 11:02 AM</p></div><div class="ledger-val"><span class="n">+20</span><span class="tag">Seasonal</span></div></div>
+
+          <div class="mr-section-head"><span class="t">Seasonal schemes</span><span class="link">View all</span></div>
+          <div class="h-scroll">
+            <div class="scheme-card carousel-card">
+              <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
+              <div class="scheme-body"><p class="t">Diwali Dhamaka</p><p class="d">Till 30 Oct &middot; bonus points</p><div class="scheme-btn joined">Joined</div></div>
+            </div>
+            <div class="scheme-card carousel-card">
+              <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div>
+              <div class="scheme-body"><p class="t">New Year Bonanza</p><p class="d">1&ndash;31 Jan &middot; double points</p><div class="scheme-btn">I'm interested</div></div>
+            </div>
+            <div class="scheme-card carousel-card ad-card">
+              <span class="ad-tag">Ad</span>
+              <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z"/></svg></div>
+              <div class="scheme-body"><p class="t">Nebulizer Mini</p><p class="d">Now available in your area</p><div class="scheme-btn">View product</div></div>
+            </div>
+          </div>
+
+          <div class="mr-section-head"><span class="t">New launches</span><span class="link">View all</span></div>
+          <div class="h-scroll" style="padding-bottom:16px">
+            <div class="launch-mini"><span class="launch-badge">New</span><div class="li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg></div><div class="lc"><p class="t">Pulse Oximeter Pro</p><p class="d">Launched this week</p></div></div>
+            <div class="launch-mini"><span class="launch-badge">New</span><div class="li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z"/></svg></div><div class="lc"><p class="t">Nebulizer Mini</p><p class="d">Compact &amp; portable</p></div></div>
+          </div>
+        </div>
+
+        <div class="footer-nav">
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/></svg></div>My points</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>Schemes</div>
+          <div class="fn-item active"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div>Home</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-8H4v8M2 7h20v5H2V7zM12 7v13M12 7c-1.5-3-6-3-6 0s4.5 3 6 0zM12 7c1.5-3 6-3 6 0s-4.5 3-6 0z"/></svg></div>Gift</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>Activity</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">01 · Home</p><p class="desc">Banner now runs full-bleed edge to edge. Footer nav has Home centered and active. Scheme carousel (styled like screen 09) includes one ad card mixed in alongside the actual schemes.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="mr-shell">
+        <div class="app-topbar">
+          <div class="topbar-icons">
+            <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></div>
+            <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg><span class="dot"></span></div>
+          </div>
+        </div>
+
+        <div class="greet-card">
+          <div class="mr-avatar">PD</div>
+          <div class="mr-header-text"><p class="g">Good afternoon</p><p class="n">Patel Distributors</p><p class="m">Dealer &middot; Vashi</p></div>
+        </div>
+
+        <div class="mr-body">
+          <div class="banner">
+            <span class="banner-badge">New launch</span>
+            <span class="bt">Introducing Pulse Oximeter Pro</span>
+          </div>
+          <div class="banner-dots"><span class="d"></span><span class="d"></span><span class="d on"></span></div>
+
+          <button class="scan-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg>
+            Scan product
+          </button>
+
+          <div class="pt-row">
+            <div class="pt-box"><p class="n">4,280</p><p class="l">Regular points</p></div>
+            <div class="pt-box seasonal"><p class="n">960</p><p class="l">Seasonal points</p><p class="exp">Expires in 12 days</p></div>
+          </div>
+
+          <div class="mr-section-head"><span class="t">Recent scans</span><span class="link">View all</span></div>
+          <div class="ledger-item" style="padding:9px 20px"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">BP Monitor X200</p><p class="d">Today, 2:14 PM</p></div><div class="ledger-val"><span class="n">+50</span><span class="tag">Regular</span></div></div>
+          <div class="ledger-item" style="padding:9px 20px"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Digital Thermometer</p><p class="d">Yesterday, 11:02 AM</p></div><div class="ledger-val"><span class="n">+20</span><span class="tag">Seasonal</span></div></div>
+
+          <div class="mr-section-head"><span class="t">Seasonal schemes</span><span class="link">View all</span></div>
+          <div class="h-scroll">
+            <div class="scheme-card carousel-card">
+              <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
+              <div class="scheme-body"><p class="t">Diwali Dhamaka</p><p class="d">Till 30 Oct &middot; bonus points</p><div class="scheme-btn joined">Joined</div></div>
+            </div>
+            <div class="scheme-card carousel-card">
+              <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div>
+              <div class="scheme-body"><p class="t">New Year Bonanza</p><p class="d">1&ndash;31 Jan &middot; double points</p><div class="scheme-btn">I'm interested</div></div>
+            </div>
+            <div class="scheme-card carousel-card ad-card">
+              <span class="ad-tag">Ad</span>
+              <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z"/></svg></div>
+              <div class="scheme-body"><p class="t">Nebulizer Mini</p><p class="d">Now available in your area</p><div class="scheme-btn">View product</div></div>
+            </div>
+          </div>
+
+          <div class="mr-section-head"><span class="t">New launches</span><span class="link">View all</span></div>
+          <div class="h-scroll" style="padding-bottom:16px">
+            <div class="launch-mini"><span class="launch-badge">New</span><div class="li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg></div><div class="lc"><p class="t">Pulse Oximeter Pro</p><p class="d">Launched this week</p></div></div>
+            <div class="launch-mini"><span class="launch-badge">New</span><div class="li"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z"/></svg></div><div class="lc"><p class="t">Nebulizer Mini</p><p class="d">Compact &amp; portable</p></div></div>
+          </div>
+        </div>
+
+        <div class="footer-nav">
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3"/></svg></div>My points</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>Schemes</div>
+          <div class="fn-item active"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8M5 10v10h14V10"/></svg></div>Home</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-8H4v8M2 7h20v5H2V7zM12 7v13M12 7c-1.5-3-6-3-6 0s4.5 3 6 0zM12 7c1.5-3 6-3 6 0s-4.5 3-6 0z"/></svg></div>Gift</div>
+          <div class="fn-item"><div class="fn-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div>Activity</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">01a · Home — new launch banner variant</p><p class="desc">Identical to 01 in every way — only the banner slide is swapped to show the new-launch ad state instead of the running-scheme promo.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="scan-view">
+        <div class="scan-frame">
+          <i></i>
+          <div class="barcode">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+            <div class="scan-line"></div>
+          </div>
+        </div>
+        <p class="scan-hint">Align the product code within the frame</p>
+        <div class="scan-controls">
+          <div class="scan-ctrl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div>
+          <div class="scan-capture"><i></i></div>
+          <div class="scan-ctrl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">02 · Scan product</p><p class="desc">Barcode renders centered inside the frame as it's captured, with a scan line sweeping across it. Flash toggle and gallery-upload fallback either side of capture.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="success">
+        <div class="success-ring accent"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div>
+        <p class="success-title">Seasonal points added</p>
+        <p class="success-sub">MedTech BP Monitor — Model X200</p>
+        <div class="pt-earn-card">
+          <p class="n">+70 pts</p>
+          <p class="tag">Diwali Dhamaka &middot; expires 30 Oct</p>
+        </div>
+        <button class="btn btn-primary">Scan another</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">03 · Points earned</p><p class="desc">Only one bucket shows per scan — regular or seasonal, never both — since a qualifying product during an active scheme earns seasonal points instead of regular, not in addition.</p></div>
+  </div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="success">
+        <div class="success-ring danger"><svg viewBox="0 0 24 24" fill="none" stroke="#C23A3A" stroke-width="2.4"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+        <p class="success-title">Code already scanned</p>
+        <p class="success-sub">MedTech BP Monitor — Model X200</p>
+        <div class="status-msg reject" style="width:100%">
+          <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+          <p class="mt">This code has already been redeemed</p>
+          <p class="mb">No points were added. Be aware — repeated attempts to rescan used codes may be flagged, and your account can be disallowed at the admin's discretion.</p>
+        </div>
+        <button class="btn btn-primary">Scan another</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">03b · Points earned — duplicate scan</p><p class="desc">Negative case: the code was already used. No points awarded, with an explicit warning about repeated attempts risking account action.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen" style="padding-left:0; padding-right:0">
+        <div style="padding:0 20px; display:flex; justify-content:space-between; align-items:center; margin-bottom:14px">
+          <p class="form-title" style="margin:0">Points ledger</p>
+          <div class="ti-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M7 12h10M10 18h4"/></svg></div>
+        </div>
+        <div class="pt-row" style="padding:0 20px">
+          <div class="pt-box"><p class="n">4,280</p><p class="l">Regular total</p></div>
+          <div class="pt-box seasonal"><p class="n">960</p><p class="l">Seasonal total</p></div>
+        </div>
+        <div class="mr-section-head" style="padding:16px 20px 8px 20px"><span class="t">All activity</span></div>
+        <div class="tabs" style="margin:0 20px 14px"><div class="tab active">All</div><div class="tab">Regular</div><div class="tab">Seasonal</div></div>
+        <div class="ledger-item"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">BP Monitor X200</p><p class="d">Today, 2:14 PM</p></div><div class="ledger-val"><span class="n">+50</span><span class="tag">Regular</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="ledger-item"><div class="ledger-icon redeem"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-8H4v8M2 7h20v5H2V7zM12 7v13"/></svg></div><div class="ledger-text"><p class="t">Smart watch redeemed</p><p class="d">Today, 11:40 AM</p></div><div class="ledger-val negative"><span class="n">&minus;500</span><span class="tag">Seasonal</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="ledger-item"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Digital Thermometer</p><p class="d">Yesterday, 11:02 AM</p></div><div class="ledger-val"><span class="n">+20</span><span class="tag">Seasonal</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="ledger-item"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Nebulizer Compact</p><p class="d">18 Aug, 4:40 PM</p></div><div class="ledger-val"><span class="n">+80</span><span class="tag">Regular</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="ledger-item"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Pulse Oximeter</p><p class="d">17 Aug, 10:20 AM</p></div><div class="ledger-val"><span class="n">+30</span><span class="tag">Regular</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="ledger-item"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Digital BP Kit</p><p class="d">15 Aug, 3:05 PM</p></div><div class="ledger-val"><span class="n">+45</span><span class="tag">Seasonal</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+        <div class="ledger-item"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Glucometer Strips</p><p class="d">14 Aug, 9:40 AM</p></div><div class="ledger-val"><span class="n">+15</span><span class="tag">Regular</span></div><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">04 · Points ledger</p><p class="desc">Two total cards up top, then the complete scan history as a long scrollable list, each row tapping through to its scan detail. The filter icon in the header opens the flyout panel shown next.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to ledger</p>
+        <div class="scan-detail-hero">
+          <div class="ledger-icon" style="width:44px; height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div>
+          <div><p class="t">BP Monitor X200</p><p class="d">+50 pts &middot; Regular</p></div>
+        </div>
+        <div class="detail-rows">
+          <div class="dr"><span class="l">Warehouse</span><span class="v">Andheri East, Mumbai</span></div>
+          <div class="dr"><span class="l">Scan code</span><span class="v mono">MTL-8827-4419</span></div>
+          <div class="dr"><span class="l">Date &amp; time</span><span class="v">Today, 2:14 PM</span></div>
+          <div class="dr"><span class="l">Product</span><span class="v">MedTech BP Monitor X200</span></div>
+          <div class="dr"><span class="l">Batch no.</span><span class="v mono">BN-2026-0731</span></div>
+          <div class="dr"><span class="l">Points bucket</span><span class="v">Regular</span></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">04b · Scan detail</p><p class="desc">Tapping any ledger row opens the full record for that scan: warehouse, scan code, timestamp, product, and batch number.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="flyout-scrim">
+        <div class="flyout-panel">
+          <div class="flyout-handle"></div>
+          <p class="form-title" style="margin-bottom:2px">Filter ledger</p>
+          <p class="form-sub" style="margin-bottom:16px">Narrow down by product or date</p>
+          <p class="form-section first">Product</p>
+          <div class="fv" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px">All products<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+          <p class="form-section">Date range</p>
+          <div style="display:flex; gap:10px; margin-bottom:8px">
+            <div class="fv" style="flex:1">From</div>
+            <div class="fv" style="flex:1">To</div>
+          </div>
+          <p class="form-section">Bucket</p>
+          <div class="filter-row" style="padding:0 0 20px">
+            <span class="filter-pill active">All</span><span class="filter-pill">Regular</span><span class="filter-pill">Seasonal</span>
+          </div>
+          <button class="btn btn-primary">Apply filters</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">04a · Filter flyout</p><p class="desc">Slides up as a bottom sheet over a dimmed ledger. Product dropdown, from/to date range, and bucket selection.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">Also from Home</p>
+  <h2>New launches → product detail → interest confirmed</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen" style="padding-left:0; padding-right:0">
+        <p class="back" style="padding:18px 20px 0">&larr; Back to home</p>
+        <div class="detail-img" style="margin-top:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg></div>
+        <div class="detail-body">
+          <span class="launch-badge" style="position:static; display:inline-block; margin-bottom:8px">New launch</span>
+          <p class="t">Pulse Oximeter Pro</p>
+          <p class="d">MedTech Life's next-generation fingertip pulse oximeter — faster SpO2 readings, a brighter display, and a 2-year warranty. Now available for your customers to purchase from MedTech Life.</p>
+          <div class="detail-cost"><span class="l">Available from</span><span class="v">This week</span></div>
+          <button class="btn btn-primary">I'm interested</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">01b · New launch — product detail</p><p class="desc">Tapping a "New launches" card on Home opens this detail page. Since the app doesn't track purchases, the CTA is "I'm interested" — registering intent, not buying.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="success">
+        <div class="success-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div>
+        <p class="success-title">Interest noted</p>
+        <p class="success-sub">MedTech Life's support team will follow up with more details on the Pulse Oximeter Pro.</p>
+        <button class="btn btn-primary">Back to home</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">01c · Interest confirmed</p><p class="desc">Lightweight confirmation — this just logs interest for MedTech Life's support team to follow up on, not the MR, since it's a product enquiry rather than an onboarding matter.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">Spoke 2</p>
+  <h2>Gift catalog → item detail → redeem → my redemptions</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="form-title">Gift catalog</p>
+        <p class="form-sub" style="margin-bottom:12px">Balance: 5,265 pts</p>
+        <div class="tabs" style="margin-bottom:12px"><div class="tab active">General</div><div class="tab">Seasonal</div></div>
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" placeholder="Search gifts"/>
+        </div>
+        <div class="cat-grid" style="padding:12px 0">
+          <div class="cat-card"><div class="cat-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M12 7V4M8 4h8"/></svg></div><div class="cat-info"><p class="t">Smart watch</p><p class="mv">Value &#8377;4,999</p><p class="p">2,500 pts</p></div></div>
+          <div class="cat-card"><div class="cat-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 20l4-13h8l4 13M8 12h8"/></svg></div><div class="cat-info"><p class="t">Tool kit set</p><p class="mv">Value &#8377;3,200</p><p class="p">1,800 pts</p></div></div>
+          <div class="cat-card"><div class="cat-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h16v13H4zM8 8V5a4 4 0 018 0v3"/></svg></div><div class="cat-info"><p class="t">Travel bag</p><p class="mv">Value &#8377;5,500</p><p class="p">3,200 pts</p></div></div>
+          <div class="cat-card locked"><div class="cat-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="4" y="6" width="16" height="12" rx="2"/></svg></div><div class="cat-info"><p class="t">Tablet 10"</p><p class="locked-txt">Need 2,735 more</p></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">05 · Gift catalog — General</p><p class="desc">General tab: each card shows the item's market value alongside the points cost to redeem. Search bar up top, points balance pinned under the title.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="form-title">Gift catalog</p>
+        <p class="form-sub" style="margin-bottom:12px">Balance: 960 seasonal pts</p>
+        <div class="tabs" style="margin-bottom:12px"><div class="tab">General</div><div class="tab active">Seasonal</div></div>
+        <div class="search-bar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+          <input type="text" placeholder="Search gifts"/>
+        </div>
+        <div class="cat-grid" style="padding:12px 0">
+          <div class="cat-card"><span class="cat-discount">-30%</span><div class="cat-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M12 7V4M8 4h8"/></svg></div><div class="cat-info"><p class="t">Smart watch</p><p class="p"><span class="strike">2,500</span> 1,750 pts</p></div></div>
+          <div class="cat-card"><span class="cat-discount">-20%</span><div class="cat-img"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 6v6l4 2M12 2a10 10 0 100 20 10 10 0 000-20z"/></svg></div><div class="cat-info"><p class="t">Wall clock</p><p class="p"><span class="strike">900</span> 720 pts</p></div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">05b · Gift catalog — Seasonal</p><p class="desc">Seasonal tab spends the scheme's points bucket and shows a discount badge with the original points struck through against the scheme-only price.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen" style="padding:0 0 20px">
+        <p class="back" style="padding:18px 20px 0">&larr; Back to catalog</p>
+        <div class="detail-img" style="margin-top:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M12 7V4M8 4h8"/></svg></div>
+        <div class="detail-body">
+          <p class="t">Smart watch</p>
+          <p class="d">Fitness tracking, heart-rate monitor and a 7-day battery. Available in black or silver.</p>
+          <div class="detail-cost"><span class="l">Points required</span><span class="v">2,500 pts</span></div>
+          <button class="btn btn-primary">Redeem now</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">06 · Item detail</p><p class="desc">Redeem is active when balance covers the cost; otherwise it's disabled with a shortfall message instead.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="form-title">Redeem confirmation</p>
+        <p class="form-sub" style="margin-bottom:16px">Smart watch &middot; 2,500 pts</p>
+        <p class="form-section first">Pay with</p>
+        <div class="opt selected" style="margin-bottom:10px"><div class="opt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="2"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8z"/></svg></div><div class="opt-text"><p class="t">Seasonal points</p><p class="d">960 available &middot; expires soonest</p></div><div class="radio on"></div></div>
+        <div class="opt"><div class="opt-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#E07A3F" stroke-width="2"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/></svg></div><div class="opt-text"><p class="t">Regular points</p><p class="d">4,280 available</p></div><div class="radio"></div></div>
+        <p class="form-section">Deliver to</p>
+        <div class="addr-card"><p class="l">Registered shop address</p><p class="v">Sharma Medical Store<br>Shop 4, MG Road, Andheri East, Mumbai 400069</p></div>
+        <div style="margin-top:auto"><button class="btn btn-primary">Confirm redemption</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">07 · Redeem confirmation</p><p class="desc">Defaults to spending points nearest expiry first; dealer can switch source. Address auto-fills from the registered location.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="success">
+        <div class="success-ring"><svg viewBox="0 0 24 24" fill="none" stroke="#2F9E7D" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div>
+        <p class="success-title">Redemption confirmed</p>
+        <p class="success-sub">Smart watch is on its way.<br><b>2,500 pts</b> deducted from seasonal balance.</p>
+        <button class="btn btn-primary">Track my order</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">07b · Redemption success</p><p class="desc">Confirms the order and points deducted before landing on My Redemptions.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="form-title">My redemptions</p>
+        <p class="form-sub" style="margin-bottom:10px">Order history — tap any order for tracking</p>
+        <div class="order-card"><div class="row1"><div class="order-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M12 7V4M8 4h8"/></svg></div><div class="order-text"><p class="t">Smart watch</p><p class="d">2,500 pts &middot; 18 Aug</p></div></div><div class="row2"><span class="chip pending">Processing</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div></div>
+        <div class="order-card"><div class="row1"><div class="order-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l4-13h8l4 13M8 12h8"/></svg></div><div class="order-text"><p class="t">Tool kit set</p><p class="d">1,800 pts &middot; 10 Aug</p></div></div><div class="row2"><span class="chip approved">Delivered</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div></div>
+        <div class="order-card"><div class="row1"><div class="order-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 8h16v13H4zM8 8V5a4 4 0 018 0v3"/></svg></div><div class="order-text"><p class="t">Travel bag</p><p class="d">3,200 pts &middot; 2 Aug</p></div></div><div class="row2"><span class="chip approved">Shipped</span><svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">08 · My redemptions</p><p class="desc">Order status tracking for everything redeemed against points, independent of any purchase history. Each row taps through to its own tracking detail.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to redemptions</p>
+        <div class="order-detail-hero">
+          <div class="order-icon" style="width:44px;height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20l4-13h8l4 13M8 12h8"/></svg></div>
+          <div><p class="t">Tool kit set</p><p class="d">1,800 pts &middot; ordered 10 Aug</p></div>
+        </div>
+        <p class="form-section first">Tracking</p>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div><div class="itl-line done"></div></div>
+          <div class="itl-body"><p class="t">Order confirmed</p><p class="d">10 Aug, 11:20 AM</p></div>
+        </div>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div><div class="itl-line done"></div></div>
+          <div class="itl-body"><p class="t">Packed</p><p class="d">11 Aug, 4:10 PM</p></div>
+        </div>
+        <div class="itl-step">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 13l4 4L19 7"/></svg></div><div class="itl-line done"></div></div>
+          <div class="itl-body"><p class="t">Shipped</p><p class="d">12 Aug, 9:00 AM &middot; BlueDart AWB 771029384</p></div>
+        </div>
+        <div class="itl-step pending">
+          <div><div class="itl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/></svg></div></div>
+          <div class="itl-body"><p class="t">Out for delivery</p><p class="d">Expected 14 Aug</p></div>
+        </div>
+        <p class="form-section">Delivery address</p>
+        <div class="addr-card"><p class="v">Sharma Medical Store<br>Shop 4, MG Road, Andheri East, Mumbai 400069</p></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">08b · Order detail</p><p class="desc">Per-order tracking timeline (confirmed / packed / shipped / out for delivery) with courier and AWB number, plus the delivery address.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">Spoke 3</p>
+  <h2>Seasonal schemes → scheme detail → my seasonal points</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen" style="padding:34px 0 20px">
+        <p class="form-title" style="padding:0 20px">Seasonal schemes</p>
+        <p class="form-sub" style="padding:0 20px; margin-bottom:16px">Opt in for bonus points</p>
+        <div class="scheme-card">
+          <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
+          <div class="scheme-body"><p class="t">Diwali Dhamaka 2026</p><p class="d">Valid till 30 Oct &middot; bonus points on select products</p><div class="scheme-btn joined">Joined</div></div>
+        </div>
+        <div class="scheme-card">
+          <div class="scheme-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div>
+          <div class="scheme-body"><p class="t">New Year Bonanza</p><p class="d">1 Jan – 31 Jan &middot; double points on all scans</p><div class="scheme-btn">I'm interested</div></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">09 · Seasonal schemes list</p><p class="desc">Cards for active and upcoming schemes with join status. Multiple schemes can be joined at once.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen" style="padding-left:0; padding-right:0">
+        <p class="back" style="padding:18px 20px 0">&larr; Back to schemes</p>
+        <div class="detail-img" style="margin-top:14px; background:var(--accent-soft)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="color:var(--accent)"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg></div>
+        <div style="padding:16px 20px 0">
+          <p class="form-title">New Year Bonanza</p>
+          <p class="form-sub" style="margin-bottom:16px">1 Jan – 31 Jan 2027</p>
+          <p class="form-section first">Terms</p>
+          <div class="term-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>Double points on every qualifying scan</div>
+          <div class="term-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>Applies to all diagnostic device categories</div>
+          <div class="term-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M5 13l4 4L19 7"/></svg>Points expire 31 Jan, 11:59 PM</div>
+          <button class="btn btn-primary" style="margin-top:16px">Join scheme</button>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">10 · Scheme detail</p><p class="desc">Hero image up top like the catalog item detail screen, then full terms and eligible categories. Joining tags future qualifying scans to this scheme's bucket.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="form-title">My seasonal points</p>
+        <p class="form-sub" style="margin-bottom:16px">Combined across all schemes</p>
+        <div class="pt-earn-card" style="margin-bottom:20px">
+          <p class="n">960 pts</p>
+          <p class="tag">Total seasonal balance &middot; nearest expiry in 12 days</p>
+        </div>
+        <p class="form-section first">Schemes contributing to this balance</p>
+        <div class="scheme-row"><span class="dot active"></span><div class="rt"><p class="t">Diwali Dhamaka</p><p class="d">Expires in 12 days</p></div><span class="chip approved">Active</span></div>
+        <div class="scheme-row" style="opacity:.5"><span class="dot"></span><div class="rt"><p class="t">Monsoon Care Drive</p><p class="d">Expired 14 Jul</p></div><span class="chip rejected">Expired</span></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">11 · My seasonal points</p><p class="desc">One combined total instead of a per-scheme points split — the list below just shows which schemes are contributing or have expired, not how much each holds.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">Also from footer nav</p>
+  <h2>Profile</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="mr-shell">
+        <div class="app-topbar">
+        </div>
+        <div class="profile-card">
+          <div class="profile-avt">SM</div>
+          <div class="mr-header-text"><p class="n">Sharma Medical Store</p><p class="m">Chemist &middot; Andheri East</p></div>
+        </div>
+        <div class="profile-list">
+          <div class="profile-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8zm0 11a3 3 0 110-6 3 3 0 010 6z"/></svg>Registered warehouses<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="profile-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/></svg>GST &amp; license details</div>
+          <div class="profile-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 00-12 0c0 7-3 9-3 9h18s-3-2-3-9M13.7 21a2 2 0 01-3.4 0"/></svg>Support &amp; help<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg></div>
+          <div class="profile-row danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>Log out</div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12 · Profile</p><p class="desc">KYC fields (GST, license) are read-only here — edits route through the MR for verification, not self-service. "Registered warehouses" leads to the list below.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to profile</p>
+        <p class="form-title">Registered warehouses</p>
+        <p class="form-sub" style="margin-bottom:16px">2 locations under Sharma Medical Store</p>
+        <div class="wh-card">
+          <div class="wh-top"><p class="t">Main Warehouse</p><span class="chip approved">Primary</span></div>
+          <p class="d"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8z"/></svg>Shop 4, MG Road, Andheri East, Mumbai</p>
+          <div class="wh-stats"><span><b>4,280</b> pts earned</span><span><b>212</b> scans</span></div>
+          <svg class="chev wh-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+        <div class="wh-card">
+          <div class="wh-top"><p class="t">Vashi Branch</p><span class="chip pending">Secondary</span></div>
+          <p class="d"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C7.6 2 4 5.6 4 10c0 6 8 12 8 12s8-6 8-12c0-4.4-3.6-8-8-8z"/></svg>Plot 9, Sector 17, Vashi, Navi Mumbai</p>
+          <div class="wh-stats"><span><b>1,140</b> pts earned</span><span><b>58</b> scans</span></div>
+          <svg class="chev wh-chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12a · Warehouse list</p><p class="desc">All locations registered under this dealer, each with a running points and scan-count summary. Taps through to that warehouse's own detail.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to warehouses</p>
+        <p class="form-title">Main Warehouse</p>
+        <p class="form-sub" style="margin-bottom:14px">Shop 4, MG Road, Andheri East, Mumbai</p>
+        <div class="pt-row" style="padding:0">
+          <div class="pt-box"><p class="n">4,280</p><p class="l">Points earned</p></div>
+          <div class="pt-box"><p class="n">212</p><p class="l">Total scans</p></div>
+        </div>
+        <p class="mr-section-head" style="padding:16px 0 8px"><span class="t">Scan history</span></p>
+        <div class="ledger-item" style="padding:9px 0"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">BP Monitor X200</p><p class="d">Today, 2:14 PM</p></div><div class="ledger-val"><span class="n">+50</span><span class="tag">Regular</span></div></div>
+        <div class="ledger-item" style="padding:9px 0"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Digital Thermometer</p><p class="d">Yesterday, 11:02 AM</p></div><div class="ledger-val"><span class="n">+20</span><span class="tag">Seasonal</span></div></div>
+        <div class="ledger-item" style="padding:9px 0"><div class="ledger-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M4 9h16M9 4v16"/></svg></div><div class="ledger-text"><p class="t">Nebulizer Compact</p><p class="d">18 Aug, 4:40 PM</p></div><div class="ledger-val"><span class="n">+80</span><span class="tag">Regular</span></div></div>
+        <p class="mr-section-head" style="padding:20px 0 8px"><span class="t">Manage this warehouse</span></p>
+        <div class="wh-action">
+          <div class="wh-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.1 2.1 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div>
+          <div class="wh-action-text"><p class="t">Request edit</p><p class="d">Update address, contact, or GST details</p></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+        <div class="wh-action danger">
+          <div class="wh-action-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></div>
+          <div class="wh-action-text"><p class="t">Request deletion</p><p class="d">Remove this warehouse from your account</p></div>
+          <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 6l6 6-6 6"/></svg>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12b · Warehouse detail</p><p class="desc">Points and scan totals scoped to this one warehouse, with its own scan history below. Since KYC-sensitive details can't be self-edited, the dealer can only request a change or removal.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to warehouse</p>
+        <p class="form-title">Request deletion</p>
+        <p class="form-sub" style="margin-bottom:16px">Main Warehouse &middot; Andheri East</p>
+        <div class="status-msg reject" style="width:100%; margin-bottom:18px">
+          <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+          <p class="mt">This can't be undone directly</p>
+          <p class="mb">Your MR and Admin will review this request. The warehouse stays active with full scan history until approved.</p>
+        </div>
+        <p class="form-section first">Reason for request</p>
+        <textarea class="textarea-field" style="height:110px; margin-bottom:4px" placeholder="e.g. This location has permanently closed"></textarea>
+        <div style="margin-top:auto"><button class="btn btn-primary" style="background:#C23A3A">Submit deletion request</button></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12c · Warehouse change request</p><p class="desc">Same form pattern covers "Request edit" — a reason field routed to MR/Admin for approval, since these are KYC-linked fields.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to profile</p>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px">
+          <p class="form-title" style="margin:0">Support &amp; help</p>
+          <span class="link" style="font-size:11px">Track requests</span>
+        </div>
+        <p class="form-sub" style="margin-bottom:16px">Raise a new issue below</p>
+        <p class="form-section first">Issue type</p>
+        <div class="dropdown-field">Points not credited<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg></div>
+        <p class="form-section">Describe the issue</p>
+        <textarea class="textarea-field" style="height:150px; margin-bottom:16px" placeholder="Tell us what happened, including any product or scan details..."></textarea>
+        <button class="btn btn-primary">Submit request</button>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12d · Support &amp; help</p><p class="desc">Issue type styled as a clear dropdown field. Message box now has real writing room. "Track requests" leads to the service request list on its own screen.</p></div>
+  </div>
+
+  <div class="arrow"><svg viewBox="0 0 36 14"><path d="M0 7h32M26 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2"/></svg></div>
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to support</p>
+        <p class="form-title">Your service requests</p>
+        <p class="form-sub" style="margin-bottom:16px">3 requests raised</p>
+        <div class="sr-item"><div class="sr-top"><p class="t">Points not credited</p><span class="chip pending">In progress</span></div><p class="d">Raised 18 Aug &middot; Ref# SR-4471</p></div>
+        <div class="sr-item"><div class="sr-top"><p class="t">Scan not working</p><span class="chip approved">Resolved</span></div><p class="d">Raised 10 Aug &middot; Ref# SR-4402</p></div>
+        <div class="sr-item"><div class="sr-top"><p class="t">Wrong points value</p><span class="chip rejected">Closed</span></div><p class="d">Raised 2 Aug &middot; Ref# SR-4310</p></div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">12e · Service requests</p><p class="desc">Full tracker list on its own page, reached from the "Track requests" link on the support form.</p></div>
+  </div>
+
+</div>
+
+<div class="branch-head">
+  <p class="eyebrow">Also from Home</p>
+  <h2>Notifications</h2>
+</div>
+
+<div class="row">
+
+  <div class="step">
+    <div class="phone"><div class="screen">
+      <div class="notch"></div>
+      <div class="form-screen">
+        <p class="back">&larr; Back to home</p>
+        <p class="form-title">Notifications</p>
+        <p class="form-sub" style="margin-bottom:16px">Today</p>
+        <div class="notif-item unread">
+          <div class="notif-icon approve"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 2v6M12 16v6M2 12h6M16 12h6"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/></svg></div>
+          <div class="notif-text"><p class="t">Points added</p><p class="d">+50 regular points from BP Monitor X200</p><p class="ts">2:14 PM</p></div>
+        </div>
+        <div class="notif-item unread">
+          <div class="notif-icon reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+          <div class="notif-text"><p class="t">Seasonal points expiring soon</p><p class="d">960 pts from Diwali Dhamaka expire in 12 days</p><p class="ts">9:00 AM</p></div>
+        </div>
+        <p class="form-sub" style="margin:18px 0 12px">Earlier</p>
+        <div class="notif-item">
+          <div class="notif-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 21v-8H4v8M2 7h20v5H2V7zM12 7v13"/></svg></div>
+          <div class="notif-text"><p class="t">Redemption shipped</p><p class="d">Tool kit set is on its way &middot; AWB 771029384</p><p class="ts">Yesterday, 9:00 AM</p></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg></div>
+          <div class="notif-text"><p class="t">New scheme: New Year Bonanza</p><p class="d">Double points on all scans, 1&ndash;31 Jan</p><p class="ts">18 Aug, 11:00 AM</p></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon reject"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>
+          <div class="notif-text"><p class="t">Duplicate scan blocked</p><p class="d">This code was already redeemed &middot; no points added</p><p class="ts">16 Aug, 4:20 PM</p></div>
+        </div>
+        <div class="notif-item">
+          <div class="notif-icon info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 7h6M9 11h6M9 15h3"/></svg></div>
+          <div class="notif-text"><p class="t">New product has been added</p><p class="d">Pulse Oximeter Pro is now live in New Launches</p><p class="ts">15 Aug, 10:00 AM</p></div>
+        </div>
+      </div>
+    </div></div>
+    <div class="caption"><p class="name">13 · Notifications</p><p class="desc">Points earned, expiry warnings, redemption shipping updates, new schemes, new product launches, and scan errors — grouped by day, unread items highlighted.</p></div>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+function showTab(name, btn){
+  document.querySelectorAll('.tab-panel').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.tabbtn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+</script>
+
+</body>
+</html>

@@ -63,7 +63,7 @@ export function SerialRangeDialog({
   title = 'Serial Range',
 }: SerialRangeDialogProps) {
   const [search, setSearch] = useState('')
-  const [copiedAll, setCopiedAll] = useState(false)
+
   const [copiedValue, setCopiedValue] = useState<string | null>(null)
   const [isCalculating, setIsCalculating] = useState(true)
   const [values, setValues] = useState<string[]>([])
@@ -108,14 +108,6 @@ export function SerialRangeDialog({
     }
   }
 
-  const handleCopyAll = async () => {
-    const ok = await copyText(values.join('\n'))
-    if (ok) {
-      setCopiedAll(true)
-      window.setTimeout(() => setCopiedAll(false), 1400)
-    }
-  }
-
   const handleCopyLine = async (value: string) => {
     const ok = await copyText(value)
     if (ok) {
@@ -130,7 +122,7 @@ export function SerialRangeDialog({
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      PaperProps={{ sx: { borderRadius: 3 } }}
+      sx={{ '& .MuiDialog-paper': { borderRadius: 3 } }}
     >
       <DialogTitle sx={{ pb: 1.5 }}>
         <Stack

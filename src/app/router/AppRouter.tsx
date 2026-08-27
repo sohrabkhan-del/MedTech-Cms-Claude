@@ -17,6 +17,7 @@ import { InviteDetailsPage } from '@/features/partnerInvite/pages/InviteDetailsP
 import { InvitePasswordPage } from '@/features/partnerInvite/pages/InvitePasswordPage'
 import { InviteShopDetailsPage } from '@/features/partnerInvite/pages/InviteShopDetailsPage'
 import { LogoutPage } from '@/pages/auth/LogoutPage'
+import { AppFlowPage } from '@/pages/AppFlowPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { DealerListPage } from '@/features/userManagement/pages/DealerListPage'
 import { DealerDetailsPage } from '@/features/userManagement/pages/DealerDetailsPage'
@@ -321,6 +322,7 @@ export function AppRouter() {
       </Route>
 
       <Route path="/logout" element={<LogoutPage />} />
+      <Route path="/app-flow" element={<AppFlowPage />} />
 
       <Route element={<PartnerInviteLayout />}>
         <Route path="/invite/:token" element={<PartnerInviteGate />}>

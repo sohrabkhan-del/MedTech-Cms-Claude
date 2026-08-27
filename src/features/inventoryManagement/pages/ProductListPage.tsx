@@ -14,14 +14,64 @@ import {
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useProducts } from '@/features/inventoryManagement/hooks/useProducts'
+import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { useProductCategories } from '@/features/masters/hooks/useProductCategories'
 import type {
   Product,
   ProductStatus,
 } from '@/features/inventoryManagement/types/inventoryManagement.types'
 import type { ProductCategory } from '@/features/masters/types/masters.types'
+
+const DATE_PRESETS: {
+  label: string
+  getRange: () => { fromDate: string; toDate: string }
+}[] = [
+  {
+    label: 'Today',
+    getRange: () => {
+      const today = new Date().toISOString().slice(0, 10)
+      return { fromDate: today, toDate: today }
+    },
+  },
+  {
+    label: 'Last 7 Days',
+    getRange: () => {
+      const to = new Date()
+      const from = new Date()
+      from.setDate(from.getDate() - 6)
+      return {
+        fromDate: from.toISOString().slice(0, 10),
+        toDate: to.toISOString().slice(0, 10),
+      }
+    },
+  },
+  {
+    label: 'Last 30 Days',
+    getRange: () => {
+      const to = new Date()
+      const from = new Date()
+      from.setDate(from.getDate() - 29)
+      return {
+        fromDate: from.toISOString().slice(0, 10),
+        toDate: to.toISOString().slice(0, 10),
+      }
+    },
+  },
+  {
+    label: 'This Month',
+    getRange: () => {
+      const now = new Date()
+      const from = new Date(now.getFullYear(), now.getMonth(), 1)
+      return {
+        fromDate: from.toISOString().slice(0, 10),
+        toDate: now.toISOString().slice(0, 10),
+      }
+    },
+  },
+]
 
 interface ProductFilters extends Record<string, unknown> {
   category: string | 'all'
@@ -36,12 +86,39 @@ export function ProductListPage() {
   const debouncedSearch = useDebouncedValue(search, 300)
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [filterOpen, setFilterOpen] = useState(false)
+  const { dateRange, setDateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const { categories, isLoading: categoriesLoading } = useProductCategories()
+  const categoryIdByName = useMemo(
+    () =>
+      new Map(
+        categories.map((category) => [category.categoryName, category.id]),
+      ),
+    [categories],
+  )
+
+  const [appliedFilters, setAppliedFilters] = useState<ProductFilters>({
+    category: 'all',
+    status: 'all',
+    fromDate: '',
+    toDate: '',
+  })
+
   const { products, totalItems, kpis, isLoading } = useProducts({
     page: page + 1,
     limit: rowsPerPage,
     search: debouncedSearch || undefined,
+    preset: analyticsParams.preset,
+    startDate:
+      analyticsParams.startDate ?? (appliedFilters.fromDate || undefined),
+    endDate: analyticsParams.endDate ?? (appliedFilters.toDate || undefined),
+    categoryId:
+      appliedFilters.category === 'all'
+        ? undefined
+        : categoryIdByName.get(appliedFilters.category),
+    status: appliedFilters.status === 'all' ? undefined : appliedFilters.status,
   })
-  const { categories, isLoading: categoriesLoading } = useProductCategories()
   const productCategoryOptions = useMemo(
     () => categories.map((category) => category.categoryName),
     [categories],
@@ -53,16 +130,9 @@ export function ProductListPage() {
       'Centralized repository for all products and their reward point configuration.',
     isLoading: isLoading || categoriesLoading,
   })
-  const [filterOpen, setFilterOpen] = useState(false)
   const [viewMode, setViewMode] = useState<'products' | 'categories'>(
     'products',
   )
-  const [appliedFilters, setAppliedFilters] = useState<ProductFilters>({
-    category: 'all',
-    status: 'all',
-    fromDate: '',
-    toDate: '',
-  })
 
   const productKpis = kpis ?? {
     totalProducts: 0,
@@ -70,6 +140,11 @@ export function ProductListPage() {
     inactiveProducts: 0,
     newProducts: 0,
     totalCategories: 0,
+  }
+
+  const activeDateRangeValue = {
+    fromDate: dateRange.from ?? appliedFilters.fromDate,
+    toDate: dateRange.to ?? appliedFilters.toDate,
   }
 
   const filteredProducts = useMemo(
@@ -308,10 +383,66 @@ export function ProductListPage() {
         onApply={(next) => {
           setAppliedFilters(next)
           setPage(0)
+
+          const from = next.fromDate || null
+          const to = next.toDate || null
+          const presetLabel =
+            from && to ? 'Custom Range' : dateRange.presetLabel
+
+          setDateRange({
+            from,
+            to,
+            presetLabel,
+          })
         }}
       >
         {(draft, setDraft) => (
           <Stack spacing={3}>
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ flexWrap: 'wrap', rowGap: 1 }}
+            >
+              {DATE_PRESETS.map((preset) => {
+                const range = preset.getRange()
+                const selected =
+                  activeDateRangeValue.fromDate === range.fromDate &&
+                  activeDateRangeValue.toDate === range.toDate
+
+                return (
+                  <Typography
+                    key={preset.label}
+                    component="button"
+                    type="button"
+                    onClick={() => {
+                      setDraft((prev) => ({ ...prev, ...range }))
+                      setDateRange({
+                        from: range.fromDate || null,
+                        to: range.toDate || null,
+                        presetLabel: preset.label,
+                      })
+                    }}
+                    sx={{
+                      border: '1px solid',
+                      borderColor: selected ? 'primary.main' : 'divider',
+                      backgroundColor: selected
+                        ? 'primary.main'
+                        : 'transparent',
+                      color: selected ? 'common.white' : 'text.primary',
+                      borderRadius: 999,
+                      px: 1.5,
+                      py: 0.75,
+                      fontSize: '0.7rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {preset.label}
+                  </Typography>
+                )
+              })}
+            </Stack>
+
             <TextField
               select
               label="Product Category"
@@ -327,6 +458,23 @@ export function ProductListPage() {
                   {category}
                 </MenuItem>
               ))}
+            </TextField>
+
+            <TextField
+              select
+              label="Status"
+              size="small"
+              value={draft.status}
+              onChange={(e) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  status: e.target.value as ProductStatus | 'all',
+                }))
+              }
+            >
+              <MenuItem value="all">All Statuses</MenuItem>
+              <MenuItem value="active">Active</MenuItem>
+              <MenuItem value="inactive">Inactive</MenuItem>
             </TextField>
 
             <TextField

@@ -137,8 +137,8 @@ function mapProductItem(item: ProductApiItem): Product {
     createdDate: formatDate(item.createdAt),
     lastUpdatedDate: formatDate(item.updatedAt),
 
-    dealerRewardPoints: item.dealerContainerPoints + item.dealerProductPoints,
-    chemistRewardPoints: item.chemistContainerPoints + item.chemistProductPoints,
+    dealerRewardPoints: item.dealerProductPoints,
+    chemistRewardPoints: item.chemistProductPoints,
     dealerContainerPoints: item.dealerContainerPoints,
     dealerProductPoints: item.dealerProductPoints,
     chemistContainerPoints: item.chemistContainerPoints,
@@ -203,7 +203,9 @@ function mapMovementScannedStatus(status: string): MovementScannedStatus {
   return status === 'COMPLETED' ? 'completed' : 'pending'
 }
 
-function mapProductMovementItem(item: ProductMovementApiItem): ProductMovementEntry {
+function mapProductMovementItem(
+  item: ProductMovementApiItem,
+): ProductMovementEntry {
   return {
     id: item.id,
     factoryUploadBatch: item.batchNo,
@@ -219,6 +221,68 @@ function mapProductMovementItem(item: ProductMovementApiItem): ProductMovementEn
 function mapStatusParam(status?: string) {
   if (!status || status === 'all') return undefined
   return status === 'active' ? 'ACTIVE' : 'INACTIVE'
+}
+
+function normalizeProductListResponse(
+  response: ProductListApiResponse | Product[] | undefined | null,
+): ProductListResult {
+  if (!response) return { items: [], totalItems: 0 }
+
+  if (Array.isArray(response)) {
+    const looksMapped =
+      response.length > 0 &&
+      typeof response[0] === 'object' &&
+      response[0] !== null &&
+      'productName' in response[0] &&
+      'productCode' in response[0] &&
+      'uploadedDate' in response[0]
+
+    return looksMapped
+      ? { items: response as Product[], totalItems: response.length }
+      : {
+          items: response.map((item) =>
+            mapProductItem(item as unknown as ProductApiItem),
+          ),
+          totalItems: response.length,
+        }
+  }
+
+  const payload = 'data' in response ? response.data : response
+
+  if (Array.isArray(payload)) {
+    const looksMapped =
+      payload.length > 0 &&
+      typeof payload[0] === 'object' &&
+      payload[0] !== null &&
+      'productName' in payload[0] &&
+      'productCode' in payload[0] &&
+      'uploadedDate' in payload[0]
+
+    return looksMapped
+      ? { items: payload as Product[], totalItems: payload.length }
+      : {
+          items: payload.map((item) => mapProductItem(item as ProductApiItem)),
+          totalItems: payload.length,
+        }
+  }
+
+  if (payload && typeof payload === 'object') {
+    const payloadRecord = payload as Record<string, unknown>
+    const items = Array.isArray(payloadRecord.items)
+      ? (payloadRecord.items as ProductApiItem[])
+      : Array.isArray(payloadRecord.data)
+        ? (payloadRecord.data as ProductApiItem[])
+        : []
+
+    const totalItems = Number(payloadRecord.totalItems ?? items.length ?? 0)
+
+    return {
+      items: items.map((item) => mapProductItem(item as ProductApiItem)),
+      totalItems: Number.isFinite(totalItems) ? totalItems : items.length,
+    }
+  }
+
+  return { items: [], totalItems: 0 }
 }
 
 const productsApi = baseApi.injectEndpoints({
@@ -243,28 +307,36 @@ const productsApi = baseApi.injectEndpoints({
         mockResolver: () => mockDelay(mockProducts),
       }),
       transformResponse: (
-        response: ProductListApiResponse | Product[],
-      ): ProductListResult =>
-        Array.isArray(response)
-          ? { items: response, totalItems: response.length }
-          : {
-              items: response.data.items.map(mapProductItem),
-              totalItems: response.data.totalItems,
-            },
+        response: ProductListApiResponse | Product[] | undefined | null,
+      ): ProductListResult => normalizeProductListResponse(response),
       providesTags: (result) =>
         result
-          ? [...result.items.map(({ id }) => ({ type: 'Products' as const, id })), { type: 'Products' as const, id: 'LIST' }]
+          ? [
+              ...result.items.map(({ id }) => ({
+                type: 'Products' as const,
+                id,
+              })),
+              { type: 'Products' as const, id: 'LIST' },
+            ]
           : [{ type: 'Products' as const, id: 'LIST' }],
     }),
 
     getProductDetail: builder.query<Product | undefined, string>({
-      query: (id) => ({ tag: 'Products', url: `/products/${id}`, mockResolver: () => mockDelay(getProductById(id)) }),
+      query: (id) => ({
+        tag: 'Products',
+        url: `/products/${id}`,
+        mockResolver: () => mockDelay(getProductById(id)),
+      }),
       transformResponse: (
         response: ProductDetailApiResponse | Product | undefined,
-      ) =>
-        response && 'data' in response
-          ? mapProductItem(response.data)
-          : response,
+      ) => {
+        if (!response) return undefined
+
+        const payload = 'data' in response ? response.data : response
+        if (!payload || typeof payload !== 'object') return undefined
+
+        return mapProductItem(payload as ProductApiItem)
+      },
       providesTags: (_result, _error, id) => [{ type: 'Products', id }],
     }),
 
@@ -295,19 +367,34 @@ const productsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    getProductKpis: builder.query<typeof productKpis, void>({
-      query: () => ({
+    getProductKpis: builder.query<
+      typeof productKpis,
+      ProductQueryParams | void
+    >({
+      query: (params) => ({
         tag: 'Products',
         url: '/analytics-cards/products',
+        params: {
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
+          regionId: params?.regionId || undefined,
+          categoryId: params?.categoryId || undefined,
+          status: mapStatusParam(params?.status),
+        },
         mockResolver: () => mockDelay(productKpis),
       }),
       transformResponse: (
-        response: { success: boolean; data: typeof productKpis } | typeof productKpis,
+        response:
+          { success: boolean; data: typeof productKpis } | typeof productKpis,
       ) => ('data' in response ? response.data : response),
       providesTags: [{ type: 'Products', id: 'KPIS' }],
     }),
 
-    getProductCategoryOptions: builder.query<typeof productCategoryOptions, void>({
+    getProductCategoryOptions: builder.query<
+      typeof productCategoryOptions,
+      void
+    >({
       query: () => ({
         tag: 'Products',
         url: '/products/category-options',
@@ -324,10 +411,16 @@ const productsApi = baseApi.injectEndpoints({
         data: values,
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: [{ type: 'Products', id: 'LIST' }, { type: 'Products', id: 'KPIS' }],
+      invalidatesTags: [
+        { type: 'Products', id: 'LIST' },
+        { type: 'Products', id: 'KPIS' },
+      ],
     }),
 
-    updateProduct: builder.mutation<void, { id: string; values: ProductFormValues }>({
+    updateProduct: builder.mutation<
+      void,
+      { id: string; values: ProductFormValues }
+    >({
       query: ({ id, values }) => ({
         tag: 'Products',
         url: `/products/${id}`,
@@ -354,7 +447,11 @@ const productsApi = baseApi.injectEndpoints({
         method: 'POST',
         data: parsed,
         mockResolver: () =>
-          mockDelay(parsed.rows.map((row, i) => productFromImportedRow(row, mockProducts.length + i + 1))),
+          mockDelay(
+            parsed.rows.map((row, i) =>
+              productFromImportedRow(row, mockProducts.length + i + 1),
+            ),
+          ),
       }),
     }),
   }),

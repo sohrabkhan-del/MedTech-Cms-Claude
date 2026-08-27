@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { skipToken } from '@reduxjs/toolkit/query/react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Avatar, Box, Stack, Typography } from '@mui/material'
-import { Package as Inventory2Icon } from 'lucide-react'
+import { Avatar, Box, Button, Stack, Typography } from '@mui/material'
+import { Package as Inventory2Icon, Pencil } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import {
@@ -132,6 +132,20 @@ export function ProductDetailsPage() {
             </Typography>
           </Box>
         </Stack>
+
+        <Button
+          variant="contained"
+          startIcon={<Pencil size={18} />}
+          onClick={() =>
+            navigate(
+              `/rewards-wallet/point-value-rules/${productId}/edit-base-value`,
+            )
+          }
+          disabled={!product}
+          sx={{ fontSize: '0.8125rem' }}
+        >
+          Edit Base Value
+        </Button>
       </Stack>
 
       <Stack spacing={3}>

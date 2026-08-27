@@ -14,7 +14,7 @@ type ProductKpis = typeof productKpis
 
 export function useProducts(params?: ProductQueryParams) {
   const productsResult = useGetProductsQuery(params)
-  const kpisResult = useGetProductKpisQuery()
+  const kpisResult = useGetProductKpisQuery(params)
   const [importProductsMutation] = useImportProductsMutation()
 
   // Imported rows aren't persisted server-side (see productsApi importProducts), so

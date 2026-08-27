@@ -10,7 +10,19 @@ import { useDistributors } from '@/features/inventoryManagement/hooks/useDistrib
 export function DistributorUploadPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { invoices, isLoading } = useDistributors()
+
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [sortBy, setSortBy] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+
+  const { invoices, totalCount, isLoading } = useDistributors({
+    page: page + 1,
+    limit: rowsPerPage,
+    sortBy,
+    sortOrder,
+  })
+
   const [importDone, setImportDone] = useState(
     Boolean((location.state as { imported?: boolean } | null)?.imported),
   )
@@ -53,7 +65,22 @@ export function DistributorUploadPage() {
 
       <DistributorListingTab
         distributors={invoices}
+        totalCount={totalCount}
         isLoading={isLoading}
+        page={page}
+        rowsPerPage={rowsPerPage}
+        sortBy={sortBy}
+        sortOrder={sortOrder}
+        onPageChange={setPage}
+        onRowsPerPageChange={(rpp) => {
+          setRowsPerPage(rpp)
+          setPage(0)
+        }}
+        onSortChange={(col, dir) => {
+          setSortBy(col)
+          setSortOrder(dir)
+          setPage(0)
+        }}
       />
 
       <SuccessDialog

@@ -14,20 +14,46 @@ import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import { useDeleteDistributorMutation } from '@/features/inventoryManagement/services/distributorUploadApi'
 import type { DispatchInvoice } from '@/types/distributorUpload'
+import type { SortDirection } from '@/components/common/CommonTable/CommonTable'
 
 interface DispatchListingFilters extends Record<string, unknown> {
   customerName: string
   transporter: string
 }
 
+// Maps CommonTable column keys to API sortBy field names
+const SORT_FIELD_MAP: Partial<Record<string, string>> = {
+  date: 'date',
+  invoiceNo: 'invoiceNo',
+  customerName: 'customerName',
+  transporter: 'transporter',
+  totalBoxQty: 'totalBoxQty',
+}
+
 interface DistributorListingTabProps {
   distributors: DispatchInvoice[]
+  totalCount: number
   isLoading: boolean
+  page: number
+  rowsPerPage: number
+  sortBy: string
+  sortOrder: 'asc' | 'desc'
+  onPageChange: (page: number) => void
+  onRowsPerPageChange: (rowsPerPage: number) => void
+  onSortChange: (sortBy: string, sortDir: SortDirection) => void
 }
 
 export function DistributorListingTab({
   distributors,
+  totalCount,
   isLoading,
+  page,
+  rowsPerPage,
+  sortBy,
+  sortOrder,
+  onPageChange,
+  onRowsPerPageChange,
+  onSortChange,
 }: DistributorListingTabProps) {
   const navigate = useNavigate()
   const toast = useToast()
@@ -37,7 +63,8 @@ export function DistributorListingTab({
     transporter: '',
   })
   const [deleteTarget, setDeleteTarget] = useState<DispatchInvoice | null>(null)
-  const [deleteDistributor, { isLoading: isDeleting }] = useDeleteDistributorMutation()
+  const [deleteDistributor, { isLoading: isDeleting }] =
+    useDeleteDistributorMutation()
 
   async function handleDeleteConfirm() {
     if (!deleteTarget) return
@@ -131,9 +158,19 @@ export function DistributorListingTab({
       header: 'Date',
       minWidth: 120,
       sortable: true,
+      sortValue: (row) => row.uploadedDate,
       render: (row) => row.date,
     },
   ]
+
+  function handleSortChange(columnKey: string, dir: SortDirection) {
+    const apiField = SORT_FIELD_MAP[columnKey] ?? columnKey
+    onSortChange(apiField, dir)
+  }
+
+  // Derive the current sort column key from the API sortBy field (reverse map)
+  const currentSortColumnKey =
+    Object.entries(SORT_FIELD_MAP).find(([, v]) => v === sortBy)?.[0] ?? sortBy
 
   return (
     <>
@@ -203,8 +240,15 @@ export function DistributorListingTab({
           },
         ]}
         onExportClick={() => {}}
-        defaultSortBy="date"
-        defaultSortDir="desc"
+        onSortChange={handleSortChange}
+        defaultSortBy={currentSortColumnKey}
+        defaultSortDir={sortOrder}
+        totalCount={totalCount}
+        page={page}
+        onPageChange={onPageChange}
+        rowsPerPage={rowsPerPage}
+        onRowsPerPageChange={onRowsPerPageChange}
+        rowsPerPageOptions={[10, 25, 50]}
         emptyTitle={
           distributors.length === 0
             ? 'No dispatch invoices uploaded yet'

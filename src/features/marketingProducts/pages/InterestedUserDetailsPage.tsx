@@ -8,17 +8,17 @@ import {
   Stack,
   Typography,
 } from '@mui/material'
-import {
-  User,
-  Trash2 as DeleteOutlined,
-} from 'lucide-react'
+import { User, Trash2 as DeleteOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import { Modal } from '@/components/common/Modal/Modal'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useInterestedUserDetail } from '@/features/marketingProducts/hooks/useInterestedUserDetail'
-import { LeadActionDialog } from '@/features/marketingProducts/components/LeadActionDialog'
+import {
+  LeadActionDialog,
+  formatCloseReason,
+} from '@/features/marketingProducts/components/LeadActionDialog'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import type { LeadStatus } from '@/features/marketingProducts/types/marketingProducts.types'
@@ -193,7 +193,7 @@ export function InterestedUserDetailsPage() {
               { label: 'Product Category', value: lead.productCategory },
               {
                 label: 'Quantity Requested',
-                value: `${lead.quantityRequested} ${lead.stockUnit}`,
+                value: `${lead.quantityRequested} `,
               },
               { label: 'Region', value: lead.region || '-' },
               { label: 'Note', value: lead.note || '-' },
@@ -239,7 +239,10 @@ export function InterestedUserDetailsPage() {
                 { label: 'Assigned Executive', value: lead.handledBy || '-' },
                 { label: 'Followed Up At', value: lead.followedUpAt || '-' },
                 { label: 'Follow-up Note', value: lead.followUpNote || '-' },
-                { label: 'Close Reason', value: lead.closeReason || '-' },
+                {
+                  label: 'Close Reason',
+                  value: formatCloseReason(lead.closeReason),
+                },
               ]}
             />
           </Stack>

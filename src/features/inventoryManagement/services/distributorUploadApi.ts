@@ -170,34 +170,49 @@ export interface DispatchInvoicesQueryParams {
   preset?: string
   startDate?: string
   endDate?: string
+  page?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
+export interface DispatchInvoicesResult {
+  items: DispatchInvoice[]
+  totalCount: number
 }
 
 const distributorUploadApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     /** GET /distributors/invoice-uploads — every dispatch invoice upload. */
     getDispatchInvoices: builder.query<
-      DispatchInvoice[],
+      DispatchInvoicesResult,
       DispatchInvoicesQueryParams | void
     >({
       query: (params) => ({
         tag: 'DistributorUpload',
         url: '/distributors/invoice-uploads',
         params: {
-          page: 1,
-          limit: 50,
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 10,
           regionId: params?.regionId || undefined,
           preset: params?.preset || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
+          sortBy: params?.sortBy || undefined,
+          sortOrder: params?.sortOrder || undefined,
         },
-        mockResolver: () => mockDelay([]),
+        mockResolver: () => mockDelay({ items: [], totalCount: 0 }),
       }),
-      transformResponse: (response: PagedApiResponse<InvoiceUploadApiItem>) =>
-        response.data.items.map(mapInvoiceUpload),
+      transformResponse: (
+        response: PagedApiResponse<InvoiceUploadApiItem>,
+      ): DispatchInvoicesResult => ({
+        items: response.data.items.map(mapInvoiceUpload),
+        totalCount: response.data.totalItems,
+      }),
       providesTags: (result) =>
         result
           ? [
-              ...result.map(({ id }) => ({
+              ...result.items.map(({ id }) => ({
                 type: 'DistributorUpload' as const,
                 id,
               })),

@@ -72,7 +72,7 @@ export interface CommonTableAction<T> {
   hidden?: (row: T) => boolean
 }
 
-type SortDirection = 'asc' | 'desc'
+export type SortDirection = 'asc' | 'desc'
 
 interface CommonTableProps<T> {
   /** Unique per table — used as the localStorage key for column visibility preferences. */
@@ -500,7 +500,13 @@ export function CommonTable<T>({
 
       <Card>
         {loading ? (
-          <SkeletonLoader variant="table-rows" rows={6} />
+          <SkeletonLoader
+            variant="table-rows"
+            rows={rowsPerPage}
+            columns={
+              visibleColumns.length + (actions && actions.length > 0 ? 1 : 0)
+            }
+          />
         ) : sortedRows.length === 0 ? (
           <EmptyState title={emptyTitle} description={emptyDescription} />
         ) : (

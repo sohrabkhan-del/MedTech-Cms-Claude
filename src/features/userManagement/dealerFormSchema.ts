@@ -7,31 +7,38 @@ import {
 
 const uuidMessage = 'Enter a valid UUID'
 
-// Allows an empty string OR a value matching the pattern — for fields that
-// are optional but should still be well-formed when the user does fill them in.
+const requiredString = (message: string) =>
+  z.string({ required_error: message }).trim().min(1, message)
+
+const requiredPattern = (regex: RegExp, message: string) =>
+  requiredString(message).refine((val) => regex.test(val), { message })
+
 const optionalPattern = (regex: RegExp, message: string) =>
   z.string().refine((val) => val === '' || regex.test(val), { message })
 
 export const dealerBusinessSchema = z.object({
   id: z.string().optional(),
-  outletName: z.string().optional(),
-  userName: z.string().optional(),
-  panNumber: optionalPattern(/^[A-Z]{5}[0-9]{4}[A-Z]$/, 'Enter a valid PAN number'),
-  drugLicenseNumber: z.string().optional(),
-  drugLicenseExpiry: z.string().optional(),
+  outletName: requiredString('Outlet name is required'),
+  userName: requiredString('User name is required'),
+  panNumber: requiredPattern(
+    /^[A-Z]{5}[0-9]{4}[A-Z]$/,
+    'Enter a valid PAN number',
+  ),
+  drugLicenseNumber: requiredString('Drug license number is required'),
+  drugLicenseExpiry: requiredString('Drug license expiry is required'),
   addressType: z.enum(['SHOP', 'GODOWN', 'OTHER']),
-  addressLine1: z.string().optional(),
-  addressLine2: z.string().optional(),
-  landmark: z.string().optional(),
-  city: z.string().optional(),
-  district: z.string().optional(),
-  state: z.string().optional(),
-  pincode: optionalPattern(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
-  latitude: z.string().optional(),
-  longitude: z.string().optional(),
-  scanRadius: z.string().optional(),
-  bufferRadius: z.string().optional(),
-  geoAccuracy: z.string().optional(),
+  addressLine1: requiredString('Address line 1 is required'),
+  addressLine2: requiredString('Address line 2 is required'),
+  landmark: requiredString('Landmark is required'),
+  city: requiredString('City is required'),
+  district: requiredString('District is required'),
+  state: requiredString('State is required'),
+  pincode: requiredPattern(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
+  latitude: requiredString('Latitude is required'),
+  longitude: requiredString('Longitude is required'),
+  scanRadius: requiredString('Scan radius is required'),
+  bufferRadius: requiredString('Buffer radius is required'),
+  geoAccuracy: requiredString('Geo accuracy is required'),
   notes: z.string().optional(),
 })
 
@@ -66,22 +73,31 @@ export const dealerBusinessDefaults: DealerBusinessValues = {
 // Everything else is optional (format is still checked where a pattern applies).
 export const dealerFormSchema = z.object({
   // --- API: identity / business ---
-  businessName: z.string().optional(),
-  ownerFirstName: z.string().optional(),
-  ownerLastName: z.string().optional(),
-  email: z.string().email('Enter a valid email address'),
-  phone: z.string().regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
-  country: z.string().optional(),
+  businessName: requiredString('Business name is required'),
+  ownerFirstName: requiredString('Owner first name is required'),
+  ownerLastName: requiredString('Owner last name is required'),
+  email: z.string().trim().email('Enter a valid email address'),
+  phone: z
+    .string()
+    .trim()
+    .regex(/^\d{10}$/, 'Enter a valid 10-digit phone number'),
+  country: requiredString('Country is required'),
 
   // --- API: licensing ---
-  gstNumber: optionalPattern(/^[0-9A-Z]{15}$/, 'Enter a valid 15-character GST number'),
+  gstNumber: requiredPattern(
+    /^[0-9A-Z]{15}$/,
+    'Enter a valid 15-character GST number',
+  ),
 
   // --- API: profile ---
-  profileImageUrl: z.string().optional(),
+  profileImageUrl: requiredString('Profile image is required'),
 
   // --- API: assignment ---
-  regionId: z.string().uuid(uuidMessage),
-  assignedMedicalRepresentativeId: z.string().uuid('Assign a medical representative'),
+  regionId: z.string().trim().uuid(uuidMessage),
+  assignedMedicalRepresentativeId: z
+    .string()
+    .trim()
+    .uuid('Assign a medical representative'),
   notes: z.string().optional(),
 
   // --- API: outlets, one per business/godown location ---
@@ -129,7 +145,9 @@ export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
   return {
     type: 'DEALER',
     businessName: values.businessName ?? '',
-    ownerName: [values.ownerFirstName, values.ownerLastName].filter(Boolean).join(' '),
+    ownerName: [values.ownerFirstName, values.ownerLastName]
+      .filter(Boolean)
+      .join(' '),
     profileImage: toProfileImagePayload(values.profileImageUrl),
     email: values.email,
     phone: values.phone,
@@ -157,8 +175,12 @@ export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
       latitude: business.latitude ? Number(business.latitude) : undefined,
       longitude: business.longitude ? Number(business.longitude) : undefined,
       scanRadius: business.scanRadius ? Number(business.scanRadius) : undefined,
-      bufferRadius: business.bufferRadius ? Number(business.bufferRadius) : undefined,
-      geoAccuracy: business.geoAccuracy ? Number(business.geoAccuracy) : undefined,
+      bufferRadius: business.bufferRadius
+        ? Number(business.bufferRadius)
+        : undefined,
+      geoAccuracy: business.geoAccuracy
+        ? Number(business.geoAccuracy)
+        : undefined,
       geoTagImage: null,
       regionId: values.regionId,
       notes: business.notes,

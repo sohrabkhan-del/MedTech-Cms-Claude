@@ -80,7 +80,7 @@ function FieldLabel({
       }}
     >
       {children}
-      {required ? ' *' : ''}
+      {required ? <span style={{ color: '#d32f2f' }}> *</span> : ''}
     </Typography>
   )
 }

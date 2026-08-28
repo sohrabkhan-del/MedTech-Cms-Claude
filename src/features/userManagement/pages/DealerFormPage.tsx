@@ -80,7 +80,7 @@ function FieldLabel({
       }}
     >
       {children}
-      {required ? ' *' : ''}
+      {required ? <span style={{ color: '#d32f2f' }}> *</span> : ''}
     </Typography>
   )
 }
@@ -129,7 +129,12 @@ function BusinessAddressFields({
               }}
               size="small"
               renderInput={(params) => (
-                <TextField {...params} placeholder="Select state" error={!!fieldState.error} helperText={fieldState.error?.message} />
+                <TextField
+                  {...params}
+                  placeholder="Select state"
+                  error={!!fieldState.error}
+                  helperText={fieldState.error?.message}
+                />
               )}
             />
           )}
@@ -153,7 +158,9 @@ function BusinessAddressFields({
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder={selectedState ? 'Select district' : 'Select a state first'}
+                  placeholder={
+                    selectedState ? 'Select district' : 'Select a state first'
+                  }
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                 />
@@ -181,7 +188,11 @@ function BusinessAddressFields({
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  placeholder={selectedDistrict ? 'Select or type a city' : 'Select a district first'}
+                  placeholder={
+                    selectedDistrict
+                      ? 'Select or type a city'
+                      : 'Select a district first'
+                  }
                   error={!!fieldState.error}
                   helperText={fieldState.error?.message}
                 />
@@ -211,7 +222,9 @@ export function DealerFormPage() {
     useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
   const [mapPickerIndex, setMapPickerIndex] = useState<number | null>(null)
-  const [removeTargetIndex, setRemoveTargetIndex] = useState<number | null>(null)
+  const [removeTargetIndex, setRemoveTargetIndex] = useState<number | null>(
+    null,
+  )
 
   useEffect(() => {
     let ignore = false
@@ -274,9 +287,15 @@ export function DealerFormPage() {
               pincode: business.pincode ?? '',
               latitude: business.latitude ? String(business.latitude) : '',
               longitude: business.longitude ? String(business.longitude) : '',
-              scanRadius: business.scanRadius ? String(business.scanRadius) : '',
-              bufferRadius: business.bufferRadius ? String(business.bufferRadius) : '',
-              geoAccuracy: business.geoAccuracy ? String(business.geoAccuracy) : '',
+              scanRadius: business.scanRadius
+                ? String(business.scanRadius)
+                : '',
+              bufferRadius: business.bufferRadius
+                ? String(business.bufferRadius)
+                : '',
+              geoAccuracy: business.geoAccuracy
+                ? String(business.geoAccuracy)
+                : '',
               notes: business.notes ?? '',
             }))
           : [{ ...dealerBusinessDefaults, outletName: 'Godown 1' }],
@@ -427,7 +446,12 @@ export function DealerFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 8 }}>
               <FieldLabel>Profile Image URL</FieldLabel>
-              <FormField name="profileImageUrl" control={control} placeholder="https://…" {...fieldLabelProps} />
+              <FormField
+                name="profileImageUrl"
+                control={control}
+                placeholder="https://…"
+                {...fieldLabelProps}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -473,48 +497,105 @@ export function DealerFormPage() {
                 <Grid container spacing={2.5}>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel required>Godown Name</FieldLabel>
-                    <FormField name={`businesses.${index}.outletName`} control={control} placeholder={`e.g. Godown ${index + 1}`} {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.outletName`}
+                      control={control}
+                      placeholder={`e.g. Godown ${index + 1}`}
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel required>PAN Number</FieldLabel>
-                    <FormField name={`businesses.${index}.panNumber`} control={control} placeholder="e.g. ABCDE1234F" uppercase {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.panNumber`}
+                      control={control}
+                      placeholder="e.g. ABCDE1234F"
+                      uppercase
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel required>Drug License Number</FieldLabel>
-                    <FormField name={`businesses.${index}.drugLicenseNumber`} control={control} placeholder="e.g. MH/MUM/DRUG/2026/45879" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.drugLicenseNumber`}
+                      control={control}
+                      placeholder="e.g. MH/MUM/DRUG/2026/45879"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel required>Drug License Expiry</FieldLabel>
-                    <FormField name={`businesses.${index}.drugLicenseExpiry`} control={control} type="date" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.drugLicenseExpiry`}
+                      control={control}
+                      type="date"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
                   <Grid size={12}>
                     <FieldLabel required>Address Line 1</FieldLabel>
-                    <FormField name={`businesses.${index}.addressLine1`} control={control} placeholder="Godown no., building, street" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.addressLine1`}
+                      control={control}
+                      placeholder="Godown no., building, street"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={12}>
                     <FieldLabel>Address Line 2</FieldLabel>
-                    <FormField name={`businesses.${index}.addressLine2`} control={control} placeholder="Area, locality" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.addressLine2`}
+                      control={control}
+                      placeholder="Area, locality"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel>Landmark</FieldLabel>
-                    <FormField name={`businesses.${index}.landmark`} control={control} placeholder="e.g. Near Metro Station" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.landmark`}
+                      control={control}
+                      placeholder="e.g. Near Metro Station"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
-                  <BusinessAddressFields control={control} setValue={setValue} watch={watch} index={index} />
+                  <BusinessAddressFields
+                    control={control}
+                    setValue={setValue}
+                    watch={watch}
+                    index={index}
+                  />
 
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <FieldLabel required>Pincode</FieldLabel>
-                    <FormField name={`businesses.${index}.pincode`} control={control} placeholder="e.g. 400086" numeric {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.pincode`}
+                      control={control}
+                      placeholder="e.g. 400086"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Latitude</FieldLabel>
-                    <FormField name={`businesses.${index}.latitude`} control={control} placeholder="e.g. 19.0760" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.latitude`}
+                      control={control}
+                      placeholder="e.g. 19.0760"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 5 }}>
                     <FieldLabel>Longitude</FieldLabel>
-                    <FormField name={`businesses.${index}.longitude`} control={control} placeholder="e.g. 72.8777" {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.longitude`}
+                      control={control}
+                      placeholder="e.g. 72.8777"
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid
                     size={{ xs: 12, sm: 2 }}
@@ -533,20 +614,44 @@ export function DealerFormPage() {
 
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel>Scan Radius (m)</FieldLabel>
-                    <FormField name={`businesses.${index}.scanRadius`} control={control} placeholder="e.g. 50" numeric {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.scanRadius`}
+                      control={control}
+                      placeholder="e.g. 50"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel>Buffer Radius (m)</FieldLabel>
-                    <FormField name={`businesses.${index}.bufferRadius`} control={control} placeholder="e.g. 20" numeric {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.bufferRadius`}
+                      control={control}
+                      placeholder="e.g. 20"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                   <Grid size={{ xs: 12, sm: 4 }}>
                     <FieldLabel>Geo Accuracy (m)</FieldLabel>
-                    <FormField name={`businesses.${index}.geoAccuracy`} control={control} placeholder="e.g. 10" numeric {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.geoAccuracy`}
+                      control={control}
+                      placeholder="e.g. 10"
+                      numeric
+                      {...fieldLabelProps}
+                    />
                   </Grid>
 
                   <Grid size={12}>
                     <FieldLabel>Godown Notes</FieldLabel>
-                    <FormField name={`businesses.${index}.notes`} control={control} multiline minRows={2} {...fieldLabelProps} />
+                    <FormField
+                      name={`businesses.${index}.notes`}
+                      control={control}
+                      multiline
+                      minRows={2}
+                      {...fieldLabelProps}
+                    />
                   </Grid>
                 </Grid>
 

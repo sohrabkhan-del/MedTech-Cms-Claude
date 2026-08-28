@@ -28,7 +28,9 @@ export interface ProductPointRuleRow {
   chemistProductPoints: number
 }
 
-function mapProductPointRule(item: ProductPointRuleApiItem): ProductPointRuleRow {
+function mapProductPointRule(
+  item: ProductPointRuleApiItem,
+): ProductPointRuleRow {
   return {
     productId: item.productId,
     productName: item.productName || item.productCode,
@@ -121,7 +123,8 @@ export interface ProductRegionMultipliersDetail {
 function mapProductRegionMultipliers(
   response: ProductRegionMultipliersApiResponse,
 ): ProductRegionMultipliersDetail {
-  const { product, regions, dealerProductPoints, chemistProductPoints } = response.data
+  const { product, regions, dealerProductPoints, chemistProductPoints } =
+    response.data
   return {
     productId: product.id,
     productCode: product.productCode,
@@ -223,6 +226,10 @@ interface GlobalRegionMultiplierApiItem {
   chemistLastMultiplier: number
 }
 
+export interface GlobalRegionMultiplierQueryParams {
+  regionId?: string
+}
+
 export interface GlobalRegionMultiplierRow {
   regionId: string
   regionCode: string
@@ -258,12 +265,17 @@ const pointValueRulesApi = baseApi.injectEndpoints({
         },
         mockResolver: () => mockDelay([]),
       }),
-      transformResponse: (response: { success: boolean; data: ProductPointRuleApiItem[] }) =>
-        response.data.map(mapProductPointRule),
+      transformResponse: (response: {
+        success: boolean
+        data: ProductPointRuleApiItem[]
+      }) => response.data.map(mapProductPointRule),
       providesTags: (result) =>
         result
           ? [
-              ...result.map((row) => ({ type: 'PointValueRules' as const, id: row.productId })),
+              ...result.map((row) => ({
+                type: 'PointValueRules' as const,
+                id: row.productId,
+              })),
               { type: 'PointValueRules' as const, id: 'LIST' },
             ]
           : [{ type: 'PointValueRules' as const, id: 'LIST' }],
@@ -291,18 +303,26 @@ const pointValueRulesApi = baseApi.injectEndpoints({
             productCategories: 0,
           }),
       }),
-      transformResponse: (response: { success: boolean; data: PointValueRulesKpis }) =>
-        response.data,
+      transformResponse: (response: {
+        success: boolean
+        data: PointValueRulesKpis
+      }) => response.data,
       providesTags: [{ type: 'PointValueRules', id: 'KPIS' }],
     }),
 
     /** GET /products/:id/region-multipliers — one product's per-region
      *  dealer/chemist multipliers and resulting points, plus override flags. */
-    getProductRegionMultipliers: builder.query<ProductRegionMultipliersDetail, string>({
+    getProductRegionMultipliers: builder.query<
+      ProductRegionMultipliersDetail,
+      string
+    >({
       query: (id) => ({
         tag: 'PointValueRules',
         url: `/products/${id}/region-multipliers`,
-        mockResolver: () => Promise.reject(new Error('Region multipliers has no mock mode — real API only.')),
+        mockResolver: () =>
+          Promise.reject(
+            new Error('Region multipliers has no mock mode — real API only.'),
+          ),
       }),
       transformResponse: mapProductRegionMultipliers,
       providesTags: (_result, _error, id) => [{ type: 'PointValueRules', id }],
@@ -320,11 +340,15 @@ const pointValueRulesApi = baseApi.injectEndpoints({
         params: { page: page ?? 1, limit: limit ?? 10 },
         mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
       }),
-      transformResponse: (response: ProductRegionMultiplierHistoryApiResponse) => ({
+      transformResponse: (
+        response: ProductRegionMultiplierHistoryApiResponse,
+      ) => ({
         items: response.data.items.map(mapRegionMultiplierHistory),
         totalItems: response.data.totalItems,
       }),
-      providesTags: (_result, _error, { id }) => [{ type: 'PointValueRules', id: `HISTORY_${id}` }],
+      providesTags: (_result, _error, { id }) => [
+        { type: 'PointValueRules', id: `HISTORY_${id}` },
+      ],
     }),
 
     /** PATCH /products/:id/base-points — updates a product's base Dealer/Chemist
@@ -352,7 +376,12 @@ const pointValueRulesApi = baseApi.injectEndpoints({
      *  product's Dealer/Chemist multiplier for a single region. */
     updateProductRegionMultiplier: builder.mutation<
       void,
-      { id: string; regionId: string; dealerMultiplier: number; chemistMultiplier: number }
+      {
+        id: string
+        regionId: string
+        dealerMultiplier: number
+        chemistMultiplier: number
+      }
     >({
       query: ({ id, regionId, dealerMultiplier, chemistMultiplier }) => ({
         tag: 'PointValueRules',
@@ -372,7 +401,10 @@ const pointValueRulesApi = baseApi.injectEndpoints({
     /** DELETE /products/:id/region-multipliers/:regionId — clears a product's
      *  region-specific override, reverting it back to the current global
      *  multiplier for that region. */
-    resetProductRegionMultiplier: builder.mutation<void, { id: string; regionId: string }>({
+    resetProductRegionMultiplier: builder.mutation<
+      void,
+      { id: string; regionId: string }
+    >({
       query: ({ id, regionId }) => ({
         tag: 'PointValueRules',
         url: `/products/${id}/region-multipliers/${regionId}`,
@@ -389,14 +421,22 @@ const pointValueRulesApi = baseApi.injectEndpoints({
 
     /** GET /region-multipliers — the current global multiplier per region,
      *  for both Dealer and Chemist, plus each one's previous value. */
-    getGlobalRegionMultipliers: builder.query<GlobalRegionMultiplierRow[], void>({
-      query: () => ({
+    getGlobalRegionMultipliers: builder.query<
+      GlobalRegionMultiplierRow[],
+      GlobalRegionMultiplierQueryParams | void
+    >({
+      query: (params) => ({
         tag: 'PointValueRules',
         url: '/region-multipliers',
+        params: {
+          regionId: params?.regionId || undefined,
+        },
         mockResolver: () => mockDelay([]),
       }),
-      transformResponse: (response: { success: boolean; data: GlobalRegionMultiplierApiItem[] }) =>
-        response.data.map(mapGlobalRegionMultiplier),
+      transformResponse: (response: {
+        success: boolean
+        data: GlobalRegionMultiplierApiItem[]
+      }) => response.data.map(mapGlobalRegionMultiplier),
       providesTags: [{ type: 'PointValueRules', id: 'GLOBAL_MULTIPLIERS' }],
     }),
 

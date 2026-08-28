@@ -1,21 +1,19 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  Alert,
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
   Stack,
   Step,
-  StepLabel,
+  StepButton,
   Stepper,
   Typography,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  TextField,
 } from '@mui/material'
 import {
   Boxes,
@@ -301,16 +299,54 @@ export function BatchUidUploadTab({
   const [cartonSummary, setCartonSummary] =
     useState<MasterCartonUploadSummary | null>(null)
 
+  const resetWizardState = () => {
+    setActiveStep(0)
+    setBmrFile(null)
+    setCartonFile(null)
+    setBatchRows([])
+    setSummary(null)
+    setCartonRows([])
+    setCartonSummary(null)
+    setIsProcessing(false)
+    setValidateError(null)
+    setToast(null)
+    setUploadFileName(buildUploadFileName())
+  }
+
+  useEffect(() => {
+    return () => {
+      resetWizardState()
+    }
+  }, [])
+
   const [previewRows] = usePreviewFactoryProductionRowsMutation()
   const [uploadRows] = useUploadFactoryProductionRowsMutation()
 
   const [isProcessing, setIsProcessing] = useState(false)
   const [validateError, setValidateError] = useState<string | null>(null)
-  const [toast, setToast] = useState<{
-    severity: 'success' | 'warning'
+  const [validationDialog, setValidationDialog] = useState<{
     title: string
     message: string
   } | null>(null)
+  const [rejectionDialog, setRejectionDialog] = useState<{
+    title: string
+    message: string
+  } | null>(null)
+  const [toast, setToast] = useState<{
+    severity: 'success' | 'warning' | 'error'
+    title: string
+    message: string
+  } | null>(null)
+
+  const showValidationFailure = (title: string, message: string) => {
+    setValidateError(message)
+    setToast({
+      severity: 'error',
+      title,
+      message,
+    })
+    setValidationDialog({ title, message })
+  }
 
   const mappedBatches = buildMappedBatches(batchRows)
   const validBatchRows = useMemo(
@@ -459,18 +495,59 @@ export function BatchUidUploadTab({
       const rejectedLinks =
         reviewedCartonSummary.unknownUids + reviewedCartonSummary.duplicateUids
       if (rejectedBatches + rejectedLinks > 0) {
+        const issueMessage = `${rejectedBatches} BMR row(s) and ${rejectedLinks} carton linkage row(s) failed validation and were excluded.`
+
+        const previewIssueExamples = preview.rows
+          .filter((row) => !row.isValid)
+          .slice(0, 5)
+          .map((row) => {
+            const reason = row.reason || previewReasonLabel(row.action)
+            return `- BMR preview: Batch ${row.batchNo ?? 'N/A'} — ${reason}`
+          })
+
+        const reviewIssueExamples = reviewedBmrRows
+          .filter((row) => !row.isValid)
+          .slice(0, 3)
+          .map(
+            (row) =>
+              `- BMR review: Batch ${row.batchNumber ?? 'N/A'} — ${row.validationNote ?? 'Invalid row'}`,
+          )
+
+        const cartonIssueExamples = reviewedCartonRows
+          .filter((row) => !row.isValid)
+          .slice(0, 3)
+          .map(
+            (row) =>
+              `- Carton review: UID ${row.uid ?? 'N/A'} — ${row.validationNote ?? 'Invalid row'}`,
+          )
+
+        const exampleMessage = [
+          ...previewIssueExamples,
+          ...reviewIssueExamples,
+          ...cartonIssueExamples,
+        ]
+          .slice(0, 8)
+          .join('\n')
+
+        const solutionMessage =
+          'Issue: the file contains invalid rows that cannot be imported. Solution: correct the invalid data, re-upload the corrected file, and try again.'
+
         setToast({
           severity: 'warning',
           title: 'Some rows were rejected',
-          message: `${rejectedBatches} BMR row(s) and ${rejectedLinks} carton linkage row(s) failed validation and were excluded.`,
+          message: issueMessage,
+        })
+        setRejectionDialog({
+          title: 'Import blocked by rejected rows',
+          message: `${issueMessage}\n\nIssue from preview:\n${exampleMessage || '- No sample issues available.'}\n\n${solutionMessage}`,
         })
       }
     } catch (err) {
-      setValidateError(
+      const message =
         err instanceof Error
           ? err.message
-          : 'Failed to parse the uploaded files.',
-      )
+          : 'Failed to parse the uploaded files.'
+      showValidationFailure('File validation failed', message)
     } finally {
       setIsProcessing(false)
     }
@@ -588,15 +665,37 @@ export function BatchUidUploadTab({
       })
   }
 
-  async function handleConfirmImport() {
-    // Open filename dialog before performing upload
-    setUploadDialogOpen(true)
+  function buildUploadFileName(): string {
+    const now = new Date()
+    const year = now.getFullYear()
+    const day = String(now.getDate()).padStart(2, '0')
+    const month = now.toLocaleString('en-US', { month: 'short' })
+    let hours = now.getHours()
+    const minutes = String(now.getMinutes()).padStart(2, '0')
+    const ampm = hours >= 12 ? 'pm' : 'am'
+    hours = hours % 12 || 12
+    const time = `${hours}_${minutes}${ampm}`
+    const stamp = `${year}_${day}_${month}_${time}`
+    const baseName = (bmrFile?.name ?? 'bmr-upload').replace(/\.[^.]+$/, '')
+    return `${baseName}_${stamp}.xlsx`
   }
 
-  const [uploadDialogOpen, setUploadDialogOpen] = useState(false)
+  async function handleConfirmImport() {
+    setUploadFileName(buildUploadFileName())
+    await performUpload()
+  }
+
   const [uploadFileName, setUploadFileName] = useState<string>(
-    bmrFile?.name ?? 'bmr-upload.xlsx',
+    buildUploadFileName(),
   )
+
+  const canNavigateToStep = (index: number) => {
+    if (index === 0) return true
+    if (index === 1) return !!bmrFile
+    if (index === 2) return !!summary && !!cartonSummary
+    if (index === 3) return activeStep === 3
+    return false
+  }
 
   async function performUpload() {
     setIsProcessing(true)
@@ -635,7 +734,10 @@ export function BatchUidUploadTab({
           title: 'Upload incomplete',
           message: backendMsg,
         })
-        setUploadDialogOpen(false)
+        setValidationDialog({
+          title: 'Upload incomplete',
+          message: backendMsg,
+        })
         return
       }
 
@@ -657,11 +759,12 @@ export function BatchUidUploadTab({
       if (onDone) {
         setTimeout(onDone, 2000)
       }
-      setUploadDialogOpen(false)
     } catch (err) {
-      setValidateError(
-        getApiErrorMessage(err, 'Failed to import the validated data.'),
+      const message = getApiErrorMessage(
+        err,
+        'Failed to import the validated data.',
       )
+      showValidationFailure('Import failed', message)
     } finally {
       setIsProcessing(false)
     }
@@ -669,10 +772,24 @@ export function BatchUidUploadTab({
 
   return (
     <Stack spacing={3}>
-      <Stepper activeStep={activeStep} alternativeLabel sx={{ mb: 1 }}>
-        {STEP_LABELS.map((label) => (
-          <Step key={label}>
-            <StepLabel>{label}</StepLabel>
+      <Stepper
+        activeStep={activeStep}
+        alternativeLabel
+        nonLinear
+        sx={{ mb: 1 }}
+      >
+        {STEP_LABELS.map((label, index) => (
+          <Step key={label} completed={index < activeStep}>
+            <StepButton
+              color="inherit"
+              onClick={() => {
+                if (canNavigateToStep(index)) {
+                  setActiveStep(index)
+                }
+              }}
+            >
+              {label}
+            </StepButton>
           </Step>
         ))}
       </Stepper>
@@ -717,6 +834,11 @@ export function BatchUidUploadTab({
               onSelect={(f) => {
                 setBmrFile(f)
                 setValidateError(null)
+                setToast({
+                  severity: 'success',
+                  title: 'BMR uploaded',
+                  message: `${f.name} uploaded successfully.`,
+                })
               }}
               onRemove={() => {
                 setBmrFile(null)
@@ -761,6 +883,11 @@ export function BatchUidUploadTab({
               onSelect={(f) => {
                 setCartonFile(f)
                 setValidateError(null)
+                setToast({
+                  severity: 'success',
+                  title: 'Carton linkage uploaded',
+                  message: `${f.name} uploaded successfully.`,
+                })
               }}
               onRemove={() => {
                 setCartonFile(null)
@@ -770,7 +897,6 @@ export function BatchUidUploadTab({
               helperText="Must include UID and Master Carton Number columns"
             />
           </SectionCard>
-          {validateError && <Alert severity="error">{validateError}</Alert>}
           <Stack
             direction="row"
             spacing={1.5}
@@ -833,15 +959,6 @@ export function BatchUidUploadTab({
               />
             </Grid>
           </Grid>
-
-          {summary.duplicateBatches + summary.invalidRanges > 0 && (
-            <Alert severity="warning">
-              {summary.duplicateBatches} duplicate batch number(s) and{' '}
-              {summary.invalidRanges} row(s) with an invalid serial range were
-              excluded. Only valid batches will be imported and have UIDs
-              generated.
-            </Alert>
-          )}
 
           <SectionCard title="BMR Batches — Will Be Imported">
             <CommonTable
@@ -964,14 +1081,6 @@ export function BatchUidUploadTab({
             </Grid>
           </Grid>
 
-          {cartonSummary.unknownUids + cartonSummary.duplicateUids > 0 && (
-            <Alert severity="warning">
-              {cartonSummary.unknownUids} UID(s) not found in this BMR import
-              and {cartonSummary.duplicateUids} duplicate UID(s) were excluded
-              from the carton linkage.
-            </Alert>
-          )}
-
           <SectionCard title="Master Carton Linkage — Will Be Imported">
             <CommonTable
               tableKey="master-carton-linkage-valid-preview"
@@ -1048,20 +1157,38 @@ export function BatchUidUploadTab({
             </SectionCard>
           )}
 
-          {validateError && <Alert severity="error">{validateError}</Alert>}
-
           <Stack
             direction="row"
             spacing={1.5}
             sx={{ justifyContent: 'flex-end' }}
           >
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setActiveStep(0)
+                setBmrFile(null)
+                setCartonFile(null)
+                setBatchRows([])
+                setSummary(null)
+                setCartonRows([])
+                setCartonSummary(null)
+                setValidateError(null)
+                setToast(null)
+              }}
+            >
+              Re-upload
+            </Button>
             <Button variant="outlined" onClick={() => setActiveStep(1)}>
               Back
             </Button>
             <Button
               variant="contained"
               loading={isProcessing}
-              disabled={validBatchRows.length === 0}
+              disabled={
+                validBatchRows.length === 0 ||
+                rejectedBatchRows.length > 0 ||
+                rejectedCartonRows.length > 0
+              }
               onClick={handleConfirmImport}
             >
               Confirm Import
@@ -1081,6 +1208,100 @@ export function BatchUidUploadTab({
         />
       )}
 
+      <Dialog
+        open={!!validationDialog}
+        onClose={() => setValidationDialog(null)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle>
+          {validationDialog?.title ?? 'Validation failed'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ whiteSpace: 'pre-line' }}>
+            {validationDialog?.message ?? ''}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setValidationDialog(null)} variant="contained">
+            OK
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog
+        open={!!rejectionDialog}
+        onClose={() => setRejectionDialog(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            border: '1px solid',
+            borderColor: 'error.main',
+            background:
+              'linear-gradient(180deg, rgba(211,47,47,0.06), rgba(255,255,255,1))',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            color: 'error.main',
+            fontWeight: 700,
+            pb: 1,
+          }}
+        >
+          {rejectionDialog?.title ?? 'Import blocked'}
+        </DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'error.main',
+              backgroundColor: 'rgba(211, 47, 47, 0.06)',
+            }}
+          >
+            <DialogContentText
+              sx={{
+                whiteSpace: 'pre-line',
+                color: 'error.dark',
+                fontWeight: 600,
+              }}
+            >
+              {rejectionDialog?.message ?? ''}
+            </DialogContentText>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+          <Button
+            onClick={() => {
+              setRejectionDialog(null)
+              setActiveStep(0)
+              setBmrFile(null)
+              setCartonFile(null)
+              setBatchRows([])
+              setSummary(null)
+              setCartonRows([])
+              setCartonSummary(null)
+              setValidateError(null)
+              setToast(null)
+            }}
+            variant="outlined"
+            color="error"
+          >
+            Re-upload
+          </Button>
+          <Button
+            onClick={() => setRejectionDialog(null)}
+            variant="contained"
+            color="error"
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Toast
         open={!!toast}
         title={toast?.title}
@@ -1088,36 +1309,6 @@ export function BatchUidUploadTab({
         severity={toast?.severity ?? 'success'}
         onClose={() => setToast(null)}
       />
-      <Dialog
-        open={uploadDialogOpen}
-        onClose={() => setUploadDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Confirm upload filename</DialogTitle>
-        <DialogContent>
-          <DialogContentText sx={{ mb: 2 }}>
-            Enter a filename to associate with this upload .
-          </DialogContentText>
-          <TextField
-            fullWidth
-            label="Filename"
-            value={uploadFileName}
-            onChange={(e) => setUploadFileName(e.target.value)}
-            size="small"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setUploadDialogOpen(false)}>Cancel</Button>
-          <Button
-            variant="contained"
-            onClick={performUpload}
-            disabled={isProcessing}
-          >
-            Confirm & Upload
-          </Button>
-        </DialogActions>
-      </Dialog>
     </Stack>
   )
 }

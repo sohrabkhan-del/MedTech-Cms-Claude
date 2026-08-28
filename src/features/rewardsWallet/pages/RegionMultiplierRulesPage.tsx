@@ -18,6 +18,7 @@ import { Modal } from '@/components/common/Modal/Modal'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { radius } from '@/theme/tokens'
 import { useToast } from '@/contexts/ToastContext'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import {
   useGetGlobalRegionMultipliersQuery,
@@ -66,11 +67,26 @@ interface RegionMultiplierValue {
 export function RegionMultiplierRulesPage() {
   const navigate = useNavigate()
   const toast = useToast()
+  const { region, regionId: topbarRegionId } = useRegionFilter()
   const [searchParams, setSearchParams] = useSearchParams()
+  const effectiveRegionId =
+    region === 'All India' ? undefined : (topbarRegionId ?? undefined)
   const { data: regions = [], isFetching: isLoading } =
-    useGetGlobalRegionMultipliersQuery()
+    useGetGlobalRegionMultipliersQuery(
+      effectiveRegionId ? { regionId: effectiveRegionId } : undefined,
+    )
   const [bulkUpdate, { isLoading: isSaving }] =
     useBulkUpdateRegionMultipliersMutation()
+
+  const visibleRegions = useMemo(
+    () =>
+      effectiveRegionId
+        ? regions.filter(
+            (regionItem) => regionItem.regionId === effectiveRegionId,
+          )
+        : regions,
+    [effectiveRegionId, regions],
+  )
 
   const partnerType: PartnerType = isPartnerType(
     searchParams.get('partnerType'),
@@ -98,58 +114,68 @@ export function RegionMultiplierRulesPage() {
   const activeValueByRegion = useMemo(
     () =>
       new Map(
-        regions.map((region) => [
-          region.regionId,
+        visibleRegions.map((regionItem) => [
+          regionItem.regionId,
           {
-            dealerMultiplier: closestMultiplierOption(region.dealerMultiplier),
+            dealerMultiplier: closestMultiplierOption(
+              regionItem.dealerMultiplier,
+            ),
             chemistMultiplier: closestMultiplierOption(
-              region.chemistMultiplier,
+              regionItem.chemistMultiplier,
             ),
           },
         ]),
       ),
-    [regions],
+    [visibleRegions],
   )
 
   const currentValues = useMemo<Record<string, RegionMultiplierValue>>(() => {
     if (values) return values
     const next: Record<string, RegionMultiplierValue> = {}
-    for (const region of regions) {
-      next[region.regionId] = activeValueByRegion.get(region.regionId) ?? {
+    for (const regionItem of visibleRegions) {
+      next[regionItem.regionId] = activeValueByRegion.get(
+        regionItem.regionId,
+      ) ?? {
         dealerMultiplier: 1,
         chemistMultiplier: 1,
       }
     }
     return next
-  }, [values, regions, activeValueByRegion])
+  }, [values, visibleRegions, activeValueByRegion])
 
   const field: keyof RegionMultiplierValue =
     partnerType === 'Dealer' ? 'dealerMultiplier' : 'chemistMultiplier'
 
   const changedRegionIds = useMemo(
     () =>
-      regions
-        .filter((region) => {
-          const active = activeValueByRegion.get(region.regionId)
-          const current = currentValues[region.regionId]
+      visibleRegions
+        .filter((regionItem) => {
+          const active = activeValueByRegion.get(regionItem.regionId)
+          const current = currentValues[regionItem.regionId]
           if (!active || !current) return false
           return active[field] !== current[field]
         })
-        .map((region) => region.regionId),
-    [regions, currentValues, activeValueByRegion, field],
+        .map((regionItem) => regionItem.regionId),
+    [visibleRegions, currentValues, activeValueByRegion, field],
   )
 
   // Backend rule: after this update, exactly one region (across all 4) must
   // sit at multiplier 1 for the active partner type. Resolve the post-save
   // value for every region and validate before allowing save.
   const resultingRegionsAtOne = useMemo(() => {
-    return regions.filter((region) => {
-      const resolved = changedRegionIds.includes(region.regionId)
-        ? currentValues[region.regionId]?.[field]
-        : activeValueByRegion.get(region.regionId)?.[field]
+    return visibleRegions.filter((regionItem) => {
+      const resolved = changedRegionIds.includes(regionItem.regionId)
+        ? currentValues[regionItem.regionId]?.[field]
+        : activeValueByRegion.get(regionItem.regionId)?.[field]
       return resolved === 1
     }).length
-  }, [regions, changedRegionIds, currentValues, activeValueByRegion, field])
+  }, [
+    visibleRegions,
+    changedRegionIds,
+    currentValues,
+    activeValueByRegion,
+    field,
+  ])
 
   const multiplierRuleError =
     changedRegionIds.length > 0 && resultingRegionsAtOne !== 1
@@ -160,13 +186,13 @@ export function RegionMultiplierRulesPage() {
 
   const overLimitRegionIds = useMemo(
     () =>
-      regions
+      visibleRegions
         .filter(
-          (region) =>
-            (currentValues[region.regionId]?.[field] ?? 0) > MAX_MULTIPLIER,
+          (regionItem) =>
+            (currentValues[regionItem.regionId]?.[field] ?? 0) > MAX_MULTIPLIER,
         )
-        .map((region) => region.regionId),
-    [regions, currentValues, field],
+        .map((regionItem) => regionItem.regionId),
+    [visibleRegions, currentValues, field],
   )
 
   const maxMultiplierError =
@@ -190,12 +216,14 @@ export function RegionMultiplierRulesPage() {
   const handleReset = () => setValues(null)
 
   const handleConfirmSave = async () => {
+    if (visibleRegions.length === 0) return
     try {
       await bulkUpdate({
-        regions: regions.map((region) => ({
-          regionId: region.regionId,
-          dealerMultiplier: currentValues[region.regionId].dealerMultiplier,
-          chemistMultiplier: currentValues[region.regionId].chemistMultiplier,
+        regions: visibleRegions.map((regionItem) => ({
+          regionId: regionItem.regionId,
+          dealerMultiplier: currentValues[regionItem.regionId].dealerMultiplier,
+          chemistMultiplier:
+            currentValues[regionItem.regionId].chemistMultiplier,
         })),
       }).unwrap()
       setConfirmOpen(false)
@@ -319,7 +347,7 @@ export function RegionMultiplierRulesPage() {
             </Stack>
 
             <Grid container spacing={1.5}>
-              {isLoading && regions.length === 0
+              {isLoading && visibleRegions.length === 0
                 ? Array.from({ length: 4 }, (_, i) => (
                     <Grid key={i} size={{ xs: 6, sm: 3 }}>
                       <Skeleton width={80} height={18} sx={{ mb: 0.5 }} />
@@ -327,10 +355,10 @@ export function RegionMultiplierRulesPage() {
                     </Grid>
                   ))
                 : null}
-              {regions.map((region) => {
-                const isChanged = changedRegionIds.includes(region.regionId)
+              {visibleRegions.map((regionItem) => {
+                const isChanged = changedRegionIds.includes(regionItem.regionId)
                 return (
-                  <Grid key={region.regionId} size={{ xs: 6, sm: 3 }}>
+                  <Grid key={regionItem.regionId} size={{ xs: 6, sm: 3 }}>
                     <Stack
                       direction="row"
                       spacing={0.5}
@@ -339,7 +367,7 @@ export function RegionMultiplierRulesPage() {
                       <Typography
                         sx={{ fontSize: '0.6875rem', color: 'text.secondary' }}
                       >
-                        {region.regionName}
+                        {regionItem.regionName}
                       </Typography>
                       {isChanged && (
                         <Chip
@@ -362,15 +390,15 @@ export function RegionMultiplierRulesPage() {
                         fullWidth
                         type="number"
                         size="small"
-                        error={overLimitRegionIds.includes(region.regionId)}
+                        error={overLimitRegionIds.includes(regionItem.regionId)}
                         value={
-                          currentValues[region.regionId]?.[field] === 0
+                          currentValues[regionItem.regionId]?.[field] === 0
                             ? ''
-                            : (currentValues[region.regionId]?.[field] ?? 1)
+                            : (currentValues[regionItem.regionId]?.[field] ?? 1)
                         }
                         onChange={(e) =>
                           handleValueChange(
-                            region.regionId,
+                            regionItem.regionId,
                             e.target.value === '' ? 0 : Number(e.target.value),
                           )
                         }
@@ -484,7 +512,9 @@ export function RegionMultiplierRulesPage() {
           </Alert>
           <Stack spacing={1}>
             {changedRegionIds.map((regionId) => {
-              const region = regions.find((r) => r.regionId === regionId)
+              const regionItem = visibleRegions.find(
+                (r) => r.regionId === regionId,
+              )
               return (
                 <Stack
                   key={regionId}
@@ -492,7 +522,7 @@ export function RegionMultiplierRulesPage() {
                   sx={{ alignItems: 'center', justifyContent: 'space-between' }}
                 >
                   <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
-                    {region?.regionName ?? regionId}
+                    {regionItem?.regionName ?? regionId}
                   </Typography>
                   <Stack
                     direction="row"

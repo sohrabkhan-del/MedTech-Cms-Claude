@@ -4,6 +4,11 @@ import {
   Box,
   Button,
   Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Grid,
   Stack,
   Typography,
@@ -126,6 +131,10 @@ export function DistributorUploadTab({
   >(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [rejectionDialog, setRejectionDialog] = useState<{
+    title: string
+    message: string
+  } | null>(null)
   const [previewImport, { isLoading: isPreviewing }] =
     usePreviewImportMutation()
   const rejectedRows = summary ? summary.totalRows - summary.validRows : 0
@@ -139,6 +148,7 @@ export function DistributorUploadTab({
     if (!file) return
     setIsProcessing(true)
     setParseError(null)
+    setRejectionDialog(null)
     try {
       const parsed = await parseDispatchReportFile(file)
       const preview = await previewImport({
@@ -149,6 +159,26 @@ export function DistributorUploadTab({
       setMeta(parsed.meta)
       setRows(preview.rows)
       setSummary(preview.summary)
+
+      if (preview.summary.totalRows > preview.summary.validRows) {
+        const issueMessage =
+          preview.summary.duplicateCartons > 0
+            ? `${preview.summary.duplicateCartons} duplicate carton row(s) were found and cannot be imported.`
+            : `${preview.summary.totalRows - preview.summary.validRows} row(s) will not be added because they are invalid or duplicate.`
+
+        const issueExamples = preview.rows
+          .filter((row) => !row.isValid)
+          .slice(0, 5)
+          .map((row) => {
+            const reason = row.validationNote || 'Invalid row'
+            return `- ${row.itemCode || 'N/A'} — ${reason}`
+          })
+
+        setRejectionDialog({
+          title: 'Import blocked by rejected rows',
+          message: `${issueMessage}\n\nIssue from preview:\n${issueExamples.join('\n') || '- No sample issues available.'}\n\nIssue: the file contains rejected rows that cannot be imported. Solution: correct the invalid data, re-upload the corrected file, and try again.`,
+        })
+      }
     } catch (err) {
       setParseError(
         err instanceof Error ? err.message : 'Could not parse the file.',
@@ -159,7 +189,14 @@ export function DistributorUploadTab({
   }
 
   async function handleConfirmImport() {
-    if (!meta || !summary) return
+    if (!meta || !summary || rejectedRows > 0) {
+      setRejectionDialog({
+        title: 'Import blocked by rejected rows',
+        message:
+          'This file contains rejected rows. Correct the invalid or duplicate entries, re-upload the file, and confirm again.',
+      })
+      return
+    }
     setIsProcessing(true)
     await new Promise((r) => setTimeout(r, 700))
     setIsProcessing(false)
@@ -503,7 +540,7 @@ export function DistributorUploadTab({
             <Button
               variant="contained"
               loading={isProcessing}
-              disabled={summary.validRows === 0}
+              disabled={summary.validRows === 0 || rejectedRows > 0}
               onClick={handleConfirmImport}
             >
               Confirm Import
@@ -511,6 +548,71 @@ export function DistributorUploadTab({
           </Stack>
         </>
       )}
+
+      <Dialog
+        open={!!rejectionDialog}
+        onClose={() => setRejectionDialog(null)}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{
+          sx: {
+            border: '1px solid',
+            borderColor: 'error.main',
+            background:
+              'linear-gradient(180deg, rgba(211,47,47,0.06), rgba(255,255,255,1))',
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            color: 'error.main',
+            fontWeight: 700,
+            pb: 1,
+          }}
+        >
+          {rejectionDialog?.title ?? 'Import blocked'}
+        </DialogTitle>
+        <DialogContent>
+          <Box
+            sx={{
+              p: 1.5,
+              borderRadius: 1,
+              border: '1px solid',
+              borderColor: 'error.main',
+              backgroundColor: 'rgba(211, 47, 47, 0.06)',
+            }}
+          >
+            <DialogContentText
+              sx={{
+                whiteSpace: 'pre-line',
+                color: 'error.dark',
+                fontWeight: 600,
+              }}
+            >
+              {rejectionDialog?.message ?? ''}
+            </DialogContentText>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ justifyContent: 'space-between', px: 3, pb: 2 }}>
+          <Button
+            onClick={() => {
+              setRejectionDialog(null)
+              resetUpload()
+            }}
+            variant="outlined"
+            color="error"
+          >
+            Re-upload
+          </Button>
+          <Button
+            onClick={() => setRejectionDialog(null)}
+            variant="contained"
+            color="error"
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Stack>
   )
 }

@@ -1,6 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Button, Card, Chip, Skeleton, Stack, TextField, Typography } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  Chip,
+  Skeleton,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Coins as Points, ArrowLeft as ArrowBackOutlined } from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
@@ -17,15 +26,20 @@ export function EditBasePointValuePage() {
   const navigate = useNavigate()
   const toast = useToast()
   const { ruleId: productId } = useParams<{ ruleId: string }>()
-  const { data: detail, isFetching: isLoading } = useGetProductRegionMultipliersQuery(
-    productId ?? '',
-    { skip: !productId },
-  )
-  const [updateBasePoints, { isLoading: isSaving }] = useUpdateProductBasePointsMutation()
+  const { data: detail, isFetching: isLoading } =
+    useGetProductRegionMultipliersQuery(productId ?? '', { skip: !productId })
+  const [updateBasePoints, { isLoading: isSaving }] =
+    useUpdateProductBasePointsMutation()
 
-  const [dealerValue, setDealerValue] = useState<string | null>(null)
-  const [chemistValue, setChemistValue] = useState<string | null>(null)
+  const [dealerValue, setDealerValue] = useState('')
+  const [chemistValue, setChemistValue] = useState('')
   const [confirmStep, setConfirmStep] = useState<0 | 1 | 2>(0)
+
+  useEffect(() => {
+    if (!detail) return
+    setDealerValue(String(detail.dealerProductPoints))
+    setChemistValue(String(detail.chemistProductPoints))
+  }, [detail])
 
   if (!isLoading && !detail) {
     return (
@@ -38,8 +52,8 @@ export function EditBasePointValuePage() {
     )
   }
 
-  const dealerInput = dealerValue ?? String(detail?.dealerProductPoints ?? 0)
-  const chemistInput = chemistValue ?? String(detail?.chemistProductPoints ?? 0)
+  const dealerInput = dealerValue
+  const chemistInput = chemistValue
   const dealerNext = Math.max(0, Number(dealerInput) || 0)
   const chemistNext = Math.max(0, Number(chemistInput) || 0)
   const dealerDirty = !!detail && dealerNext !== detail.dealerProductPoints
@@ -54,10 +68,12 @@ export function EditBasePointValuePage() {
         chemistProductPoints: chemistNext,
       }).unwrap()
       toast.success('Base point values updated successfully.')
-      setDealerValue(null)
-      setChemistValue(null)
+      setDealerValue(String(dealerNext))
+      setChemistValue(String(chemistNext))
     } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Failed to update base point values.'))
+      toast.error(
+        getApiErrorMessage(err, 'Failed to update base point values.'),
+      )
     }
     setConfirmStep(0)
   }
@@ -109,7 +125,9 @@ export function EditBasePointValuePage() {
         <Button
           variant="outlined"
           startIcon={<ArrowBackOutlined size={18} />}
-          onClick={() => navigate(`/rewards-wallet/point-value-rules/${productId}`)}
+          onClick={() =>
+            navigate(`/rewards-wallet/point-value-rules/${productId}`)
+          }
           sx={{ fontSize: '0.8125rem' }}
         >
           Back to Details
@@ -122,7 +140,10 @@ export function EditBasePointValuePage() {
             <DetailFieldGrid
               fields={[
                 { label: 'Product Code', value: detail.productCode },
-                { label: 'Product Category', value: detail.categoryName ?? '-' },
+                {
+                  label: 'Product Category',
+                  value: detail.categoryName ?? '-',
+                },
                 {
                   label: 'Base Point Value (Dealer)',
                   labelColor: 'primary.main',
@@ -133,10 +154,15 @@ export function EditBasePointValuePage() {
                   labelColor: 'secondary.main',
                   value: detail.chemistProductPoints,
                 },
-                { label: 'Total Configured Regions', value: detail.regions.length },
+                {
+                  label: 'Total Configured Regions',
+                  value: detail.regions.length,
+                },
                 {
                   label: 'Last Updated Time',
-                  value: detail.updatedAt ? new Date(detail.updatedAt).toLocaleString('en-IN') : '-',
+                  value: detail.updatedAt
+                    ? new Date(detail.updatedAt).toLocaleString('en-IN')
+                    : '-',
                 },
               ]}
             />
@@ -161,7 +187,12 @@ export function EditBasePointValuePage() {
         <Stack spacing={3}>
           <Card sx={{ p: 3, backgroundColor: 'primary.light' }}>
             <Typography
-              sx={{ fontWeight: 700, fontSize: '0.8125rem', color: 'primary.dark', mb: 2.5 }}
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                color: 'primary.dark',
+                mb: 2.5,
+              }}
             >
               Dealer Base Point Value
             </Typography>
@@ -191,7 +222,12 @@ export function EditBasePointValuePage() {
 
           <Card sx={{ p: 3, backgroundColor: 'secondary.light' }}>
             <Typography
-              sx={{ fontWeight: 700, fontSize: '0.8125rem', color: 'secondary.dark', mb: 2.5 }}
+              sx={{
+                fontWeight: 700,
+                fontSize: '0.8125rem',
+                color: 'secondary.dark',
+                mb: 2.5,
+              }}
             >
               Chemist Base Point Value
             </Typography>
@@ -235,21 +271,44 @@ export function EditBasePointValuePage() {
       >
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Typography sx={{ fontSize: '0.8125rem', color: 'text.secondary' }}>
-            This will update the base Point values for <strong>{detail?.productName}</strong>.
+            This will update the base Point values for{' '}
+            <strong>{detail?.productName}</strong>.
           </Typography>
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Dealer</Typography>
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+              Dealer
+            </Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Chip size="small" variant="outlined" label={detail?.dealerProductPoints ?? 0} />
-              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip
+                size="small"
+                variant="outlined"
+                label={detail?.dealerProductPoints ?? 0}
+              />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
+                →
+              </Typography>
               <Chip size="small" color="primary" label={dealerNext} />
             </Stack>
           </Stack>
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Chemist</Typography>
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+              Chemist
+            </Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Chip size="small" variant="outlined" label={detail?.chemistProductPoints ?? 0} />
-              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip
+                size="small"
+                variant="outlined"
+                label={detail?.chemistProductPoints ?? 0}
+              />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
+                →
+              </Typography>
               <Chip size="small" color="primary" label={chemistNext} />
             </Stack>
           </Stack>
@@ -269,25 +328,48 @@ export function EditBasePointValuePage() {
         maxWidth="sm"
       >
         <Stack spacing={2} sx={{ mt: 1 }}>
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Dealer</Typography>
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+              Dealer
+            </Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Chip size="small" variant="outlined" label={detail?.dealerProductPoints ?? 0} />
-              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip
+                size="small"
+                variant="outlined"
+                label={detail?.dealerProductPoints ?? 0}
+              />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
+                →
+              </Typography>
               <Chip size="small" color="primary" label={dealerNext} />
             </Stack>
           </Stack>
-          <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>Chemist</Typography>
+          <Stack
+            direction="row"
+            sx={{ alignItems: 'center', justifyContent: 'space-between' }}
+          >
+            <Typography sx={{ fontSize: '0.8125rem', fontWeight: 600 }}>
+              Chemist
+            </Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-              <Chip size="small" variant="outlined" label={detail?.chemistProductPoints ?? 0} />
-              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>→</Typography>
+              <Chip
+                size="small"
+                variant="outlined"
+                label={detail?.chemistProductPoints ?? 0}
+              />
+              <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
+                →
+              </Typography>
               <Chip size="small" color="primary" label={chemistNext} />
             </Stack>
           </Stack>
           <Typography sx={{ fontSize: '0.75rem', color: 'warning.main' }}>
-            This will recalculate reward Point payouts for every configured region of this
-            product going forward. Existing partner wallets are not retroactively adjusted.
+            This will recalculate reward Point payouts for every configured
+            region of this product going forward. Existing partner wallets are
+            not retroactively adjusted.
           </Typography>
         </Stack>
       </Modal>

@@ -2,14 +2,10 @@ import { z } from 'zod'
 
 const uuidMessage = 'Enter a valid UUID'
 
-const requiredString = (message: string) =>
-  z.string({ required_error: message }).trim().min(1, message)
+const requiredString = (message: string) => z.string().trim().min(1, message)
 
 const requiredPattern = (regex: RegExp, message: string) =>
   requiredString(message).refine((val) => regex.test(val), { message })
-
-const optionalPattern = (regex: RegExp, message: string) =>
-  z.string().refine((val) => val === '' || regex.test(val), { message })
 
 export const chemistBusinessSchema = z.object({
   id: z.string().optional(),

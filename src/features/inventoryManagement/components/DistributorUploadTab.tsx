@@ -554,12 +554,14 @@ export function DistributorUploadTab({
         onClose={() => setRejectionDialog(null)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            border: '1px solid',
-            borderColor: 'error.main',
-            background:
-              'linear-gradient(180deg, rgba(211,47,47,0.06), rgba(255,255,255,1))',
+        slotProps={{
+          paper: {
+            sx: {
+              border: '1px solid',
+              borderColor: 'error.main',
+              background:
+                'linear-gradient(180deg, rgba(211,47,47,0.06), rgba(255,255,255,1))',
+            },
           },
         }}
       >

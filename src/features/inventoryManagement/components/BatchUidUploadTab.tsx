@@ -308,7 +308,6 @@ export function BatchUidUploadTab({
     setCartonRows([])
     setCartonSummary(null)
     setIsProcessing(false)
-    setValidateError(null)
     setToast(null)
     setUploadFileName(buildUploadFileName())
   }
@@ -323,7 +322,6 @@ export function BatchUidUploadTab({
   const [uploadRows] = useUploadFactoryProductionRowsMutation()
 
   const [isProcessing, setIsProcessing] = useState(false)
-  const [validateError, setValidateError] = useState<string | null>(null)
   const [validationDialog, setValidationDialog] = useState<{
     title: string
     message: string
@@ -339,7 +337,6 @@ export function BatchUidUploadTab({
   } | null>(null)
 
   const showValidationFailure = (title: string, message: string) => {
-    setValidateError(message)
     setToast({
       severity: 'error',
       title,
@@ -455,7 +452,6 @@ export function BatchUidUploadTab({
   async function handleValidateAll() {
     if (!bmrFile || !cartonFile) return
     setIsProcessing(true)
-    setValidateError(null)
     try {
       const { rows: bmrRows } = await parseBmrFile(bmrFile)
       const knownUids = new Set(
@@ -699,7 +695,6 @@ export function BatchUidUploadTab({
 
   async function performUpload() {
     setIsProcessing(true)
-    setValidateError(null)
     try {
       // perform API upload
       const rowsToUpload = toFactoryProductionRows()
@@ -728,7 +723,6 @@ export function BatchUidUploadTab({
         (batch as any)?.upload_batch_id
       if (!batch || !returnedId) {
         const backendMsg = (batch as any)?.message ?? 'Upload failed.'
-        setValidateError(backendMsg)
         setToast({
           severity: 'warning',
           title: 'Upload incomplete',
@@ -833,7 +827,6 @@ export function BatchUidUploadTab({
               file={bmrFile}
               onSelect={(f) => {
                 setBmrFile(f)
-                setValidateError(null)
                 setToast({
                   severity: 'success',
                   title: 'BMR uploaded',
@@ -842,7 +835,6 @@ export function BatchUidUploadTab({
               }}
               onRemove={() => {
                 setBmrFile(null)
-                setValidateError(null)
               }}
               accept=".xls,.xlsx"
               helperText="Must include Batch No., Start Serial Number, and End Serial Number columns"
@@ -882,7 +874,6 @@ export function BatchUidUploadTab({
               file={cartonFile}
               onSelect={(f) => {
                 setCartonFile(f)
-                setValidateError(null)
                 setToast({
                   severity: 'success',
                   title: 'Carton linkage uploaded',
@@ -891,7 +882,6 @@ export function BatchUidUploadTab({
               }}
               onRemove={() => {
                 setCartonFile(null)
-                setValidateError(null)
               }}
               accept=".xls,.xlsx,.csv"
               helperText="Must include UID and Master Carton Number columns"
@@ -1172,7 +1162,6 @@ export function BatchUidUploadTab({
                 setSummary(null)
                 setCartonRows([])
                 setCartonSummary(null)
-                setValidateError(null)
                 setToast(null)
               }}
             >
@@ -1234,12 +1223,14 @@ export function BatchUidUploadTab({
         onClose={() => setRejectionDialog(null)}
         maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: {
-            border: '1px solid',
-            borderColor: 'error.main',
-            background:
-              'linear-gradient(180deg, rgba(211,47,47,0.06), rgba(255,255,255,1))',
+        slotProps={{
+          paper: {
+            sx: {
+              border: '1px solid',
+              borderColor: 'error.main',
+              background:
+                'linear-gradient(180deg, rgba(211,47,47,0.06), rgba(255,255,255,1))',
+            },
           },
         }}
       >
@@ -1284,7 +1275,6 @@ export function BatchUidUploadTab({
               setSummary(null)
               setCartonRows([])
               setCartonSummary(null)
-              setValidateError(null)
               setToast(null)
             }}
             variant="outlined"

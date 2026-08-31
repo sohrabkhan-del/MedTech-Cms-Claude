@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -26,6 +26,7 @@ import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
@@ -66,15 +67,29 @@ export function GeoFenceManagementPage() {
   const toast = useToast()
 
   const [tab, setTab] = useState<RuleTab>('all')
+  const [tabChanging, setTabChanging] = useState(false)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const { regionId: topbarRegionId, dateRange, region } = useRegionFilter()
   const debouncedSearch = useDebouncedValue(search, 300)
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({
     userType: 'all',
     status: 'all',
   })
+
+  // show shimmer when topbar region or date range changes
+  useEffect(() => {
+    // Trigger shimmer and reset to first page when region or date range changes
+    const id = setTimeout(() => {
+      setTabChanging(true)
+      setPage(0)
+    }, 0)
+    return () => clearTimeout(id)
+  }, [topbarRegionId, dateRange])
+
+  const regionSuffix = region && region !== 'All India' ? ` — ${region}` : ''
   const {
     geoFences,
     totalCount,
@@ -272,11 +287,11 @@ export function GeoFenceManagementPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading ? (
+          {isAnalyticsCardsLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Active Geo Fences"
+              label={`Active Geo Fences${tab === 'all' ? '' : ` — ${tab}`}${regionSuffix}`}
               value={analyticsCards?.activeGeoFences ?? 0}
               icon={<CheckCircleOutlined size={20} />}
               iconColor="success"
@@ -288,11 +303,11 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading ? (
+          {isAnalyticsCardsLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Pending Verification"
+              label={`Pending Verification${tab === 'all' ? '' : ` — ${tab}`}${regionSuffix}`}
               value={analyticsCards?.pendingVerification ?? 0}
               icon={<PendingActionsOutlined size={20} />}
               iconColor="warning"
@@ -304,11 +319,11 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading ? (
+          {isAnalyticsCardsLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Average Radius"
+              label={`Average Radius${tab === 'all' ? '' : ` — ${tab}`}${regionSuffix}`}
               value={`${analyticsCards?.averageRadius ?? 0} m`}
               icon={<TrackChangesIcon size={20} />}
               iconColor="primary"
@@ -316,11 +331,11 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading ? (
+          {isAnalyticsCardsLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Average Buffer Radius"
+              label={`Average Buffer Radius${tab === 'all' ? '' : ` — ${tab}`}${regionSuffix}`}
               value={`${analyticsCards?.averageBufferRadius ?? 0} m`}
               icon={<CircleDashed size={20} />}
               iconColor="secondary"
@@ -334,9 +349,22 @@ export function GeoFenceManagementPage() {
           variant="filled"
           tabs={RULE_TABS}
           value={tab}
-          onChange={setTab}
+          onChange={(next) => {
+            setTabChanging(true)
+            setTab(next)
+            setPage(0)
+          }}
         />
       </Box>
+
+      {/* Reset tabChanging once both queries finish loading */}
+      {tabChanging &&
+        !isLoading &&
+        !isAnalyticsCardsLoading &&
+        (() => {
+          setTimeout(() => setTabChanging(false), 0)
+          return null
+        })()}
 
       <CommonTable
         tableKey="geo-fence-list"
@@ -352,7 +380,7 @@ export function GeoFenceManagementPage() {
           setRowsPerPage(nextRowsPerPage)
           setPage(0)
         }}
-        loading={isLoading}
+        loading={isLoading || tabChanging}
         getRowId={(row) => row.id}
         searchPlaceholder="Search geo fences…"
         searchValue={search}

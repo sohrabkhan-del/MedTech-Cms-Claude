@@ -233,10 +233,8 @@ const geoFencesApi = baseApi.injectEndpoints({
               `${fence.businessName} ${fence.userName} ${fence.zone}`
                 .toLowerCase()
                 .includes(arg.search.toLowerCase())
-            const matchesZone =
-              !arg?.zone || fence.zone === arg.zone
-            const matchesStatus =
-              !arg?.status || fence.status === arg.status
+            const matchesZone = !arg?.zone || fence.zone === arg.zone
+            const matchesStatus = !arg?.status || fence.status === arg.status
             return matchesType && matchesSearch && matchesZone && matchesStatus
           })
           const page = arg?.page ?? 1
@@ -262,9 +260,9 @@ const geoFencesApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-            ...result.map(({ id }) => ({ type: 'GeoFences' as const, id })),
-            { type: 'GeoFences' as const, id: 'LIST' },
-          ]
+              ...result.map(({ id }) => ({ type: 'GeoFences' as const, id })),
+              { type: 'GeoFences' as const, id: 'LIST' },
+            ]
           : [{ type: 'GeoFences' as const, id: 'LIST' }],
     }),
 
@@ -289,13 +287,17 @@ const geoFencesApi = baseApi.injectEndpoints({
           preset: params?.preset || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
+          // forward userType to the analytics endpoint when provided
+          userType: params?.userType || undefined,
         },
         mockResolver: () => mockDelay(emptyGeoFenceAnalyticsCards),
       }),
       transformResponse: (
         response: GeoFenceAnalyticsCardsApiResponse | GeoFenceAnalyticsCards,
       ) => ('data' in response ? response.data : response),
-      providesTags: [{ type: 'GeoFences', id: 'ANALYTICS_CARDS' }],
+      providesTags: (_result, _error, _arg) => [
+        { type: 'GeoFences', id: 'ANALYTICS_CARDS' },
+      ],
     }),
 
     getGeoFenceUserOptions: builder.query<GeoFenceUserOption[], void>({

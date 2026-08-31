@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom'
-import { Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
@@ -26,49 +26,67 @@ export function RecentRedemptionsWidget({
       onDateRangeChange={onDateRangeChange}
       onCardClick={() => navigate('/rewards-wallet/reward-redemptions')}
     >
-      <Stack spacing={2}>
-        {recentRedemptions.map((redemption) => (
-          <Stack
-            key={redemption.id}
-            direction="row"
-            sx={{
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              cursor: redemption.linkTo ? 'Pointer' : 'default',
-              borderRadius: 1.5,
-              px: 1,
-              py: 0.5,
-              mx: -1,
-              border: '1px solid transparent',
-              transition:
-                'border-color 0.15s ease, background-color 0.15s ease',
-              ...(redemption.linkTo && {
-                '&:hover': {
-                  borderColor: 'primary.main',
-                  backgroundColor: 'action.hover',
-                },
-              }),
-            }}
-            onClick={(e) => {
-              if (!redemption.linkTo) return
-              e.stopPropagation()
-              navigate(redemption.linkTo)
-            }}
-          >
-            <Stack sx={{ minWidth: 0 }}>
-              <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }} noWrap>
-                {redemption.reward}
-              </Typography>
-              <Typography variant="caption">
-                {redemption.requester} ·{' '}
-                {redemption.Points.toLocaleString('en-IN')} pts ·{' '}
-                {redemption.date}
-              </Typography>
+      {recentRedemptions.length === 0 ? (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            textAlign: 'center',
+          }}
+        >
+          <Typography color="text.secondary">No recent redemptions</Typography>
+        </Box>
+      ) : (
+        <Stack spacing={2}>
+          {recentRedemptions.map((redemption) => (
+            <Stack
+              key={redemption.id}
+              direction="row"
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                cursor: redemption.linkTo ? 'Pointer' : 'default',
+                borderRadius: 1.5,
+                px: 1,
+                py: 0.5,
+                mx: -1,
+                border: '1px solid transparent',
+                transition:
+                  'border-color 0.15s ease, background-color 0.15s ease',
+                ...(redemption.linkTo && {
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    backgroundColor: 'action.hover',
+                  },
+                }),
+              }}
+              onClick={(e) => {
+                if (!redemption.linkTo) return
+                e.stopPropagation()
+                navigate(redemption.linkTo)
+              }}
+            >
+              <Stack sx={{ minWidth: 0 }}>
+                <Typography
+                  sx={{ fontWeight: 600, fontSize: '0.875rem' }}
+                  noWrap
+                >
+                  {redemption.reward}
+                </Typography>
+                <Typography variant="caption">
+                  {redemption.requester} ·{' '}
+                  {redemption.Points.toLocaleString('en-IN')} pts ·{' '}
+                  {redemption.date}
+                </Typography>
+              </Stack>
+              <StatusBadge status={redemption.status} />
             </Stack>
-            <StatusBadge status={redemption.status} />
-          </Stack>
-        ))}
-      </Stack>
+          ))}
+        </Stack>
+      )}
     </WidgetCard>
   )
 }

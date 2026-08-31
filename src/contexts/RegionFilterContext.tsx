@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { DateRange } from '@/components/common/DateRangeFilter/DateRangeFilter'
+import { getRegions, fallbackRegions } from '@/services/regionsService'
 
 export interface RegionOption {
   id: string
@@ -57,7 +58,6 @@ function loadPersisted(): PersistedRegionFilter | null {
 }
 
 const defaultRegion = 'All India'
-const defaultRegionId = '86709472-1e05-4c9d-9c91-7e7ce5c037d2'
 const defaultDateRange: DateRange = {
   from: null,
   to: null,
@@ -68,7 +68,7 @@ export function RegionFilterProvider({ children }: { children: ReactNode }) {
   const persisted = loadPersisted()
   const [region, setRegion] = useState(persisted?.region ?? defaultRegion)
   const [regionId, setRegionId] = useState<string | null>(
-    persisted?.regionId ?? defaultRegionId,
+    persisted?.regionId ?? null,
   )
   const [dateRange, setDateRange] = useState<DateRange>(
     persisted?.dateRange ?? defaultDateRange,
@@ -79,6 +79,33 @@ export function RegionFilterProvider({ children }: { children: ReactNode }) {
     setRegion(nextRegion.name)
     setRegionId(nextRegion.id)
   }
+
+  // Resolve the canonical "All India" region id at runtime when a persisted
+  // region id isn't available. This avoids hard-coding an id while still
+  // defaulting to the All India region when present from the API.
+  useEffect(() => {
+    if (regionId) return
+
+    let cancelled = false
+
+    async function resolveDefaultRegionId() {
+      try {
+        const regions = await getRegions().catch(() => fallbackRegions)
+        const allIndia = regions.find(
+          (r) => r.code === 'ALL_INDIA' || r.name === 'All India',
+        )
+        if (!cancelled && allIndia) setRegionId(allIndia.id)
+      } catch {
+        // ignore — leave regionId null if resolution fails
+      }
+    }
+
+    void resolveDefaultRegionId()
+
+    return () => {
+      cancelled = true
+    }
+  }, [regionId])
 
   useEffect(() => {
     const payload: PersistedRegionFilter = { region, regionId, dateRange }

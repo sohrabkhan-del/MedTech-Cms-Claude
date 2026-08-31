@@ -144,7 +144,7 @@ export function ProductDetailsPage() {
           disabled={!product}
           sx={{ fontSize: '0.8125rem' }}
         >
-          Edit Base Value
+          Point Configuration
         </Button>
       </Stack>
 

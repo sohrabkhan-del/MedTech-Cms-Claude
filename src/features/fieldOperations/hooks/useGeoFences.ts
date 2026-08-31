@@ -36,6 +36,7 @@ export function useGeoFences(
   const analyticsCardsResult = useGetGeoFenceAnalyticsCardsQuery({
     ...analyticsParams,
     regionId: effectiveRegionId,
+    userType,
   })
 
   const isLoading = geoFencesResult.isLoading

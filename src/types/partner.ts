@@ -100,17 +100,14 @@ export interface PartnerBase {
   assignedMrPhone?: string
   assignedMrEmail?: string
   availablePoints: number
-  pointsEarned?: number
   notes?: string
   geoLock: GeoLockDetails
   registeredAddress: string
   totalScans: number
   totalRedemptions: number
-  totalRedemption?: number
-  interestedProductCount?: number
   scanHistory: ScanHistoryEntry[]
   PointsHistory: PointsHistoryEntry[]
-  interestedProducts: InterestedProductEntry[]
+  interestedProducts?: InterestedProductEntry[]
   documents: LicenseDocument[]
   /** Raw per-outlet business records from the API, used to rebuild the create/edit form's businesses[] array with each outlet's own discrete address fields. */
   businesses: PartnerBusinessDetail[]

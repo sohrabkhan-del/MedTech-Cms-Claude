@@ -15,9 +15,13 @@ export function useMedicalReps(params?: MedicalRepQueryParams) {
   })
   const medicalReps = medicalRepsResult.data ?? []
 
-  const isLoading = medicalRepsResult.isLoading
+  // Treat background fetching as loading for UI shimmer consistency
+  const isLoading = medicalRepsResult.isLoading || medicalRepsResult.isFetching
   const error = medicalRepsResult.error
-    ? getApiErrorMessage(medicalRepsResult.error, 'Failed to load medical representatives.')
+    ? getApiErrorMessage(
+        medicalRepsResult.error,
+        'Failed to load medical representatives.',
+      )
     : null
 
   return {

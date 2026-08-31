@@ -24,7 +24,6 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
-import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useWalletPartners } from '@/features/rewardsWallet/hooks/useWalletPartners'
@@ -71,7 +70,6 @@ interface WalletFilters extends Record<string, unknown> {
 
 export function WalletListPage() {
   const navigate = useNavigate()
-  const { regionId: topbarRegionId } = useRegionFilter()
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
   const [userTypeTab, setUserTypeTab] = useState<UserTypeTab>('all')
   const [search, setSearch] = useState('')
@@ -81,13 +79,8 @@ export function WalletListPage() {
     status: 'all',
     regionId: '',
   })
-  const [sortColumn, setSortColumn] = useState('businessName')
+  const [sortColumn, setSortColumn] = useState('lastUpdated')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
-  // default to showing latest updates first
-  useEffect(() => {
-    setSortColumn('lastUpdated')
-    setSortOrder('desc')
-  }, [])
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
@@ -105,10 +98,9 @@ export function WalletListPage() {
     }
   }, [])
 
-  const effectiveRegionId =
-    appliedFilters.regionId || topbarRegionId || undefined
+  const effectiveRegionId = appliedFilters.regionId || undefined
 
-  const { wallets, totalItems, isLoading } = useWalletPartners({
+  const { wallets, totalItems, kpis, isLoading } = useWalletPartners({
     page: page + 1,
     limit: rowsPerPage,
     search: debouncedSearch || undefined,
@@ -224,8 +216,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Total Partners"
-              value={totalItems}
+              label="Total Wallet Balance"
+              value={(kpis?.totalWalletBalance ?? 0).toLocaleString('en-IN')}
               icon={<WalletIcon size={20} />}
               iconColor="primary"
             />
@@ -236,8 +228,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Chemists"
-              value={wallets.filter((w) => w.userType === 'Chemist').length}
+              label="Points Earned"
+              value={(kpis?.totalPointsEarned ?? 0).toLocaleString('en-IN')}
               icon={<Points size={20} />}
               iconColor="success"
             />
@@ -248,8 +240,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Dealers"
-              value={wallets.filter((w) => w.userType === 'Dealer').length}
+              label="Points Redeemed"
+              value={(kpis?.totalPointsRedeemed ?? 0).toLocaleString('en-IN')}
               icon={<Repeat2 size={20} />}
               iconColor="secondary"
             />
@@ -260,8 +252,8 @@ export function WalletListPage() {
             <StatCardSkeleton />
           ) : (
             <StatCard
-              label="Active Wallets"
-              value={wallets.filter((w) => w.status === 'ACTIVE').length}
+              label="Pending Redemptions"
+              value={(kpis?.pendingRedemptions ?? 0).toLocaleString('en-IN')}
               icon={<Clock3 size={20} />}
               iconColor="warning"
             />

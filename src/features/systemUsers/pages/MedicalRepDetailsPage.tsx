@@ -459,10 +459,10 @@ export function MedicalRepDetailsPage() {
                 <StatCardSkeleton />
               ) : (
                 <StatCard
-                  label="Dealers"
-                  value={mr.totalDealersOnboarded}
-                  icon={<StoreIcon size={20} />}
-                  iconColor="primary"
+                  label="Chemists"
+                  value={mr.totalChemistsOnboarded}
+                  icon={<PillIcon size={20} />}
+                  iconColor="secondary"
                 />
               )}
             </Grid>
@@ -471,10 +471,10 @@ export function MedicalRepDetailsPage() {
                 <StatCardSkeleton />
               ) : (
                 <StatCard
-                  label="Chemists"
-                  value={mr.totalChemistsOnboarded}
-                  icon={<PillIcon size={20} />}
-                  iconColor="secondary"
+                  label="Dealers"
+                  value={mr.totalDealersOnboarded}
+                  icon={<StoreIcon size={20} />}
+                  iconColor="primary"
                 />
               )}
             </Grid>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { Box, Button, Stack, Typography } from '@mui/material'
 import { Trophy } from 'lucide-react'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
+import { NoData } from '@/components/common/NoData/NoData'
 import type { LeaderboardEntry } from '@/features/dashboard/types/dashboard.types'
 
 const rankColors = ['#F7941D', '#9CA3AF', '#B08D57']
@@ -20,6 +21,43 @@ export function LeaderboardWidget({
   linkTo = '/reports/reward-reports',
 }: LeaderboardWidgetProps) {
   const navigate = useNavigate()
+
+  if (!leaderboard || leaderboard.length === 0) {
+    return (
+      <WidgetCard
+        title={title}
+        subtitle={subtitle}
+        onCardClick={() => navigate(linkTo)}
+        headerAction={
+          <Typography
+            sx={{
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              color: 'primary.main',
+            }}
+          >
+            Points
+          </Typography>
+        }
+        footer={
+          <Button
+            fullWidth
+            variant="outlined"
+            color="primary"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate(linkTo)
+            }}
+          >
+            View All
+          </Button>
+        }
+      >
+        <NoData />
+      </WidgetCard>
+    )
+  }
 
   return (
     <WidgetCard

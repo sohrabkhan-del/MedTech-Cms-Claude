@@ -3,11 +3,29 @@ import {
   useGetSecurityAlertKpisQuery,
   type SecurityAlertQueryParams,
 } from '@/features/fieldOperations/services/securityAlertsApi'
+import { useRegionFilter } from '@/contexts/RegionFilterContext'
+import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
+const ALL_INDIA_REGION = 'All India'
+
 export function useSecurityAlerts(params?: SecurityAlertQueryParams) {
-  const alertsResult = useGetSecurityAlertsQuery(params)
-  const kpisResult = useGetSecurityAlertKpisQuery()
+  const { region, regionId: topbarRegionId, dateRange } = useRegionFilter()
+  const analyticsParams = dateRangeToAnalyticsParams(dateRange)
+  const topbarEffectiveRegionId =
+    region === ALL_INDIA_REGION ? undefined : (topbarRegionId ?? undefined)
+  const effectiveRegionId = params?.regionId || topbarEffectiveRegionId
+  const queryParams = {
+    ...params,
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  }
+
+  const alertsResult = useGetSecurityAlertsQuery(queryParams)
+  const kpisResult = useGetSecurityAlertKpisQuery({
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+  })
 
   const isLoading = alertsResult.isFetching || kpisResult.isFetching
   const error = alertsResult.error

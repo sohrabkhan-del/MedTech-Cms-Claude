@@ -527,13 +527,18 @@ const schemesApi = baseApi.injectEndpoints({
 
     getAllSchemeKpis: builder.query<
       SchemeListKpis,
-      (AnalyticsDateParams & { regionId?: string }) | void
+      | (AnalyticsDateParams & {
+          regionId?: string
+          schemeType?: Scheme['type']
+        })
+      | void
     >({
       query: (params) => ({
         tag: 'Schemes',
         url: '/analytics-cards/campaigns',
         params: {
           regionId: params?.regionId || undefined,
+          schemeType: params?.schemeType || undefined,
           preset: params?.preset || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,

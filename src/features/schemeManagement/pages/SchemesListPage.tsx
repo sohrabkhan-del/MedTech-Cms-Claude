@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -66,6 +66,7 @@ export function SchemesListPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const [tab, setTab] = useState<SchemeTab>('all')
+  const [tabChanging, setTabChanging] = useState(false)
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 400)
   const { schemes, kpis, isLoading, refetch } = useSchemes({
@@ -98,6 +99,10 @@ export function SchemesListPage() {
     totalEnrolledPartners: 0,
     totalPointsAllocated: 0,
   }
+
+  useEffect(() => {
+    if (!isLoading && tabChanging) setTabChanging(false)
+  }, [isLoading, tabChanging])
 
   const schemeTabs: { label: string; value: SchemeTab; count?: number }[] = [
     { label: 'All', value: 'all' },
@@ -220,7 +225,7 @@ export function SchemesListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -233,7 +238,7 @@ export function SchemesListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -246,7 +251,7 @@ export function SchemesListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -258,7 +263,7 @@ export function SchemesListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -275,7 +280,10 @@ export function SchemesListPage() {
         <ModularTabs
           tabs={schemeTabs}
           value={tab}
-          onChange={setTab}
+          onChange={(next) => {
+            setTabChanging(true)
+            setTab(next)
+          }}
           fontSize={'0.875rem'}
           variant="filled"
         />

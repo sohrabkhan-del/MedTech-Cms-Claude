@@ -138,13 +138,25 @@ function mapApprovalStatus(status?: string | null): ApprovalStatus {
 
 function inferZone(state?: string | null): PartnerZone {
   const normalized = state?.toLowerCase() ?? ''
-  if (['delhi', 'haryana', 'punjab', 'uttar pradesh'].some((s) => normalized.includes(s))) {
+  if (
+    ['delhi', 'haryana', 'punjab', 'uttar pradesh'].some((s) =>
+      normalized.includes(s),
+    )
+  ) {
     return 'North'
   }
-  if (['tamil', 'kerala', 'karnataka', 'telangana', 'andhra'].some((s) => normalized.includes(s))) {
+  if (
+    ['tamil', 'kerala', 'karnataka', 'telangana', 'andhra'].some((s) =>
+      normalized.includes(s),
+    )
+  ) {
     return 'South'
   }
-  if (['west bengal', 'odisha', 'bihar', 'assam'].some((s) => normalized.includes(s))) {
+  if (
+    ['west bengal', 'odisha', 'bihar', 'assam'].some((s) =>
+      normalized.includes(s),
+    )
+  ) {
     return 'East'
   }
   return 'West'
@@ -155,23 +167,33 @@ function formatDate(value?: string | null): string {
   const date = new Date(value)
   return Number.isNaN(date.getTime())
     ? value
-    : date.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })
+    : date.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      })
 }
 
-function mapDocuments(businesses?: PartnerBusinessApiItem[]): RequestDocument[] {
+function mapDocuments(
+  businesses?: PartnerBusinessApiItem[],
+): RequestDocument[] {
   if (!businesses) return []
   return businesses.flatMap((b) =>
     (b.documents ?? []).map((doc) => ({
       id: doc.id,
       documentName:
-        businesses.length > 1 && b.outletName ? `${b.outletName} · ${doc.name}` : doc.name,
+        businesses.length > 1 && b.outletName
+          ? `${b.outletName} · ${doc.name}`
+          : doc.name,
       uploadDate: '-',
       verificationStatus: 'pending' as const,
     })),
   )
 }
 
-function mapBusinesses(businesses?: PartnerBusinessApiItem[]): RequestBusiness[] {
+function mapBusinesses(
+  businesses?: PartnerBusinessApiItem[],
+): RequestBusiness[] {
   if (!businesses) return []
   return businesses.map((b) => ({
     id: b.id,
@@ -200,7 +222,9 @@ function mapBusinesses(businesses?: PartnerBusinessApiItem[]): RequestBusiness[]
   }))
 }
 
-function mapRegion(region?: PartnerRegionApiItem | null): RequestRegion | undefined {
+function mapRegion(
+  region?: PartnerRegionApiItem | null,
+): RequestRegion | undefined {
   if (!region) return undefined
   return {
     id: region.id,
@@ -210,7 +234,9 @@ function mapRegion(region?: PartnerRegionApiItem | null): RequestRegion | undefi
   }
 }
 
-function mapAssignedMr(mr?: PartnerAssignedMrApiItem | null): RequestAssignedMr | undefined {
+function mapAssignedMr(
+  mr?: PartnerAssignedMrApiItem | null,
+): RequestAssignedMr | undefined {
   if (!mr) return undefined
   return {
     id: mr.id,
@@ -223,7 +249,9 @@ function mapAssignedMr(mr?: PartnerAssignedMrApiItem | null): RequestAssignedMr 
   }
 }
 
-function mapPartnerToApprovalRequest(item: PartnerVerificationApiItem): ApprovalRequest {
+function mapPartnerToApprovalRequest(
+  item: PartnerVerificationApiItem,
+): ApprovalRequest {
   const business = item.business?.[0]
   const ownerName =
     item.ownerName?.trim() ||
@@ -284,15 +312,33 @@ function mapPartnerToApprovalRequest(item: PartnerVerificationApiItem): Approval
     lastUpdated: formatDate(item.updatedAt),
     reviewedBy: status !== 'pending' ? ownerName : undefined,
     decisionDate: status !== 'pending' ? formatDate(item.updatedAt) : undefined,
-    remarks: status === 'approved' ? item.approvalReason ?? undefined : undefined,
-    rejectionReason: status === 'rejected' ? item.approvalReason ?? undefined : undefined,
+    remarks:
+      status === 'approved' ? (item.approvalReason ?? undefined) : undefined,
+    rejectionReason:
+      status === 'rejected' ? (item.approvalReason ?? undefined) : undefined,
 
     timeline: [
-      { id: `${item.id}-tl-0`, activity: 'Request Submitted', dateTime: formatDate(item.createdAt) },
+      {
+        id: `${item.id}-tl-0`,
+        activity: 'Request Submitted',
+        dateTime: formatDate(item.createdAt),
+      },
       ...(status === 'approved'
-        ? [{ id: `${item.id}-tl-1`, activity: 'Approved' as const, dateTime: formatDate(item.updatedAt) }]
+        ? [
+            {
+              id: `${item.id}-tl-1`,
+              activity: 'Approved' as const,
+              dateTime: formatDate(item.updatedAt),
+            },
+          ]
         : status === 'rejected'
-          ? [{ id: `${item.id}-tl-1`, activity: 'Rejected' as const, dateTime: formatDate(item.updatedAt) }]
+          ? [
+              {
+                id: `${item.id}-tl-1`,
+                activity: 'Rejected' as const,
+                dateTime: formatDate(item.updatedAt),
+              },
+            ]
           : []),
     ],
     auditHistory: [
@@ -308,9 +354,12 @@ function mapPartnerToApprovalRequest(item: PartnerVerificationApiItem): Approval
             {
               id: `${item.id}-audit-1`,
               date: formatDate(item.updatedAt),
-              action: status === 'approved' ? 'Request Approved' : 'Request Rejected',
+              action:
+                status === 'approved' ? 'Request Approved' : 'Request Rejected',
               performedBy: ownerName,
-              remarks: item.approvalReason || (status === 'approved' ? 'Approved.' : 'Rejected.'),
+              remarks:
+                item.approvalReason ||
+                (status === 'approved' ? 'Approved.' : 'Rejected.'),
             },
           ]
         : []),
@@ -335,7 +384,9 @@ const verificationApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getApprovalRequests: builder.query<
       { items: ApprovalRequest[]; totalItems: number },
-      (VerificationQueryParams & { status?: ApprovalStatus }) | ApprovalStatus | void
+      | (VerificationQueryParams & { status?: ApprovalStatus })
+      | ApprovalStatus
+      | void
     >({
       query: (arg) => {
         const params: VerificationQueryParams & { status?: ApprovalStatus } =
@@ -378,13 +429,19 @@ const verificationApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map(({ id }) => ({ type: 'Verification' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'Verification' as const,
+                id,
+              })),
               { type: 'Verification' as const, id: 'LIST' },
             ]
           : [{ type: 'Verification' as const, id: 'LIST' }],
     }),
 
-    getApprovalRequestDetail: builder.query<ApprovalRequest | undefined, string>({
+    getApprovalRequestDetail: builder.query<
+      ApprovalRequest | undefined,
+      string
+    >({
       query: (id) => ({
         tag: 'Verification',
         url: `/partners/${id}`,
@@ -401,7 +458,8 @@ const verificationApi = baseApi.injectEndpoints({
 
     getApprovalRequestAnalytics: builder.query<
       { pending: number; approved: number; rejected: number; total: number },
-      AnalyticsDateParams & { regionId?: string }
+      | (AnalyticsDateParams & { regionId?: string })
+      | { regionId?: string; type?: RequestType }
     >({
       query: (params) => ({
         tag: 'Verification',
@@ -411,6 +469,7 @@ const verificationApi = baseApi.injectEndpoints({
           startDate: params.startDate,
           endDate: params.endDate,
           regionId: params.regionId || undefined,
+          type: mapTypeParam((params as any)?.type),
         },
         mockResolver: () => mockDelay(approvalRequestKpis),
       }),
@@ -441,12 +500,23 @@ const verificationApi = baseApi.injectEndpoints({
     }),
 
     getRejectedRequestKpis: builder.query<
-      { totalRejected: number; dealerRejections: number; chemistRejections: number },
-      void
+      {
+        totalRejected: number
+        dealerRejections: number
+        chemistRejections: number
+      },
+      (AnalyticsDateParams & { regionId?: string; type?: RequestType }) | void
     >({
-      query: () => ({
+      query: (params) => ({
         tag: 'Verification',
         url: '/analytics-cards/partner-business-requests/rejected',
+        params: {
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
+          regionId: params?.regionId || undefined,
+          type: mapTypeParam(params?.type),
+        },
         mockResolver: () =>
           mockDelay({
             totalRejected: rejectedRequestKpis.totalRejected,
@@ -464,7 +534,11 @@ const verificationApi = baseApi.injectEndpoints({
                 dealerRequests: number
               }
             }
-          | { totalRejected: number; dealerRejections: number; chemistRejections: number },
+          | {
+              totalRejected: number
+              dealerRejections: number
+              chemistRejections: number
+            },
       ) =>
         'data' in response
           ? {
@@ -526,7 +600,10 @@ const verificationApi = baseApi.injectEndpoints({
       ],
     }),
 
-    updateDocument: builder.mutation<void, { requestId: string; documentId: string; file: File }>({
+    updateDocument: builder.mutation<
+      void,
+      { requestId: string; documentId: string; file: File }
+    >({
       query: ({ requestId, documentId, file }) => ({
         tag: 'Verification',
         url: `/verification/requests/${requestId}/documents/${documentId}`,
@@ -534,7 +611,9 @@ const verificationApi = baseApi.injectEndpoints({
         data: file,
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: (_result, _error, { requestId }) => [{ type: 'Verification', id: requestId }],
+      invalidatesTags: (_result, _error, { requestId }) => [
+        { type: 'Verification', id: requestId },
+      ],
     }),
   }),
 })

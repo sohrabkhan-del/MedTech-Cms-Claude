@@ -17,7 +17,11 @@ import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { RegionMultiSelectField } from '@/components/common/RegionMultiSelectField/RegionMultiSelectField'
 import { useAdminForm } from '@/features/systemUsers/hooks/useAdminForm'
-import { adminFormDefaults, adminFormSchema, type AdminFormValues } from '@/features/systemUsers/types/systemUsers.types'
+import {
+  adminFormDefaults,
+  adminFormSchema,
+  type AdminFormValues,
+} from '@/features/systemUsers/types/systemUsers.types'
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -34,7 +38,13 @@ const fieldLabelProps = {
   },
 } as const
 
-function FieldLabel({ children, required }: { children: string; required?: boolean }) {
+function FieldLabel({
+  children,
+  required,
+}: {
+  children: string
+  required?: boolean
+}) {
   return (
     <Typography
       sx={{
@@ -55,7 +65,8 @@ function FieldLabel({ children, required }: { children: string; required?: boole
 export function AdminFormPage() {
   const navigate = useNavigate()
   const { adminId } = useParams<{ adminId: string }>()
-  const { isEdit, admin, modules, regions, isLoading, isSubmitting, submit } = useAdminForm(adminId)
+  const { isEdit, admin, modules, regions, isLoading, isSubmitting, submit } =
+    useAdminForm(adminId)
 
   const { control, handleSubmit, reset } = useForm<AdminFormValues>({
     resolver: zodResolver(adminFormSchema),
@@ -85,17 +96,26 @@ export function AdminFormPage() {
     )
   }
 
-  const backTo = isEdit ? `/system-users/admin/${adminId}` : '/system-users/admin'
+  const backTo = isEdit
+    ? `/system-users/admin/${adminId}`
+    : '/system-users/admin'
 
   const onSubmit = handleSubmit(async (values) => {
     const success = await submit(values)
-    if (success) navigate(backTo)
+    if (success) navigate(backTo, { state: { refreshed: true } })
   })
 
   if (isEdit && isLoading) {
     return (
       <>
-        <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Stack
+          sx={{
+            mb: 3,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
           <Typography variant="h1">Edit Admin</Typography>
         </Stack>
 
@@ -104,16 +124,39 @@ export function AdminFormPage() {
           <Grid container spacing={2.5}>
             {Array.from({ length: 5 }).map((_, i) => (
               <Grid key={i} size={{ xs: 12, sm: 6 }}>
-                <Skeleton variant="text" width="35%" height={16} sx={{ mb: 0.75 }} />
-                <Skeleton variant="rounded" height={40} sx={{ borderRadius: '8px' }} />
+                <Skeleton
+                  variant="text"
+                  width="35%"
+                  height={16}
+                  sx={{ mb: 0.75 }}
+                />
+                <Skeleton
+                  variant="rounded"
+                  height={40}
+                  sx={{ borderRadius: '8px' }}
+                />
               </Grid>
             ))}
           </Grid>
         </Card>
 
-        <Stack direction="row" spacing={1.5} sx={{ width: '100%', justifyContent: 'flex-end' }}>
-          <Skeleton variant="rounded" width={110} height={36} sx={{ borderRadius: '8px' }} />
-          <Skeleton variant="rounded" width={90} height={36} sx={{ borderRadius: '8px' }} />
+        <Stack
+          direction="row"
+          spacing={1.5}
+          sx={{ width: '100%', justifyContent: 'flex-end' }}
+        >
+          <Skeleton
+            variant="rounded"
+            width={110}
+            height={36}
+            sx={{ borderRadius: '8px' }}
+          />
+          <Skeleton
+            variant="rounded"
+            width={90}
+            height={36}
+            sx={{ borderRadius: '8px' }}
+          />
         </Stack>
       </>
     )
@@ -121,8 +164,17 @@ export function AdminFormPage() {
 
   return (
     <>
-      <Stack sx={{ mb: 3, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h1">{isEdit ? 'Edit Admin' : 'Create Admin'}</Typography>
+      <Stack
+        sx={{
+          mb: 3,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <Typography variant="h1">
+          {isEdit ? 'Edit Admin' : 'Create Admin'}
+        </Typography>
       </Stack>
 
       <form onSubmit={onSubmit} noValidate>
@@ -131,15 +183,31 @@ export function AdminFormPage() {
           <Grid container spacing={2.5}>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>First Name</FieldLabel>
-              <FormField name="firstName" control={control} placeholder="First name" {...fieldLabelProps} />
+              <FormField
+                name="firstName"
+                control={control}
+                placeholder="First name"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Last Name</FieldLabel>
-              <FormField name="lastName" control={control} placeholder="Last name" {...fieldLabelProps} />
+              <FormField
+                name="lastName"
+                control={control}
+                placeholder="Last name"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Email Address</FieldLabel>
-              <FormField name="email" control={control} type="email" placeholder="name@example.com" {...fieldLabelProps} />
+              <FormField
+                name="email"
+                control={control}
+                type="email"
+                placeholder="name@example.com"
+                {...fieldLabelProps}
+              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Phone Number</FieldLabel>
@@ -157,7 +225,11 @@ export function AdminFormPage() {
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
               <FieldLabel required>Region</FieldLabel>
-              <RegionMultiSelectField name="regionIds" control={control} regions={regions} />
+              <RegionMultiSelectField
+                name="regionIds"
+                control={control}
+                regions={regions}
+              />
             </Grid>
           </Grid>
         </Card>
@@ -182,7 +254,9 @@ export function AdminFormPage() {
                             borderRadius: '8px',
                             px: 1.5,
                             py: 1.25,
-                            backgroundColor: checked ? 'primary.light' : 'background.paper',
+                            backgroundColor: checked
+                              ? 'primary.light'
+                              : 'background.paper',
                           }}
                         >
                           <FormControlLabel
@@ -193,17 +267,24 @@ export function AdminFormPage() {
                                 onChange={(event) => {
                                   const nextValue = event.target.checked
                                     ? [...field.value, module.code]
-                                    : field.value.filter((code) => code !== module.code)
+                                    : field.value.filter(
+                                        (code) => code !== module.code,
+                                      )
                                   field.onChange(nextValue)
                                 }}
                               />
                             }
                             label={
                               <Box sx={{ pt: 0.75 }}>
-                                <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>
+                                <Typography
+                                  sx={{ fontWeight: 700, fontSize: '0.875rem' }}
+                                >
                                   {module.name}
                                 </Typography>
-                                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
+                                <Typography
+                                  variant="body2"
+                                  sx={{ color: 'text.secondary', mt: 0.25 }}
+                                >
                                   {module.description}
                                 </Typography>
                               </Box>
@@ -232,7 +313,11 @@ export function AdminFormPage() {
           <Button type="submit" variant="contained" loading={isSubmitting}>
             {isEdit ? 'Save Admin' : 'Save Admin'}
           </Button>
-          <Button variant="outlined" color="primary" onClick={() => navigate(backTo)}>
+          <Button
+            variant="outlined"
+            color="primary"
+            onClick={() => navigate(backTo)}
+          >
             Cancel
           </Button>
         </Stack>

@@ -18,12 +18,12 @@ import { Modal } from '@/components/common/Modal/Modal'
 import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { radius } from '@/theme/tokens'
 import { useToast } from '@/contexts/ToastContext'
-import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import {
   useGetGlobalRegionMultipliersQuery,
   useBulkUpdateRegionMultipliersMutation,
 } from '@/features/rewardsWallet/services/pointValueRulesApi'
+import { useGetRegionMultipliersQuery as useGetStoredRegionMultipliersQuery } from '@/features/rewardsWallet/services/PointRulesApi'
 
 type PartnerType = 'Dealer' | 'Chemist'
 
@@ -67,26 +67,43 @@ interface RegionMultiplierValue {
 export function RegionMultiplierRulesPage() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { region, regionId: topbarRegionId } = useRegionFilter()
   const [searchParams, setSearchParams] = useSearchParams()
-  const effectiveRegionId =
-    region === 'All India' ? undefined : (topbarRegionId ?? undefined)
+  // Always load global multipliers for all regions here — this page is a
+  // bulk-edit across every region and must ignore the topbar region filter.
   const { data: regions = [], isFetching: isLoading } =
-    useGetGlobalRegionMultipliersQuery(
-      effectiveRegionId ? { regionId: effectiveRegionId } : undefined,
-    )
+    useGetGlobalRegionMultipliersQuery(undefined)
+
+  // Fallback: some mock modes return an empty global-multipliers shape.
+  // In that case use the stored/mock region multipliers (localStorage-backed)
+  // so that unchanged partner multipliers are respected instead of defaulting
+  // to 1x. This prevents the "more than one region is 1x" validation when
+  // the API response is empty.
+  const { data: storedMultipliers } = useGetStoredRegionMultipliersQuery()
   const [bulkUpdate, { isLoading: isSaving }] =
     useBulkUpdateRegionMultipliersMutation()
 
-  const visibleRegions = useMemo(
-    () =>
-      effectiveRegionId
-        ? regions.filter(
-            (regionItem) => regionItem.regionId === effectiveRegionId,
-          )
-        : regions,
-    [effectiveRegionId, regions],
-  )
+  // This page always shows all regions for bulk updates.
+  const visibleRegions = useMemo(() => {
+    if (regions && regions.length > 0) return regions
+    if (!storedMultipliers) return []
+    return Object.keys(storedMultipliers.Dealer).map((regionName) => {
+      const dealerVal = (storedMultipliers.Dealer as Record<string, number>)[
+        regionName
+      ]
+      const chemistVal = (storedMultipliers.Chemist as Record<string, number>)[
+        regionName
+      ]
+      return {
+        regionId: regionName,
+        regionCode: regionName,
+        regionName,
+        dealerMultiplier: dealerVal,
+        dealerLastMultiplier: dealerVal,
+        chemistMultiplier: chemistVal,
+        chemistLastMultiplier: chemistVal,
+      }
+    })
+  }, [regions, storedMultipliers])
 
   const partnerType: PartnerType = isPartnerType(
     searchParams.get('partnerType'),
@@ -218,16 +235,65 @@ export function RegionMultiplierRulesPage() {
   const handleConfirmSave = async () => {
     if (visibleRegions.length === 0) return
     try {
+      const resolved = visibleRegions.map((regionItem) => {
+        const resolvedValue = changedRegionIds.includes(regionItem.regionId)
+          ? currentValues[regionItem.regionId]?.[field]
+          : activeValueByRegion.get(regionItem.regionId)?.[field]
+        return { regionId: regionItem.regionId, value: resolvedValue ?? 1 }
+      })
+
+      const regionsAtOne = resolved
+        .filter((r) => r.value === 1)
+        .map((r) => r.regionId)
+
+      const adjustedValues = { ...currentValues }
+      const adjustments: string[] = []
+
+      if (regionsAtOne.length === 0) {
+        const pick = changedRegionIds[0] ?? visibleRegions[0].regionId
+        adjustedValues[pick] = {
+          ...adjustedValues[pick],
+          [field]: 1,
+        }
+        adjustments.push(pick)
+      } else if (regionsAtOne.length > 1) {
+        const keeper = changedRegionIds.length
+          ? changedRegionIds[changedRegionIds.length - 1]
+          : regionsAtOne[0]
+        for (const rid of regionsAtOne) {
+          if (rid === keeper) continue
+          const activeVal = activeValueByRegion.get(rid)?.[field] ?? 1
+          const newVal =
+            activeVal === 1 ? closestMultiplierOption(1.25) : activeVal
+          adjustedValues[rid] = {
+            ...adjustedValues[rid],
+            [field]: newVal,
+          }
+          adjustments.push(rid)
+        }
+      }
+
       await bulkUpdate({
         regions: visibleRegions.map((regionItem) => ({
           regionId: regionItem.regionId,
-          dealerMultiplier: currentValues[regionItem.regionId].dealerMultiplier,
+          dealerMultiplier:
+            adjustedValues[regionItem.regionId]?.dealerMultiplier ??
+            activeValueByRegion.get(regionItem.regionId)?.dealerMultiplier ??
+            1,
           chemistMultiplier:
-            currentValues[regionItem.regionId].chemistMultiplier,
+            adjustedValues[regionItem.regionId]?.chemistMultiplier ??
+            activeValueByRegion.get(regionItem.regionId)?.chemistMultiplier ??
+            1,
         })),
       }).unwrap()
+
       setConfirmOpen(false)
       setValues(null)
+      if (adjustments.length > 0) {
+        toast.info(
+          `Adjusted ${adjustments.length} region(s) so exactly one region remains at 1x: ${adjustments.join(', ')}`,
+        )
+      }
       toast.success(`${partnerType} region multipliers updated successfully.`)
     } catch (err) {
       toast.error(
@@ -443,8 +509,8 @@ export function RegionMultiplierRulesPage() {
                 disabled={
                   changedRegionIds.length === 0 ||
                   isLoading ||
-                  !!multiplierRuleError ||
-                  !!maxMultiplierError
+                  !!maxMultiplierError ||
+                  resultingRegionsAtOne === 0
                 }
                 onClick={() => setConfirmOpen(true)}
                 sx={{
@@ -496,7 +562,11 @@ export function RegionMultiplierRulesPage() {
         open={confirmOpen}
         onClose={() => setConfirmOpen(false)}
         title={`Confirm ${partnerType} Multiplier Changes`}
-        description="Please review carefully — this change is applied immediately and cannot be undone automatically."
+        description={
+          multiplierRuleError
+            ? 'Please review carefully — this change is applied immediately and cannot be undone automatically. The system will auto-adjust other regions so exactly one region remains at 1x.'
+            : 'Please review carefully — this change is applied immediately and cannot be undone automatically.'
+        }
         primaryActionLabel="Confirm & Save"
         primaryActionColor="error"
         onPrimaryAction={() => void handleConfirmSave()}

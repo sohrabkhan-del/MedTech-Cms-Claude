@@ -156,7 +156,6 @@ export function ScanReportDetailsPage() {
         <SectionCard title="Scan Information">
           <DetailFieldGrid
             fields={[
-              { label: 'Scan ID', value: report.id },
               { label: 'Scan Date & Time', value: report.scanDateTime },
               { label: 'Scan Code', value: report.barcodeNumber },
               {

@@ -21,7 +21,11 @@ export function useAdminForm(adminId: string | undefined) {
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
   const [regionsLoading, setRegionsLoading] = useState(true)
 
-  const adminResult = useGetAdminDetailQuery(adminId ?? skipToken)
+  const adminResult = useGetAdminDetailQuery(adminId ?? skipToken, {
+    refetchOnMountOrArgChange: false,
+    refetchOnFocus: false,
+    refetchOnReconnect: false,
+  })
   const modulesResult = useGetAdminModulesQuery()
   const [createAdmin] = useCreateAdminMutation()
   const [updateAdmin] = useUpdateAdminMutation()

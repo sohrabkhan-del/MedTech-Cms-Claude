@@ -9,6 +9,7 @@ import {
   YAxis,
 } from 'recharts'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
+import { NoData } from '@/components/common/NoData/NoData'
 import { ChartTooltip } from '@/components/common/ChartCard/ChartTooltip'
 import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
 import type { SchemeProgress } from '@/features/dashboard/types/dashboard.types'
@@ -33,6 +34,21 @@ export function SchemePerformanceChart({
     name: s.name.slice(0, 3),
     Progress: s.progress,
   }))
+
+  if (!schemePerformance || schemePerformance.length === 0) {
+    return (
+      <ChartCard
+        title="Scheme Performance"
+        subtitle="Redemption progress by active scheme"
+        height={280}
+        dateRange={dateRange}
+        onDateRangeChange={onDateRangeChange}
+        onCardClick={() => navigate('/scheme-management/schemes/general')}
+      >
+        <NoData />
+      </ChartCard>
+    )
+  }
 
   return (
     <ChartCard

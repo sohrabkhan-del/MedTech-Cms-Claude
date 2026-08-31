@@ -94,7 +94,6 @@ export function ScanDetailsPage() {
         <SectionCard title="Scan Summary">
           <DetailFieldGrid
             fields={[
-              { label: 'Scan ID', value: selectedScan.id },
               { label: 'Reference ID', value: selectedScan.referenceId },
               { label: 'Scanned Code', value: selectedScan.scannedCode },
               {

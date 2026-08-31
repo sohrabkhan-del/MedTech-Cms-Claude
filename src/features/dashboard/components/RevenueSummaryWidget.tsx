@@ -3,6 +3,7 @@ import { Grid } from '@mui/material'
 import { Coins, CheckCircle2, Gift, TrendingUp } from 'lucide-react'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
 import { StatCard } from '@/components/common/StatCard/StatCard'
+import { NoData } from '@/components/common/NoData/NoData'
 import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
 import type { PointsSummary } from '@/features/dashboard/mockDashboard'
 
@@ -59,18 +60,22 @@ export function RevenueSummaryWidget({
       onDateRangeChange={onDateRangeChange}
       onCardClick={() => navigate('/reports/wallet-reports')}
     >
-      <Grid container spacing={2}>
-        {cards.map((card) => (
-          <Grid key={card.label} size={6}>
-            <StatCard
-              label={card.label}
-              value={card.value}
-              icon={card.icon}
-              iconColor={card.iconColor}
-            />
-          </Grid>
-        ))}
-      </Grid>
+      {cards.every((c) => c.value === '0' || c.value === '0%') ? (
+        <NoData />
+      ) : (
+        <Grid container spacing={2}>
+          {cards.map((card) => (
+            <Grid key={card.label} size={6}>
+              <StatCard
+                label={card.label}
+                value={card.value}
+                icon={card.icon}
+                iconColor={card.iconColor}
+              />
+            </Grid>
+          ))}
+        </Grid>
+      )}
     </WidgetCard>
   )
 }

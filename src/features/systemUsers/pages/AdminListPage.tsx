@@ -22,7 +22,6 @@ import {
 } from '@/components/common/CommonTable/CommonTable'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
-import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useAdmins } from '@/features/systemUsers/hooks/useAdmins'
@@ -67,7 +66,6 @@ function formatPhoneNumber(phone?: string | null) {
 export function AdminListPage() {
   const navigate = useNavigate()
   const toast = useToast()
-  const { regionId: topbarRegionId } = useRegionFilter()
   const [setAdminStatus] = useSetAdminStatusMutation()
   const [pendingAdminId, setPendingAdminId] = useState<string | null>(null)
   const [search, setSearch] = useState('')
@@ -79,8 +77,7 @@ export function AdminListPage() {
   const [sortColumn, setSortColumn] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
 
-  const effectiveRegionId =
-    appliedFilters.regionId || topbarRegionId || undefined
+  const effectiveRegionId = appliedFilters.regionId || undefined
   const debouncedSearch = useDebouncedValue(search, 300)
 
   const { admins, kpis, isLoading } = useAdmins({

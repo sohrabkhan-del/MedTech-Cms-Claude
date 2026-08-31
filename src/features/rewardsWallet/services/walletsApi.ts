@@ -3,6 +3,7 @@ import { baseApi } from '@/store/api/baseApi'
 import { mockWallets, getWalletById, walletKpis, walletGiftCategoryOptions } from '@/features/rewardsWallet/mockWallets'
 import type { Wallet } from '@/features/rewardsWallet/types/rewardsWallet.types'
 import { mockDelay } from '@/services/mockDelay'
+import type { WalletPartnerType } from '@/features/rewardsWallet/services/walletPartnersApi'
 
 // TODO: replace mock-backed implementations with apiClient calls once the
 // wallet management API is available. adjustBalance is currently a no-op
@@ -10,6 +11,30 @@ import { mockDelay } from '@/services/mockDelay'
 
 export interface WalletFormOptions {
   walletGiftCategoryOptions: string[]
+}
+
+export interface WalletKpiQueryParams {
+  regionId?: string
+  type?: WalletPartnerType
+  preset?: string
+  startDate?: string
+  endDate?: string
+}
+
+export interface WalletKpis {
+  totalWalletBalance: number
+  totalPointsEarned: number
+  totalPointsRedeemed: number
+  pendingRedemptions: number
+}
+
+interface WalletKpisApiResponse {
+  success: boolean
+  data: WalletKpis
+}
+
+function mapWalletKpis(response: WalletKpisApiResponse | WalletKpis): WalletKpis {
+  return 'data' in response ? response.data : response
 }
 
 const walletsApi = baseApi.injectEndpoints({
@@ -27,8 +52,20 @@ const walletsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'Wallets', id }],
     }),
 
-    getWalletKpis: builder.query<typeof walletKpis, void>({
-      query: () => ({ tag: 'Wallets', url: '/wallets/kpis', mockResolver: () => mockDelay(walletKpis) }),
+    getWalletKpis: builder.query<WalletKpis, WalletKpiQueryParams | void>({
+      query: (params) => ({
+        tag: 'Wallets',
+        url: '/analytics-cards/wallet',
+        params: {
+          regionId: params?.regionId || undefined,
+          type: params?.type || undefined,
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
+        },
+        mockResolver: () => mockDelay(walletKpis),
+      }),
+      transformResponse: mapWalletKpis,
       providesTags: [{ type: 'Wallets', id: 'KPIS' }],
     }),
 

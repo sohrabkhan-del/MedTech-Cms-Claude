@@ -55,6 +55,11 @@ export function PointValueRulesListPage() {
   const [partnerTypeTab, setPartnerTypeTab] = useState<PartnerTypeTab>(
     partnerTypeTabFromPath(location.pathname),
   )
+  const [tabChanging, setTabChanging] = useState(false)
+  const [page, setPage] = useState(0)
+  const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [sortColumn, setSortColumn] = useState('productName')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
   const [regions, setRegions] = useState<RegionOption[]>(fallbackRegions)
 
   const [filterOpen, setFilterOpen] = useState(false)
@@ -77,8 +82,13 @@ export function PointValueRulesListPage() {
     }
   }, [])
 
-  const { rules, kpis, isLoading } = useProductPointRules(
+  const { rules, totalItems, kpis, isLoading } = useProductPointRules(
     appliedFilters.regionId,
+    partnerTypeTab === 'all' ? undefined : partnerTypeTab,
+    page + 1,
+    rowsPerPage,
+    sortColumn,
+    sortOrder,
   )
 
   useRegionTopbarHeader({
@@ -116,6 +126,10 @@ export function PointValueRulesListPage() {
       ),
     [rules, appliedFilters],
   )
+
+  useEffect(() => {
+    if (!isLoading && tabChanging) setTabChanging(false)
+  }, [isLoading, tabChanging])
 
   const showDealerColumn = partnerTypeTab !== 'Chemist'
   const showChemistColumn = partnerTypeTab !== 'Dealer'
@@ -197,7 +211,7 @@ export function PointValueRulesListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -211,7 +225,7 @@ export function PointValueRulesListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -223,7 +237,7 @@ export function PointValueRulesListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -235,7 +249,7 @@ export function PointValueRulesListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -262,7 +276,11 @@ export function PointValueRulesListPage() {
         <ModularTabs
           tabs={PARTNER_TYPE_TABS}
           value={partnerTypeTab}
-          onChange={setPartnerTypeTab}
+          onChange={(next) => {
+            setTabChanging(true)
+            setPartnerTypeTab(next)
+            setPage(0)
+          }}
           variant="filled"
         />
         <Button
@@ -294,7 +312,15 @@ export function PointValueRulesListPage() {
           columns={columns}
           rows={filteredRows}
           getRowId={(row) => row.productId}
-          loading={isLoading}
+          loading={isLoading || tabChanging}
+          totalCount={totalItems}
+          page={page}
+          onPageChange={setPage}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(next) => {
+            setRowsPerPage(next)
+            setPage(0)
+          }}
           searchPlaceholder="Search by product name or code…"
           searchKeys={(row) =>
             `${row.productCode} ${row.productName} ${row.categoryName ?? ''}`
@@ -305,6 +331,11 @@ export function PointValueRulesListPage() {
             (appliedFilters.regionId.trim() ? 1 : 0)
           }
           defaultSortBy="productName"
+          onSortChange={(columnKey, dir) => {
+            setSortColumn(columnKey)
+            setSortOrder(dir)
+            setPage(0)
+          }}
           actions={[
             {
               label: 'View',

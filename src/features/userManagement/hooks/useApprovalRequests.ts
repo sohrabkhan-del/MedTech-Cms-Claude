@@ -25,17 +25,29 @@ export function useApprovalRequests(
   const analyticsResult = useGetApprovalRequestAnalyticsQuery({
     ...analyticsParams,
     regionId: effectiveRegionId,
+    // forward partner type (Dealer/Chemist) so analytics cards are scoped
+    type: params?.type,
   })
   const [decideMutation] = useDecideApprovalRequestMutation()
 
   const isLoading = requestsResult.isFetching || analyticsResult.isFetching
   const error = requestsResult.error
-    ? getApiErrorMessage(requestsResult.error, 'Failed to load approval requests.')
+    ? getApiErrorMessage(
+        requestsResult.error,
+        'Failed to load approval requests.',
+      )
     : analyticsResult.error
-      ? getApiErrorMessage(analyticsResult.error, 'Failed to load approval requests.')
+      ? getApiErrorMessage(
+          analyticsResult.error,
+          'Failed to load approval requests.',
+        )
       : null
 
-  async function decide(id: string, decision: 'approve' | 'reject', remarks?: string) {
+  async function decide(
+    id: string,
+    decision: 'approve' | 'reject',
+    remarks?: string,
+  ) {
     await decideMutation({ id, decision, remarks }).unwrap()
   }
 

@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar, Box, Button, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
+import { NoData } from '@/components/common/NoData/NoData'
 import { StatusBadge } from '@/components/common/StatusBadge/StatusBadge'
 import { DateRangeDropdown } from '@/components/common/DateRangeDropdown/DateRangeDropdown'
 import {
@@ -29,6 +30,41 @@ export function RecentScansWidget({
     () => recentScans.slice(0, MAX_VISIBLE_SCANS),
     [recentScans],
   )
+
+  if (!recentScans || recentScans.length === 0) {
+    return (
+      <WidgetCard
+        title="Recent Scans"
+        subtitle="Live scan feed across regions"
+        onCardClick={() => navigate('/reports/scan-reports')}
+        headerAction={
+          <DateRangeDropdown
+            value={dateRange}
+            onChange={onDateRangeChange}
+            options={SCAN_DATE_RANGE_OPTIONS}
+            aria-label="Recent Scans date range"
+            minWidth={84}
+          />
+        }
+        footer={
+          <Button
+            fullWidth
+            variant="outlined"
+            color="primary"
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation()
+              navigate('/field-operations/live-scan-feed')
+            }}
+          >
+            View All
+          </Button>
+        }
+      >
+        <NoData height={280} />
+      </WidgetCard>
+    )
+  }
 
   return (
     <WidgetCard

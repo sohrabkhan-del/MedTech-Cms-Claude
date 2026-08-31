@@ -7,12 +7,16 @@ import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
+const ALL_INDIA_REGION = 'All India'
+
 export function useAdmins(params?: AdminQueryParams) {
-  const { regionId: topbarRegionId, dateRange } = useRegionFilter()
+  const { region, regionId: topbarRegionId, dateRange } = useRegionFilter()
   const analyticsParams = dateRangeToAnalyticsParams(dateRange)
   const { preset, startDate, endDate } = analyticsParams
 
-  const effectiveRegionId = params?.regionId || topbarRegionId || undefined
+  const topbarEffectiveRegionId =
+    region === ALL_INDIA_REGION ? undefined : (topbarRegionId ?? undefined)
+  const effectiveRegionId = params?.regionId || topbarEffectiveRegionId
 
   const adminsResult = useGetAdminsQuery({
     ...params,

@@ -9,10 +9,14 @@ import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { dateRangeToAnalyticsParams } from '@/utils/dateRangeToAnalyticsParams'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
+const ALL_INDIA_REGION = 'All India'
+
 export function useRejectedRequests(params?: VerificationQueryParams) {
-  const { regionId, dateRange } = useRegionFilter()
+  const { region, regionId: topbarRegionId, dateRange } = useRegionFilter()
   const analyticsParams = dateRangeToAnalyticsParams(dateRange)
-  const effectiveRegionId = params?.regionId || regionId || undefined
+  const topbarEffectiveRegionId =
+    region === ALL_INDIA_REGION ? undefined : (topbarRegionId ?? undefined)
+  const effectiveRegionId = params?.regionId || topbarEffectiveRegionId
 
   const requestsResult = useGetApprovalRequestsQuery({
     ...params,
@@ -20,7 +24,11 @@ export function useRejectedRequests(params?: VerificationQueryParams) {
     regionId: effectiveRegionId,
     status: 'rejected',
   })
-  const kpisResult = useGetRejectedRequestKpisQuery()
+  const kpisResult = useGetRejectedRequestKpisQuery({
+    ...analyticsParams,
+    regionId: effectiveRegionId,
+    type: params?.type,
+  })
   const [reopenMutation] = useReopenRequestMutation()
   const [deleteMutation] = useDeleteRequestMutation()
 

@@ -210,6 +210,17 @@ export interface ProductPointRulesQueryParams {
   preset?: string
   startDate?: string
   endDate?: string
+  type?: 'Dealer' | 'Chemist'
+  page?: number
+  limit?: number
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
+function mapPartnerTypeParam(type?: string) {
+  if (type === 'Chemist') return 'CHEMIST'
+  if (type === 'Dealer') return 'DEALER'
+  return undefined
 }
 
 // ---------------------------------------------------------------------------
@@ -251,28 +262,44 @@ const pointValueRulesApi = baseApi.injectEndpoints({
     /** GET /region-multipliers/products — every product's base container/product
      *  points for Dealer and Chemist, driving the Point Value Rules list. */
     getProductPointRules: builder.query<
-      ProductPointRuleRow[],
+      { items: ProductPointRuleRow[]; totalItems: number },
       ProductPointRulesQueryParams | void
     >({
       query: (params) => ({
         tag: 'PointValueRules',
         url: '/region-multipliers/products',
         params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 20,
+          sortBy: params?.sortBy || undefined,
+          sortOrder: params?.sortOrder || undefined,
           regionId: params?.regionId || undefined,
+          type: mapPartnerTypeParam(params?.type),
           preset: params?.preset || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
         },
         mockResolver: () => mockDelay([]),
       }),
-      transformResponse: (response: {
-        success: boolean
-        data: ProductPointRuleApiItem[]
-      }) => response.data.map(mapProductPointRule),
+      transformResponse: (
+        response:
+          | {
+              success: boolean
+              data: ProductPointRuleApiItem[]
+            }
+          | { items: ProductPointRuleApiItem[]; totalItems: number },
+      ) => {
+        // Support both paged and non-paged mock shapes
+        const items = 'data' in response ? response.data : response.items
+        const mapped = items.map(mapProductPointRule)
+        const totalItems =
+          'data' in response ? mapped.length : response.totalItems
+        return { items: mapped, totalItems }
+      },
       providesTags: (result) =>
         result
           ? [
-              ...result.map((row) => ({
+              ...result.items.map((row) => ({
                 type: 'PointValueRules' as const,
                 id: row.productId,
               })),
@@ -291,6 +318,7 @@ const pointValueRulesApi = baseApi.injectEndpoints({
         url: '/analytics-cards/point-value-rules',
         params: {
           regionId: params?.regionId || undefined,
+          type: mapPartnerTypeParam(params?.type),
           preset: params?.preset || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,

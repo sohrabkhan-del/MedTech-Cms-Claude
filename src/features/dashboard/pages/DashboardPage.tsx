@@ -79,9 +79,8 @@ export function DashboardPage() {
     useSchemePerformanceCard(schemePerformanceDateRange)
   const { activityTimeline, isLoading: activityTimelineLoading } =
     useActivityTimelineCard(activityTimelineDateRange)
-  const { recentScans, isLoading: recentScansLoading } = useRecentScansCard(
-    recentScansDateRange,
-  )
+  const { recentScans, isLoading: recentScansLoading } =
+    useRecentScansCard(recentScansDateRange)
   const {
     topDealers,
     topChemists,
@@ -305,7 +304,10 @@ export function DashboardPage() {
               leaderboard={topProductCards.map((product, index) => ({
                 id: product.productId,
                 rank: index + 1,
-                name: product.productName,
+                name:
+                  (product.productName && product.productName.trim()) ||
+                  product.productCode ||
+                  product.productId,
                 region: product.category,
                 Points: product.scanCount,
                 linkTo: `/inventory/product-master/${product.productId}`,

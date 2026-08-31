@@ -6,6 +6,7 @@ import type {
   SecurityAlertDetail,
 } from '@/features/fieldOperations/types/fieldOperations.types'
 import { mockDelay } from '@/services/mockDelay'
+import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
 
 export interface SecurityAlertQueryParams {
   page?: number
@@ -23,6 +24,9 @@ export interface SecurityAlertQueryParams {
   regionId?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
+  preset?: string
+  startDate?: string
+  endDate?: string
 }
 
 export interface SecurityAlertKpis {
@@ -226,6 +230,9 @@ const securityAlertsApi = baseApi.injectEndpoints({
           regionId: params?.regionId || undefined,
           sortBy: params?.sortBy || undefined,
           sortOrder: params?.sortOrder || undefined,
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
         },
         mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
       }),
@@ -271,10 +278,19 @@ const securityAlertsApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'SecurityAlerts', id }],
     }),
 
-    getSecurityAlertKpis: builder.query<SecurityAlertKpis, void>({
-      query: () => ({
+    getSecurityAlertKpis: builder.query<
+      SecurityAlertKpis,
+      (AnalyticsDateParams & { regionId?: string }) | void
+    >({
+      query: (params) => ({
         tag: 'SecurityAlerts',
         url: '/analytics-cards/product-scan-security',
+        params: {
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
+          regionId: params?.regionId || undefined,
+        },
         mockResolver: () => mockDelay(emptyKpis),
       }),
       transformResponse: (

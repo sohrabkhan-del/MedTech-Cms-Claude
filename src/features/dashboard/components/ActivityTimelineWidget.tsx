@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Box, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
+import { NoData } from '@/components/common/NoData/NoData'
 import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
 import type { ActivityEvent } from '@/features/dashboard/types/dashboard.types'
 
@@ -16,6 +17,19 @@ export function ActivityTimelineWidget({
   onDateRangeChange,
 }: ActivityTimelineWidgetProps) {
   const navigate = useNavigate()
+
+  if (!activityTimeline || activityTimeline.length === 0) {
+    return (
+      <WidgetCard
+        title="Activity Timeline"
+        subtitle="Latest actions across the platform"
+        dateRange={dateRange}
+        onDateRangeChange={onDateRangeChange}
+      >
+        <NoData />
+      </WidgetCard>
+    )
+  }
 
   return (
     <WidgetCard

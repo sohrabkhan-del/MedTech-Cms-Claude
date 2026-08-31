@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -81,6 +81,7 @@ export function ApprovalRequestsListPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [tabChanging, setTabChanging] = useState(false)
 
   const { requests, totalItems, kpis, decide, isLoading } = useApprovalRequests(
     {
@@ -107,6 +108,10 @@ export function ApprovalRequestsListPage() {
     rejected: 0,
     total: 0,
   }
+
+  useEffect(() => {
+    if (!isLoading && tabChanging) setTabChanging(false)
+  }, [isLoading, tabChanging])
 
   const filteredRequests = requests.filter((request) => {
     const regionMatch =
@@ -189,7 +194,7 @@ export function ApprovalRequestsListPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -201,7 +206,7 @@ export function ApprovalRequestsListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -213,7 +218,7 @@ export function ApprovalRequestsListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -225,7 +230,7 @@ export function ApprovalRequestsListPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isLoading ? (
+          {isLoading || tabChanging ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -244,6 +249,7 @@ export function ApprovalRequestsListPage() {
           value={requestTypeTab}
           variant="filled"
           onChange={(next) => {
+            setTabChanging(true)
             setRequestTypeTab(next)
             setPage(0)
           }}

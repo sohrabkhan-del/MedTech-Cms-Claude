@@ -10,6 +10,7 @@ import {
   YAxis,
 } from 'recharts'
 import { ChartCard } from '@/components/common/ChartCard/ChartCard'
+import { NoData } from '@/components/common/NoData/NoData'
 import { ChartTooltip } from '@/components/common/ChartCard/ChartTooltip'
 import type { DateRangeValue } from '@/components/common/DateRangeSelect/DateRangeSelect'
 import type { ScanActivityPoint } from '@/features/dashboard/types/dashboard.types'
@@ -26,6 +27,21 @@ export function ScanActivityChart({
   onDateRangeChange,
 }: ScanActivityChartProps) {
   const navigate = useNavigate()
+
+  if (!scanActivityTrend || scanActivityTrend.length === 0) {
+    return (
+      <ChartCard
+        title="Scan Activity"
+        subtitle="Scans vs. rewards issued, last 7 days"
+        height={320}
+        dateRange={dateRange}
+        onDateRangeChange={onDateRangeChange}
+        onCardClick={() => navigate('/reports/scan-reports')}
+      >
+        <NoData />
+      </ChartCard>
+    )
+  }
 
   return (
     <ChartCard

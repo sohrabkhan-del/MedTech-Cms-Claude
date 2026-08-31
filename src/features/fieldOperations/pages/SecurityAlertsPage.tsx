@@ -19,7 +19,6 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
-import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { SeverityChip } from '@/features/fieldOperations/components/SeverityChip'
@@ -58,7 +57,6 @@ const defaultAlertFilters: AlertFilters = {
 
 export function SecurityAlertsPage() {
   const navigate = useNavigate()
-  const { regionId: topbarRegionId } = useRegionFilter()
   const [search, setSearch] = useState('')
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] =
@@ -83,7 +81,6 @@ export function SecurityAlertsPage() {
         ? appliedFilters.status.toUpperCase()
         : undefined,
     type: appliedFilters.type || undefined,
-    regionId: topbarRegionId || undefined,
     sortBy: SORT_FIELD_MAP[sortColumn],
     sortOrder,
   })

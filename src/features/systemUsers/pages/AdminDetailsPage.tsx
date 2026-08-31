@@ -1,12 +1,6 @@
-import { useNavigate, useParams } from 'react-router-dom'
-import {
-  Avatar,
-  Box,
-  Button,
-  Grid,
-  Stack,
-  Typography,
-} from '@mui/material'
+import { useEffect } from 'react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
+import { Avatar, Box, Button, Grid, Stack, Typography } from '@mui/material'
 import {
   BadgeCheck as BadgeCheckIcon,
   CircleCheck,
@@ -27,9 +21,11 @@ import { ActivityTimeline } from '@/components/common/ActivityTimeline/ActivityT
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/DetailsPageSkeleton'
 import { useAdminDetail } from '@/features/systemUsers/hooks/useAdminDetail'
+import { useGetAdminAuditQuery } from '@/features/systemUsers/services/adminsApi'
 import { useGetAdminModulesQuery } from '@/features/systemUsers/services/adminsApi'
 import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import { formatDateTime } from '@/utils/formatDate'
 
 const infoItemSx = {
   display: 'flex',
@@ -85,8 +81,16 @@ export function AdminDetailsPage() {
   const { adminId } = useParams<{ adminId: string }>()
   const navigate = useNavigate()
   const toast = useToast()
-  const { admin, setStatus, isLoading, isStatusUpdating } =
-    useAdminDetail(adminId)
+  const {
+    admin,
+    setStatus,
+    isLoading,
+    isFetching,
+    isUninitialized,
+    refetch,
+    isStatusUpdating,
+  } = useAdminDetail(adminId)
+  const location = useLocation()
   const { data: modules = [] } = useGetAdminModulesQuery()
 
   async function handleSetStatus(status: 'active' | 'inactive') {
@@ -109,7 +113,14 @@ export function AdminDetailsPage() {
     }
   }
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!location.state?.refreshed) return
+    if (!isUninitialized) void refetch()
+    navigate(location.pathname, { replace: true })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.refreshed, isUninitialized])
+
+  if (isLoading || isFetching) {
     return <DetailsPageSkeleton sections={2} />
   }
 
@@ -343,11 +354,16 @@ export function AdminDetailsPage() {
                         height: '100%',
                       }}
                     >
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.875rem' }}>
+                      <Typography
+                        sx={{ fontWeight: 700, fontSize: '0.875rem' }}
+                      >
                         {module?.name ?? code}
                       </Typography>
                       {module?.description ? (
-                        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ color: 'text.secondary', mt: 0.5 }}
+                        >
                           {module.description}
                         </Typography>
                       ) : null}
@@ -366,16 +382,28 @@ export function AdminDetailsPage() {
         </SectionCard>
 
         <SectionCard title="Recent Activity">
-          <ActivityTimeline
-            entries={admin.recentActivity.map((entry) => ({
-              id: entry.id,
-              activity: `${entry.actionPerformed} — ${entry.targetRecord}`,
-              dateTime: `${entry.timestamp} · IP: ${entry.ipAddress}`,
-            }))}
-            emptyTitle="No recent activity logged"
-          />
+          {
+            // Fetch latest audit entries from the server (paged, searchable, sortable)
+          }
+          {admin && <ServerAuditTimeline adminId={admin.id} />}
         </SectionCard>
       </Stack>
     </>
+  )
+}
+
+function ServerAuditTimeline({ adminId }: { adminId: string }) {
+  const { data, isFetching } = useGetAdminAuditQuery({ adminId, limit: 2 })
+  const entries = data?.items ?? []
+  return (
+    <ActivityTimeline
+      entries={entries.map((it) => ({
+        id: it.id,
+        activity: `${it.action} — ${it.entity}`,
+        dateTime: `${formatDateTime(it.createdAt)} · IP: ${it.ip ?? '-'}`,
+      }))}
+      loading={isFetching}
+      emptyTitle="No recent activity logged"
+    />
   )
 }

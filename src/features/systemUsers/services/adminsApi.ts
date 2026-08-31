@@ -38,6 +38,41 @@ export interface AdminQueryParams {
   endDate?: string
 }
 
+export interface AdminAuditQueryParams {
+  adminId: string
+  page?: number
+  limit?: number
+  search?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
+}
+
+interface AdminAuditApiResponse {
+  success: boolean
+  message?: string
+  data: {
+    items: Array<{
+      id: string
+      action: string
+      entity: string
+      entityId?: string | null
+      reason?: string | null
+      before?: unknown
+      after?: unknown
+      actorId?: string
+      actorType?: string
+      actor?: { id: string; type: string; name: string; email?: string }
+      ip?: string
+      userAgent?: string
+      createdAt: string
+    }>
+    totalItems: number
+    totalPages: number
+    currentPage: number
+    pageSize: number
+  }
+}
+
 interface AdminListApiResponse {
   success: boolean
   data: {
@@ -90,7 +125,8 @@ const fallbackAdminModules: AdminModule[] = [
   {
     code: 'partners',
     name: 'Partners',
-    description: 'Partner onboarding, profiles, and partner lifecycle management.',
+    description:
+      'Partner onboarding, profiles, and partner lifecycle management.',
   },
   {
     code: 'verification',
@@ -204,7 +240,8 @@ function mapAdminItem(item: AdminApiItem): Admin {
     phone: item.phone ? normalizePhoneDisplay(item.phone) : '-',
     regionAccess: regionNamesToAccess(regionList.map((r) => r.name)),
     regionIds: regionList.map((r) => r.id),
-    modulePermissions: (item.modulePermissions ?? []) as AdminModulePermission[],
+    modulePermissions: (item.modulePermissions ??
+      []) as AdminModulePermission[],
     role: mapRole(item.role),
     status: mapStatus(item.status),
     totalActionsLogged: item.totalActionsLogged ?? 0,
@@ -237,6 +274,35 @@ function mapFormValuesToUpdatePayload(values: AdminFormValues) {
     country: '91',
     profileImageUrl: '',
     regionIds: values.regionIds,
+  }
+}
+
+function applyAdminFormValuesToDraft(
+  draft: Admin,
+  values: Partial<AdminFormValues>,
+) {
+  if (values.firstName !== undefined) draft.firstName = values.firstName
+  if (values.lastName !== undefined) draft.lastName = values.lastName
+  if (values.firstName !== undefined || values.lastName !== undefined) {
+    draft.name =
+      [draft.firstName, draft.lastName].filter(Boolean).join(' ').trim() ||
+      draft.email
+  }
+  if (values.email !== undefined) {
+    draft.email = values.email
+    if (!draft.name) draft.name = values.email
+  }
+  if (values.phone !== undefined) draft.phone = values.phone
+  if (values.regionIds !== undefined) {
+    draft.regionIds = values.regionIds
+    const regionNames = values.regionIds
+      .map((id) => regionCache.find((region) => region.id === id)?.name)
+      .filter((name): name is string => Boolean(name))
+    draft.regionAccess = regionNamesToAccess(regionNames)
+  }
+  if (values.modulePermissions !== undefined) {
+    draft.modulePermissions =
+      values.modulePermissions as AdminModulePermission[]
   }
 }
 
@@ -302,6 +368,7 @@ const adminsApi = baseApi.injectEndpoints({
         return mapAdminItem(response.data)
       },
       providesTags: (_result, _error, id) => [{ type: 'Admins', id }],
+      keepUnusedDataFor: 300,
     }),
 
     getAdminAnalytics: builder.query<
@@ -349,8 +416,41 @@ const adminsApi = baseApi.injectEndpoints({
         data: mapFormValuesToUpdatePayload(values),
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: 'Admins', id },
+      onQueryStarted: async (
+        { id, values },
+        { dispatch, getState, queryFulfilled },
+      ) => {
+        const patches = [
+          dispatch(
+            adminsApi.util.updateQueryData('getAdminDetail', id, (draft) => {
+              if (draft) applyAdminFormValuesToDraft(draft, values)
+            }),
+          ),
+        ]
+
+        const listArgsList = adminsApi.util.selectCachedArgsForQuery(
+          getState(),
+          'getAdmins',
+        )
+
+        for (const listArgs of listArgsList) {
+          patches.push(
+            dispatch(
+              adminsApi.util.updateQueryData('getAdmins', listArgs, (draft) => {
+                const admin = draft.find((item) => item.id === id)
+                if (admin) applyAdminFormValuesToDraft(admin, values)
+              }),
+            ),
+          )
+        }
+
+        try {
+          await queryFulfilled
+        } catch {
+          patches.forEach((patch) => patch.undo())
+        }
+      },
+      invalidatesTags: [
         { type: 'Admins', id: 'LIST' },
         { type: 'Admins', id: 'KPIS' },
       ],
@@ -367,10 +467,42 @@ const adminsApi = baseApi.injectEndpoints({
         data: { modulePermissions },
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: (_result, _error, { id }) => [
-        { type: 'Admins', id },
-        { type: 'Admins', id: 'LIST' },
-      ],
+      onQueryStarted: async (
+        { id, modulePermissions },
+        { dispatch, getState, queryFulfilled },
+      ) => {
+        const values = { modulePermissions }
+        const patches = [
+          dispatch(
+            adminsApi.util.updateQueryData('getAdminDetail', id, (draft) => {
+              if (draft) applyAdminFormValuesToDraft(draft, values)
+            }),
+          ),
+        ]
+
+        const listArgsList = adminsApi.util.selectCachedArgsForQuery(
+          getState(),
+          'getAdmins',
+        )
+
+        for (const listArgs of listArgsList) {
+          patches.push(
+            dispatch(
+              adminsApi.util.updateQueryData('getAdmins', listArgs, (draft) => {
+                const admin = draft.find((item) => item.id === id)
+                if (admin) applyAdminFormValuesToDraft(admin, values)
+              }),
+            ),
+          )
+        }
+
+        try {
+          await queryFulfilled
+        } catch {
+          patches.forEach((patch) => patch.undo())
+        }
+      },
+      invalidatesTags: [{ type: 'Admins', id: 'LIST' }],
     }),
 
     setAdminStatus: builder.mutation<void, { id: string; status: AdminStatus }>(
@@ -381,7 +513,10 @@ const adminsApi = baseApi.injectEndpoints({
           method: 'PATCH',
           mockResolver: () => Promise.resolve(),
         }),
-        onQueryStarted: async ({ id, status }, { dispatch, getState, queryFulfilled }) => {
+        onQueryStarted: async (
+          { id, status },
+          { dispatch, getState, queryFulfilled },
+        ) => {
           const patches = [
             dispatch(
               adminsApi.util.updateQueryData('getAdminDetail', id, (draft) => {
@@ -398,10 +533,14 @@ const adminsApi = baseApi.injectEndpoints({
           for (const listArgs of listArgsList) {
             patches.push(
               dispatch(
-                adminsApi.util.updateQueryData('getAdmins', listArgs, (draft) => {
-                  const admin = draft.find((item) => item.id === id)
-                  if (admin) admin.status = status
-                }),
+                adminsApi.util.updateQueryData(
+                  'getAdmins',
+                  listArgs,
+                  (draft) => {
+                    const admin = draft.find((item) => item.id === id)
+                    if (admin) admin.status = status
+                  },
+                ),
               ),
             )
           }
@@ -415,6 +554,45 @@ const adminsApi = baseApi.injectEndpoints({
         invalidatesTags: [{ type: 'Admins', id: 'KPIS' }],
       },
     ),
+
+    /** GET /audit/admin/:adminId — admin audit timeline with server-side paging/search/sort */
+    getAdminAudit: builder.query<
+      AdminAuditApiResponse['data'],
+      AdminAuditQueryParams | void
+    >({
+      query: (params) => ({
+        tag: 'Admins',
+        url: `/audit/admin/${params?.adminId}`,
+        params: {
+          page: params?.page ?? 1,
+          limit: params?.limit ?? 2,
+          search: params?.search || undefined,
+          sortBy: params?.sortBy || 'createdAt',
+          sortOrder: params?.sortOrder || 'desc',
+        },
+        mockResolver: () =>
+          mockDelay({
+            items: [],
+            totalItems: 0,
+            totalPages: 0,
+            currentPage: 1,
+            pageSize: params?.limit ?? 2,
+          }),
+      }),
+      transformResponse: (
+        response: AdminAuditApiResponse | AdminAuditApiResponse['data'],
+      ) => ('data' in response ? response.data : response),
+      providesTags: (result, _error, arg) =>
+        result
+          ? [
+              ...result.items.map((it) => ({
+                type: 'Admins' as const,
+                id: it.id,
+              })),
+              { type: 'Admins' as const, id: `AUDIT_${arg?.adminId}` },
+            ]
+          : [{ type: 'Admins' as const, id: `AUDIT_${arg?.adminId}` }],
+    }),
   }),
 })
 
@@ -423,6 +601,7 @@ export const {
   useGetAdminDetailQuery,
   useGetAdminModulesQuery,
   useGetAdminAnalyticsQuery,
+  useGetAdminAuditQuery,
   useCreateAdminMutation,
   useUpdateAdminMutation,
   useUpdateAdminModulesMutation,

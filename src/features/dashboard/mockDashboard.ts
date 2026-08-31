@@ -271,6 +271,7 @@ export interface LeaderboardEntry {
   rank: number
   name: string
   region: string
+  productCode?: string
   Points: number
   linkTo?: string
 }

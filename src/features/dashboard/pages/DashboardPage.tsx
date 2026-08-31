@@ -304,9 +304,9 @@ export function DashboardPage() {
               leaderboard={topProductCards.map((product, index) => ({
                 id: product.productId,
                 rank: index + 1,
-                name:
-                  (product.productName && product.productName.trim()) ||
-                  product.productId,
+                name: ((product.productName && product.productName.trim()) ||
+                  product.productCode ||
+                  product.productId) as string,
                 region: product.category,
                 Points: product.scanCount,
                 linkTo: `/inventory/product-master/${product.productId}`,

@@ -51,6 +51,7 @@ export interface TopProductCard {
   scanCount: number
   productId: string
   productName: string
+  productCode?: string
   category: string
 }
 

@@ -21,6 +21,7 @@ import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { LocationMapPicker } from '@/components/common/LocationMapPicker/LocationMapPicker'
 import { Modal } from '@/components/common/Modal/Modal'
+import { PartnerDocumentUploads } from '@/features/userManagement/components/PartnerDocumentUploads'
 import { useToast } from '@/contexts/ToastContext'
 import { radius } from '@/theme/tokens'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
@@ -36,6 +37,7 @@ import {
   chemistFormSchema,
   toChemistApiPayload,
   type ChemistFormValues,
+  type PartnerDocumentPayload,
 } from '@/features/userManagement/chemistFormSchema'
 import { useChemistDetail } from '@/features/userManagement/hooks/useChemistDetail'
 import {
@@ -60,6 +62,18 @@ const fieldLabelProps = {
     inputLabel: { shrink: false, sx: { display: 'none' } },
   },
 } as const
+
+function documentToPayload(document: {
+  id: string
+  documentName: string
+  fileUrl?: string
+}): PartnerDocumentPayload {
+  return {
+    id: document.id,
+    name: document.documentName,
+    path: document.fileUrl ?? '',
+  }
+}
 
 function FieldLabel({
   children,
@@ -265,9 +279,16 @@ export function ChemistFormPage() {
       country: '91',
       gstNumber: chemist.licenseNumber,
       profileImageUrl: chemist.profileImageUrl ?? '',
+      profileImage: chemist.profileImageUrl
+        ? {
+            id: `${chemist.id}-profile-image`,
+            name: 'Profile Image',
+            path: chemist.profileImageUrl,
+          }
+        : undefined,
       regionId: chemist.regionId ?? '',
       assignedMedicalRepresentativeId: chemist.assignedMrId ?? '',
-      notes: chemist.notes ?? '',
+
       businesses:
         chemist.businesses.length > 0
           ? chemist.businesses.map((business) => ({
@@ -293,12 +314,10 @@ export function ChemistFormPage() {
               bufferRadius: business.bufferRadius
                 ? String(business.bufferRadius)
                 : '',
-              geoAccuracy: business.geoAccuracy
-                ? String(business.geoAccuracy)
-                : '',
               notes: business.notes ?? '',
+              documents: business.documents.map(documentToPayload),
             }))
-          : [chemistBusinessDefaults],
+          : [{ ...chemistBusinessDefaults, documents: [] }],
     })
   }, [isEdit, chemist, reset])
 
@@ -446,13 +465,18 @@ export function ChemistFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 8 }}>
-              <FieldLabel>Profile Image URL</FieldLabel>
-              <FormField
-                name="profileImageUrl"
-                control={control}
-                placeholder="https://…"
-                {...fieldLabelProps}
+            <Grid size={12}>
+              <FieldLabel required>Profile Image</FieldLabel>
+              <PartnerDocumentUploads
+                folder="partners/chemists/profile-images"
+                profileImage={watch('profileImage')}
+                documents={[]}
+                showDocuments={false}
+                onProfileImageChange={(document) => {
+                  setValue('profileImage', document)
+                  setValue('profileImageUrl', document?.path ?? '')
+                }}
+                onDocumentsChange={() => undefined}
               />
             </Grid>
           </Grid>
@@ -634,17 +658,6 @@ export function ChemistFormPage() {
                       {...fieldLabelProps}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <FieldLabel>Geo Accuracy</FieldLabel>
-                    <FormField
-                      name={`businesses.${index}.geoAccuracy`}
-                      control={control}
-                      placeholder="e.g. 10"
-                      numeric
-                      {...fieldLabelProps}
-                    />
-                  </Grid>
-
                   <Grid size={12}>
                     <FieldLabel>Outlet Notes</FieldLabel>
                     <FormField
@@ -653,6 +666,19 @@ export function ChemistFormPage() {
                       multiline
                       minRows={2}
                       {...fieldLabelProps}
+                    />
+                  </Grid>
+
+                  <Grid size={12}>
+                    <FieldLabel>Documents</FieldLabel>
+                    <PartnerDocumentUploads
+                      folder={`partners/chemists/businesses/${field.id}`}
+                      documents={watch(`businesses.${index}.documents`) ?? []}
+                      showProfileImage={false}
+                      onDocumentsChange={(documents) =>
+                        setValue(`businesses.${index}.documents`, documents)
+                      }
+                      onProfileImageChange={() => undefined}
                     />
                   </Grid>
                 </Grid>
@@ -735,16 +761,6 @@ export function ChemistFormPage() {
                     )}
                   />
                 )}
-              />
-            </Grid>
-            <Grid size={12}>
-              <FieldLabel>Notes</FieldLabel>
-              <FormField
-                name="notes"
-                control={control}
-                multiline
-                minRows={3}
-                {...fieldLabelProps}
               />
             </Grid>
           </Grid>

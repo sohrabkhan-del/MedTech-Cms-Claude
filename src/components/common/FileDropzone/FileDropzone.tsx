@@ -15,6 +15,12 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+function getUrlExtension(value?: string | null): string {
+  if (!value) return ''
+  const cleanUrl = value.split(/[?#]/)[0].toLowerCase()
+  return cleanUrl.match(/\.([a-z0-9]+)$/i)?.[1] ?? ''
+}
+
 interface FileDropzoneProps {
   file: File | null
   onSelect: (file: File) => void
@@ -37,13 +43,23 @@ export function FileDropzone({
   const [dragActive, setDragActive] = useState(false)
 
   const isImage = file
-    ? file.type.startsWith('image/')
-    : accept.includes('image')
+    ? file.type.startsWith('image/') ||
+      ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(getUrlExtension(file.name))
+    : accept.includes('image') ||
+      ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(
+        getUrlExtension(existingPreview?.url),
+      )
+
+  const isPdf = file
+    ? file.type === 'application/pdf' ||
+      getUrlExtension(file.name) === 'pdf' ||
+      /\.pdf$/i.test(file.name)
+    : accept.includes('pdf') || getUrlExtension(existingPreview?.url) === 'pdf'
 
   const objectUrl = useMemo(() => {
-    if (!file || !isImage) return null
+    if (!file || (!isImage && !isPdf)) return null
     return URL.createObjectURL(file)
-  }, [file, isImage])
+  }, [file, isImage, isPdf])
 
   useEffect(() => {
     return () => {
@@ -137,52 +153,96 @@ export function FileDropzone({
           spacing={1.5}
           sx={{ alignItems: 'stretch', maxWidth: 420, mx: 'auto' }}
         >
-          {isImage && previewUrl ? (
-            <Box
-              sx={{
-                position: 'relative',
-                borderRadius: `${radius.md}px`,
-                overflow: 'hidden',
-                border: '1px solid',
-                borderColor: 'divider',
-                backgroundColor: 'background.paper',
-                backgroundImage:
-                  'linear-gradient(45deg, rgba(0,0,0,0.04) 25%, transparent 25%), linear-gradient(-45deg, rgba(0,0,0,0.04) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.04) 75%), linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.04) 75%)',
-                backgroundSize: '16px 16px',
-                backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
-              }}
-            >
+          {previewUrl && (isImage || isPdf) ? (
+            isImage ? (
               <Box
-                component="img"
-                src={previewUrl}
-                alt={displayName}
                 sx={{
-                  display: 'block',
-                  width: '100%',
-                  maxHeight: 220,
-                  objectFit: 'contain',
-                }}
-              />
-              <IconButton
-                size="small"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onRemove()
-                }}
-                aria-label="Remove file"
-                sx={{
-                  position: 'absolute',
-                  top: 8,
-                  right: 8,
-                  color: 'error.main',
+                  position: 'relative',
+                  borderRadius: `${radius.md}px`,
+                  overflow: 'hidden',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   backgroundColor: 'background.paper',
-                  boxShadow: 1,
-                  '&:hover': { backgroundColor: 'background.paper' },
+                  backgroundImage:
+                    'linear-gradient(45deg, rgba(0,0,0,0.04) 25%, transparent 25%), linear-gradient(-45deg, rgba(0,0,0,0.04) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(0,0,0,0.04) 75%), linear-gradient(-45deg, transparent 75%, rgba(0,0,0,0.04) 75%)',
+                  backgroundSize: '16px 16px',
+                  backgroundPosition: '0 0, 0 8px, 8px -8px, -8px 0px',
                 }}
               >
-                <Trash2 size={16} />
-              </IconButton>
-            </Box>
+                <Box
+                  component="img"
+                  src={previewUrl}
+                  alt={displayName}
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    maxHeight: 220,
+                    objectFit: 'contain',
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemove()
+                  }}
+                  aria-label="Remove file"
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    color: 'error.main',
+                    backgroundColor: 'background.paper',
+                    boxShadow: 1,
+                    '&:hover': { backgroundColor: 'background.paper' },
+                  }}
+                >
+                  <Trash2 size={16} />
+                </IconButton>
+              </Box>
+            ) : (
+              <Box
+                sx={{
+                  borderRadius: `${radius.md}px`,
+                  overflow: 'hidden',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.paper',
+                }}
+              >
+                <Box
+                  component="iframe"
+                  src={previewUrl}
+                  title={displayName}
+                  sx={{
+                    display: 'block',
+                    width: '100%',
+                    minHeight: 220,
+                    border: 'none',
+                    backgroundColor: 'background.default',
+                  }}
+                />
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRemove()
+                  }}
+                  aria-label="Remove file"
+                  sx={{
+                    position: 'absolute',
+                    top: 8,
+                    right: 8,
+                    color: 'error.main',
+                    backgroundColor: 'background.paper',
+                    boxShadow: 1,
+                    '&:hover': { backgroundColor: 'background.paper' },
+                  }}
+                >
+                  <Trash2 size={16} />
+                </IconButton>
+              </Box>
+            )
           ) : null}
 
           <Stack
@@ -190,7 +250,7 @@ export function FileDropzone({
             spacing={1.5}
             sx={{ alignItems: 'center', textAlign: 'left' }}
           >
-            {!isImage && (
+            {!isImage && !isPdf && (
               <Box
                 component="span"
                 sx={{ display: 'inline-flex', color: 'primary.main' }}
@@ -211,7 +271,7 @@ export function FileDropzone({
                 </Typography>
               )}
             </Box>
-            {!isImage && (
+            {!isImage && !isPdf && (
               <IconButton
                 size="small"
                 onClick={(e) => {

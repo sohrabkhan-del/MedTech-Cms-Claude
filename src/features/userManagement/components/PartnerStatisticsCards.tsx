@@ -11,7 +11,7 @@ export function PartnerStatisticsCards({
   partner,
 }: PartnerStatisticsCardsProps) {
   const totalScans = partner.totalScans ?? 0
-  const pointsEarned = partner.availablePoints ?? 0
+  const pointsEarned = partner.pointsEarned ?? 0
   const totalRedemption = partner.totalRedemptions ?? 0
   const interestedProductCount = partner.interestedProducts?.length ?? 0
 

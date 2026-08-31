@@ -2,6 +2,7 @@ import { z } from 'zod'
 import {
   toProfileImagePayload,
   type PartnerBusinessPayload,
+  type PartnerDocumentPayload,
   type PartnerProfileImagePayload,
 } from '@/features/userManagement/chemistFormSchema'
 
@@ -14,28 +15,25 @@ const requiredPattern = (regex: RegExp, message: string) =>
 
 export const dealerBusinessSchema = z.object({
   id: z.string().optional(),
-  outletName: requiredString('Outlet name is required'),
-  userName: requiredString('User name is required'),
-  panNumber: requiredPattern(
-    /^[A-Z]{5}[0-9]{4}[A-Z]$/,
-    'Enter a valid PAN number',
-  ),
-  drugLicenseNumber: requiredString('Drug license number is required'),
-  drugLicenseExpiry: requiredString('Drug license expiry is required'),
-  addressType: z.enum(['SHOP', 'GODOWN', 'OTHER']),
-  addressLine1: requiredString('Address line 1 is required'),
-  addressLine2: requiredString('Address line 2 is required'),
-  landmark: requiredString('Landmark is required'),
-  city: requiredString('City is required'),
-  district: requiredString('District is required'),
-  state: requiredString('State is required'),
-  pincode: requiredPattern(/^\d{6}$/, 'Enter a valid 6-digit pincode'),
-  latitude: requiredString('Latitude is required'),
-  longitude: requiredString('Longitude is required'),
-  scanRadius: requiredString('Scan radius is required'),
-  bufferRadius: requiredString('Buffer radius is required'),
-  geoAccuracy: requiredString('Geo accuracy is required'),
+  outletName: z.string().optional(),
+  userName: z.string().optional(),
+  panNumber: z.string().optional(),
+  drugLicenseNumber: z.string().optional(),
+  drugLicenseExpiry: z.string().optional(),
+  addressType: z.enum(['SHOP', 'GODOWN', 'OTHER']).optional(),
+  addressLine1: z.string().optional(),
+  addressLine2: z.string().optional(),
+  landmark: z.string().optional(),
+  city: z.string().optional(),
+  district: z.string().optional(),
+  state: z.string().optional(),
+  pincode: z.string().optional(),
+  latitude: z.string().optional(),
+  longitude: z.string().optional(),
+  scanRadius: z.string().optional(),
+  bufferRadius: z.string().optional(),
   notes: z.string().optional(),
+  documents: z.array(z.custom<PartnerDocumentPayload>()).default([]),
 })
 
 export type DealerBusinessValues = z.infer<typeof dealerBusinessSchema>
@@ -58,8 +56,8 @@ export const dealerBusinessDefaults: DealerBusinessValues = {
   longitude: '',
   scanRadius: '',
   bufferRadius: '',
-  geoAccuracy: '',
   notes: '',
+  documents: [],
 }
 
 // Fields marked "API" map 1:1 to POST /partners/create's body (type: 'DEALER')
@@ -80,13 +78,11 @@ export const dealerFormSchema = z.object({
   country: requiredString('Country is required'),
 
   // --- API: licensing ---
-  gstNumber: requiredPattern(
-    /^[0-9A-Z]{15}$/,
-    'Enter a valid 15-character GST number',
-  ),
+  gstNumber: z.string().optional(),
 
   // --- API: profile ---
-  profileImageUrl: requiredString('Profile image is required'),
+  profileImageUrl: z.string().optional(),
+  profileImage: z.custom<PartnerDocumentPayload>().optional(),
 
   // --- API: assignment ---
   regionId: z.string().trim().uuid(uuidMessage),
@@ -115,6 +111,7 @@ export const dealerFormDefaults: DealerFormValues = {
   country: '91',
   gstNumber: '',
   profileImageUrl: '',
+  profileImage: undefined,
   regionId: '',
   assignedMedicalRepresentativeId: '',
   notes: '',
@@ -144,7 +141,8 @@ export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
     ownerName: [values.ownerFirstName, values.ownerLastName]
       .filter(Boolean)
       .join(' '),
-    profileImage: toProfileImagePayload(values.profileImageUrl),
+    profileImage:
+      values.profileImage ?? toProfileImagePayload(values.profileImageUrl),
     email: values.email,
     phone: values.phone,
     country: values.country || '91',
@@ -174,13 +172,10 @@ export function toDealerApiPayload(values: DealerFormValues): DealerApiPayload {
       bufferRadius: business.bufferRadius
         ? Number(business.bufferRadius)
         : undefined,
-      geoAccuracy: business.geoAccuracy
-        ? Number(business.geoAccuracy)
-        : undefined,
       geoTagImage: null,
       regionId: values.regionId,
       notes: business.notes,
-      documents: [],
+      documents: business.documents ?? [],
     })),
   }
 }

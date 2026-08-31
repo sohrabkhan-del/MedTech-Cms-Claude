@@ -21,6 +21,7 @@ import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { LocationMapPicker } from '@/components/common/LocationMapPicker/LocationMapPicker'
 import { Modal } from '@/components/common/Modal/Modal'
+import { PartnerDocumentUploads } from '@/features/userManagement/components/PartnerDocumentUploads'
 import { useToast } from '@/contexts/ToastContext'
 import { radius } from '@/theme/tokens'
 import { fallbackRegions, getRegions } from '@/services/regionsService'
@@ -37,6 +38,7 @@ import {
   toDealerApiPayload,
   type DealerFormValues,
 } from '@/features/userManagement/dealerFormSchema'
+import type { PartnerDocumentPayload } from '@/features/userManagement/chemistFormSchema'
 import { useDealerDetail } from '@/features/userManagement/hooks/useDealerDetail'
 import {
   useCreateDealerMutation,
@@ -60,6 +62,18 @@ const fieldLabelProps = {
     inputLabel: { shrink: false, sx: { display: 'none' } },
   },
 } as const
+
+function documentToPayload(document: {
+  id: string
+  documentName: string
+  fileUrl?: string
+}): PartnerDocumentPayload {
+  return {
+    id: document.id,
+    name: document.documentName,
+    path: document.fileUrl ?? '',
+  }
+}
 
 function FieldLabel({
   children,
@@ -265,9 +279,16 @@ export function DealerFormPage() {
       country: '91',
       gstNumber: dealer.licenseNumber,
       profileImageUrl: dealer.profileImageUrl ?? '',
+      profileImage: dealer.profileImageUrl
+        ? {
+            id: `${dealer.id}-profile-image`,
+            name: 'Profile Image',
+            path: dealer.profileImageUrl,
+          }
+        : undefined,
       regionId: dealer.regionId ?? '',
       assignedMedicalRepresentativeId: dealer.assignedMrId ?? '',
-      notes: dealer.notes ?? '',
+
       businesses:
         dealer.businesses.length > 0
           ? dealer.businesses.map((business) => ({
@@ -293,12 +314,16 @@ export function DealerFormPage() {
               bufferRadius: business.bufferRadius
                 ? String(business.bufferRadius)
                 : '',
-              geoAccuracy: business.geoAccuracy
-                ? String(business.geoAccuracy)
-                : '',
               notes: business.notes ?? '',
+              documents: business.documents.map(documentToPayload),
             }))
-          : [{ ...dealerBusinessDefaults, outletName: 'Godown 1' }],
+          : [
+              {
+                ...dealerBusinessDefaults,
+                outletName: 'Godown 1',
+                documents: [],
+              },
+            ],
     })
   }, [isEdit, dealer, reset])
 
@@ -444,13 +469,18 @@ export function DealerFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 8 }}>
-              <FieldLabel>Profile Image URL</FieldLabel>
-              <FormField
-                name="profileImageUrl"
-                control={control}
-                placeholder="https://…"
-                {...fieldLabelProps}
+            <Grid size={12}>
+              <FieldLabel required>Profile Image</FieldLabel>
+              <PartnerDocumentUploads
+                folder="partners/dealers/profile-images"
+                profileImage={watch('profileImage')}
+                documents={[]}
+                showDocuments={false}
+                onProfileImageChange={(document) => {
+                  setValue('profileImage', document)
+                  setValue('profileImageUrl', document?.path ?? '')
+                }}
+                onDocumentsChange={() => undefined}
               />
             </Grid>
           </Grid>
@@ -632,17 +662,6 @@ export function DealerFormPage() {
                       {...fieldLabelProps}
                     />
                   </Grid>
-                  <Grid size={{ xs: 12, sm: 4 }}>
-                    <FieldLabel>Geo Accuracy (m)</FieldLabel>
-                    <FormField
-                      name={`businesses.${index}.geoAccuracy`}
-                      control={control}
-                      placeholder="e.g. 10"
-                      numeric
-                      {...fieldLabelProps}
-                    />
-                  </Grid>
-
                   <Grid size={12}>
                     <FieldLabel>Godown Notes</FieldLabel>
                     <FormField
@@ -651,6 +670,19 @@ export function DealerFormPage() {
                       multiline
                       minRows={2}
                       {...fieldLabelProps}
+                    />
+                  </Grid>
+
+                  <Grid size={12}>
+                    <FieldLabel>Documents</FieldLabel>
+                    <PartnerDocumentUploads
+                      folder={`partners/dealers/businesses/${field.id}`}
+                      documents={watch(`businesses.${index}.documents`) ?? []}
+                      showProfileImage={false}
+                      onDocumentsChange={(documents) =>
+                        setValue(`businesses.${index}.documents`, documents)
+                      }
+                      onProfileImageChange={() => undefined}
                     />
                   </Grid>
                 </Grid>
@@ -738,16 +770,6 @@ export function DealerFormPage() {
                     )}
                   />
                 )}
-              />
-            </Grid>
-            <Grid size={12}>
-              <FieldLabel>Notes</FieldLabel>
-              <FormField
-                name="notes"
-                control={control}
-                multiline
-                minRows={3}
-                {...fieldLabelProps}
               />
             </Grid>
           </Grid>

@@ -34,14 +34,32 @@ function documentIcon(documentName: string) {
   return FileText
 }
 
+function getUrlExtension(value?: string): string {
+  if (!value) return ''
+
+  try {
+    const parsed = new URL(value, window.location.origin)
+    const pathname = parsed.pathname || value
+    const normalized = pathname.split(/[?#]/)[0].toLowerCase()
+    const match = normalized.match(/\.([a-z0-9]+)$/i)
+    return match?.[1] ?? ''
+  } catch {
+    const cleanUrl = value.split(/[?#]/)[0].toLowerCase()
+    return cleanUrl.match(/\.([a-z0-9]+)$/i)?.[1] ?? ''
+  }
+}
+
+function openDocumentInNewTab(url: string) {
+  const link = document.createElement('a')
+  link.href = url
+  link.target = '_blank'
+  link.rel = 'noopener noreferrer'
+  link.click()
+}
+
 function downloadDocument(doc: DocumentGridItem) {
   if (doc.fileUrl) {
-    const link = document.createElement('a')
-    link.href = doc.fileUrl
-    link.download = doc.documentName
-    link.target = '_blank'
-    link.rel = 'noopener noreferrer'
-    link.click()
+    openDocumentInNewTab(doc.fileUrl)
     return
   }
 
@@ -97,7 +115,13 @@ export function DocumentGridCard<T extends DocumentGridItem>({
                 <Stack
                   direction="row"
                   spacing={1.5}
-                  onClick={() => setPreviewDoc(doc)}
+                  onClick={() => {
+                    if (doc.fileUrl) {
+                      openDocumentInNewTab(doc.fileUrl)
+                      return
+                    }
+                    setPreviewDoc(doc)
+                  }}
                   sx={{
                     p: 2,
                     alignItems: 'center',
@@ -178,7 +202,10 @@ export function DocumentGridCard<T extends DocumentGridItem>({
                 Update Document
               </Button>
             )}
-            {previewDoc.fileUrl && /\.(png|jpe?g|gif|webp)$/i.test(previewDoc.fileUrl) ? (
+            {previewDoc.fileUrl &&
+            ['png', 'jpg', 'jpeg', 'gif', 'webp'].includes(
+              getUrlExtension(previewDoc.fileUrl),
+            ) ? (
               <Box
                 component="img"
                 src={previewDoc.fileUrl}
@@ -187,6 +214,21 @@ export function DocumentGridCard<T extends DocumentGridItem>({
                   width: '100%',
                   maxHeight: 320,
                   objectFit: 'contain',
+                  borderRadius: `${radius.lg}px`,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  backgroundColor: 'background.default',
+                }}
+              />
+            ) : previewDoc.fileUrl &&
+              getUrlExtension(previewDoc.fileUrl) === 'pdf' ? (
+              <Box
+                component="iframe"
+                src={previewDoc.fileUrl}
+                title={previewDoc.documentName}
+                sx={{
+                  width: '100%',
+                  minHeight: 420,
                   borderRadius: `${radius.lg}px`,
                   border: '1px solid',
                   borderColor: 'divider',

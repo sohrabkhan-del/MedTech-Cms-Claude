@@ -54,6 +54,28 @@ interface PartnerDocumentApiItem {
   size?: number
   path: string
   type?: string
+  viewUrl?: string | null
+  signedViewUrl?: string | null
+  directViewUrl?: string | null
+  objectUrl?: string | null
+  url?: string | null
+}
+
+function resolveDocumentUrl(
+  doc: Pick<
+    PartnerDocumentApiItem,
+    'path' | 'viewUrl' | 'signedViewUrl' | 'directViewUrl' | 'objectUrl' | 'url'
+  >,
+) {
+  return (
+    doc.viewUrl ||
+    doc.signedViewUrl ||
+    doc.directViewUrl ||
+    doc.objectUrl ||
+    doc.url ||
+    doc.path ||
+    undefined
+  )
 }
 
 interface PartnerRegionApiItem {
@@ -135,7 +157,7 @@ function mapPartnerDocuments(
       uploadDate: '-',
       verificationStatus: 'pending' as const,
       expiryDate: '-',
-      fileUrl: doc.path,
+      fileUrl: resolveDocumentUrl(doc),
     })),
   )
 }
@@ -188,7 +210,7 @@ function mapBusinessDocuments(
     uploadDate: '-',
     verificationStatus: 'pending' as const,
     expiryDate: '-',
-    fileUrl: doc.path,
+    fileUrl: resolveDocumentUrl(doc),
   }))
 }
 
@@ -262,7 +284,10 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
     zone: inferZone(business?.state),
     status: mapStatus(item.status, item.isBlocked),
     approvalStatus: item.approvalStatus ?? undefined,
-    profileImageUrl: item.profileImage?.path ?? undefined,
+    profileImageUrl:
+      item.profileImage && resolveDocumentUrl(item.profileImage)
+        ? resolveDocumentUrl(item.profileImage)
+        : undefined,
     licenseNumber: item.gstNumber ?? business?.drugLicenseNumber ?? '-',
     panNumber: business?.panNumber ?? undefined,
     drugLicenseNumber: business?.drugLicenseNumber ?? undefined,

@@ -116,6 +116,7 @@ export function PartnerSummaryHeader({
       <Card sx={{ p: 3, mb: 3 }}>
         <Stack direction="row" spacing={2} sx={{ width: '100%' }}>
           <Avatar
+            src={partner.profileImageUrl || undefined}
             sx={{
               width: 56,
               height: 56,
@@ -125,79 +126,86 @@ export function PartnerSummaryHeader({
               flexShrink: 0,
             }}
           >
-            {partner.shopName.slice(0, 1)}
+            {!partner.profileImageUrl && partner.shopName.slice(0, 1)}
           </Avatar>
-          <Stack spacing={1.5} sx={{ justifyContent: 'center', flex: 1, minWidth: 0 }}>
-              <Grid
-                container
-                spacing={2}
-                sx={{ alignItems: 'center', justifyContent: 'space-between', width: '100%' }}
-              >
-                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <Typography variant="caption" sx={{ display: 'block' }}>
-                    {shopLabel}
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                    {partner.shopName}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <Typography variant="caption" sx={{ display: 'block' }}>
-                    City / Region
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                    {partner.city} · {partner.zone}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <Typography variant="caption" sx={{ display: 'block' }}>
-                    Contact Number
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                    {partner.phone}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <Typography variant="caption" sx={{ display: 'block' }}>
-                    Assigned MR
-                  </Typography>
-                  <Tooltip title={partner.assignedMrEmail ?? ''}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                      {assignedMrLabel}
-                    </Typography>
-                  </Tooltip>
-                  {assignedMrMeta && (
-                    <Typography
-                      variant="caption"
-                      sx={{ display: 'block', color: 'text.secondary' }}
-                    >
-                      {assignedMrMeta}
-                    </Typography>
-                  )}
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <Typography variant="caption" sx={{ display: 'block' }}>
-                    Geo-tag Status
-                  </Typography>
-                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
-                    {partner.geoLock.active ? 'Tagged' : 'Pending'}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                  <Typography variant="caption" sx={{ display: 'block' }}>
-                    Points Earned
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontWeight: 700,
-                      fontSize: '0.875rem',
-                      color: 'primary.main',
-                    }}
-                  >
-                    {partner.availablePoints.toLocaleString('en-IN')}
-                  </Typography>
-                </Grid>
+          <Stack
+            spacing={1.5}
+            sx={{ justifyContent: 'center', flex: 1, minWidth: 0 }}
+          >
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                width: '100%',
+              }}
+            >
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <Typography variant="caption" sx={{ display: 'block' }}>
+                  {shopLabel}
+                </Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {partner.shopName}
+                </Typography>
               </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <Typography variant="caption" sx={{ display: 'block' }}>
+                  City / Region
+                </Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {partner.city} · {partner.zone}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <Typography variant="caption" sx={{ display: 'block' }}>
+                  Contact Number
+                </Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {partner.phone}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <Typography variant="caption" sx={{ display: 'block' }}>
+                  Assigned MR
+                </Typography>
+                <Tooltip title={partner.assignedMrEmail ?? ''}>
+                  <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                    {assignedMrLabel}
+                  </Typography>
+                </Tooltip>
+                {assignedMrMeta && (
+                  <Typography
+                    variant="caption"
+                    sx={{ display: 'block', color: 'text.secondary' }}
+                  >
+                    {assignedMrMeta}
+                  </Typography>
+                )}
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <Typography variant="caption" sx={{ display: 'block' }}>
+                  Geo-tag Status
+                </Typography>
+                <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
+                  {partner.geoLock.active ? 'Tagged' : 'Pending'}
+                </Typography>
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+                <Typography variant="caption" sx={{ display: 'block' }}>
+                  Points Earned
+                </Typography>
+                <Typography
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.875rem',
+                    color: 'primary.main',
+                  }}
+                >
+                  {partner.availablePoints.toLocaleString('en-IN')}
+                </Typography>
+              </Grid>
+            </Grid>
           </Stack>
         </Stack>
       </Card>

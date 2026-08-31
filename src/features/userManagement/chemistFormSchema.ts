@@ -29,8 +29,8 @@ export const chemistBusinessSchema = z.object({
   longitude: requiredString('Longitude is required'),
   scanRadius: requiredString('Scan radius is required'),
   bufferRadius: requiredString('Buffer radius is required'),
-  geoAccuracy: requiredString('Geo accuracy is required'),
   notes: z.string().optional(),
+  documents: z.array(z.custom<PartnerDocumentPayload>()).default([]),
 })
 
 export type ChemistBusinessValues = z.infer<typeof chemistBusinessSchema>
@@ -53,8 +53,8 @@ export const chemistBusinessDefaults: ChemistBusinessValues = {
   longitude: '',
   scanRadius: '',
   bufferRadius: '',
-  geoAccuracy: '',
   notes: '',
+  documents: [],
 }
 
 // Fields marked "API" map 1:1 to POST /partners/create's body and are sent
@@ -82,6 +82,7 @@ export const chemistFormSchema = z.object({
 
   // --- API: profile ---
   profileImageUrl: requiredString('Profile image is required'),
+  profileImage: z.custom<PartnerDocumentPayload>().optional(),
 
   // --- API: assignment ---
   regionId: z.string().trim().uuid(uuidMessage),
@@ -110,6 +111,7 @@ export const chemistFormDefaults: ChemistFormValues = {
   country: '91',
   gstNumber: '',
   profileImageUrl: '',
+  profileImage: undefined,
   regionId: '',
   assignedMedicalRepresentativeId: '',
   notes: '',
@@ -122,6 +124,11 @@ export interface PartnerDocumentPayload {
   size?: number
   path: string
   type?: string
+  viewUrl?: string
+  signedViewUrl?: string
+  directViewUrl?: string
+  objectUrl?: string
+  url?: string
 }
 
 export interface PartnerBusinessPayload {
@@ -144,7 +151,6 @@ export interface PartnerBusinessPayload {
   longitude?: number
   scanRadius?: number
   bufferRadius?: number
-  geoAccuracy?: number
   geoTagImage?: PartnerDocumentPayload | null
   regionId: string
   notes?: string
@@ -207,7 +213,8 @@ export function toChemistApiPayload(
     ownerName: [values.ownerFirstName, values.ownerLastName]
       .filter(Boolean)
       .join(' '),
-    profileImage: toProfileImagePayload(values.profileImageUrl),
+    profileImage:
+      values.profileImage ?? toProfileImagePayload(values.profileImageUrl),
     email: values.email,
     phone: values.phone,
     country: values.country || '91',
@@ -237,13 +244,10 @@ export function toChemistApiPayload(
       bufferRadius: business.bufferRadius
         ? Number(business.bufferRadius)
         : undefined,
-      geoAccuracy: business.geoAccuracy
-        ? Number(business.geoAccuracy)
-        : undefined,
       geoTagImage: null,
       regionId: values.regionId,
       notes: business.notes,
-      documents: [],
+      documents: business.documents ?? [],
     })),
   }
 }

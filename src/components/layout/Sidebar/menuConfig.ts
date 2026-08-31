@@ -25,9 +25,6 @@ import {
   Wallet,
   Coins as Points,
   Redo2,
-  Palette,
-  ClipboardList,
-  ListTree,
 } from 'lucide-react'
 
 export interface MenuItem {

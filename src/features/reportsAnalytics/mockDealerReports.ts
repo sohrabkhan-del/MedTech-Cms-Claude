@@ -80,7 +80,7 @@ export function getDealerReportById(
     assignedMr: dealer.assignedMr,
     scanHistory: dealer.scanHistory,
     walletHistory: dealer.PointsHistory,
-    interestedProducts: dealer.interestedProducts,
+    interestedProducts: dealer.interestedProducts ?? [],
     redemptionHistory: redemptionHistoryForDealer(dealer.id),
     performanceSummary: buildPerformanceSummary(dealer),
   }

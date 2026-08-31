@@ -306,7 +306,6 @@ export function DashboardPage() {
                 rank: index + 1,
                 name:
                   (product.productName && product.productName.trim()) ||
-                  product.productCode ||
                   product.productId,
                 region: product.category,
                 Points: product.scanCount,

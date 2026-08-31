@@ -100,11 +100,14 @@ export interface PartnerBase {
   assignedMrPhone?: string
   assignedMrEmail?: string
   availablePoints: number
+  pointsEarned?: number
   notes?: string
   geoLock: GeoLockDetails
   registeredAddress: string
   totalScans: number
   totalRedemptions: number
+  totalRedemption?: number
+  interestedProductCount?: number
   scanHistory: ScanHistoryEntry[]
   PointsHistory: PointsHistoryEntry[]
   interestedProducts?: InterestedProductEntry[]

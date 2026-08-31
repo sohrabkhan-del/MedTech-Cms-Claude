@@ -503,7 +503,7 @@ export function ChemistReportDetailsPage() {
           <CommonTable
             tableKey="chemist-report-interested-products"
             columns={interestedProductColumns}
-            rows={chemist.interestedProducts}
+            rows={chemist.interestedProducts ?? []}
             getRowId={(row) => row.id}
             searchPlaceholder="Search interested products…"
             searchKeys={(row) => `${row.productName} ${row.handledBy}`}

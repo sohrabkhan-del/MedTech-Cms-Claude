@@ -30,27 +30,23 @@ const columns: CommonTableColumn<PartnerPointsHistoryRow>[] = [
     render: (row) => (row.type === 'credit' ? 'Credit' : 'Debit'),
   },
   {
-    key: 'rewardPointsEarned',
+    key: 'points',
     header: 'Points Earned',
     align: 'center',
     sortable: true,
-    render: (row) => {
-      const isFailed = row.scanStatus === 'FAILED'
-      return (
-        <Typography
-          component="span"
-          sx={{
-            fontWeight: 700,
-            fontSize: 'inherit',
-            color: isFailed ? 'error.main' : 'success.main',
-          }}
-        >
-          {isFailed
-            ? '0'
-            : `+${row.rewardPointsEarned.toLocaleString('en-IN')}`}
-        </Typography>
-      )
-    },
+    render: (row) => (
+      <Typography
+        component="span"
+        sx={{
+          fontWeight: 700,
+          fontSize: 'inherit',
+          color: row.type === 'credit' ? 'success.main' : 'error.main',
+        }}
+      >
+        {row.type === 'credit' ? '+' : '-'}
+        {row.points.toLocaleString('en-IN')}
+      </Typography>
+    ),
   },
   {
     key: 'points',

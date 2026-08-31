@@ -458,8 +458,7 @@ const verificationApi = baseApi.injectEndpoints({
 
     getApprovalRequestAnalytics: builder.query<
       { pending: number; approved: number; rejected: number; total: number },
-      | (AnalyticsDateParams & { regionId?: string })
-      | { regionId?: string; type?: RequestType }
+      AnalyticsDateParams & { regionId?: string; type?: RequestType }
     >({
       query: (params) => ({
         tag: 'Verification',
@@ -469,7 +468,7 @@ const verificationApi = baseApi.injectEndpoints({
           startDate: params.startDate,
           endDate: params.endDate,
           regionId: params.regionId || undefined,
-          type: mapTypeParam((params as any)?.type),
+          type: mapTypeParam(params.type),
         },
         mockResolver: () => mockDelay(approvalRequestKpis),
       }),

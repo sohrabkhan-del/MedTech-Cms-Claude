@@ -75,6 +75,8 @@ export interface Product {
   chemistProductPoints: number
   rewardConfigStatus: RewardConfigStatus
   regions: ProductRegionConfig[]
+  totalQuantity: number
+  totalScanQuantity: number
 
   totalFactoryUploads: number
   totalQrCodesGenerated: number

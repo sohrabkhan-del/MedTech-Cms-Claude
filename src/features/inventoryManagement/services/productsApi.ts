@@ -86,6 +86,8 @@ interface ProductApiItem {
   chemistContainerPoints: number
   chemistProductPoints: number
   status: string
+  totalQuantity?: number
+  totalScanQuantity?: number
   regions?: ProductRegionApiItem[]
   createdAt: string
   updatedAt: string
@@ -144,6 +146,8 @@ function mapProductItem(item: ProductApiItem): Product {
     chemistContainerPoints: item.chemistContainerPoints,
     chemistProductPoints: item.chemistProductPoints,
     regions: mapRegions(item.regions),
+    totalQuantity: item.totalQuantity ?? 0,
+    totalScanQuantity: item.totalScanQuantity ?? 0,
     rewardConfigStatus:
       item.dealerContainerPoints + item.dealerProductPoints > 0 &&
       item.chemistContainerPoints + item.chemistProductPoints > 0

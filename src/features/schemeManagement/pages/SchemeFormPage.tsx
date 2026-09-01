@@ -15,6 +15,7 @@ import {
   Box,
   Card,
   Checkbox,
+  CircularProgress,
   FormControlLabel,
   Grid,
   IconButton,
@@ -31,6 +32,7 @@ import { FormField } from '@/components/common/FormField/FormField'
 import { EmptyState } from '@/components/common/EmptyState/EmptyState'
 import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
 import { radius } from '@/theme/tokens'
+import { useToast } from '@/contexts/ToastContext'
 import { useSchemeForm } from '@/features/schemeManagement/hooks/useSchemeForm'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import type { SchemeMasterProductOption } from '@/features/schemeManagement/hooks/useSchemeFormOptions'
@@ -41,6 +43,10 @@ import {
 } from '@/features/schemeManagement/types/schemeManagement.types'
 import type { PartnerZone } from '@/types/partner'
 import type { SchemePartnerType } from '@/features/schemeManagement/types/schemeManagement.types'
+import {
+  uploadPartnerFile,
+  deletePartnerFile,
+} from '@/features/userManagement/services/fileUploadService'
 
 const sectionTitleSx = {
   fontWeight: 700,
@@ -140,20 +146,9 @@ function randomMultiplier(): string {
   ]!
 }
 
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () =>
-      typeof reader.result === 'string'
-        ? resolve(reader.result)
-        : reject(new Error('Failed to read file'))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
-
 export function SchemeFormPage() {
   const navigate = useNavigate()
+  const toast = useToast()
   const { schemeId } = useParams<{ schemeId: string }>()
   const [searchParams] = useSearchParams()
   const cloneFromId = !schemeId ? searchParams.get('cloneFrom') : null
@@ -207,6 +202,10 @@ export function SchemeFormPage() {
   )
   const giftRuleRows = useMemo(() => watchedGiftRules ?? [], [watchedGiftRules])
   const imageUrl = watch('image')
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [uploadedImagePath, setUploadedImagePath] = useState<string | null>(
+    null,
+  )
 
   const masterProductOptions = useMemo(
     () => options?.masterProductOptions ?? [],
@@ -1243,18 +1242,53 @@ export function SchemeFormPage() {
                 name="image"
                 control={control}
                 render={({ field }) => (
-                  <FileDropzone
-                    file={null}
-                    accept="image/*"
-                    helperText="PNG or JPG, square thumbnail recommended"
-                    existingPreview={
-                      imageUrl ? { url: imageUrl, name: 'Scheme image' } : null
-                    }
-                    onSelect={async (file) =>
-                      field.onChange(await readFileAsDataUrl(file))
-                    }
-                    onRemove={() => field.onChange('')}
-                  />
+                  <>
+                    <FileDropzone
+                      file={null}
+                      accept="image/*"
+                      helperText="PNG or JPG, square thumbnail recommended"
+                      existingPreview={
+                        imageUrl
+                          ? { url: imageUrl, name: 'Scheme image' }
+                          : null
+                      }
+                      onSelect={async (file) => {
+                        setUploadingImage(true)
+                        try {
+                          const uploaded = await uploadPartnerFile(
+                            file,
+                            'schemes',
+                          )
+                          const resolved =
+                            uploaded.viewUrl ||
+                            uploaded.url ||
+                            uploaded.path ||
+                            ''
+                          field.onChange(resolved)
+                          setUploadedImagePath(uploaded.path || null)
+                        } catch {
+                          toast.error('Failed to upload scheme image.')
+                        } finally {
+                          setUploadingImage(false)
+                        }
+                      }}
+                      onRemove={async () => {
+                        try {
+                          if (uploadedImagePath)
+                            await deletePartnerFile(uploadedImagePath)
+                        } catch {
+                          // ignore
+                        }
+                        setUploadedImagePath(null)
+                        field.onChange('')
+                      }}
+                    />
+                    {uploadingImage && (
+                      <Box sx={{ mt: 1 }}>
+                        <CircularProgress size={18} />
+                      </Box>
+                    )}
+                  </>
                 )}
               />
             </Grid>

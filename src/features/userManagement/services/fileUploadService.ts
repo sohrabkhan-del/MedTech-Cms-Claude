@@ -23,6 +23,28 @@ interface SignedUrlResponse {
   }
 }
 
+export interface UploadedFile {
+  id: string
+  name: string
+  size: number
+  path: string
+  type: string
+  viewUrl?: string
+  signedViewUrl?: string
+  directViewUrl?: string
+  objectUrl?: string
+  url?: string
+}
+
+/** Uploads a file to S3 via a backend-issued presigned URL, under the given
+ *  folder (e.g. 'products', 'partners/dealer-docs'). */
+export async function uploadFileToS3(
+  file: File,
+  folder: string,
+): Promise<UploadedFile> {
+  return uploadPartnerFile(file, folder)
+}
+
 export async function uploadPartnerFile(
   file: File,
   folder: string,
@@ -75,6 +97,10 @@ export async function uploadPartnerFile(
     objectUrl: uploadedFile.objectUrl || undefined,
     url: uploadedFile.url || url || resolvedViewUrl,
   }
+}
+
+export async function deleteUploadedFile(filePath: string): Promise<void> {
+  return deletePartnerFile(filePath)
 }
 
 export async function deletePartnerFile(filePath: string): Promise<void> {

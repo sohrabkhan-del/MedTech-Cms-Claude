@@ -1,25 +1,33 @@
+import { useState } from 'react'
 import type {
   Control,
   UseFieldArrayAppend,
   UseFieldArrayRemove,
+  UseFormSetValue,
 } from 'react-hook-form'
 import {
-  Avatar,
   Box,
   Button,
   Card,
   Grid,
   IconButton,
+  LinearProgress,
   MenuItem,
   Stack,
   Typography,
 } from '@mui/material'
 import {
-  Image as ImageOutlined,
   ImagePlus as AddPhotoAlternateOutlined,
   Trash2 as DeleteOutlined,
 } from 'lucide-react'
 import { FormField } from '@/components/common/FormField/FormField'
+import { FileDropzone } from '@/components/common/FileDropzone/FileDropzone'
+import { useToast } from '@/contexts/ToastContext'
+import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
+import {
+  uploadFileToS3,
+  deleteUploadedFile,
+} from '@/features/userManagement/services/fileUploadService'
 import type { ProductFormValues } from '@/features/inventoryManagement/types/inventoryManagement.types'
 
 const sectionTitleSx = {
@@ -63,16 +71,20 @@ function FieldLabel({
 
 interface ProductFormProps {
   control: Control<ProductFormValues>
+  setValue: UseFormSetValue<ProductFormValues>
   categoryOptions: string[]
   cloneSourceCode?: string
   imageFields: { id: string }[]
-  watchedImages: { url: string }[] | undefined
+  watchedImages: { url: string; path?: string }[] | undefined
   appendImage: UseFieldArrayAppend<ProductFormValues, 'productImages'>
   removeImage: UseFieldArrayRemove
 }
 
+const PRODUCT_IMAGES_FOLDER = 'products'
+
 export function ProductForm({
   control,
+  setValue,
   categoryOptions,
   cloneSourceCode,
   imageFields,
@@ -80,6 +92,38 @@ export function ProductForm({
   appendImage,
   removeImage,
 }: ProductFormProps) {
+  const toast = useToast()
+  const [uploadingIndex, setUploadingIndex] = useState<number | null>(null)
+
+  async function handleImageSelect(index: number, file: File) {
+    setUploadingIndex(index)
+    try {
+      const uploaded = await uploadFileToS3(file, PRODUCT_IMAGES_FOLDER)
+      const url =
+        uploaded.viewUrl ||
+        uploaded.signedViewUrl ||
+        uploaded.directViewUrl ||
+        uploaded.objectUrl ||
+        uploaded.url ||
+        ''
+      setValue(`productImages.${index}.url`, url, { shouldDirty: true })
+      setValue(`productImages.${index}.path`, uploaded.path, {
+        shouldDirty: true,
+      })
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Failed to upload image.'))
+    } finally {
+      setUploadingIndex(null)
+    }
+  }
+
+  async function handleImageRemoveFile(index: number) {
+    const path = watchedImages?.[index]?.path
+    if (path) await deleteUploadedFile(path)
+    setValue(`productImages.${index}.url`, '', { shouldDirty: true })
+    setValue(`productImages.${index}.path`, '', { shouldDirty: true })
+  }
+
   return (
     <>
       <Card sx={{ p: 3, mb: 3 }}>
@@ -157,54 +201,45 @@ export function ProductForm({
             size="small"
             variant="outlined"
             startIcon={<AddPhotoAlternateOutlined size={20} />}
-            onClick={() => appendImage({ url: '' })}
+            onClick={() => appendImage({ url: '', path: '' })}
             sx={{ fontSize: '0.75rem' }}
           >
             Add Image
           </Button>
         </Stack>
         <Stack spacing={2}>
-          {imageFields.map((field, index) => (
-            <Stack
-              key={field.id}
-              direction="row"
-              spacing={2}
-              sx={{ alignItems: 'flex-end' }}
-            >
-              <Avatar
-                src={watchedImages?.[index]?.url || undefined}
-                variant="rounded"
-                sx={{
-                  width: 56,
-                  height: 56,
-                  flexShrink: 0,
-                  bgcolor: 'background.default',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  color: 'text.disabled',
-                }}
-              >
-                <ImageOutlined size={20} />
-              </Avatar>
-              <Box sx={{ flexGrow: 1 }}>
-                <FieldLabel>{`Image ${index + 1} URL`}</FieldLabel>
-                <FormField
-                  name={`productImages.${index}.url` as const}
-                  control={control}
-                  placeholder="https://example.com/product-image.jpg"
-                  {...fieldLabelProps}
-                />
-              </Box>
-              <IconButton
-                aria-label="Remove image"
-                onClick={() => removeImage(index)}
-                disabled={imageFields.length === 1}
-                sx={{ mb: 0.5 }}
-              >
-                <DeleteOutlined size={20} />
-              </IconButton>
-            </Stack>
-          ))}
+          {imageFields.map((field, index) => {
+            const image = watchedImages?.[index]
+            return (
+              <Stack key={field.id} direction="row" spacing={2}>
+                <Box sx={{ flexGrow: 1 }}>
+                  <FieldLabel>{`Image ${index + 1}`}</FieldLabel>
+                  <FileDropzone
+                    file={null}
+                    accept="image/png,image/jpeg,image/webp"
+                    helperText="Upload JPG, PNG, or WEBP — stored in S3"
+                    existingPreview={
+                      image?.url
+                        ? { url: image.url, name: `Image ${index + 1}` }
+                        : null
+                    }
+                    onSelect={(file) => handleImageSelect(index, file)}
+                    onRemove={() => handleImageRemoveFile(index)}
+                  />
+                  {uploadingIndex === index && (
+                    <LinearProgress sx={{ mt: 1 }} />
+                  )}
+                </Box>
+                <IconButton
+                  aria-label="Remove image slot"
+                  onClick={() => removeImage(index)}
+                  disabled={imageFields.length === 1}
+                >
+                  <DeleteOutlined size={20} />
+                </IconButton>
+              </Stack>
+            )
+          })}
         </Stack>
       </Card>
 

@@ -247,21 +247,38 @@ function mapCampaign(item: CampaignApiItem): Scheme {
       }
 
       const e = entry as Record<string, unknown>
+      const nestedProduct = e['product'] as Record<string, unknown> | undefined
       const productId =
-        (e['id'] as string) ?? (e['productId'] as string) ?? 'unknown-product'
+        (e['id'] as string) ??
+        (e['productId'] as string) ??
+        (nestedProduct?.['id'] as string) ??
+        'unknown-product'
+      const productName =
+        (e['productName'] as string) ??
+        (nestedProduct?.['productName'] as string) ??
+        (nestedProduct?.['name'] as string) ??
+        undefined
+      const productCode =
+        (e['productCode'] as string) ??
+        (nestedProduct?.['productCode'] as string) ??
+        (nestedProduct?.['code'] as string) ??
+        undefined
       // prefer explicit product-level points when provided, else container-level
       const dealerBase =
+        (e['dealerBasePointValue'] as number | undefined) ??
         (e['dealerProductPoints'] as number | undefined) ??
         (e['dealerContainerPoints'] as number | undefined) ??
         null
       const chemistBase =
+        (e['chemistBasePointValue'] as number | undefined) ??
         (e['chemistProductPoints'] as number | undefined) ??
         (e['chemistContainerPoints'] as number | undefined) ??
         null
 
-      // build region multiplier maps from the `regions` array when present
-      const dealerRegionMultipliers: Record<string, number> = {}
-      const chemistRegionMultipliers: Record<string, number> = {}
+      // build region multiplier maps from the `regions` array when present,
+      // else fall back to pre-built dealerRegionMultipliers/chemistRegionMultipliers maps
+      let dealerRegionMultipliers: Record<string, number> = {}
+      let chemistRegionMultipliers: Record<string, number> = {}
       if (Array.isArray(e['regions'])) {
         ;(e['regions'] as Array<Record<string, unknown>>).forEach((r) => {
           const regionObj = r['region'] as Record<string, unknown> | undefined
@@ -283,12 +300,29 @@ function mapCampaign(item: CampaignApiItem): Scheme {
           if (typeof dm === 'number') dealerRegionMultipliers[key] = dm
           if (typeof cm === 'number') chemistRegionMultipliers[key] = cm
         })
+      } else {
+        if (
+          e['dealerRegionMultipliers'] &&
+          typeof e['dealerRegionMultipliers'] === 'object'
+        ) {
+          dealerRegionMultipliers = e[
+            'dealerRegionMultipliers'
+          ] as Record<string, number>
+        }
+        if (
+          e['chemistRegionMultipliers'] &&
+          typeof e['chemistRegionMultipliers'] === 'object'
+        ) {
+          chemistRegionMultipliers = e[
+            'chemistRegionMultipliers'
+          ] as Record<string, number>
+        }
       }
 
       return {
         productId,
-        productName: (e['productName'] as string) ?? undefined,
-        productCode: (e['productCode'] as string) ?? undefined,
+        productName,
+        productCode,
         dealerBasePointValue: dealerBase,
         chemistBasePointValue: chemistBase,
         dealerRegionMultipliers,

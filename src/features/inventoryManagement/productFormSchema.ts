@@ -8,7 +8,9 @@ export const productFormSchema = z.object({
   chemistRewardPoints: z.string().min(1, 'Chemist reward points are required'),
   status: z.enum(['active', 'inactive']),
   description: z.string().optional(),
-  productImages: z.array(z.object({ url: z.string() })),
+  productImages: z.array(
+    z.object({ url: z.string(), path: z.string().optional() }),
+  ),
 })
 
 export type ProductFormValues = z.infer<typeof productFormSchema>
@@ -21,5 +23,5 @@ export const productFormDefaults: ProductFormValues = {
   chemistRewardPoints: '',
   status: 'active',
   description: '',
-  productImages: [{ url: '' }],
+  productImages: [{ url: '', path: '' }],
 }

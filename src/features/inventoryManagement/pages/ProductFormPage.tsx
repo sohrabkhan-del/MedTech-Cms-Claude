@@ -28,7 +28,7 @@ export function ProductFormPage() {
     submit,
   } = useProductForm(productId, cloneFromId)
 
-  const { control, handleSubmit, reset } = useForm<ProductFormValues>({
+  const { control, handleSubmit, reset, setValue } = useForm<ProductFormValues>({
     resolver: zodResolver(productFormSchema),
     defaultValues: productFormDefaults,
   })
@@ -53,8 +53,8 @@ export function ProductFormPage() {
       description: prefillSource.description,
       productImages:
         prefillSource.productImages.length > 0
-          ? prefillSource.productImages.map((url) => ({ url }))
-          : [{ url: '' }],
+          ? prefillSource.productImages.map((url) => ({ url, path: '' }))
+          : [{ url: '', path: '' }],
     })
   }, [product, cloneSource, reset])
 
@@ -96,6 +96,7 @@ export function ProductFormPage() {
       <form onSubmit={onSubmit} noValidate>
         <ProductForm
           control={control}
+          setValue={setValue}
           categoryOptions={categoryOptions}
           cloneSourceCode={cloneSource?.productCode}
           imageFields={imageFields}

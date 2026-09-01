@@ -67,6 +67,32 @@ export function useSchemeForm(
           : productsResult.error
             ? getApiErrorMessage(productsResult.error, 'Failed to load applicable products.')
             : null
+  const searchedProductOptions = (productsResult.data?.items ?? []).map(
+    (product) => ({
+      id: product.id,
+      name: product.productName || product.productCode || product.id,
+      code: product.productCode,
+      category: product.productCategory,
+      dealerRewardPoints: product.dealerRewardPoints,
+      chemistRewardPoints: product.chemistRewardPoints,
+    }),
+  )
+  // The searched list is capped to 10 results and may not include products
+  // already attached to the scheme being edited/cloned, so fall back to the
+  // name/code the scheme API itself returned for those (avoids showing a raw
+  // product ID for attached products outside the current search page).
+  const attachedProductOptions = (schemeResult.data ?? cloneSourceResult.data)
+    ?.applicableProducts.filter(
+      (p) => !searchedProductOptions.some((option) => option.id === p.productId),
+    )
+    .map((p) => ({
+      id: p.productId,
+      name: p.productName || p.productCode || p.productId,
+      code: p.productCode ?? '',
+      category: '',
+      dealerRewardPoints: p.dealerBasePointValue ?? 0,
+      chemistRewardPoints: p.chemistBasePointValue ?? 0,
+    })) ?? []
   const options = optionsResult.data
     ? {
         ...optionsResult.data,
@@ -78,14 +104,10 @@ export function useSchemeForm(
           dealerBasePoints: gift.dealerBasePoints,
           chemistBasePoints: gift.chemistBasePoints,
         })),
-        masterProductOptions: (productsResult.data?.items ?? []).map((product) => ({
-          id: product.id,
-          name: product.productName || product.productCode || product.id,
-          code: product.productCode,
-          category: product.productCategory,
-          dealerRewardPoints: product.dealerRewardPoints,
-          chemistRewardPoints: product.chemistRewardPoints,
-        })),
+        masterProductOptions: [
+          ...searchedProductOptions,
+          ...attachedProductOptions,
+        ],
       }
     : null
 

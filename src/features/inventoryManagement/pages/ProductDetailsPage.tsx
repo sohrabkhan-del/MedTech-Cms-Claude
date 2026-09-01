@@ -15,7 +15,30 @@ import { DetailsPageSkeleton } from '@/components/common/DetailsPageSkeleton/Det
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { useProductDetail } from '@/features/inventoryManagement/hooks/useProductDetail'
 import { useGetProductMovementHistoryQuery } from '@/features/inventoryManagement/services/productsApi'
-import type { ProductMovementEntry } from '@/features/inventoryManagement/types/inventoryManagement.types'
+import type {
+  ProductMovementEntry,
+  ProductRegionConfig,
+} from '@/features/inventoryManagement/types/inventoryManagement.types'
+
+const regionColumns: CommonTableColumn<ProductRegionConfig>[] = [
+  {
+    key: 'regionName',
+    header: 'Region',
+    render: (row) => row.regionName,
+  },
+  {
+    key: 'dealerMultiplier',
+    header: 'Dealer Multiplier',
+    align: 'center',
+    render: (row) => row.dealerMultiplier ?? '-',
+  },
+  {
+    key: 'chemistMultiplier',
+    header: 'Chemist Multiplier',
+    align: 'center',
+    render: (row) => row.chemistMultiplier ?? '-',
+  },
+]
 
 const movementColumns: CommonTableColumn<ProductMovementEntry>[] = [
   {
@@ -168,13 +191,28 @@ export function ProductDetailsPage() {
               },
 
               {
+                label: 'Dealer Container Points',
+                value: product.dealerContainerPoints,
+              },
+              {
                 label: 'Dealer Product Points',
                 value: product.dealerProductPoints,
               },
-
+              {
+                label: 'Chemist Container Points',
+                value: product.chemistContainerPoints,
+              },
               {
                 label: 'Chemist Product Points',
                 value: product.chemistProductPoints,
+              },
+              {
+                label: 'Total Quantity',
+                value: product.totalQuantity.toLocaleString('en-IN'),
+              },
+              {
+                label: 'Total Scan Quantity',
+                value: product.totalScanQuantity.toLocaleString('en-IN'),
               },
               {
                 label: 'Reward Configuration Status',
@@ -186,6 +224,16 @@ export function ProductDetailsPage() {
               { label: 'Created On', value: product.createdDate },
               { label: 'Last Updated', value: product.lastUpdatedDate },
             ]}
+          />
+        </SectionCard>
+
+        <SectionCard title="Region Multipliers">
+          <CommonTable
+            tableKey="product-region-multipliers"
+            columns={regionColumns}
+            rows={product.regions}
+            getRowId={(row) => row.regionId}
+            emptyTitle="No regions configured"
           />
         </SectionCard>
 

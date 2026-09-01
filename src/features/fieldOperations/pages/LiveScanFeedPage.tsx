@@ -20,19 +20,22 @@ import {
   type CommonTableColumn,
 } from '@/components/common/CommonTable/CommonTable'
 import { FilterDrawer } from '@/components/common/FilterDrawer/FilterDrawer'
+import { ModularTabs } from '@/components/common/ModularTabs/ModularTabs'
 import { useRegionFilter } from '@/contexts/RegionFilterContext'
 import { useRegionTopbarHeader } from '@/hooks/useRegionTopbarHeader'
 import { useDebouncedValue } from '@/hooks/useDebouncedValue'
 import { ScanResultChip } from '@/features/fieldOperations/components/ScanResultChip'
 import { useScanFeed } from '@/features/fieldOperations/hooks/useScanFeed'
-import type {
-  ScanEvent,
-  ScanStatus,
+import {
+  REWARD_REASON,
+  type RewardReason,
+  type ScanEvent,
+  type ScanStatus,
 } from '@/features/fieldOperations/types/fieldOperations.types'
 
 interface ScanFilters extends Record<string, unknown> {
   scanStatus: ScanStatus | 'all'
-  type: string
+  type: RewardReason | ''
 }
 
 const SORT_FIELD_MAP: Partial<Record<string, string>> = {
@@ -41,6 +44,13 @@ const SORT_FIELD_MAP: Partial<Record<string, string>> = {
 }
 
 const LIVE_POLL_INTERVAL_MS = 5000
+type ScanFeedTab = 'all' | 'CHEMIST' | 'DEALER'
+
+const SCAN_FEED_TABS: Array<{ label: string; value: ScanFeedTab }> = [
+  { label: 'All', value: 'all' },
+  { label: 'Chemist', value: 'CHEMIST' },
+  { label: 'Dealer', value: 'DEALER' },
+]
 
 const livePulseKeyframes = {
   '@keyframes live-scan-pulse': {
@@ -64,6 +74,7 @@ export function LiveScanFeedPage() {
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
   const [isLive, setIsLive] = useState(true)
+  const [tab, setTab] = useState<ScanFeedTab>('all')
 
   const debouncedSearch = useDebouncedValue(search, 300)
 
@@ -77,6 +88,7 @@ export function LiveScanFeedPage() {
           ? appliedFilters.scanStatus.toUpperCase()
           : undefined,
       scanResultType: appliedFilters.type || undefined,
+      partnerType: tab === 'all' ? undefined : tab,
       regionId: topbarRegionId || undefined,
       sortBy: SORT_FIELD_MAP[sortColumn],
       sortOrder,
@@ -235,8 +247,20 @@ export function LiveScanFeedPage() {
         </Tooltip>
       </Stack>
 
+      <Box sx={{ mb: 2.5 }}>
+        <ModularTabs<ScanFeedTab>
+          variant="filled"
+          tabs={SCAN_FEED_TABS}
+          value={tab}
+          onChange={(next) => {
+            setTab(next)
+            setPage(0)
+          }}
+        />
+      </Box>
+
       <CommonTable
-        key={`${appliedFilters.scanStatus}-${appliedFilters.type}`}
+        key={`${tab}-${appliedFilters.scanStatus}-${appliedFilters.type}`}
         onSortChange={(columnKey, dir) => {
           setSortColumn(columnKey)
           setSortOrder(dir)
@@ -303,17 +327,24 @@ export function LiveScanFeedPage() {
               <MenuItem value="failed">Failed</MenuItem>
             </TextField>
             <TextField
+              select
               label="Scan Result Type"
               size="small"
-              placeholder="e.g. QR_ALREADY_CLAIMED"
               value={draft.type}
               onChange={(e) =>
                 setDraft((prev) => ({
                   ...prev,
-                  type: e.target.value,
+                  type: e.target.value as RewardReason | '',
                 }))
               }
-            />
+            >
+              <MenuItem value="">All Types</MenuItem>
+              {Object.values(REWARD_REASON).map((reason) => (
+                <MenuItem key={reason} value={reason}>
+                  {reason}
+                </MenuItem>
+              ))}
+            </TextField>
           </Stack>
         )}
       </FilterDrawer>

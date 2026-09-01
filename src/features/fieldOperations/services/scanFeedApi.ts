@@ -1,6 +1,7 @@
 import { baseApi } from '@/store/api/baseApi'
 import type { ScanEvent, ScanEventDetail, ScanStatus } from '@/types/scanFeed'
 import { mockDelay } from '@/services/mockDelay'
+import type { AnalyticsPreset } from '@/utils/dateRangeToAnalyticsParams'
 
 export interface ScanFeedQueryParams {
   page?: number
@@ -13,8 +14,12 @@ export interface ScanFeedQueryParams {
   productUploadId?: string
   batch?: string
   regionId?: string
+  partnerType?: 'DEALER' | 'CHEMIST'
   scanStatus?: string
   scanResultType?: string
+  preset?: AnalyticsPreset
+  startDate?: string
+  endDate?: string
   sortBy?: string
   sortOrder?: 'asc' | 'desc'
 }
@@ -156,8 +161,12 @@ const scanFeedApi = baseApi.injectEndpoints({
           productUploadId: params?.productUploadId || undefined,
           batch: params?.batch || undefined,
           regionId: params?.regionId || undefined,
+          partnerType: params?.partnerType || undefined,
           scanStatus: params?.scanStatus || undefined,
           scanResultType: params?.scanResultType || undefined,
+          preset: params?.preset || undefined,
+          startDate: params?.startDate || undefined,
+          endDate: params?.endDate || undefined,
           sortBy: params?.sortBy || undefined,
           sortOrder: params?.sortOrder || undefined,
         },

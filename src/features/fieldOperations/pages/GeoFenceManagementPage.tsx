@@ -116,8 +116,7 @@ export function GeoFenceManagementPage() {
   useRegionTopbarHeader({
     icon: <FenceIcon size={20} />,
     title: 'Geo Fence Management',
-    subtitle:
-      'Manage location-based scan validation for Dealers, Chemists, and MRs.',
+    subtitle: 'Manage location-based scan validation for Dealers and Chemists.',
     isLoading,
   })
   const [activateDealer] = useActivateDealerMutation()

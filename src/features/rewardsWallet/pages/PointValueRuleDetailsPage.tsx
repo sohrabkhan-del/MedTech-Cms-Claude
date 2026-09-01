@@ -70,15 +70,10 @@ function regionStyleByName(
   return regionStyle(index === -1 ? 0 : index)
 }
 
-const MULTIPLIER_OPTIONS = Array.from({ length: 37 }, (_, i) =>
-  Number((1 + i * 0.25).toFixed(2)),
-)
 const MAX_MULTIPLIER = 10
 
-function closestMultiplierOption(value: number): number {
-  return MULTIPLIER_OPTIONS.reduce((closest, option) =>
-    Math.abs(option - value) < Math.abs(closest - value) ? option : closest,
-  )
+function formatMultiplier(value: number): string {
+  return Number(value.toFixed(4)).toString()
 }
 
 function buildHistoryColumns(
@@ -266,7 +261,7 @@ export function PointValueRuleDetailsPage() {
 
   const openRegionEditDialog = (region: ProductRegionMultiplierRow) => {
     setRegionEditTarget(region)
-    setRegionEditValue(String(closestMultiplierOption(multiplierFor(region))))
+    setRegionEditValue(formatMultiplier(multiplierFor(region)))
   }
 
   const regionEditNextMultiplier = Math.max(0, Number(regionEditValue) || 0)
@@ -541,7 +536,7 @@ export function PointValueRuleDetailsPage() {
                         <Typography
                           sx={{ fontSize: '1.25rem', fontWeight: 700, mb: 1 }}
                         >
-                          {closestMultiplierOption(multiplierFor(region))}x
+                          {formatMultiplier(multiplierFor(region))}x
                         </Typography>
                         <Typography
                           sx={{ fontSize: '0.75rem', color: 'text.secondary' }}
@@ -618,7 +613,7 @@ export function PointValueRuleDetailsPage() {
           value={regionEditValue}
           onChange={(e) => setRegionEditValue(e.target.value)}
           slotProps={{
-            htmlInput: { step: 0.25, min: 0, max: MAX_MULTIPLIER },
+            htmlInput: { min: 0, max: MAX_MULTIPLIER, step: 'any' },
             input: {
               endAdornment: <InputAdornment position="end">x</InputAdornment>,
             },
@@ -654,7 +649,7 @@ export function PointValueRuleDetailsPage() {
               <Chip
                 size="small"
                 variant="outlined"
-                label={`${closestMultiplierOption(regionEditTarget ? multiplierFor(regionEditTarget) : 1)}x`}
+                label={`${formatMultiplier(regionEditTarget ? multiplierFor(regionEditTarget) : 1)}x`}
               />
               <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
                 →
@@ -662,7 +657,7 @@ export function PointValueRuleDetailsPage() {
               <Chip
                 size="small"
                 color="primary"
-                label={`${regionEditNextMultiplier}x`}
+                label={`${formatMultiplier(regionEditNextMultiplier)}x`}
               />
             </Stack>
           </Stack>
@@ -722,7 +717,7 @@ export function PointValueRuleDetailsPage() {
               <Chip
                 size="small"
                 variant="outlined"
-                label={`${closestMultiplierOption(regionEditTarget ? multiplierFor(regionEditTarget) : 1)}x`}
+                label={`${formatMultiplier(regionEditTarget ? multiplierFor(regionEditTarget) : 1)}x`}
               />
               <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled' }}>
                 →
@@ -730,7 +725,7 @@ export function PointValueRuleDetailsPage() {
               <Chip
                 size="small"
                 color="primary"
-                label={`${regionEditNextMultiplier}x`}
+                label={`${formatMultiplier(regionEditNextMultiplier)}x`}
               />
             </Stack>
           </Stack>

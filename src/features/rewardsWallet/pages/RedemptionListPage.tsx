@@ -1,6 +1,13 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Chip, Grid, MenuItem, Stack, TextField, Typography } from '@mui/material'
+import {
+  Chip,
+  Grid,
+  MenuItem,
+  Stack,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { Redo2, Clock3, CheckCheck, Coins as Points } from 'lucide-react'
 import { StatCard } from '@/components/common/StatCard/StatCard'
 import { StatCardSkeleton } from '@/components/common/StatCard/StatCardSkeleton'
@@ -41,12 +48,16 @@ interface RedemptionFilters extends Record<string, unknown> {
 export function RedemptionListPage() {
   const navigate = useNavigate()
   const [filterOpen, setFilterOpen] = useState(false)
+  const [sortColumn, setSortColumn] = useState('createdAt')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
   const [appliedFilters, setAppliedFilters] = useState<RedemptionFilters>({
     status: 'all',
   })
 
   const { claims, kpis, isLoading } = useRewardClaims({
     status: appliedFilters.status,
+    sortBy: sortColumn,
+    sortOrder,
   })
 
   useRegionTopbarHeader({
@@ -214,12 +225,18 @@ export function RedemptionListPage() {
         getRowId={(row) => row.id}
         loading={isLoading}
         searchPlaceholder="Search by business name or request ID…"
-        searchKeys={(row) => `${row.partnerName} ${row.businessName ?? ''} ${row.referenceId} ${row.rewardItem}`}
+        searchKeys={(row) =>
+          `${row.partnerName} ${row.businessName ?? ''} ${row.referenceId} ${row.rewardItem}`
+        }
         onFilterClick={() => setFilterOpen(true)}
         filterCount={appliedFilters.status !== 'all' ? 1 : 0}
         onExportClick={() => {}}
-        defaultSortBy="createdAt"
-        defaultSortDir="desc"
+        defaultSortBy={sortColumn}
+        defaultSortDir={sortOrder}
+        onSortChange={(nextSortBy, nextSortDir) => {
+          setSortColumn(nextSortBy)
+          setSortOrder(nextSortDir)
+        }}
         actions={[
           {
             label: 'View',

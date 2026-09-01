@@ -58,6 +58,7 @@ export function EditBasePointValuePage() {
   const chemistNext = Math.max(0, Number(chemistInput) || 0)
   const dealerDirty = !!detail && dealerNext !== detail.dealerProductPoints
   const chemistDirty = !!detail && chemistNext !== detail.chemistProductPoints
+  const hasChanges = dealerDirty || chemistDirty
 
   const handleFinalConfirm = async () => {
     if (!productId) return
@@ -207,17 +208,6 @@ export function EditBasePointValuePage() {
               onChange={(e) => setDealerValue(e.target.value)}
               sx={{ backgroundColor: 'background.paper', borderRadius: '10px' }}
             />
-            {dealerDirty && (
-              <Stack direction="row" sx={{ mt: 2.5 }}>
-                <Button
-                  variant="contained"
-                  onClick={() => setConfirmStep(1)}
-                  sx={{ fontSize: '0.8125rem' }}
-                >
-                  Save Changes
-                </Button>
-              </Stack>
-            )}
           </Card>
 
           <Card sx={{ p: 3, backgroundColor: 'secondary.light' }}>
@@ -242,19 +232,18 @@ export function EditBasePointValuePage() {
               onChange={(e) => setChemistValue(e.target.value)}
               sx={{ backgroundColor: 'background.paper', borderRadius: '10px' }}
             />
-            {chemistDirty && (
-              <Stack direction="row" sx={{ mt: 2.5 }}>
-                <Button
-                  variant="contained"
-                  color="warning"
-                  onClick={() => setConfirmStep(1)}
-                  sx={{ fontSize: '0.8125rem' }}
-                >
-                  Save Changes
-                </Button>
-              </Stack>
-            )}
           </Card>
+        </Stack>
+
+        <Stack direction="row" sx={{ justifyContent: 'flex-end' }}>
+          <Button
+            variant="contained"
+            disabled={!hasChanges || isSaving}
+            onClick={() => setConfirmStep(1)}
+            sx={{ fontSize: '0.8125rem' }}
+          >
+            Save Changes
+          </Button>
         </Stack>
       </Stack>
 

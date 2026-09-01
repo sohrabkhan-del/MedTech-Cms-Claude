@@ -34,6 +34,12 @@ export function useWalletPartners(params?: WalletPartnersQueryParams) {
     totalPointsEarned: 0,
     totalPointsRedeemed: 0,
     pendingRedemptions: 0,
+    pointsCredited: 0,
+    pointsCreditedChange: 0,
+    pointsDebited: 0,
+    pointsDebitedChange: 0,
+    manualAdminCredits: 0,
+    manualAdminCreditsChange: 0,
   }
 
   return {

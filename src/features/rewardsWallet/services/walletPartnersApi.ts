@@ -104,9 +104,15 @@ interface PartnerWalletBalanceApiResponse {
     total_points?: number
     total_points_earned?: number
     total_points_redeemed?: number
+    totalPoints?: number
+    totalPointsEarned?: number
+    totalPointsRedeemed?: number
+    availableBalance?: number
+    available_balance?: number
     role?: string
     general?: number
     generalPoints?: number
+    general_points?: number
     seasonalPoints?: number
     seasonal_points?: number
     seasonalCampaignRewards?: unknown[]
@@ -114,15 +120,29 @@ interface PartnerWalletBalanceApiResponse {
 }
 
 function mapPartnerWalletBalance(
-  response: PartnerWalletBalanceApiResponse,
+  response: PartnerWalletBalanceApiResponse | PartnerWalletBalance,
 ): PartnerWalletBalance {
-  const data = response.data
+  const data = ('data' in response ? response.data : response) as Record<
+    string,
+    number | string | undefined
+  >
+
   return {
-    totalPoints: data.total_points ?? 0,
-    totalPointsEarned: data.total_points_earned ?? 0,
-    totalPointsRedeemed: data.total_points_redeemed ?? 0,
+    totalPoints:
+      data.totalPoints ??
+      data.total_points ??
+      data.availableBalance ??
+      data.available_balance ??
+      0,
+    totalPointsEarned:
+      data.totalPointsEarned ??
+      data.total_points_earned ??
+      data.pointsEarned ??
+      0,
+    totalPointsRedeemed:
+      data.totalPointsRedeemed ?? data.total_points_redeemed ?? 0,
     role: data.role ?? '',
-    general: data.general ?? data.generalPoints ?? 0,
+    general: data.general ?? data.generalPoints ?? data.general_points ?? 0,
     seasonalPoints: data.seasonalPoints ?? data.seasonal_points ?? 0,
   }
 }

@@ -1,6 +1,11 @@
 // MOCK MODE — flip VITE_USE_MOCKS=false and confirm this endpoint's real backend path once integration starts.
 import { baseApi } from '@/store/api/baseApi'
-import { mockWallets, getWalletById, walletKpis, walletGiftCategoryOptions } from '@/features/rewardsWallet/mockWallets'
+import {
+  mockWallets,
+  getWalletById,
+  walletKpis,
+  walletGiftCategoryOptions,
+} from '@/features/rewardsWallet/mockWallets'
 import type { Wallet } from '@/features/rewardsWallet/types/rewardsWallet.types'
 import { mockDelay } from '@/services/mockDelay'
 import type { WalletPartnerType } from '@/features/rewardsWallet/services/walletPartnersApi'
@@ -26,6 +31,12 @@ export interface WalletKpis {
   totalPointsEarned: number
   totalPointsRedeemed: number
   pendingRedemptions: number
+  pointsCredited?: number
+  pointsCreditedChange?: number
+  pointsDebited?: number
+  pointsDebitedChange?: number
+  manualAdminCredits?: number
+  manualAdminCreditsChange?: number
 }
 
 interface WalletKpisApiResponse {
@@ -33,22 +44,35 @@ interface WalletKpisApiResponse {
   data: WalletKpis
 }
 
-function mapWalletKpis(response: WalletKpisApiResponse | WalletKpis): WalletKpis {
+function mapWalletKpis(
+  response: WalletKpisApiResponse | WalletKpis,
+): WalletKpis {
   return 'data' in response ? response.data : response
 }
 
 const walletsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getWallets: builder.query<Wallet[], void>({
-      query: () => ({ tag: 'Wallets', url: '/wallets', mockResolver: () => mockDelay(mockWallets) }),
+      query: () => ({
+        tag: 'Wallets',
+        url: '/wallets',
+        mockResolver: () => mockDelay(mockWallets),
+      }),
       providesTags: (result) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Wallets' as const, id })), { type: 'Wallets' as const, id: 'LIST' }]
+          ? [
+              ...result.map(({ id }) => ({ type: 'Wallets' as const, id })),
+              { type: 'Wallets' as const, id: 'LIST' },
+            ]
           : [{ type: 'Wallets' as const, id: 'LIST' }],
     }),
 
     getWalletDetail: builder.query<Wallet | undefined, string>({
-      query: (id) => ({ tag: 'Wallets', url: `/wallets/${id}`, mockResolver: () => mockDelay(getWalletById(id)) }),
+      query: (id) => ({
+        tag: 'Wallets',
+        url: `/wallets/${id}`,
+        mockResolver: () => mockDelay(getWalletById(id)),
+      }),
       providesTags: (_result, _error, id) => [{ type: 'Wallets', id }],
     }),
 
@@ -78,7 +102,10 @@ const walletsApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Wallets', id: 'FORM_OPTIONS' }],
     }),
 
-    adjustBalance: builder.mutation<void, { id: string; type: 'add' | 'deduct'; amount: number; reason?: string }>({
+    adjustBalance: builder.mutation<
+      void,
+      { id: string; type: 'add' | 'deduct'; amount: number; reason?: string }
+    >({
       query: ({ id, type, amount, reason }) => ({
         tag: 'Wallets',
         url: `/wallets/${id}/adjust-balance`,

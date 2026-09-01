@@ -22,11 +22,23 @@ export function PartnerStatisticsCards({
 
   const totalScans = partner.totalScans ?? 0
   const availableBalance =
-    walletBalance?.totalPoints ?? partner.availablePoints ?? 0
+    walletBalance?.totalPoints ??
+    (partner as { availableBalance?: number }).availableBalance ??
+    partner.availablePoints ??
+    0
   const totalPointsEarned =
-    walletBalance?.totalPointsEarned ?? partner.pointsEarned ?? 0
-  const generalPoints = walletBalance?.general ?? 0
-  const seasonalPoints = walletBalance?.seasonalPoints ?? 0
+    walletBalance?.totalPointsEarned ??
+    (partner as { totalPointsEarned?: number }).totalPointsEarned ??
+    partner.pointsEarned ??
+    0
+  const generalPoints =
+    walletBalance?.general ??
+    (partner as { generalPoints?: number }).generalPoints ??
+    0
+  const seasonalPoints =
+    walletBalance?.seasonalPoints ??
+    (partner as { seasonalPoints?: number }).seasonalPoints ??
+    0
 
   return (
     <Grid container spacing={3} sx={{ mb: 3 }}>

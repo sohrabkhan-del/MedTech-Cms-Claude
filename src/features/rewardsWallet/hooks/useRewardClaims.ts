@@ -9,7 +9,12 @@ import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 
 const ALL_INDIA_REGION = 'All India'
 
-export function useRewardClaims(params?: Pick<RewardClaimsQueryParams, 'status' | 'search'>) {
+export function useRewardClaims(
+  params?: Pick<
+    RewardClaimsQueryParams,
+    'status' | 'search' | 'sortBy' | 'sortOrder'
+  >,
+) {
   const { region, regionId: topbarRegionId, dateRange } = useRegionFilter()
   const analyticsParams = dateRangeToAnalyticsParams(dateRange)
   const effectiveRegionId =
@@ -20,6 +25,8 @@ export function useRewardClaims(params?: Pick<RewardClaimsQueryParams, 'status' 
     regionId: effectiveRegionId,
     status: params?.status,
     search: params?.search,
+    sortBy: params?.sortBy,
+    sortOrder: params?.sortOrder,
   }
 
   const claimsResult = useGetRewardClaimsQuery(queryParams)
@@ -27,9 +34,15 @@ export function useRewardClaims(params?: Pick<RewardClaimsQueryParams, 'status' 
 
   const isLoading = claimsResult.isFetching || kpisResult.isFetching
   const error = claimsResult.error
-    ? getApiErrorMessage(claimsResult.error, 'Failed to load reward redemptions.')
+    ? getApiErrorMessage(
+        claimsResult.error,
+        'Failed to load reward redemptions.',
+      )
     : kpisResult.error
-      ? getApiErrorMessage(kpisResult.error, 'Failed to load reward redemption stats.')
+      ? getApiErrorMessage(
+          kpisResult.error,
+          'Failed to load reward redemption stats.',
+        )
       : null
 
   return {

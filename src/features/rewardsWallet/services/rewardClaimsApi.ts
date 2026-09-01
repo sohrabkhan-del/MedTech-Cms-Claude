@@ -105,7 +105,10 @@ function mapRewardClaim(item: RewardClaimApiItem): RewardClaimRow {
     note: item.note,
     status: item.status,
     reviewedAt: item.reviewedAt,
-    reviewedBy: typeof item.reviewedBy === 'string' ? item.reviewedBy : item.reviewedBy?.name ?? null,
+    reviewedBy:
+      typeof item.reviewedBy === 'string'
+        ? item.reviewedBy
+        : (item.reviewedBy?.name ?? null),
     reviewNote: item.reviewNote,
     walletTransactionId: item.walletTransactionId,
     refundTransactionId: item.refundTransactionId,
@@ -123,6 +126,8 @@ export interface RewardClaimsQueryParams {
   preset?: string
   startDate?: string
   endDate?: string
+  sortBy?: string
+  sortOrder?: 'asc' | 'desc'
 }
 
 export interface RewardClaimsKpis {
@@ -141,11 +146,7 @@ export interface RewardClaimsKpis {
 // ---------------------------------------------------------------------------
 
 export type RewardClaimDeliveryStatus =
-  | 'PENDING'
-  | 'PACKED'
-  | 'SHIPPED'
-  | 'DELIVERED'
-  | 'CANCELLED'
+  'PENDING' | 'PACKED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED'
 
 interface RewardClaimDetailApiResponse {
   success: boolean
@@ -168,7 +169,12 @@ interface RewardClaimDetailApiResponse {
     deliveryStatus: RewardClaimDeliveryStatus
     redemptionInformation: {
       deliveryStatus: RewardClaimDeliveryStatus
-      approvedBy: { id: string; type: string; name: string; email: string } | null
+      approvedBy: {
+        id: string
+        type: string
+        name: string
+        email: string
+      } | null
     }
     walletTransactionDetails: {
       transactionId?: string | null
@@ -201,7 +207,9 @@ export interface RewardClaimDetail {
   internalNotes: string | null
 }
 
-function mapRewardClaimDetail(response: RewardClaimDetailApiResponse): RewardClaimDetail {
+function mapRewardClaimDetail(
+  response: RewardClaimDetailApiResponse,
+): RewardClaimDetail {
   const { data } = response
   return {
     requestId: data.summary.requestId,
@@ -240,11 +248,16 @@ const rewardClaimsApi = baseApi.injectEndpoints({
           page: params?.page ?? 1,
           limit: params?.limit ?? 50,
           search: params?.search || undefined,
-          status: params?.status && params.status !== 'all' ? params.status : undefined,
+          status:
+            params?.status && params.status !== 'all'
+              ? params.status
+              : undefined,
           regionId: params?.regionId || undefined,
           preset: params?.preset || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
+          sortBy: params?.sortBy || undefined,
+          sortOrder: params?.sortOrder || undefined,
         },
         mockResolver: () => mockDelay({ items: [], totalItems: 0 }),
       }),
@@ -255,7 +268,10 @@ const rewardClaimsApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map((row) => ({ type: 'RewardClaims' as const, id: row.id })),
+              ...result.items.map((row) => ({
+                type: 'RewardClaims' as const,
+                id: row.id,
+              })),
               { type: 'RewardClaims' as const, id: 'LIST' },
             ]
           : [{ type: 'RewardClaims' as const, id: 'LIST' }],
@@ -317,7 +333,10 @@ const rewardClaimsApi = baseApi.injectEndpoints({
       query: (id) => ({
         tag: 'RewardClaims',
         url: `/admin/reward-claims/${id}`,
-        mockResolver: () => Promise.reject(new Error('Reward claim detail has no mock mode — real API only.')),
+        mockResolver: () =>
+          Promise.reject(
+            new Error('Reward claim detail has no mock mode — real API only.'),
+          ),
       }),
       transformResponse: mapRewardClaimDetail,
       providesTags: (_result, _error, id) => [{ type: 'RewardClaims', id }],

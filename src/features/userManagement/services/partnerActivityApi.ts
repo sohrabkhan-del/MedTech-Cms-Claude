@@ -60,7 +60,11 @@ interface ScanHistoryApiItem {
     productCategory?: string | null
   } | null
   region?: string | null
+  batchNo?: string | null
   rewardPointsEarned: number
+  pointType?: string | null
+  scanSchemeType?: string | null
+  scanTypeLabel?: string | null
 }
 
 export interface PartnerScanHistoryRow {
@@ -69,9 +73,16 @@ export interface PartnerScanHistoryRow {
   scannedAt: string
   scannedCode: string
   productCode: string
+  batchNo: string
   rewardPointsEarned: number
+  pointType: string
+  scanTypeLabel: string
   scanResult: string
+  scanStatus: string
   scanResultType: string
+  pointType: string
+  scanSchemeType: string
+  scanTypeLabel: string
 }
 
 function mapScanHistory(item: ScanHistoryApiItem): PartnerScanHistoryRow {
@@ -82,8 +93,21 @@ function mapScanHistory(item: ScanHistoryApiItem): PartnerScanHistoryRow {
     scannedCode: item.scannedCode,
     productCode: item.productDetails?.productCode ?? '-',
     rewardPointsEarned: item.rewardPointsEarned,
+    batchNo: item.batchNo ?? '-',
+    rewardPointsEarned: item.rewardPointsEarned ?? 0,
+    pointType: item.pointType ?? '-',
+    scanTypeLabel: item.scanTypeLabel ?? '-',
     scanResult: item.scanResult,
+    scanStatus: item.scanStatus,
     scanResultType: item.scanResultType,
+    pointType: item.pointType
+      ? item.pointType.charAt(0).toUpperCase() + item.pointType.slice(1)
+      : 'General',
+    scanSchemeType: item.scanSchemeType
+      ? item.scanSchemeType.charAt(0).toUpperCase() +
+        item.scanSchemeType.slice(1)
+      : '-',
+    scanTypeLabel: item.scanTypeLabel ?? 'Scan',
   }
 }
 
@@ -169,6 +193,7 @@ interface WalletTransactionApiItem {
   balanceBefore: number
   balanceAfter: number
   createdAt: string
+  pool?: string | null
 }
 
 export interface PartnerPointsHistoryRow {
@@ -179,6 +204,7 @@ export interface PartnerPointsHistoryRow {
   balanceBefore: number
   balanceAfter: number
   createdAt: string
+  pool: string
 }
 
 function mapWalletTransaction(
@@ -192,6 +218,9 @@ function mapWalletTransaction(
     balanceBefore: item.balanceBefore,
     balanceAfter: item.balanceAfter,
     createdAt: item.createdAt,
+    pool: item.pool
+      ? item.pool.charAt(0).toUpperCase() + item.pool.slice(1)
+      : '-',
   }
 }
 

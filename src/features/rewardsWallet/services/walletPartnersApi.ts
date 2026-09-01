@@ -113,6 +113,7 @@ interface PartnerWalletBalanceApiResponse {
     general?: number
     generalPoints?: number
     general_points?: number
+    schemePoints?: number
     seasonalPoints?: number
     seasonal_points?: number
     seasonalCampaignRewards?: unknown[]
@@ -124,26 +125,38 @@ function mapPartnerWalletBalance(
 ): PartnerWalletBalance {
   const data = ('data' in response ? response.data : response) as Record<
     string,
-    number | string | undefined
+    unknown
   >
+
+  const toNumber = (val: unknown): number => (typeof val === 'number' ? val : 0)
 
   return {
     totalPoints:
-      data.totalPoints ??
-      data.total_points ??
-      data.availableBalance ??
-      data.available_balance ??
+      toNumber(data.totalPoints) ||
+      toNumber(data.total_points) ||
+      toNumber(data.availableBalance) ||
+      toNumber(data.available_balance) ||
       0,
     totalPointsEarned:
-      data.totalPointsEarned ??
-      data.total_points_earned ??
-      data.pointsEarned ??
+      toNumber(data.totalPointsEarned) ||
+      toNumber(data.total_points_earned) ||
+      toNumber(data.pointsEarned) ||
       0,
     totalPointsRedeemed:
-      data.totalPointsRedeemed ?? data.total_points_redeemed ?? 0,
-    role: data.role ?? '',
-    general: data.general ?? data.generalPoints ?? data.general_points ?? 0,
-    seasonalPoints: data.seasonalPoints ?? data.seasonal_points ?? 0,
+      toNumber(data.totalPointsRedeemed) ||
+      toNumber(data.total_points_redeemed) ||
+      0,
+    role: (data.role as string) ?? '',
+    general:
+      toNumber(data.general) ||
+      toNumber(data.generalPoints) ||
+      toNumber(data.general_points) ||
+      0,
+    seasonalPoints:
+      toNumber(data.schemePoints) ||
+      toNumber(data.seasonalPoints) ||
+      toNumber(data.seasonal_points) ||
+      0,
   }
 }
 

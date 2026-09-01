@@ -361,6 +361,38 @@ const rewardClaimsApi = baseApi.injectEndpoints({
       ],
     }),
 
+    /** PATCH /admin/reward-claims/:id/approve — approve a reward claim. */
+    approveRewardClaim: builder.mutation<void, { id: string; note: string }>({
+      query: ({ id, note }) => ({
+        tag: 'RewardClaims',
+        url: `/admin/reward-claims/${id}/approve`,
+        method: 'PATCH',
+        data: { note },
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RewardClaims', id },
+        { type: 'RewardClaims', id: 'LIST' },
+        { type: 'RewardClaims', id: 'KPIS' },
+      ],
+    }),
+
+    /** PATCH /admin/reward-claims/:id/reject — reject a reward claim. */
+    rejectRewardClaim: builder.mutation<void, { id: string; note: string }>({
+      query: ({ id, note }) => ({
+        tag: 'RewardClaims',
+        url: `/admin/reward-claims/${id}/reject`,
+        method: 'PATCH',
+        data: { note },
+        mockResolver: () => Promise.resolve(),
+      }),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'RewardClaims', id },
+        { type: 'RewardClaims', id: 'LIST' },
+        { type: 'RewardClaims', id: 'KPIS' },
+      ],
+    }),
+
     /** PATCH /admin/reward-claims/:id/delivery — updates a reward claim's delivery status. */
     setRewardClaimDeliveryStatus: builder.mutation<
       void,
@@ -387,5 +419,7 @@ export const {
   useGetRewardClaimsKpisQuery,
   useGetRewardClaimDetailQuery,
   useSetRewardClaimStatusMutation,
+  useApproveRewardClaimMutation,
+  useRejectRewardClaimMutation,
   useSetRewardClaimDeliveryStatusMutation,
 } = rewardClaimsApi

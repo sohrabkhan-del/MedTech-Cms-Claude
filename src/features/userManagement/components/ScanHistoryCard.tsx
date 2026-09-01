@@ -51,31 +51,34 @@ const columns: CommonTableColumn<PartnerScanHistoryRow>[] = [
     render: (row) => row.productCode,
   },
   {
+    key: 'scanTypeLabel',
+    header: 'Scan Type',
+    render: (row) => (
+      <Chip
+        label={row.scanTypeLabel}
+        size="small"
+        variant="outlined"
+        color={row.pointType === 'scheme' ? 'primary' : 'default'}
+      />
+    ),
+  },
+  {
     key: 'rewardPointsEarned',
     header: 'Reward Points',
     align: 'center',
     sortable: true,
     render: (row) => {
       const value = Number(row.rewardPointsEarned ?? 0)
+      const isSuccess = row.scanStatus === 'SUCCESS'
+      const color = isSuccess ? 'success.main' : 'error.main'
+      const prefix = isSuccess ? '+' : ''
 
-      if (row.scanResult === 'SUCCESS') {
-        return (
-          <Typography
-            component="span"
-            sx={{ fontWeight: 700, fontSize: 'inherit', color: 'success.main' }}
-          >
-            +{value.toLocaleString('en-IN')}
-          </Typography>
-        )
-      }
-
-      // Only zero values should be shown in red; non-zero non-success use warning
-      const color = value === 0 ? 'error.main' : 'success.main'
       return (
         <Typography
           component="span"
           sx={{ fontWeight: 700, fontSize: 'inherit', color }}
         >
+          {prefix}
           {value.toLocaleString('en-IN')}
         </Typography>
       )
@@ -97,6 +100,18 @@ const columns: CommonTableColumn<PartnerScanHistoryRow>[] = [
         />
       )
     },
+  },
+  {
+    key: 'pointType',
+    header: 'Point Type',
+    render: (row) => (
+      <Chip
+        label={row.pointType}
+        variant="outlined"
+        size="small"
+        color={row.pointType === 'Scheme' ? 'primary' : 'default'}
+      />
+    ),
   },
 ]
 

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
@@ -11,6 +11,12 @@ import {
   Skeleton,
   Stack,
   Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  CircularProgress,
 } from '@mui/material'
 import {
   Redo2,
@@ -35,12 +41,16 @@ import { useToast } from '@/contexts/ToastContext'
 import { getApiErrorMessage } from '@/utils/getApiErrorMessage'
 import {
   useGetRewardClaimDetailQuery,
-  useSetRewardClaimStatusMutation,
+  useApproveRewardClaimMutation,
+  useRejectRewardClaimMutation,
   useSetRewardClaimDeliveryStatusMutation,
 } from '@/features/rewardsWallet/services/rewardClaimsApi'
 import type { RewardClaimDeliveryStatus } from '@/features/rewardsWallet/services/rewardClaimsApi'
 
-const statusColorConfig: Record<string, 'warning' | 'info' | 'error' | 'success'> = {
+const statusColorConfig: Record<
+  string,
+  'warning' | 'info' | 'error' | 'success'
+> = {
   PENDING: 'warning',
   APPROVED: 'success',
   REJECTED: 'error',
@@ -74,10 +84,34 @@ export function RedemptionDetailsPage() {
     isFetching: isLoading,
     refetch: refetchDetail,
   } = useGetRewardClaimDetailQuery(requestId ?? '', { skip: !requestId })
-  const [setStatusMutation, { isLoading: isReviewing }] = useSetRewardClaimStatusMutation()
+  const [approveMutation, { isLoading: isApproving }] =
+    useApproveRewardClaimMutation()
+  const [rejectMutation, { isLoading: isRejecting }] =
+    useRejectRewardClaimMutation()
   const [setDeliveryStatusMutation] = useSetRewardClaimDeliveryStatusMutation()
-  const [deliveryMenuAnchor, setDeliveryMenuAnchor] = useState<HTMLElement | null>(null)
+  const [deliveryMenuAnchor, setDeliveryMenuAnchor] =
+    useState<HTMLElement | null>(null)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null)
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false)
+  const [reviewNote, setReviewNote] = useState('')
+  const [reviewAction, setReviewAction] = useState<'APPROVE' | 'REJECT' | null>(
+    null,
+  )
+  const [optimisticApprovalStatus, setOptimisticApprovalStatus] = useState<
+    string | null
+  >(null)
+
+  // clear optimistic state once the backend reflects the change
+  useEffect(() => {
+    if (
+      optimisticApprovalStatus &&
+      request?.approvalStatus === optimisticApprovalStatus
+    ) {
+      const t = setTimeout(() => setOptimisticApprovalStatus(null), 250)
+      return () => clearTimeout(t)
+    }
+    return
+  }, [request?.approvalStatus, optimisticApprovalStatus])
 
   if (!isLoading && !request) {
     return (
@@ -90,24 +124,45 @@ export function RedemptionDetailsPage() {
     )
   }
 
-  async function handleReview(status: 'APPROVED' | 'REJECTED') {
-    if (!requestId) return
+  async function handleReview(action: 'APPROVE' | 'REJECT') {
+    setReviewAction(action)
+    setReviewNote('')
+    setReviewDialogOpen(true)
+  }
+
+  async function submitReview() {
+    if (!requestId || !reviewAction) return
+    setReviewDialogOpen(false)
     try {
-      await setStatusMutation({ id: requestId, status }).unwrap()
+      if (reviewAction === 'APPROVE') {
+        await approveMutation({ id: requestId, note: reviewNote }).unwrap()
+      } else {
+        await rejectMutation({ id: requestId, note: reviewNote }).unwrap()
+      }
+      // set optimistic state immediately so UI updates without flicker
+      const optimistic = reviewAction === 'APPROVE' ? 'APPROVED' : 'REJECTED'
+      setOptimisticApprovalStatus(optimistic)
       await refetchDetail()
       toast.success(
-        `Redemption request ${status === 'APPROVED' ? 'approved' : 'rejected'} successfully.`,
+        `Redemption request ${reviewAction === 'APPROVE' ? 'approved' : 'rejected'} successfully.`,
       )
     } catch (err) {
-      toast.error(getApiErrorMessage(err, 'Failed to update redemption request.'))
+      toast.error(
+        getApiErrorMessage(err, 'Failed to update redemption request.'),
+      )
     }
   }
 
-  async function handleDeliveryChange(deliveryStatus: RewardClaimDeliveryStatus) {
+  async function handleDeliveryChange(
+    deliveryStatus: RewardClaimDeliveryStatus,
+  ) {
     if (!requestId) return
     setDeliveryMenuAnchor(null)
     try {
-      await setDeliveryStatusMutation({ id: requestId, deliveryStatus }).unwrap()
+      await setDeliveryStatusMutation({
+        id: requestId,
+        deliveryStatus,
+      }).unwrap()
       await refetchDetail()
       toast.success(
         `Delivery status updated to ${deliveryStatusConfig[deliveryStatus].label}.`,
@@ -117,7 +172,8 @@ export function RedemptionDetailsPage() {
     }
   }
 
-  const currentApprovalStatus = request?.approvalStatus
+  const currentApprovalStatus =
+    optimisticApprovalStatus ?? request?.approvalStatus
   const currentDelivery = request?.deliveryStatus
 
   return (
@@ -150,8 +206,14 @@ export function RedemptionDetailsPage() {
           <Box>
             {request ? (
               <>
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-                  <Typography variant="h1">{request.rewardItem ?? '-'}</Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  sx={{ alignItems: 'center' }}
+                >
+                  <Typography variant="h1">
+                    {request.rewardItem ?? '-'}
+                  </Typography>
                   <Chip
                     size="small"
                     label={request.approvalStatus}
@@ -171,30 +233,44 @@ export function RedemptionDetailsPage() {
           </Box>
         </Stack>
         <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
-          {currentApprovalStatus?.toUpperCase() === 'PENDING' && (
-            <>
-              <Button
-                variant="contained"
-                color="success"
-                startIcon={<CircleCheck size={18} />}
-                onClick={() => void handleReview('APPROVED')}
-                disabled={isReviewing}
-                sx={{ fontSize: '0.8125rem' }}
-              >
-                Approve
-              </Button>
-              <Button
-                variant="contained"
-                color="error"
-                startIcon={<XCircle size={18} />}
-                onClick={() => void handleReview('REJECTED')}
-                disabled={isReviewing}
-                sx={{ fontSize: '0.8125rem' }}
-              >
-                Reject
-              </Button>
-            </>
-          )}
+          <>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<CircleCheck size={18} />}
+              onClick={() => {
+                if (currentApprovalStatus?.toUpperCase() === 'PENDING') {
+                  void handleReview('APPROVE')
+                }
+              }}
+              disabled={
+                currentApprovalStatus?.toUpperCase() !== 'PENDING' ||
+                isApproving ||
+                isRejecting
+              }
+              sx={{ fontSize: '0.8125rem' }}
+            >
+              Approve
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              startIcon={<XCircle size={18} />}
+              onClick={() => {
+                if (currentApprovalStatus?.toUpperCase() === 'PENDING') {
+                  void handleReview('REJECT')
+                }
+              }}
+              disabled={
+                currentApprovalStatus?.toUpperCase() !== 'PENDING' ||
+                isApproving ||
+                isRejecting
+              }
+              sx={{ fontSize: '0.8125rem' }}
+            >
+              Reject
+            </Button>
+          </>
           <Button
             variant="outlined"
             endIcon={<ChevronDown size={16} />}
@@ -273,14 +349,19 @@ export function RedemptionDetailsPage() {
                 { label: 'User Type', value: request.userType ?? '-' },
                 { label: 'Mobile Number', value: request.mobileNumber ?? '-' },
                 { label: 'Reward Item', value: request.rewardItem ?? '-' },
-                { label: 'Reward Category', value: request.rewardCategory ?? '-' },
+                {
+                  label: 'Reward Category',
+                  value: request.rewardCategory ?? '-',
+                },
                 {
                   label: 'Points Used',
                   value: request.pointsUsed.toLocaleString('en-IN'),
                 },
                 {
                   label: 'Current Wallet Balance',
-                  value: (request.currentWalletBalance ?? 0).toLocaleString('en-IN'),
+                  value: (request.currentWalletBalance ?? 0).toLocaleString(
+                    'en-IN',
+                  ),
                 },
                 {
                   label: 'Request Date',
@@ -329,7 +410,9 @@ export function RedemptionDetailsPage() {
             ) : (
               <StatCard
                 label="Wallet Balance After Redemption"
-                value={(request?.walletBalanceAfterRedemption ?? 0).toLocaleString('en-IN')}
+                value={(
+                  request?.walletBalanceAfterRedemption ?? 0
+                ).toLocaleString('en-IN')}
                 icon={<WalletIcon size={20} />}
                 iconColor="secondary"
               />
@@ -365,7 +448,11 @@ export function RedemptionDetailsPage() {
             ) : (
               <StatCard
                 label="Delivery Status"
-                value={currentDelivery ? deliveryStatusConfig[currentDelivery].label : '-'}
+                value={
+                  currentDelivery
+                    ? deliveryStatusConfig[currentDelivery].label
+                    : '-'
+                }
                 icon={(() => {
                   const DeliveryIcon = currentDelivery
                     ? deliveryStatusConfig[currentDelivery].icon
@@ -373,7 +460,8 @@ export function RedemptionDetailsPage() {
                   return <DeliveryIcon size={20} />
                 })()}
                 iconColor={
-                  !currentDelivery || deliveryStatusConfig[currentDelivery].color === 'default'
+                  !currentDelivery ||
+                  deliveryStatusConfig[currentDelivery].color === 'default'
                     ? 'secondary'
                     : deliveryStatusConfig[currentDelivery].color
                 }
@@ -414,6 +502,50 @@ export function RedemptionDetailsPage() {
           </Typography>
         </SectionCard>
       </Stack>
+
+      <Dialog
+        open={reviewDialogOpen}
+        onClose={() => setReviewDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <Box>
+          <DialogTitle>
+            {reviewAction === 'APPROVE'
+              ? 'Approve Redemption Request'
+              : 'Reject Redemption Request'}
+          </DialogTitle>
+        </Box>
+
+        <DialogContent sx={{ pt: 2 }}>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            label="Note"
+            placeholder="e.g., right you get ball pen"
+            value={reviewNote}
+            onChange={(e) => setReviewNote(e.target.value)}
+            variant="outlined"
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setReviewDialogOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color={reviewAction === 'APPROVE' ? 'success' : 'error'}
+            onClick={() => void submitReview()}
+            disabled={isApproving || isRejecting}
+            startIcon={
+              isApproving || isRejecting ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : undefined
+            }
+          >
+            {reviewAction === 'APPROVE' ? 'Approve' : 'Reject'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }

@@ -253,6 +253,7 @@ export function RedemptionListPage() {
         onClose={() => setFilterOpen(false)}
         title="Filter Redemption Requests"
         value={appliedFilters}
+        resetValue={{ status: 'all' }}
         onApply={setAppliedFilters}
       >
         {(draft, setDraft) => (
@@ -270,9 +271,9 @@ export function RedemptionListPage() {
               }
             >
               <MenuItem value="all">All Statuses</MenuItem>
-              <MenuItem value="PENDING">Pending</MenuItem>
-              <MenuItem value="APPROVED">Approved</MenuItem>
-              <MenuItem value="REJECTED">Rejected</MenuItem>
+              <MenuItem value="pending">Pending</MenuItem>
+              <MenuItem value="approved">Approved</MenuItem>
+              <MenuItem value="rejected">Rejected</MenuItem>
             </TextField>
           </Stack>
         )}

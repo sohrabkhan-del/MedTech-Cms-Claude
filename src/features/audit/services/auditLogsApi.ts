@@ -1,4 +1,5 @@
 import { baseApi } from '@/store/api/baseApi'
+import type { AnalyticsPreset } from '@/utils/dateRangeToAnalyticsParams'
 import type {
   AuditChangedField,
   AuditLogEntry,
@@ -17,8 +18,11 @@ export interface AuditLogsQueryParams {
   entity?: string
   entityId?: string
   action?: string
+  preset?: AnalyticsPreset
   startDate?: string
   endDate?: string
+  sortBy?: string
+  sortDir?: 'asc' | 'desc'
 }
 
 // Fields that must never be surfaced in the audit UI, even though the API
@@ -62,9 +66,11 @@ function diffChangedFields(entry: AuditTimelineApiEntry): AuditChangedField[] {
 
 function mapEntry(entry: AuditTimelineApiEntry): AuditLogEntry {
   const actorLabel = entry.actor?.name || entry.actor?.email || entry.actorId
-  const after = entry.after as
-    | { name?: string; productName?: string; outletName?: string }
-    | null
+  const after = entry.after as {
+    name?: string
+    productName?: string
+    outletName?: string
+  } | null
   const entityLabel =
     after?.outletName || after?.name || after?.productName || entry.entityId
 
@@ -88,7 +94,10 @@ const auditLogsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     /** GET /audit/timeline — paginated feed of before/after change events,
      *  mapped onto the Audit Logs table (search, entity/action filter, date range). */
-    getAuditLogs: builder.query<AuditLogListResponse, AuditLogsQueryParams | void>({
+    getAuditLogs: builder.query<
+      AuditLogListResponse,
+      AuditLogsQueryParams | void
+    >({
       query: (params) => ({
         tag: 'AuditLogs',
         url: '/audit/timeline',
@@ -99,8 +108,11 @@ const auditLogsApi = baseApi.injectEndpoints({
           entity: params?.entity || undefined,
           entityId: params?.entityId || undefined,
           action: params?.action || undefined,
+          preset: params?.preset || undefined,
           startDate: params?.startDate || undefined,
           endDate: params?.endDate || undefined,
+          sortBy: params?.sortBy || undefined,
+          sortDir: params?.sortDir || undefined,
         },
         mockResolver: () => {
           throw new Error('Audit logs has no mock mode — real API only.')
@@ -123,7 +135,10 @@ const auditLogsApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map(({ id }) => ({ type: 'AuditLogs' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'AuditLogs' as const,
+                id,
+              })),
               { type: 'AuditLogs' as const, id: 'LIST' },
             ]
           : [{ type: 'AuditLogs' as const, id: 'LIST' }],
@@ -149,7 +164,9 @@ const auditLogsApi = baseApi.injectEndpoints({
         const entry = data.items[0]
         return entry ? mapEntry(entry) : undefined
       },
-      providesTags: (_result, _error, entityId) => [{ type: 'AuditLogs', id: entityId }],
+      providesTags: (_result, _error, entityId) => [
+        { type: 'AuditLogs', id: entityId },
+      ],
     }),
   }),
 })

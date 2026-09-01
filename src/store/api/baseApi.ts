@@ -112,6 +112,7 @@ const featureModeOverrides: Partial<Record<FeatureTag, 'mock' | 'real'>> = {
   Products: 'real',
   FactoryProductionUpload: 'real',
   AnalyticsCards: 'real',
+  Dashboard: 'real',
   Wallets: 'real',
   Redemptions: 'real',
   PointValueRules: 'real',
@@ -194,7 +195,12 @@ export const mockOrRealBaseQuery: BaseQueryFn<
         : {}),
     })
     const body = response.data
-    if (body && typeof body === 'object' && 'success' in body && body.success === false) {
+    if (
+      body &&
+      typeof body === 'object' &&
+      'success' in body &&
+      body.success === false
+    ) {
       return {
         error: {
           status: 'REAL_ERROR',

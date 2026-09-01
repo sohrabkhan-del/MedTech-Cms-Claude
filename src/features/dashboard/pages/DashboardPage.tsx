@@ -107,7 +107,9 @@ export function DashboardPage() {
     <>
       <WelcomeBanner
         userName={currentUser?.name ?? 'Admin'}
-        statValue="1,284"
+        statValue={((overviewCards?.scansToday ?? 0) as number).toLocaleString(
+          'en-IN',
+        )}
         statLabel="Scans today"
         onPrimaryAction={() => navigate('/reports/scan-reports')}
         onSecondaryAction={() =>
@@ -174,7 +176,7 @@ export function DashboardPage() {
             <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
               <StatCard
                 label="Interest Activity "
-                value={`${overviewCards?.interestActivity ?? 0}%`}
+                value={String(overviewCards?.interestActivity ?? 0)}
                 icon={<Trophy size={20} />}
                 iconColor="secondary"
                 trend={{
@@ -268,7 +270,7 @@ export function DashboardPage() {
                 rank: index + 1,
                 name: dealer.businessName,
                 region: dealer.region,
-                Points: dealer.scanCount,
+                Points: dealer.earnedPoints,
                 linkTo: `/partners/dealers/${dealer.partnerId}`,
               }))}
               title="Top Dealers"
@@ -287,7 +289,7 @@ export function DashboardPage() {
                 rank: index + 1,
                 name: chemist.businessName,
                 region: chemist.region,
-                Points: chemist.redemptionCount,
+                Points: chemist.earnedPoints,
                 linkTo: `/partners/chemists/${chemist.partnerId}`,
               }))}
               title="Top Chemists"
@@ -308,7 +310,7 @@ export function DashboardPage() {
                   product.productCode ||
                   product.productId) as string,
                 region: product.category,
-                Points: product.scanCount,
+                Points: product.earnedPoints,
                 linkTo: `/inventory/product-master/${product.productId}`,
               }))}
               title="Top Products"

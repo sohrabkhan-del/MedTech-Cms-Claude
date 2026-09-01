@@ -16,6 +16,7 @@ interface FilterDrawerProps<T extends Record<string, unknown>> {
   onClose: () => void
   title?: string
   value: T
+  resetValue?: T
   onApply: (value: T) => void
   onReset?: (value: T) => void
   children: (
@@ -29,6 +30,7 @@ export function FilterDrawer<T extends Record<string, unknown>>({
   onClose,
   title = 'Filters',
   value,
+  resetValue,
   onApply,
   onReset,
   children,
@@ -47,11 +49,12 @@ export function FilterDrawer<T extends Record<string, unknown>>({
   const setDraft = (updater: (prev: T) => T) => setDraftState(updater)
 
   const handleReset = () => {
-    setDraftState(value)
+    const nextValue = resetValue ?? value
+    setDraftState(nextValue)
     if (onReset) {
-      onReset(value)
+      onReset(nextValue)
     } else {
-      onApply(value)
+      onApply(nextValue)
     }
     onClose()
   }

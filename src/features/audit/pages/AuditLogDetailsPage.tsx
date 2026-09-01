@@ -1,6 +1,9 @@
 import { useNavigate, useParams } from 'react-router-dom'
 import { Box, Chip, Stack, Typography } from '@mui/material'
-import { ClipboardList as ClipboardListIcon, ArrowLeft as ArrowLeftIcon } from 'lucide-react'
+import {
+  ClipboardList as ClipboardListIcon,
+  ArrowLeft as ArrowLeftIcon,
+} from 'lucide-react'
 import { SectionCard } from '@/components/common/SectionCard/SectionCard'
 import { DetailFieldGrid } from '@/components/common/DetailFieldGrid/DetailFieldGrid'
 import {
@@ -16,6 +19,16 @@ const actionColor: Record<string, 'success' | 'info' | 'error' | 'default'> = {
   CREATE: 'success',
   UPDATE: 'info',
   DELETE: 'error',
+}
+
+function formatAuditLabel(value?: string | null): string {
+  if (!value) return '—'
+
+  return value
+    .replace(/_/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase())
 }
 
 export function AuditLogDetailsPage() {
@@ -41,21 +54,21 @@ export function AuditLogDetailsPage() {
   const changedDataColumns: CommonTableColumn<AuditChangedField>[] = [
     {
       key: 'fieldName',
-      header: 'Field Name',
+      header: 'Field',
       minWidth: 180,
       sortable: true,
-      render: (row) => row.fieldName,
+      render: (row) => formatAuditLabel(row.fieldName),
     },
     {
       key: 'oldValue',
-      header: 'Old Value',
-      minWidth: 160,
+      header: 'Previous Value',
+      minWidth: 180,
       render: (row) => row.oldValue,
     },
     {
       key: 'newValue',
-      header: 'New Value',
-      minWidth: 160,
+      header: 'Updated Value',
+      minWidth: 180,
       render: (row) => row.newValue,
     },
   ]
@@ -89,13 +102,18 @@ export function AuditLogDetailsPage() {
             <ClipboardListIcon size={18} />
           </Box>
           <Box>
-            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <Typography variant="h1">{log.entityName}</Typography>
-              <Chip size="small" label={log.action} color={actionColor[log.action] ?? 'default'} />
+            <Stack
+              direction="row"
+              spacing={1}
+              sx={{ alignItems: 'center', flexWrap: 'wrap' }}
+            >
+              <Typography variant="h1">{log.module}</Typography>
+              <Chip
+                size="small"
+                label={formatAuditLabel(log.action)}
+                color={actionColor[log.action] ?? 'default'}
+              />
             </Stack>
-            <Typography variant="body1" sx={{ color: 'text.secondary' }}>
-              {log.module} · {log.action} · {log.entityName}
-            </Typography>
           </Box>
         </Stack>
 
@@ -106,57 +124,23 @@ export function AuditLogDetailsPage() {
             variant="outlined"
             sx={{ fontWeight: 600, fontSize: '0.75rem' }}
           />
-          <Box
-            component="button"
-            type="button"
-            onClick={() => navigate('/audit/audit-logs')}
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 0.75,
-              height: 36,
-              px: 1.5,
-              fontSize: '0.8125rem',
-              fontWeight: 600,
-              color: 'primary.main',
-              border: '1px solid',
-              borderColor: 'primary.main',
-              borderRadius: '8px',
-              backgroundColor: 'transparent',
-              cursor: 'pointer',
-            }}
-          >
-            <ArrowLeftIcon size={18} />
-            Back
-          </Box>
         </Stack>
       </Stack>
 
       <Stack spacing={3}>
-        <SectionCard title="Summary">
+        <SectionCard title="Audit Details">
           <DetailFieldGrid
             fields={[
-              { label: 'Module', value: log.module },
-              { label: 'Action', value: log.action },
-              { label: 'Entity', value: log.entityName },
-              { label: 'Reason', value: log.reason || '—' },
-              { label: 'Performed By', value: log.performedBy },
-              { label: 'User Role', value: log.userRole },
-              { label: 'Date & Time', value: new Date(log.dateTime).toLocaleString('en-IN') },
-            ]}
-          />
-        </SectionCard>
+              { label: 'Module', value: formatAuditLabel(log.module) },
+              { label: 'Action', value: formatAuditLabel(log.action) },
 
-        <SectionCard title="Activity Information">
-          <DetailFieldGrid
-            fields={[
-              { label: 'Action Type', value: log.action },
-              { label: 'Module Name', value: log.module },
-              { label: 'Entity Name', value: log.entityName },
               { label: 'Reason', value: log.reason || '—' },
-              { label: 'Performed By', value: log.performedBy },
-              { label: 'User Role', value: log.userRole },
-              { label: 'Timestamp', value: new Date(log.dateTime).toLocaleString('en-IN') },
+              { label: 'Performed By', value: log.performedBy || '—' },
+              { label: 'User Role', value: log.userRole || '—' },
+              {
+                label: 'Date & Time',
+                value: new Date(log.dateTime).toLocaleString('en-IN'),
+              },
             ]}
           />
         </SectionCard>
@@ -168,8 +152,7 @@ export function AuditLogDetailsPage() {
             rows={log.changedData}
             loading={isLoading}
             getRowId={(row) => row.id}
-            searchPlaceholder="Search changed fields…"
-            searchKeys={(row) => row.fieldName}
+            hideSearch
             emptyTitle="No field changes recorded"
             emptyDescription="This activity did not modify any tracked fields."
           />

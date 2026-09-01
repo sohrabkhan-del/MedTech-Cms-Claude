@@ -1,3 +1,4 @@
+import { Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { Box, Stack, Typography } from '@mui/material'
 import { WidgetCard } from '@/components/common/WidgetCard/WidgetCard'
@@ -18,7 +19,9 @@ export function ActivityTimelineWidget({
 }: ActivityTimelineWidgetProps) {
   const navigate = useNavigate()
 
-  if (!activityTimeline || activityTimeline.length === 0) {
+  const timeline = activityTimeline ?? []
+
+  if (!timeline || timeline.length === 0) {
     return (
       <WidgetCard
         title="Activity Timeline"
@@ -37,9 +40,23 @@ export function ActivityTimelineWidget({
       subtitle="Latest actions across the platform"
       dateRange={dateRange}
       onDateRangeChange={onDateRangeChange}
+      footer={
+        <Button
+          fullWidth
+          variant="outlined"
+          color="primary"
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            navigate('/audit/audit-logs')
+          }}
+        >
+          View All
+        </Button>
+      }
     >
       <Stack spacing={0} sx={{ maxHeight: 360, overflowY: 'auto' }}>
-        {activityTimeline.map((event, index) => (
+        {timeline.map((event, index) => (
           <Stack
             key={event.id}
             direction="row"
@@ -61,7 +78,7 @@ export function ActivityTimelineWidget({
                   mt: 0.6,
                 }}
               />
-              {index < activityTimeline.length - 1 && (
+              {index < timeline.length - 1 && (
                 <Box
                   sx={{
                     width: '1px',

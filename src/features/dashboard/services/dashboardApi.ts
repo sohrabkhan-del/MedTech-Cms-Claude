@@ -93,7 +93,10 @@ const dashboardApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Dashboard', id: 'OVERVIEW' }],
     }),
 
-    getDashboardWidgetsData: builder.query<DashboardWidgetsData, AnalyticsCardsQueryParams | void>({
+    getDashboardWidgetsData: builder.query<
+      DashboardWidgetsData,
+      AnalyticsCardsQueryParams | void
+    >({
       query: (params) => ({
         tag: 'Dashboard',
         url: '/dashboard/widgets',
@@ -113,27 +116,179 @@ const dashboardApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Dashboard', id: 'WIDGETS' }],
     }),
 
-    getActivityTimeline: builder.query<ActivityEvent[], AnalyticsCardsQueryParams | void>({
+    getActivityTimeline: builder.query<
+      ActivityEvent[],
+      AnalyticsCardsQueryParams | void
+    >({
       query: (params) => ({
         tag: 'Dashboard',
-        url: '/dashboard/activity-timeline',
-        params: params
-          ? { regionId: params.regionId, preset: params.preset }
-          : undefined,
+        url: '/audit/timeline',
+        params: {
+          page: 1,
+          limit: 20,
+          preset: params?.preset ?? '7d',
+          startDate: params?.startDate,
+          endDate: params?.endDate,
+          regionId: params?.regionId,
+        },
         mockResolver: () => mockDelay(activityTimeline),
       }),
+      transformResponse: (
+        response:
+          | {
+              success: boolean
+              data: {
+                items: Array<{
+                  id: string
+                  action: string
+                  entity: string
+                  entityId?: string | null
+                  before?: unknown
+                  after?: Record<string, unknown> | null
+                  actor?: {
+                    id?: string
+                    name?: string
+                    type?: string
+                    email?: string | null
+                  } | null
+                  actorId?: string
+                  createdAt: string
+                }>
+                totalItems?: number
+              }
+            }
+          | {
+              items: Array<{
+                id: string
+                action: string
+                entity: string
+                entityId?: string | null
+                before?: unknown
+                after?: Record<string, unknown> | null
+                actor?: {
+                  id?: string
+                  name?: string
+                  type?: string
+                  email?: string | null
+                } | null
+                actorId?: string
+                createdAt: string
+              }>
+              totalItems?: number
+            },
+      ): ActivityEvent[] => {
+        const data = 'data' in response ? response.data : response
+
+        const formatAction = (value: string) => {
+          const normalized = value.toUpperCase()
+          const labels: Record<string, string> = {
+            CREATE: 'created',
+            UPDATE: 'updated',
+            DELETE: 'deleted',
+            APPROVE: 'approved',
+            REJECT: 'rejected',
+            LOGIN: 'logged in',
+            LOGOUT: 'logged out',
+            UPLOAD: 'uploaded',
+          }
+          return labels[normalized] ?? normalized.toLowerCase()
+        }
+
+        const formatEntity = (value: string) =>
+          value
+            .replace(/[_-]+/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+            .toLowerCase()
+            .replace(/\b\w/g, (char) => char.toUpperCase())
+
+        return (data.items ?? []).map((item) => {
+          const after =
+            item.after && typeof item.after === 'object' ? item.after : null
+          const targetValue =
+            (after && typeof after.name === 'string' && after.name) ||
+            (after &&
+              typeof after.customerName === 'string' &&
+              after.customerName) ||
+            (after &&
+              typeof after.productName === 'string' &&
+              after.productName) ||
+            (after &&
+              typeof after.outletName === 'string' &&
+              after.outletName) ||
+            (item.entity ? formatEntity(item.entity) : 'Record')
+
+          return {
+            id: item.id,
+            actor: item.actor?.name || item.actorId || 'System',
+            action: formatAction(item.action),
+            target: targetValue,
+            timestamp: new Date(item.createdAt).toLocaleString('en-IN', {
+              day: '2-digit',
+              month: 'short',
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
+            linkTo: item.entityId
+              ? `/audit/audit-logs/${item.entityId}`
+              : undefined,
+          }
+        })
+      },
       providesTags: [{ type: 'Dashboard', id: 'ACTIVITY_TIMELINE' }],
     }),
 
-    getSchemePerformance: builder.query<SchemeProgress[], AnalyticsCardsQueryParams | void>({
+    getSchemePerformance: builder.query<
+      SchemeProgress[],
+      AnalyticsCardsQueryParams | void
+    >({
       query: (params) => ({
         tag: 'Dashboard',
-        url: '/dashboard/scheme-performance',
+        url: '/analytics-cards/scheme-performance',
         params: params
-          ? { regionId: params.regionId, preset: params.preset }
+          ? {
+              preset: params.preset,
+              startDate: params.startDate,
+              endDate: params.endDate,
+              regionId: params.regionId,
+            }
           : undefined,
         mockResolver: () => mockDelay(schemePerformance),
       }),
+      transformResponse: (
+        response:
+          | {
+              success: boolean
+              data: Array<{
+                schemeId: string
+                schemeName: string
+                totalPoints?: number
+                redeemedPoints?: number
+                redemptionProgress?: number
+              }>
+            }
+          | Array<{
+              schemeId: string
+              schemeName: string
+              totalPoints?: number
+              redeemedPoints?: number
+              redemptionProgress?: number
+            }>,
+      ): SchemeProgress[] => {
+        const data = 'data' in response ? response.data : response
+        return (data ?? []).map((item) => ({
+          id: item.schemeId,
+          name: item.schemeName,
+          category: 'General',
+          progress: Number(
+            item.totalPoints ??
+              item.redeemedPoints ??
+              item.redemptionProgress ??
+              0,
+          ),
+          endsIn: 'Live',
+        }))
+      },
       providesTags: [{ type: 'Dashboard', id: 'SCHEME_PERFORMANCE' }],
     }),
   }),

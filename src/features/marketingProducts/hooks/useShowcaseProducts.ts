@@ -24,7 +24,7 @@ export function useShowcaseProducts(params?: ShowcaseProductQueryParams) {
   const [deleteShowcaseProductMutation] = useDeleteShowcaseProductMutation()
 
   const isLoading = productsResult.isFetching
-  const isKpisLoading = kpisResult.isLoading
+  const isKpisLoading = kpisResult.isFetching
   const error = productsResult.error
     ? getApiErrorMessage(
         productsResult.error,

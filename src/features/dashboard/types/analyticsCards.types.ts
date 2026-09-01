@@ -2,6 +2,7 @@ import type { BadgeStatus } from '@/components/common/StatusBadge/StatusBadge'
 
 export interface DashboardOverviewCards {
   scanActivity: number
+  scansToday?: number
   scanActivityChange: number
   rewardsClaimed: number
   rewardsClaimedChange: number
@@ -30,6 +31,7 @@ export interface RecentScanCard {
 
 export interface TopDealerCard {
   scanCount: number
+  earnedPoints?: number
   partnerId: string
   businessName: string
   region: string
@@ -37,6 +39,7 @@ export interface TopDealerCard {
 
 export interface TopChemistCard {
   redemptionCount: number
+  earnedPoints?: number
   businessName: string
   partnerId: string
   region: string
@@ -50,6 +53,7 @@ export interface TopPartnersCard {
 export interface TopProductCard {
   scanCount: number
   productId: string
+  earnedPoints?: number
   productName: string
   productCode?: string
   category: string

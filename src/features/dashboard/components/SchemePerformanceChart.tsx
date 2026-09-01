@@ -31,8 +31,8 @@ export function SchemePerformanceChart({
 }: SchemePerformanceChartProps) {
   const navigate = useNavigate()
   const data = schemePerformance.map((s) => ({
-    name: s.name.slice(0, 3),
-    Progress: s.progress,
+    name: s.name || 'Untitled Scheme',
+    progress: Number(s.progress ?? 0),
   }))
 
   if (!schemePerformance || schemePerformance.length === 0) {
@@ -74,21 +74,26 @@ export function SchemePerformanceChart({
             tick={{ fontSize: 11, fill: '#4A4A4A' }}
             tickLine={false}
             axisLine={{ stroke: '#E5E5E5' }}
-            tickFormatter={(value: string) => truncateLabel(value)}
+            tickFormatter={(value: string) => truncateLabel(value, 18)}
             interval={0}
+            height={60}
           />
           <YAxis
             tick={{ fontSize: 11, fill: '#4A4A4A' }}
             tickLine={false}
             axisLine={false}
-            unit="%"
+            domain={[0, 'auto']}
+            ticks={[
+              0, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200,
+              1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200,
+            ]}
           />
           <Tooltip
             content={<ChartTooltip />}
             cursor={{ fill: 'rgba(26,62,140,0.04)' }}
           />
           <Bar
-            dataKey="Progress"
+            dataKey="progress"
             fill="#1A3E8C"
             radius={[6, 6, 0, 0]}
             maxBarSize={40}

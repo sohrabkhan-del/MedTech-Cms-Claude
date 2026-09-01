@@ -8,7 +8,11 @@ import {
   giftEligibilityOptions,
   resolveStockStatus,
 } from '@/features/schemeManagement/mockGifts'
-import type { Gift, GiftFormValues, StockStatus } from '@/features/schemeManagement/types/schemeManagement.types'
+import type {
+  Gift,
+  GiftFormValues,
+  StockStatus,
+} from '@/features/schemeManagement/types/schemeManagement.types'
 import { mockDelay } from '@/services/mockDelay'
 import type { AnalyticsDateParams } from '@/utils/dateRangeToAnalyticsParams'
 
@@ -48,7 +52,8 @@ interface RewardProductApiItem {
   name?: string | null
   description?: string | null
   categoryId?: string | null
-  category?: { id?: string; name?: string; categoryName?: string } | string | null
+  category?:
+    { id?: string; name?: string; categoryName?: string } | string | null
   brand?: string | null
   images?: RewardImageApiItem[]
   visibleTo?: RewardPartnerType[]
@@ -58,6 +63,7 @@ interface RewardProductApiItem {
     regions?: RewardRegionApiItem[]
     basePoints?: number | null
   }>
+  price?: number | null
   availableQuantity?: number | null
   isActive?: boolean
   createdAt?: string | null
@@ -88,7 +94,12 @@ interface CategoryOptionsResponse {
   success: boolean
   data:
     | {
-        items?: Array<{ id: string; code?: string; name?: string; categoryName?: string }>
+        items?: Array<{
+          id: string
+          code?: string
+          name?: string
+          categoryName?: string
+        }>
       }
     | Array<{ id: string; code?: string; name?: string; categoryName?: string }>
 }
@@ -100,7 +111,12 @@ interface RewardCategoryResponse {
 
 interface RegionOptionsResponse {
   success: boolean
-  data: Array<{ id: string; name: string; code?: string | null; isActive?: boolean }>
+  data: Array<{
+    id: string
+    name: string
+    code?: string | null
+    isActive?: boolean
+  }>
 }
 
 const regionNameByCode: Record<string, 'East' | 'West' | 'North' | 'South'> = {
@@ -114,28 +130,53 @@ function toPartnerType(value: RewardPartnerType): 'Dealer' | 'Chemist' {
   return value === 'dealer' ? 'Dealer' : 'Chemist'
 }
 
-function mapRegions(regions?: RewardRegionApiItem[]): Array<'East' | 'West' | 'North' | 'South'> {
+function mapRegions(
+  regions?: RewardRegionApiItem[],
+): Array<'East' | 'West' | 'North' | 'South'> {
   return (regions ?? [])
-    .map((region) => regionNameByCode[(region.code ?? '').toUpperCase()] ?? region.name)
-    .filter((name): name is 'East' | 'West' | 'North' | 'South' =>
-      name === 'East' || name === 'West' || name === 'North' || name === 'South',
+    .map(
+      (region) =>
+        regionNameByCode[(region.code ?? '').toUpperCase()] ?? region.name,
+    )
+    .filter(
+      (name): name is 'East' | 'West' | 'North' | 'South' =>
+        name === 'East' ||
+        name === 'West' ||
+        name === 'North' ||
+        name === 'South',
     )
 }
 
 function getCategoryName(item: RewardProductApiItem): string {
   if (typeof item.category === 'string') return item.category
-  return item.category?.name ?? item.category?.categoryName ?? item.categoryId ?? '-'
+  return (
+    item.category?.name ?? item.category?.categoryName ?? item.categoryId ?? '-'
+  )
 }
 
 function mapRewardProduct(item: RewardProductApiItem): Gift {
-  const dealerConfig = item.partnerConfig?.find((config) => config.partnerType === 'dealer')
-  const chemistConfig = item.partnerConfig?.find((config) => config.partnerType === 'chemist')
-  const primaryImage = item.images?.find((image) => image.isPrimary)?.url ?? item.images?.[0]?.url ?? ''
+  const dealerConfig = item.partnerConfig?.find(
+    (config) => config.partnerType === 'dealer',
+  )
+  const chemistConfig = item.partnerConfig?.find(
+    (config) => config.partnerType === 'chemist',
+  )
+  const primaryImage =
+    item.images?.find((image) => image.isPrimary)?.url ??
+    item.images?.[0]?.url ??
+    ''
   const dealerPoints = dealerConfig?.basePoints ?? null
   const chemistPoints = chemistConfig?.basePoints ?? null
   const requiredPoints = dealerPoints ?? chemistPoints ?? 0
-  const partnerTypes = (item.visibleTo ?? item.partnerConfig?.map((config) => config.partnerType).filter(Boolean) ?? [])
-    .filter((type): type is RewardPartnerType => type === 'dealer' || type === 'chemist')
+  const partnerTypes = (
+    item.visibleTo ??
+    item.partnerConfig?.map((config) => config.partnerType).filter(Boolean) ??
+    []
+  )
+    .filter(
+      (type): type is RewardPartnerType =>
+        type === 'dealer' || type === 'chemist',
+    )
     .map(toPartnerType)
 
   return {
@@ -148,18 +189,24 @@ function mapRewardProduct(item: RewardProductApiItem): Gift {
     giftImage: primaryImage,
     description: item.description ?? '',
     sku: item.rewardProductId ?? item.id,
-    price: 0,
+    price: item.price ?? 0,
     requiredPoints,
     availableQuantity: item.availableQuantity ?? 0,
     redeemedQuantity: 0,
     status: item.isActive ? 'active' : 'inactive',
     eligibleUserType:
-      partnerTypes.length === 2 ? 'All' : partnerTypes[0] ?? 'All',
+      partnerTypes.length === 2 ? 'All' : (partnerTypes[0] ?? 'All'),
     partnerTypes,
     dealerRegions: mapRegions(dealerConfig?.regions),
     chemistRegions: mapRegions(chemistConfig?.regions),
-    dealerRegionIds: dealerConfig?.regionIds ?? dealerConfig?.regions?.map((region) => region.id) ?? [],
-    chemistRegionIds: chemistConfig?.regionIds ?? chemistConfig?.regions?.map((region) => region.id) ?? [],
+    dealerRegionIds:
+      dealerConfig?.regionIds ??
+      dealerConfig?.regions?.map((region) => region.id) ??
+      [],
+    chemistRegionIds:
+      chemistConfig?.regionIds ??
+      chemistConfig?.regions?.map((region) => region.id) ??
+      [],
     dealerBasePoints: dealerPoints,
     chemistBasePoints: chemistPoints,
     redemptionHistory: [],
@@ -186,7 +233,10 @@ function buildRewardPayload(values: GiftFormValues) {
     description: values.description ?? '',
     categoryId: values.category,
     brand: values.brand,
-    images: values.giftImage ? [{ url: values.giftImage, isPrimary: true }] : [],
+    price: values.price ? Number(values.price) : null,
+    images: values.giftImage
+      ? [{ url: values.giftImage, isPrimary: true }]
+      : [],
     visibleTo: values.partnerTypes.map((type) => type.toLowerCase()),
     partnerConfig: [
       ...(values.partnerTypes.includes('Dealer')
@@ -245,18 +295,32 @@ const giftsApi = baseApi.injectEndpoints({
           : response.data.items.map(mapRewardProduct),
       providesTags: (result) =>
         result
-          ? [...result.map(({ id }) => ({ type: 'Gifts' as const, id })), { type: 'Gifts' as const, id: 'LIST' }]
+          ? [
+              ...result.map(({ id }) => ({ type: 'Gifts' as const, id })),
+              { type: 'Gifts' as const, id: 'LIST' },
+            ]
           : [{ type: 'Gifts' as const, id: 'LIST' }],
     }),
 
     getGiftDetail: builder.query<Gift | undefined, string>({
-      query: (id) => ({ tag: 'Gifts', url: `/rewards/${id}`, mockResolver: () => mockDelay(getGiftById(id)) }),
-      transformResponse: (response: RewardDetailApiResponse | Gift | undefined) =>
-        response && 'success' in response ? mapRewardProduct(response.data) : response,
+      query: (id) => ({
+        tag: 'Gifts',
+        url: `/rewards/${id}`,
+        mockResolver: () => mockDelay(getGiftById(id)),
+      }),
+      transformResponse: (
+        response: RewardDetailApiResponse | Gift | undefined,
+      ) =>
+        response && 'success' in response
+          ? mapRewardProduct(response.data)
+          : response,
       providesTags: (_result, _error, id) => [{ type: 'Gifts', id }],
     }),
 
-    getGiftCatalogueKpis: builder.query<typeof giftCatalogueKpis, (AnalyticsDateParams & { regionId?: string }) | void>({
+    getGiftCatalogueKpis: builder.query<
+      typeof giftCatalogueKpis,
+      (AnalyticsDateParams & { regionId?: string }) | void
+    >({
       query: (params) => ({
         tag: 'Gifts',
         url: '/analytics-cards/reward-products',
@@ -268,7 +332,9 @@ const giftsApi = baseApi.injectEndpoints({
         },
         mockResolver: () => mockDelay(giftCatalogueKpis),
       }),
-      transformResponse: (response: RewardAnalyticsApiResponse | typeof giftCatalogueKpis) =>
+      transformResponse: (
+        response: RewardAnalyticsApiResponse | typeof giftCatalogueKpis,
+      ) =>
         'success' in response
           ? {
               totalGifts: Number(
@@ -277,9 +343,15 @@ const giftsApi = baseApi.injectEndpoints({
                   response.data.totalProducts ??
                   0,
               ),
-              availableStock: Number(response.data.availableStock ?? response.data.totalStock ?? 0),
+              availableStock: Number(
+                response.data.availableStock ?? response.data.totalStock ?? 0,
+              ),
               outOfStock: Number(response.data.outOfStock ?? 0),
-              totalRedemptions: Number(response.data.totalRedemptions ?? response.data.redemptions ?? 0),
+              totalRedemptions: Number(
+                response.data.totalRedemptions ??
+                  response.data.redemptions ??
+                  0,
+              ),
             }
           : response,
       providesTags: [{ type: 'Gifts', id: 'KPIS' }],
@@ -290,17 +362,25 @@ const giftsApi = baseApi.injectEndpoints({
         tag: 'Gifts',
         url: '/reward-categories',
         params: { page: 1, limit: 100, status: 'ACTIVE' },
-        mockResolver: () => mockDelay({
-          giftCategoryOptions,
-          giftCategorySelectOptions: giftCategoryOptions.map((name) => ({ id: name, name })),
-          giftBrandOptions,
-          giftEligibilityOptions,
-          regionOptions: [],
-        }),
+        mockResolver: () =>
+          mockDelay({
+            giftCategoryOptions,
+            giftCategorySelectOptions: giftCategoryOptions.map((name) => ({
+              id: name,
+              name,
+            })),
+            giftBrandOptions,
+            giftEligibilityOptions,
+            regionOptions: [],
+          }),
       }),
-      transformResponse: (response: CategoryOptionsResponse | GiftFormOptions) => {
+      transformResponse: (
+        response: CategoryOptionsResponse | GiftFormOptions,
+      ) => {
         if ('giftCategoryOptions' in response) return response
-        const categories = Array.isArray(response.data) ? response.data : (response.data.items ?? [])
+        const categories = Array.isArray(response.data)
+          ? response.data
+          : (response.data.items ?? [])
         const selectOptions = categories.map((category) => ({
           id: category.id,
           name: category.name ?? category.categoryName ?? category.id,
@@ -316,7 +396,10 @@ const giftsApi = baseApi.injectEndpoints({
       providesTags: [{ type: 'Gifts', id: 'FORM_OPTIONS' }],
     }),
 
-    createRewardCategory: builder.mutation<{ id: string; name: string }, string>({
+    createRewardCategory: builder.mutation<
+      { id: string; name: string },
+      string
+    >({
       query: (name) => ({
         tag: 'Gifts',
         url: '/reward-categories',
@@ -333,20 +416,31 @@ const giftsApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'Gifts', id: 'FORM_OPTIONS' }],
     }),
 
-    getGiftRegionOptions: builder.query<GiftFormOptions['regionOptions'], void>({
-      query: () => ({
-        tag: 'Gifts',
-        url: '/regions',
-        mockResolver: () => mockDelay([]),
-      }),
-      transformResponse: (response: RegionOptionsResponse | GiftFormOptions['regionOptions']) =>
-        Array.isArray(response)
-          ? response
-          : response.data
-              .filter((region) => region.isActive !== false && region.code !== 'ALL_INDIA')
-              .map((region) => ({ id: region.id, name: region.name, code: region.code })),
-      providesTags: [{ type: 'Gifts', id: 'FORM_OPTIONS' }],
-    }),
+    getGiftRegionOptions: builder.query<GiftFormOptions['regionOptions'], void>(
+      {
+        query: () => ({
+          tag: 'Gifts',
+          url: '/regions',
+          mockResolver: () => mockDelay([]),
+        }),
+        transformResponse: (
+          response: RegionOptionsResponse | GiftFormOptions['regionOptions'],
+        ) =>
+          Array.isArray(response)
+            ? response
+            : response.data
+                .filter(
+                  (region) =>
+                    region.isActive !== false && region.code !== 'ALL_INDIA',
+                )
+                .map((region) => ({
+                  id: region.id,
+                  name: region.name,
+                  code: region.code,
+                })),
+        providesTags: [{ type: 'Gifts', id: 'FORM_OPTIONS' }],
+      },
+    ),
 
     createGift: builder.mutation<void, GiftFormValues>({
       query: (values) => ({
@@ -356,7 +450,10 @@ const giftsApi = baseApi.injectEndpoints({
         data: buildRewardPayload(values),
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: [{ type: 'Gifts', id: 'LIST' }, { type: 'Gifts', id: 'KPIS' }],
+      invalidatesTags: [
+        { type: 'Gifts', id: 'LIST' },
+        { type: 'Gifts', id: 'KPIS' },
+      ],
     }),
 
     updateGift: builder.mutation<void, { id: string; values: GiftFormValues }>({
@@ -374,14 +471,20 @@ const giftsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    setGiftStatus: builder.mutation<void, { id: string; status: Gift['status'] }>({
+    setGiftStatus: builder.mutation<
+      void,
+      { id: string; status: Gift['status'] }
+    >({
       query: ({ id }) => ({
         tag: 'Gifts',
         url: `/rewards/${id}/toggle-status`,
         method: 'PATCH',
         mockResolver: () => Promise.resolve(),
       }),
-      invalidatesTags: (_result, _error, { id }) => [{ type: 'Gifts', id }, { type: 'Gifts', id: 'LIST' }],
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Gifts', id },
+        { type: 'Gifts', id: 'LIST' },
+      ],
     }),
 
     deleteGift: builder.mutation<void, string>({

@@ -8,6 +8,7 @@ import {
   Button,
   Card,
   Checkbox,
+  CircularProgress,
   FormControlLabel,
   Grid,
   IconButton,
@@ -72,17 +73,11 @@ function FieldLabel({
   )
 }
 
-function readFileAsDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () =>
-      typeof reader.result === 'string'
-        ? resolve(reader.result)
-        : reject(new Error('Failed to read file'))
-    reader.onerror = () => reject(reader.error)
-    reader.readAsDataURL(file)
-  })
-}
+// file upload helpers (uses presigned URL + PUT)
+import {
+  uploadPartnerFile,
+  deletePartnerFile,
+} from '@/features/userManagement/services/fileUploadService'
 
 export function GiftFormPage() {
   const navigate = useNavigate()
@@ -122,6 +117,7 @@ export function GiftFormPage() {
       brand: gift.brand,
       giftImage: gift.giftImage,
       description: gift.description,
+      price: gift.price ? String(gift.price) : '',
 
       requiredPoints: String(gift.requiredPoints),
       availableQuantity: String(gift.availableQuantity),
@@ -136,6 +132,9 @@ export function GiftFormPage() {
         gift.chemistBasePoints === null ? '' : String(gift.chemistBasePoints),
     })
   }, [gift, reset])
+
+  const [uploading, setUploading] = useState(false)
+  const [uploadedFilePath, setUploadedFilePath] = useState<string | null>(null)
 
   if (isEdit && !isLoading && !gift) {
     return (
@@ -291,6 +290,16 @@ export function GiftFormPage() {
                 {...fieldLabelProps}
               />
             </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <FieldLabel>Price</FieldLabel>
+              <FormField
+                name="price"
+                control={control}
+                decimal
+                placeholder="e.g. 999.99"
+                {...fieldLabelProps}
+              />
+            </Grid>
           </Grid>
         </Card>
 
@@ -302,18 +311,51 @@ export function GiftFormPage() {
                 name="giftImage"
                 control={control}
                 render={({ field }) => (
-                  <FileDropzone
-                    file={null}
-                    accept="image/*"
-                    helperText="PNG or JPG, square thumbnail recommended"
-                    existingPreview={
-                      imageUrl ? { url: imageUrl, name: 'Gift image' } : null
-                    }
-                    onSelect={async (file) =>
-                      field.onChange(await readFileAsDataUrl(file))
-                    }
-                    onRemove={() => field.onChange('')}
-                  />
+                  <>
+                    <FileDropzone
+                      file={null}
+                      accept="image/*"
+                      helperText="PNG or JPG, square thumbnail recommended"
+                      existingPreview={
+                        imageUrl ? { url: imageUrl, name: 'Gift image' } : null
+                      }
+                      onSelect={async (file) => {
+                        setUploading(true)
+                        try {
+                          const uploaded = await uploadPartnerFile(
+                            file,
+                            'gifts',
+                          )
+                          const resolved =
+                            uploaded.viewUrl ||
+                            uploaded.url ||
+                            uploaded.path ||
+                            ''
+                          field.onChange(resolved)
+                          setUploadedFilePath(uploaded.path || null)
+                        } catch {
+                          toast.error('Failed to upload gift image.')
+                        } finally {
+                          setUploading(false)
+                        }
+                      }}
+                      onRemove={async () => {
+                        try {
+                          if (uploadedFilePath)
+                            await deletePartnerFile(uploadedFilePath)
+                        } catch {
+                          // ignore
+                        }
+                        setUploadedFilePath(null)
+                        field.onChange('')
+                      }}
+                    />
+                    {uploading && (
+                      <Box sx={{ mt: 1 }}>
+                        <CircularProgress size={18} />
+                      </Box>
+                    )}
+                  </>
                 )}
               />
             </Grid>

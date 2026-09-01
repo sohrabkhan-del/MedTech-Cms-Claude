@@ -242,6 +242,10 @@ export function GiftDetailsPage() {
               { label: 'Gift Code', value: gift.giftCode },
               { label: 'Gift Name', value: gift.giftName },
               { label: 'Category', value: gift.category },
+              {
+                label: 'Price',
+                value: gift.price ? gift.price.toLocaleString('en-IN') : '—',
+              },
               { label: 'Brand', value: gift.brand },
 
               {

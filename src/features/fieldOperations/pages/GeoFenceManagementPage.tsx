@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -67,27 +67,16 @@ export function GeoFenceManagementPage() {
   const toast = useToast()
 
   const [tab, setTab] = useState<RuleTab>('all')
-  const [tabChanging, setTabChanging] = useState(false)
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
-  const { regionId: topbarRegionId, dateRange, region } = useRegionFilter()
+  const { region } = useRegionFilter()
   const debouncedSearch = useDebouncedValue(search, 300)
   const [filterOpen, setFilterOpen] = useState(false)
   const [appliedFilters, setAppliedFilters] = useState<GeoFenceFilters>({
     userType: 'all',
     status: 'all',
   })
-
-  // show shimmer when topbar region or date range changes
-  useEffect(() => {
-    // Trigger shimmer and reset to first page when region or date range changes
-    const id = setTimeout(() => {
-      setTabChanging(true)
-      setPage(0)
-    }, 0)
-    return () => clearTimeout(id)
-  }, [topbarRegionId, dateRange])
 
   const regionSuffix = region && region !== 'All India' ? ` — ${region}` : ''
   const {
@@ -191,7 +180,8 @@ export function GeoFenceManagementPage() {
 
   function partnerDetailPath(row: GeoFence): string | null {
     if (row.userType !== 'Dealer' && row.userType !== 'Chemist') return null
-    return `${partnerBasePath[row.userType]}/${row.id}`
+    const partnerId = row.linkedUserId ?? row.id
+    return `${partnerBasePath[row.userType]}/${partnerId}`
   }
 
   function geoFenceEditPath(row: GeoFence): string {
@@ -226,7 +216,22 @@ export function GeoFenceManagementPage() {
       header: 'User Name',
       minWidth: 160,
       sortable: true,
-      render: (row) => row.userName,
+      render: (row) => {
+        const path = partnerDetailPath(row)
+        return (
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.8125rem',
+              cursor: path ? 'pointer' : 'default',
+              '&:hover': path ? { textDecoration: 'underline' } : undefined,
+            }}
+            onClick={path ? () => navigate(path) : undefined}
+          >
+            {row.userName}
+          </Typography>
+        )
+      },
     },
     {
       key: 'businessAddress',
@@ -286,7 +291,7 @@ export function GeoFenceManagementPage() {
     <>
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading || tabChanging ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -302,7 +307,7 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading || tabChanging ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -318,7 +323,7 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading || tabChanging ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -330,7 +335,7 @@ export function GeoFenceManagementPage() {
           )}
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
-          {isAnalyticsCardsLoading || tabChanging ? (
+          {isAnalyticsCardsLoading ? (
             <StatCardSkeleton />
           ) : (
             <StatCard
@@ -349,21 +354,11 @@ export function GeoFenceManagementPage() {
           tabs={RULE_TABS}
           value={tab}
           onChange={(next) => {
-            setTabChanging(true)
             setTab(next)
             setPage(0)
           }}
         />
       </Box>
-
-      {/* Reset tabChanging once both queries finish loading */}
-      {tabChanging &&
-        !isLoading &&
-        !isAnalyticsCardsLoading &&
-        (() => {
-          setTimeout(() => setTabChanging(false), 0)
-          return null
-        })()}
 
       <CommonTable
         tableKey="geo-fence-list"
@@ -379,7 +374,7 @@ export function GeoFenceManagementPage() {
           setRowsPerPage(nextRowsPerPage)
           setPage(0)
         }}
-        loading={isLoading || tabChanging}
+        loading={isLoading}
         getRowId={(row) => row.id}
         searchPlaceholder="Search geo fences…"
         searchValue={search}

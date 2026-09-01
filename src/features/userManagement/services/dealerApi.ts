@@ -197,6 +197,20 @@ function inferZone(state?: string | null): PartnerZone {
   return 'West'
 }
 
+function mapRegionToZone(
+  region: PartnerRegionApiItem | null | undefined,
+  fallbackState?: string | null,
+): PartnerZone {
+  const normalized = `${region?.name ?? ''} ${region?.code ?? ''}`.toLowerCase()
+
+  if (normalized.includes('north')) return 'North'
+  if (normalized.includes('south')) return 'South'
+  if (normalized.includes('east')) return 'East'
+  if (normalized.includes('west')) return 'West'
+
+  return inferZone(fallbackState)
+}
+
 function mapOnboardedBy(value?: string | null): OnboardedBy {
   return value === 'MR' ? 'MR' : 'Self'
 }
@@ -281,7 +295,7 @@ function mapPartnerDealer(item: PartnerDealerItem): Dealer {
     email: item.email ?? '-',
     phone: item.phone ?? '-',
     city: business?.city ?? '-',
-    zone: inferZone(business?.state),
+    zone: mapRegionToZone(item.region, business?.state),
     status: mapStatus(item.status, item.isBlocked),
     approvalStatus: item.approvalStatus ?? undefined,
     profileImageUrl:

@@ -12,6 +12,7 @@ import type {
 } from '@/features/systemUsers/types/systemUsers.types'
 import type { MedicalRepApiPayload } from '@/features/systemUsers/medicalRepFormSchema'
 import { mockDelay } from '@/services/mockDelay'
+import { fallbackRegions } from '@/services/regionsService'
 import {
   mapMrPartner,
   type MrPartnerApiItem,
@@ -69,13 +70,25 @@ export interface MedicalRepOption {
   id: string
   name: string
   employeeCode?: string
+  region?: string
+  regionId?: string
 }
 
 function mapMedicalRepOption(item: MedicalRepApiItem): MedicalRepOption {
+  const regionName =
+    typeof item.region === 'string'
+      ? item.region
+      : (item.region?.name ?? undefined)
+
   return {
     id: item.id,
     name: item.fullName || 'Unknown',
     employeeCode: item.employeeCode,
+    region: regionName,
+    regionId:
+      item.region && typeof item.region === 'object'
+        ? item.region.id
+        : undefined,
   }
 }
 
@@ -98,11 +111,19 @@ function mapStatusParam(status?: string) {
 
 function mapMrRegion(region?: { name: string } | null): PartnerZone {
   const name = region?.name?.trim()
-  if (name === 'North' || name === 'South' || name === 'East' || name === 'West') return name
+  if (
+    name === 'North' ||
+    name === 'South' ||
+    name === 'East' ||
+    name === 'West'
+  )
+    return name
   return 'North'
 }
 
-function mapMedicalRepDetail(data: MedicalRepDetailApiResponse['data']): MedicalRepresentative {
+function mapMedicalRepDetail(
+  data: MedicalRepDetailApiResponse['data'],
+): MedicalRepresentative {
   return {
     id: data.id,
     referenceId: data.referenceId,
@@ -134,7 +155,10 @@ function mapMedicalRepDetail(data: MedicalRepDetailApiResponse['data']): Medical
 
 const medicalRepsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
-    getMedicalReps: builder.query<MedicalRepresentative[], MedicalRepQueryParams | void>({
+    getMedicalReps: builder.query<
+      MedicalRepresentative[],
+      MedicalRepQueryParams | void
+    >({
       query: (params) => ({
         tag: 'MedicalRepDetail',
         url: '/medical-representatives',
@@ -149,7 +173,9 @@ const medicalRepsApi = baseApi.injectEndpoints({
         },
         mockResolver: () => mockDelay(mockMedicalReps),
       }),
-      transformResponse: (response: MedicalRepListApiResponse | MedicalRepresentative[]) =>
+      transformResponse: (
+        response: MedicalRepListApiResponse | MedicalRepresentative[],
+      ) =>
         Array.isArray(response)
           ? response
           : response.data.items.map(mapMedicalRepDetail),
@@ -162,18 +188,29 @@ const medicalRepsApi = baseApi.injectEndpoints({
           : [{ type: 'MedicalReps' as const, id: 'LIST' }],
     }),
 
-    getMedicalRepDetail: builder.query<MedicalRepresentative | undefined, string>({
+    getMedicalRepDetail: builder.query<
+      MedicalRepresentative | undefined,
+      string
+    >({
       query: (id) => ({
         tag: 'MedicalRepDetail',
         url: `/medical-representatives/${id}`,
         mockResolver: () => mockDelay(getMedicalRepById(id)),
       }),
-      transformResponse: (response: MedicalRepDetailApiResponse | MedicalRepresentative | undefined) =>
-        response && 'data' in response ? mapMedicalRepDetail(response.data) : response,
+      transformResponse: (
+        response:
+          MedicalRepDetailApiResponse | MedicalRepresentative | undefined,
+      ) =>
+        response && 'data' in response
+          ? mapMedicalRepDetail(response.data)
+          : response,
       providesTags: (_result, _error, id) => [{ type: 'MedicalReps', id }],
     }),
 
-    getMedicalRepOptions: builder.query<MedicalRepOption[], { search?: string } | void>({
+    getMedicalRepOptions: builder.query<
+      MedicalRepOption[],
+      { search?: string; regionId?: string } | void
+    >({
       query: (params) => ({
         tag: 'MedicalRepDetail',
         url: '/medical-representatives',
@@ -182,24 +219,56 @@ const medicalRepsApi = baseApi.injectEndpoints({
           limit: 50,
           status: 'ACTIVE',
           search: params?.search || undefined,
+          regionId: params?.regionId || undefined,
           sortBy: 'createdAt',
           sortOrder: 'desc',
         },
-        mockResolver: () => mockDelay(mockMedicalReps.map((mr) => ({ id: mr.id, name: mr.name }))),
+        mockResolver: () =>
+          mockDelay(
+            mockMedicalReps
+              .filter((mr) => {
+                if (!params?.regionId) return true
+                const mrRegionId =
+                  mr.regionId ??
+                  fallbackRegions.find(
+                    (region) =>
+                      region.name.toLowerCase() === mr.region.toLowerCase(),
+                  )?.id
+                return mrRegionId === params.regionId
+              })
+              .map((mr) => ({
+                id: mr.id,
+                name: mr.name,
+                employeeCode: mr.employeeCode,
+                region: mr.region,
+                regionId:
+                  mr.regionId ??
+                  fallbackRegions.find(
+                    (region) =>
+                      region.name.toLowerCase() === mr.region.toLowerCase(),
+                  )?.id,
+              })),
+          ),
       }),
-      transformResponse: (response: MedicalRepListApiResponse | MedicalRepOption[]) =>
+      transformResponse: (
+        response: MedicalRepListApiResponse | MedicalRepOption[],
+      ) =>
         Array.isArray(response)
           ? response
           : response.data.items.map(mapMedicalRepOption),
       providesTags: [{ type: 'MedicalReps', id: 'OPTIONS' }],
     }),
 
-    getReplacementMrs: builder.query<MedicalRepresentative[], { region: PartnerZone; excludeId: string }>({
+    getReplacementMrs: builder.query<
+      MedicalRepresentative[],
+      { region: PartnerZone; excludeId: string }
+    >({
       query: ({ region, excludeId }) => ({
         tag: 'MedicalReps',
         url: '/medical-reps/replacement-options',
         params: { region, excludeId },
-        mockResolver: () => mockDelay(getReplacementMrOptions(region, excludeId)),
+        mockResolver: () =>
+          mockDelay(getReplacementMrOptions(region, excludeId)),
       }),
       providesTags: [{ type: 'MedicalReps', id: 'REPLACEMENT_OPTIONS' }],
     }),
@@ -215,7 +284,10 @@ const medicalRepsApi = baseApi.injectEndpoints({
       invalidatesTags: [{ type: 'MedicalReps', id: 'LIST' }],
     }),
 
-    updateMedicalRep: builder.mutation<void, { id: string; values: MedicalRepApiPayload }>({
+    updateMedicalRep: builder.mutation<
+      void,
+      { id: string; values: MedicalRepApiPayload }
+    >({
       query: ({ id, values }) => ({
         tag: 'MedicalRepDetail',
         url: `/medical-representatives/${id}`,
@@ -223,7 +295,10 @@ const medicalRepsApi = baseApi.injectEndpoints({
         data: values,
         mockResolver: () => Promise.resolve(),
       }),
-      onQueryStarted: async ({ id, values }, { dispatch, getState, queryFulfilled }) => {
+      onQueryStarted: async (
+        { id, values },
+        { dispatch, getState, queryFulfilled },
+      ) => {
         const patches = [
           dispatch(
             medicalRepsApi.util.updateQueryData(
@@ -280,14 +355,20 @@ const medicalRepsApi = baseApi.injectEndpoints({
       ],
     }),
 
-    setMedicalRepStatus: builder.mutation<void, { id: string; status: PartnerStatus }>({
+    setMedicalRepStatus: builder.mutation<
+      void,
+      { id: string; status: PartnerStatus }
+    >({
       query: ({ id, status }) => ({
         tag: 'MedicalRepDetail',
         url: `/medical-representatives/${id}/${status === 'active' ? 'active' : 'inactive'}`,
         method: 'PATCH',
         mockResolver: () => Promise.resolve(),
       }),
-      onQueryStarted: async ({ id, status }, { dispatch, getState, queryFulfilled }) => {
+      onQueryStarted: async (
+        { id, status },
+        { dispatch, getState, queryFulfilled },
+      ) => {
         const patches = [
           dispatch(
             medicalRepsApi.util.updateQueryData(

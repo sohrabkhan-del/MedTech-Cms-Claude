@@ -77,7 +77,8 @@ function mapWalletPartner(item: PartnerApiItem): WalletPartnerRow {
     id: item.id,
     referenceId: item.referenceId ?? '-',
     userType: mapUserType(item.type),
-    businessName: business?.outletName || item.businessName || item.ownerName || '-',
+    businessName:
+      business?.outletName || item.businessName || item.ownerName || '-',
     mobileNumber: item.phone ?? '-',
     email: item.email ?? '-',
     regionId: item.regionId ?? item.region?.id ?? '',
@@ -94,16 +95,20 @@ export interface PartnerWalletBalance {
   totalPointsRedeemed: number
   role: string
   general: number
+  seasonalPoints: number
 }
 
 interface PartnerWalletBalanceApiResponse {
   success: boolean
   data: {
-    total_points: number
-    total_points_earned: number
-    total_points_redeemed: number
-    role: string
-    general: number
+    total_points?: number
+    total_points_earned?: number
+    total_points_redeemed?: number
+    role?: string
+    general?: number
+    generalPoints?: number
+    seasonalPoints?: number
+    seasonal_points?: number
     seasonalCampaignRewards?: unknown[]
   }
 }
@@ -113,11 +118,12 @@ function mapPartnerWalletBalance(
 ): PartnerWalletBalance {
   const data = response.data
   return {
-    totalPoints: data.total_points,
-    totalPointsEarned: data.total_points_earned,
-    totalPointsRedeemed: data.total_points_redeemed,
-    role: data.role,
-    general: data.general,
+    totalPoints: data.total_points ?? 0,
+    totalPointsEarned: data.total_points_earned ?? 0,
+    totalPointsRedeemed: data.total_points_redeemed ?? 0,
+    role: data.role ?? '',
+    general: data.general ?? data.generalPoints ?? 0,
+    seasonalPoints: data.seasonalPoints ?? data.seasonal_points ?? 0,
   }
 }
 
@@ -163,7 +169,8 @@ function mapPartnerWalletDetails(
     partnerId: partner.id,
     referenceId: partner.referenceId ?? '-',
     userType: mapUserType(partner.type),
-    businessName: business?.outletName || partner.businessName || partner.ownerName || '-',
+    businessName:
+      business?.outletName || partner.businessName || partner.ownerName || '-',
     ownerName: partner.ownerName ?? '-',
     email: partner.email ?? '-',
     mobileNumber: partner.phone ?? '-',
@@ -213,7 +220,10 @@ const walletPartnersApi = baseApi.injectEndpoints({
       providesTags: (result) =>
         result
           ? [
-              ...result.items.map(({ id }) => ({ type: 'Partners' as const, id })),
+              ...result.items.map(({ id }) => ({
+                type: 'Partners' as const,
+                id,
+              })),
               { type: 'Partners' as const, id: 'LIST' },
             ]
           : [{ type: 'Partners' as const, id: 'LIST' }],
@@ -239,7 +249,9 @@ const walletPartnersApi = baseApi.injectEndpoints({
           }),
       }),
       transformResponse: mapPartnerWalletBalance,
-      providesTags: (_result, _error, partnerId) => [{ type: 'Wallets', id: partnerId }],
+      providesTags: (_result, _error, partnerId) => [
+        { type: 'Wallets', id: partnerId },
+      ],
     }),
 
     /** GET /admin/wallet/{partnerId}/details — full Wallet Details page data:
@@ -248,7 +260,10 @@ const walletPartnersApi = baseApi.injectEndpoints({
       query: (partnerId) => ({
         tag: 'Wallets',
         url: `/admin/wallet/${partnerId}/details`,
-        mockResolver: () => Promise.reject(new Error('Wallet details has no mock mode — real API only.')),
+        mockResolver: () =>
+          Promise.reject(
+            new Error('Wallet details has no mock mode — real API only.'),
+          ),
       }),
       transformResponse: mapPartnerWalletDetails,
       providesTags: (_result, _error, partnerId) => [
@@ -262,7 +277,12 @@ const walletPartnersApi = baseApi.injectEndpoints({
      *  it's a credit (Add Points) or debit (Remove Points). */
     creditPartnerWallet: builder.mutation<
       void,
-      { partnerId: string; points: number; note: string; type: 'credit' | 'debit' }
+      {
+        partnerId: string
+        points: number
+        note: string
+        type: 'credit' | 'debit'
+      }
     >({
       query: ({ partnerId, points, note, type }) => ({
         tag: 'Wallets',

@@ -62,7 +62,7 @@ export function ChemistDetailsPage() {
             shopLabel="Chemist Shop Name"
           />
 
-          <PartnerStatisticsCards partner={chemist} />
+          <PartnerStatisticsCards partner={chemist} partnerId={chemistId} />
 
           <Grid container spacing={3} sx={{ mb: 3 }}>
             <Grid size={12}>

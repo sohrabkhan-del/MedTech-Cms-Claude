@@ -70,6 +70,11 @@ interface PartnerApiItem {
   businessName?: string | null
   ownerName?: string | null
   type: PartnerType
+  region?: {
+    id: string
+    code?: string | null
+    name?: string | null
+  } | null
   status?: string | null
   approvalStatus?: string | null
   isBlocked?: boolean
@@ -116,6 +121,20 @@ function inferZone(state?: string | null): PartnerZone {
   return 'West'
 }
 
+function mapRegionToZone(
+  region: PartnerApiItem['region'],
+  fallbackState?: string | null,
+): PartnerZone {
+  const normalized = `${region?.name ?? ''} ${region?.code ?? ''}`.toLowerCase()
+
+  if (normalized.includes('north')) return 'North'
+  if (normalized.includes('south')) return 'South'
+  if (normalized.includes('east')) return 'East'
+  if (normalized.includes('west')) return 'West'
+
+  return inferZone(fallbackState)
+}
+
 function mapPartnerStatus(
   status?: string | null,
   isBlocked?: boolean,
@@ -139,7 +158,7 @@ function mapPartnerToGeoFence(item: PartnerApiItem): GeoFence {
   ]
     .filter(Boolean)
     .join(', ')
-  const zone = inferZone(business?.state)
+  const zone = mapRegionToZone(item.region, business?.state)
 
   return {
     id: item.id,

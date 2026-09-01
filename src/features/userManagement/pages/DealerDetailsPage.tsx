@@ -62,7 +62,7 @@ export function DealerDetailsPage() {
             shopLabel="Business Name"
           />
 
-          <PartnerStatisticsCards partner={dealer} />
+          <PartnerStatisticsCards partner={dealer} partnerId={dealerId} />
 
           <Typography sx={{ fontWeight: 700, fontSize: '1rem', mb: 2 }}>
             Godowns ({dealer.godowns.length})

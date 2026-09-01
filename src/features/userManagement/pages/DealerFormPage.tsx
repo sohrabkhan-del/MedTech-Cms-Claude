@@ -232,8 +232,6 @@ export function DealerFormPage() {
   const [regions, setRegions] = useState<RegionOption[]>(
     fallbackRegions.filter((region) => region.code !== 'ALL_INDIA'),
   )
-  const { data: mrOptions = [], isFetching: isMrOptionsLoading } =
-    useGetMedicalRepOptionsQuery()
   const isSubmitting = isCreating || isUpdating
   const [mapPickerIndex, setMapPickerIndex] = useState<number | null>(null)
   const [removeTargetIndex, setRemoveTargetIndex] = useState<number | null>(
@@ -262,6 +260,72 @@ export function DealerFormPage() {
       resolver: zodResolver(dealerFormSchema),
       defaultValues: dealerFormDefaults,
     })
+
+  const selectedRegionId = watch('regionId')
+  const { data: mrOptions = [], isFetching: isMrOptionsLoading } =
+    useGetMedicalRepOptionsQuery({
+      regionId: selectedRegionId || undefined,
+    })
+  const [visibleMrCount, setVisibleMrCount] = useState(20)
+
+  useEffect(() => {
+    setVisibleMrCount(20)
+  }, [selectedRegionId])
+
+  const selectedRegionName = useMemo(
+    () => regions.find((region) => region.id === selectedRegionId)?.name,
+    [regions, selectedRegionId],
+  )
+
+  const filteredMrOptions = useMemo(() => {
+    if (!selectedRegionId) return mrOptions
+
+    return mrOptions.filter((mr) => {
+      if (mr.regionId && mr.regionId === selectedRegionId) return true
+      if (mr.region && selectedRegionName) {
+        return mr.region.toLowerCase() === selectedRegionName.toLowerCase()
+      }
+      return false
+    })
+  }, [mrOptions, selectedRegionId, selectedRegionName])
+
+  const visibleMrOptions = useMemo(
+    () => filteredMrOptions.slice(0, visibleMrCount),
+    [filteredMrOptions, visibleMrCount],
+  )
+
+  const handleMrListScroll = (event: React.UIEvent<HTMLUListElement>) => {
+    const listbox = event.currentTarget
+    const threshold = 80
+    const isNearBottom =
+      listbox.scrollTop + listbox.clientHeight >=
+      listbox.scrollHeight - threshold
+
+    if (isNearBottom && visibleMrCount < filteredMrOptions.length) {
+      setVisibleMrCount((prev) => Math.min(prev + 20, filteredMrOptions.length))
+    }
+  }
+
+  useEffect(() => {
+    const selectedMrId = watch('assignedMedicalRepresentativeId')
+    if (!selectedMrId) return
+
+    const selectedMr = mrOptions.find((mr) => mr.id === selectedMrId)
+    if (!selectedMr) return
+
+    const mrRegionId = selectedMr.regionId
+    const mrRegionName = selectedMr.region?.toLowerCase()
+    const isAllowedByRegion =
+      !selectedRegionId ||
+      (mrRegionId && mrRegionId === selectedRegionId) ||
+      (mrRegionName &&
+        selectedRegionName &&
+        mrRegionName === selectedRegionName.toLowerCase())
+
+    if (!isAllowedByRegion) {
+      setValue('assignedMedicalRepresentativeId', '', { shouldValidate: true })
+    }
+  }, [mrOptions, selectedRegionId, selectedRegionName, setValue, watch])
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -724,6 +788,42 @@ export function DealerFormPage() {
                 name="regionId"
                 control={control}
                 select
+                onChange={(event) => {
+                  const nextRegionId = event.target.value
+                  setValue('regionId', nextRegionId, { shouldValidate: true })
+
+                  if (!nextRegionId) {
+                    setValue('assignedMedicalRepresentativeId', '', {
+                      shouldValidate: true,
+                    })
+                    return
+                  }
+
+                  const selectedMrId = watch('assignedMedicalRepresentativeId')
+                  if (selectedMrId) {
+                    const selectedMr = mrOptions.find(
+                      (mr) => mr.id === selectedMrId,
+                    )
+                    const mrRegionId = selectedMr?.regionId
+                    const mrRegionName = selectedMr?.region?.toLowerCase()
+                    const regionName = regions.find(
+                      (region) => region.id === nextRegionId,
+                    )?.name
+
+                    const matchesRegion =
+                      (!mrRegionId && !mrRegionName) ||
+                      (mrRegionId && mrRegionId === nextRegionId) ||
+                      (mrRegionName &&
+                        regionName &&
+                        mrRegionName === regionName.toLowerCase())
+
+                    if (!matchesRegion) {
+                      setValue('assignedMedicalRepresentativeId', '', {
+                        shouldValidate: true,
+                      })
+                    }
+                  }
+                }}
                 {...fieldLabelProps}
               >
                 <MenuItem value="">
@@ -743,8 +843,11 @@ export function DealerFormPage() {
                 control={control}
                 render={({ field, fieldState }) => (
                   <Autocomplete
-                    options={mrOptions}
+                    options={visibleMrOptions}
                     loading={isMrOptionsLoading}
+                    ListboxProps={{
+                      onScroll: handleMrListScroll,
+                    }}
                     getOptionLabel={(option) =>
                       option.employeeCode
                         ? `${option.name} (${option.employeeCode})`
@@ -754,16 +857,37 @@ export function DealerFormPage() {
                       option.id === value.id
                     }
                     value={
-                      mrOptions.find((mr) => mr.id === field.value) ?? null
+                      filteredMrOptions.find((mr) => mr.id === field.value) ??
+                      null
                     }
-                    onChange={(_, selected) =>
+                    onChange={(_, selected) => {
                       field.onChange(selected?.id ?? '')
-                    }
+
+                      if (selected && !selectedRegionId) {
+                        const autoRegionId =
+                          selected.regionId ??
+                          regions.find(
+                            (region) =>
+                              region.name.toLowerCase() ===
+                              (selected.region ?? '').toLowerCase(),
+                          )?.id
+
+                        if (autoRegionId) {
+                          setValue('regionId', autoRegionId, {
+                            shouldValidate: true,
+                          })
+                        }
+                      }
+                    }}
                     size="small"
                     renderInput={(params) => (
                       <TextField
                         {...params}
-                        placeholder="Search medical representatives…"
+                        placeholder={
+                          selectedRegionId
+                            ? 'Search MR in selected region…'
+                            : 'Search medical representatives…'
+                        }
                         error={!!fieldState.error}
                         helperText={fieldState.error?.message}
                       />

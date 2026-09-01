@@ -12,6 +12,7 @@ import {
 import type { RecentScan } from '@/features/dashboard/types/dashboard.types'
 
 const MAX_VISIBLE_SCANS = 10
+const FALLBACK_INITIAL = '?'
 
 interface RecentScansWidgetProps {
   recentScans: RecentScan[]
@@ -142,7 +143,7 @@ export function RecentScansWidget({
                   fontWeight: 700,
                 }}
               >
-                {scan.user.slice(0, 1)}
+                {scan.user?.slice(0, 1) || FALLBACK_INITIAL}
               </Avatar>
               <Stack sx={{ flexGrow: 1, minWidth: 0 }}>
                 <Typography

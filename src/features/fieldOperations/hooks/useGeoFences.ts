@@ -39,8 +39,8 @@ export function useGeoFences(
     userType,
   })
 
-  const isLoading = geoFencesResult.isLoading
-  const isAnalyticsCardsLoading = analyticsCardsResult.isLoading
+  const isLoading = geoFencesResult.isFetching
+  const isAnalyticsCardsLoading = analyticsCardsResult.isFetching
   const error = geoFencesResult.error
     ? getApiErrorMessage(geoFencesResult.error, 'Failed to load geo fences.')
     : analyticsCardsResult.error

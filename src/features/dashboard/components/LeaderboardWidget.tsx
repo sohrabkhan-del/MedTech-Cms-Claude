@@ -7,6 +7,13 @@ import type { LeaderboardEntry } from '@/features/dashboard/types/dashboard.type
 
 const rankColors = ['#F7941D', '#9CA3AF', '#B08D57']
 
+function formatPoints(points: number | null | undefined) {
+  return (typeof points === 'number' && Number.isFinite(points)
+    ? points
+    : 0
+  ).toLocaleString('en-IN')
+}
+
 interface LeaderboardWidgetProps {
   leaderboard: LeaderboardEntry[]
   title?: string
@@ -149,7 +156,7 @@ export function LeaderboardWidget({
                 flexShrink: 0,
               }}
             >
-              {`${entry.Points.toLocaleString('en-IN')} `}
+              {`${formatPoints(entry.Points)} `}
             </Typography>
           </Stack>
         ))}

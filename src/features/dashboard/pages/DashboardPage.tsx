@@ -21,7 +21,6 @@ import { RecentRedemptionsWidget } from '@/features/dashboard/components/RecentR
 import { RevenueSummaryWidget } from '@/features/dashboard/components/RevenueSummaryWidget'
 import { LeaderboardWidget } from '@/features/dashboard/components/LeaderboardWidget'
 import { NotificationsWidget } from '@/features/dashboard/components/NotificationsWidget'
-import { useDashboardWidgetsData } from '@/features/dashboard/hooks/useDashboardWidgetsData'
 import {
   useActivityTimelineCard,
   useDashboardOverviewCards,
@@ -40,6 +39,7 @@ import type {
   RecentScan,
   Redemption,
 } from '@/features/dashboard/types/dashboard.types'
+import type { RecentScanCard } from '@/features/dashboard/types/analyticsCards.types'
 import type {
   DateRangeValue,
   ScanDateRangeValue,
@@ -53,10 +53,30 @@ function formatChange(value: number) {
   }
 }
 
+function textOrFallback(value: string | null | undefined, fallback: string) {
+  const text = value?.trim()
+  return text || fallback
+}
+
+function numberOrFallback(value: number | null | undefined, fallback = 0) {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback
+}
+
+function mapRecentScanStatus(
+  status: RecentScanCard['status'] | null | undefined,
+): RecentScan['result'] {
+  const normalized = String(status ?? '').toLowerCase()
+  if (normalized === 'success' || normalized === 'approved') return 'approved'
+  if (normalized === 'failed' || normalized === 'rejected') return 'rejected'
+  if (normalized === 'pending' || normalized === 'pending_approval') {
+    return normalized
+  }
+  return 'pending'
+}
+
 export function DashboardPage() {
   const navigate = useNavigate()
   const currentUser = useAppSelector(selectCurrentUser)
-  const { isLoading: widgetsLoading } = useDashboardWidgetsData()
 
   const [scanActivityDateRange, setScanActivityDateRange] =
     useState<DateRangeValue>('7')
@@ -100,7 +120,7 @@ export function DashboardPage() {
     title: 'Dashboard',
     subtitle:
       'Real-time overview of scans, rewards, and schemes across the network.',
-    isLoading: widgetsLoading || overviewCardsLoading,
+    isLoading: overviewCardsLoading,
   })
 
   return (
@@ -238,12 +258,12 @@ export function DashboardPage() {
             <RecentScansWidget
               recentScans={recentScans.map((scan) => ({
                 id: scan.id,
-                user: scan.contactName,
-                role: scan.role,
-                business: scan.outletName,
-                region: scan.region,
-                result: scan.status.toLowerCase() as RecentScan['result'],
-                time: scan.timeAgo,
+                user: textOrFallback(scan.contactName, 'Unknown user'),
+                role: textOrFallback(scan.role, 'Unknown role'),
+                business: textOrFallback(scan.outletName, 'Unknown outlet'),
+                region: textOrFallback(scan.region, 'Unknown region'),
+                result: mapRecentScanStatus(scan.status),
+                time: textOrFallback(scan.timeAgo, 'Just now'),
               }))}
               dateRange={recentScansDateRange}
               onDateRangeChange={setRecentScansDateRange}
@@ -268,9 +288,9 @@ export function DashboardPage() {
               leaderboard={topDealers.map((dealer, index) => ({
                 id: dealer.partnerId,
                 rank: index + 1,
-                name: dealer.businessName,
-                region: dealer.region,
-                Points: dealer.earnedPoints,
+                name: textOrFallback(dealer.businessName, 'Unknown dealer'),
+                region: textOrFallback(dealer.region, 'Unknown region'),
+                Points: numberOrFallback(dealer.earnedPoints, dealer.scanCount),
                 linkTo: `/partners/dealers/${dealer.partnerId}`,
               }))}
               title="Top Dealers"
@@ -287,9 +307,12 @@ export function DashboardPage() {
               leaderboard={topChemists.map((chemist, index) => ({
                 id: chemist.partnerId,
                 rank: index + 1,
-                name: chemist.businessName,
-                region: chemist.region,
-                Points: chemist.earnedPoints,
+                name: textOrFallback(chemist.businessName, 'Unknown chemist'),
+                region: textOrFallback(chemist.region, 'Unknown region'),
+                Points: numberOrFallback(
+                  chemist.earnedPoints,
+                  chemist.redemptionCount,
+                ),
                 linkTo: `/partners/chemists/${chemist.partnerId}`,
               }))}
               title="Top Chemists"
@@ -306,11 +329,15 @@ export function DashboardPage() {
               leaderboard={topProductCards.map((product, index) => ({
                 id: product.productId,
                 rank: index + 1,
-                name: ((product.productName && product.productName.trim()) ||
+                name:
+                  product.productName?.trim() ||
                   product.productCode ||
-                  product.productId) as string,
-                region: product.category,
-                Points: product.earnedPoints,
+                  product.productId,
+                region: textOrFallback(product.category, 'Unknown category'),
+                Points: numberOrFallback(
+                  product.earnedPoints,
+                  product.scanCount,
+                ),
                 linkTo: `/inventory/product-master/${product.productId}`,
               }))}
               title="Top Products"

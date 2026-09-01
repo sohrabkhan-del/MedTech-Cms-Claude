@@ -37,6 +37,7 @@ export function PartnerSummaryHeader({
 }: PartnerSummaryHeaderProps) {
   const navigate = useNavigate()
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  console.log('PartnerSummaryHeader partner:', partner) // Debugging log
   const isActive = partner.status === 'active'
   const assignedMrLabel = partner.assignedMrName ?? partner.assignedMr
   const assignedMrMeta = [partner.assignedMrCode, partner.assignedMrPhone]
@@ -189,20 +190,6 @@ export function PartnerSummaryHeader({
                 </Typography>
                 <Typography sx={{ fontWeight: 600, fontSize: '0.875rem' }}>
                   {partner.geoLock.active ? 'Tagged' : 'Pending'}
-                </Typography>
-              </Grid>
-              <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-                <Typography variant="caption" sx={{ display: 'block' }}>
-                  Points Earned
-                </Typography>
-                <Typography
-                  sx={{
-                    fontWeight: 700,
-                    fontSize: '0.875rem',
-                    color: 'primary.main',
-                  }}
-                >
-                  {partner.availablePoints.toLocaleString('en-IN')}
                 </Typography>
               </Grid>
             </Grid>

@@ -268,21 +268,11 @@ export function PointValueRulesListPage() {
           mb: 2.5,
           mt: 7,
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'flex-end',
           flexWrap: 'wrap',
           gap: 1.5,
         }}
       >
-        <ModularTabs
-          tabs={PARTNER_TYPE_TABS}
-          value={partnerTypeTab}
-          onChange={(next) => {
-            setTabChanging(true)
-            setPartnerTypeTab(next)
-            setPage(0)
-          }}
-          variant="filled"
-        />
         <Button
           variant="outlined"
           color="secondary"
